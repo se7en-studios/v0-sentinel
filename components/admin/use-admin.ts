@@ -20,7 +20,7 @@ import { useWorkspace } from "@/lib/admin/store";
 import { fetchWeather, type Weather } from "@/lib/admin/weather";
 import { HA_PER_DETECTION } from "@/lib/admin/history";
 import { nearestPlace } from "@/lib/admin/places";
-import { HORIZONS, spreadPolygon } from "@/lib/admin/spread";
+import { HORIZONS, spreadLevel, spreadPolygon, spreadRate, spreadRingsKm } from "@/lib/admin/spread";
 import { fmtArea, areaHa, centerOf } from "@/lib/admin/geo";
 import {
   downloadDataUrl,
@@ -48,6 +48,7 @@ import type {
   HourPoint,
   KeyEvent,
   SensorState,
+  SpreadInfo,
   Tab,
 } from "./ctx";
 import type { MapHandle } from "./map-view";
@@ -154,6 +155,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   const [followId, setFollowIdRaw] = useState<string | null>(null);
   const [zoneRisk, setZoneRisk] = useState<Ctx["zoneRisk"]>({});
   const [spread, setSpread] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [spreadInfo, setSpreadInfo] = useState<SpreadInfo[]>([]);
   const windCache = useRef(new Map<string, Weather>());
   const [payload, setPayload] = useState<FiresPayload | null>(null);
   const [firesError, setFiresError] = useState<string | null>(null);
@@ -638,6 +640,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   useEffect(() => {
     if (!predH) {
       setSpread(null);
+      setSpreadInfo([]);
       return;
     }
     let cancelled = false;
@@ -673,6 +676,25 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
         }
       }
       setSpread({ type: "FeatureCollection", features: feats });
+      setSpreadInfo(
+        rows.flatMap(({ c, w }) => {
+          if (!w) return [];
+          const rate = spreadRate(w);
+          return [
+            {
+              near: c.near,
+              wind: w.wind,
+              windDir: w.windDir,
+              rh: w.rh,
+              temp: w.temp,
+              rain7d: w.rain7d,
+              rate,
+              level: spreadLevel(rate),
+              reachKm: spreadRingsKm(w, predH).head,
+            },
+          ];
+        }),
+      );
     });
     return () => {
       cancelled = true;
@@ -884,6 +906,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     hours,
     setHours,
     predH,
+    spreadInfo,
     setPredH,
     feed,
     rtb,
@@ -999,18 +1022,34 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     if (!payload) return;
     const prev = seenAlerts.current;
     seenAlerts.current = new Set(alertIds);
-    if (!prev || !s.notify.browser || !s.notify.onZoneHit) return;
+    if (!prev || !s.notify.onZoneHit) return;
     for (const id of alertIds) {
-      if (
-        prev.has(id) ||
-        typeof Notification === "undefined" ||
-        Notification.permission !== "granted"
-      )
-        continue;
-      new Notification("Sentinel: foco detectado", {
-        body: `${ws.meta[id]?.name ?? "Zona"}: ${zoneHits[id]?.recent ?? 0} focos en 48 h`,
-        tag: id,
+      if (prev.has(id)) continue;
+      const name = ws.meta[id]?.name ?? "Zona";
+      const hits = zoneHits[id]?.recent ?? 0;
+      const zone = ws.features.find((f) => f.id === id);
+      toast.warning(`Foco nuevo en ${name}`, {
+        description: `${hits} ${hits === 1 ? "detección" : "detecciones"} satelitales en 48 h`,
+        duration: 12_000,
+        action: zone
+          ? {
+              label: "Ver",
+              onClick: () => {
+                goTab("general");
+                mapRef.current?.fitFeature(zone);
+              },
+            }
+          : undefined,
       });
+      if (
+        s.notify.browser &&
+        typeof Notification !== "undefined" &&
+        Notification.permission === "granted"
+      )
+        new Notification("Sentinel: foco detectado", {
+          body: `${name}: ${hits} focos en 48 h`,
+          tag: id,
+        });
     }
   }, [
     alertIds,

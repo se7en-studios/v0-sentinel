@@ -129,9 +129,41 @@ function AnalysisTab({ ctx }: { ctx: Ctx }) {
             <span key={h}>+{h}h</span>
           ))}
         </div>
+        {ctx.predH > 0 && ctx.spreadInfo.length > 0 && (
+          <ul className="mt-3 space-y-1.5" aria-label="Condiciones de propagación">
+            {ctx.spreadInfo.map((c, i) => (
+              <li
+                key={`${c.near}-${i}`}
+                className="rounded-lg bg-foreground/[0.04] px-2.5 py-2 text-[11px] leading-snug"
+              >
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="truncate font-medium">{c.near}</span>
+                  <span
+                    className={cn(
+                      "shrink-0 text-[10px] font-semibold uppercase tracking-wide",
+                      c.level === "bajo" && "text-primary",
+                      c.level === "moderado" && "text-[#8a6a00]",
+                      c.level === "alto" && "text-[#c2540a]",
+                      c.level === "extremo" && "text-[#b83a3a]",
+                    )}
+                  >
+                    {c.level}
+                  </span>
+                </div>
+                <div className="num mt-0.5 text-foreground/55">
+                  Viento {Math.round(c.wind)} km/h del {compass(c.windDir)} · HR {Math.round(c.rh)} % ·{" "}
+                  {Math.round(c.temp)} °C · lluvia 7 d {Math.round(c.rain7d)} mm
+                </div>
+                <div className="num text-foreground/55">
+                  ≈ {c.rate.toFixed(1)} km/h · avanzaría ~{c.reachKm.toFixed(1)} km en {ctx.predH} h
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
         <p className="mt-2 text-[10.5px] leading-snug text-foreground/45">
           Elipse a favor del viento desde las concentraciones principales.
-          Modelo simplificado: no considera combustible ni pendiente.
+          Modelo simplificado (viento, humedad, temperatura y lluvia): no considera combustible ni pendiente.
         </p>
       </Card>
 
@@ -374,6 +406,9 @@ function NotesTab({ ctx }: { ctx: Ctx }) {
     </Card>
   );
 }
+
+const POINTS = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"];
+const compass = (deg: number) => POINTS[Math.round((((deg % 360) + 360) % 360) / 45) % 8];
 
 export function GeneralPanel({ ctx }: { ctx: Ctx }) {
   const [seg, setSeg] = useState<Seg>("Capas");

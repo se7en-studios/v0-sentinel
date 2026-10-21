@@ -15,6 +15,18 @@ import type { Weather } from "@/lib/admin/weather";
 import type { OpsEntry, UnitState } from "@/lib/admin/resources";
 import type { MapHandle, ShowLayers } from "./map-view";
 
+export interface SpreadInfo {
+  near: string;
+  wind: number;
+  windDir: number;
+  rh: number;
+  temp: number;
+  rain7d: number;
+  rate: number;
+  level: "bajo" | "moderado" | "alto" | "extremo";
+  reachKm: number;
+}
+
 export type Tab =
   "general" | "zonas" | "drones" | "recursos" | "metricas" | "config";
 
@@ -126,6 +138,7 @@ export interface Ctx {
   hours: number;
   setHours: (h: number) => void;
   predH: number;
+  spreadInfo: SpreadInfo[];
   setPredH: (h: number) => void;
   feed: FeedItem[];
   rtb: Set<string>;
