@@ -1,6 +1,7 @@
 "use client";
 
 import { cleanRules } from "./rules";
+import { EMPTY_OPS, cleanOps, type OpsState } from "./resources";
 import type { CloudCopy } from "./cloud";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -20,6 +21,7 @@ const EMPTY: Workspace = {
   meta: {},
   settings: DEFAULT_SETTINGS,
   notes: "",
+  ops: EMPTY_OPS,
 };
 
 const BASE_LAYERS = ["esri", "s2", "viirs", "light", "topo"];
@@ -107,6 +109,7 @@ export function parseWorkspace(input: unknown): Workspace {
       features,
       meta,
       notes: typeof p.notes === "string" ? p.notes.slice(0, 20_000) : "",
+      ops: cleanOps(p.ops),
       settings: {
         ...DEFAULT_SETTINGS,
         ...st,
@@ -428,6 +431,11 @@ export function useWorkspace(uid?: string) {
     (notes: string) => setWs((w) => ({ ...w, notes: notes.slice(0, 20_000) })),
     [],
   );
+  const setOps = useCallback(
+    (update: (o: OpsState) => OpsState) =>
+      setWs((w) => ({ ...w, ops: update(w.ops) })),
+    [],
+  );
   const replace = useCallback(
     (next: Workspace) => {
       remember();
@@ -457,6 +465,7 @@ export function useWorkspace(uid?: string) {
     setSettings,
     replace,
     setNotes,
+    setOps,
     undo,
     redo,
     sync,

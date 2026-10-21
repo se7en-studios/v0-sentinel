@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import buffer from "@turf/buffer";
 import circle from "@turf/circle";
 import { Crosshair, Pencil, Trash2, Video, Wand2 } from "lucide-react";
@@ -36,12 +37,20 @@ function SelectedCard({ ctx }: { ctx: Ctx }) {
     const coords = kind === "ring" ? patrolRing(f, 150) : sweepPath(f, 250);
     if (!coords || coords.length < 2) return;
     const free = FLEET.find((d) => !ws.features.some((x) => roleOf(x) === "route" && ws.meta[x.id]?.droneId === d.id));
+    if (!free)
+      toast.warning("No quedan drones libres", {
+        description: "La ruta se crea sin asignar. Liberá un dron o asignala a mano.",
+      });
     const id = newId();
     ctx.addFeature({ id, type: "Feature", geometry: { type: "LineString", coordinates: coords }, properties: { mode: "route" } }, "route");
     ctx.setMeta(id, { name: `${kind === "ring" ? "Patrullaje" : "Barrido"} ${meta.name}`, droneId: free?.id });
   };
 
   const makeBuffer = (m: number, asNew: boolean) => {
+    if (!Number.isFinite(m) || m === 0 || Math.abs(m) > 50_000)
+      return toast.error("Distancia inválida", {
+        description: "Usá un valor distinto de 0, hasta 50.000 m (negativo para achicar).",
+      });
     const b = buffer(
       {
         type: "Feature",
@@ -51,7 +60,12 @@ function SelectedCard({ ctx }: { ctx: Ctx }) {
       m / 1000,
       { units: "kilometers" },
     );
-    if (!b || b.geometry.type !== "Polygon") return;
+    if (!b || b.geometry.type !== "Polygon")
+      return toast.error("No se pudo aplicar el buffer", {
+        description: b
+          ? "El resultado dividiría la zona en partes, y eso todavía no se soporta."
+          : "La zona desaparece con ese valor: probá una distancia menor.",
+      });
     if (asNew || role === "line" || role === "route") {
       ctx.addFeature(
         {

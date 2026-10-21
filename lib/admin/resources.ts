@@ -130,6 +130,42 @@ export interface OpsEntry {
   text: string;
 }
 
+/** Dispatches and the operations log, kept with the workspace so a refresh does not erase the record. */
+export interface OpsState {
+  orders: Record<string, Dispatch>;
+  log: OpsEntry[];
+}
+
+export const OPS_LOG_MAX = 40;
+export const EMPTY_OPS: OpsState = { orders: {}, log: [] };
+
+const isPoint = (t: unknown): t is [number, number] =>
+  Array.isArray(t) && t.length === 2 && t.every((n) => Number.isFinite(n));
+
+/** Untrusted stored ops (localStorage or cloud) to a safe OpsState; never throws. */
+export function cleanOps(input: unknown): OpsState {
+  const o = (input ?? {}) as { orders?: unknown; log?: unknown };
+  const orders: Record<string, Dispatch> = {};
+  if (o.orders && typeof o.orders === "object")
+    for (const [id, d] of Object.entries(o.orders as Record<string, Dispatch>)) {
+      if (!d || !isPoint(d.target) || typeof d.label !== "string" || !Number.isFinite(d.since))
+        continue;
+      orders[id] = {
+        target: d.target,
+        label: d.label.slice(0, 120),
+        since: d.since,
+        ...(Number.isFinite(d.recalledAt) ? { recalledAt: d.recalledAt } : {}),
+      };
+    }
+  const log = Array.isArray(o.log)
+    ? (o.log as OpsEntry[])
+        .filter((e) => e && typeof e.id === "string" && Number.isFinite(e.t) && typeof e.text === "string")
+        .map((e) => ({ id: e.id.slice(0, 60), t: e.t, text: e.text.slice(0, 200) }))
+        .slice(0, OPS_LOG_MAX)
+    : [];
+  return { orders, log };
+}
+
 const KM_PER_DEG = 111;
 
 export function unitBase(

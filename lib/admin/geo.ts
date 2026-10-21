@@ -35,7 +35,8 @@ export function firesInZone(
   pts: FirePoint[],
   bufferKm: number,
 ): FirePoint[] {
-  if (zone.geometry.type !== "Polygon") return [];
+  if (zone.geometry.type !== "Polygon" && zone.geometry.type !== "MultiPolygon")
+    return [];
   let poly = asFeature(zone) as GeoJSON.Feature<Poly>;
   if (bufferKm > 0) {
     const b = buffer(poly, bufferKm, { units: "kilometers" });

@@ -1,3 +1,4 @@
+import type { OpsState } from "./resources";
 export type Role = "zone" | "line" | "route" | "sensor";
 export type SensorType = "temp" | "humidity" | "smoke" | "wind";
 export type BaseLayer = "esri" | "s2" | "viirs" | "light" | "topo";
@@ -51,6 +52,7 @@ export interface Workspace {
   meta: Record<string, Meta>;
   settings: Settings;
   notes: string;
+  ops: OpsState;
 }
 
 // [lat, lng, frp, confidence 0|1|2, dayIdx, hhmm, isNight 0|1]

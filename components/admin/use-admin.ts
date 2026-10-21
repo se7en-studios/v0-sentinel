@@ -110,6 +110,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     setSettings,
     replace,
     setNotes,
+    setOps,
     undo,
     redo,
     canUndo,
@@ -127,10 +128,20 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editing, setEditingRaw] = useState(false);
   const [live, setLive] = useState<string | null>(null);
-  const [orders, setOrders] = useState<Record<string, Dispatch>>({});
+  const orders = ws.ops.orders;
+  const setOrders = useCallback(
+    (f: (o: Record<string, Dispatch>) => Record<string, Dispatch>) =>
+      setOps((o) => ({ ...o, orders: f(o.orders) })),
+    [setOps],
+  );
   const ordersRef = useRef(orders);
   ordersRef.current = orders;
-  const [opsLog, setOpsLog] = useState<OpsEntry[]>([]);
+  const opsLog = ws.ops.log;
+  const setOpsLog = useCallback(
+    (f: (l: OpsEntry[]) => OpsEntry[]) =>
+      setOps((o) => ({ ...o, log: f(o.log) })),
+    [setOps],
+  );
   const [activeDrone, setActiveDrone] = useState<string | null>(null);
   const [cursor, setCursor] = useState<number | null>(null);
   const cursorRef = useRef(cursor);
