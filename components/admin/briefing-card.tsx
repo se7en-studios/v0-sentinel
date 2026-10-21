@@ -44,8 +44,12 @@ export function BriefingCard({
       zones,
       clusters,
       today: forecast?.[0],
-      worst: forecast?.reduce((a, d) => (d.score > a.score ? d : a)),
-      best: forecast?.reduce((a, d) => (d.score < a.score ? d : a)),
+      worst: forecast?.length
+        ? forecast.reduce((a, d) => (d.score > a.score ? d : a))
+        : undefined,
+      best: forecast?.length
+        ? forecast.reduce((a, d) => (d.score < a.score ? d : a))
+        : undefined,
     });
   }, [ws, stats, zoneHits, clusters, forecast]);
   const t = TONE[b.tone];

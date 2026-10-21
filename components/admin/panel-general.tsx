@@ -232,7 +232,7 @@ function AlertsTab({ ctx }: { ctx: Ctx }) {
           ) : undefined
         }
       >
-        {ctx.alertCount === 0 && (
+        {ctx.alertCount + ctx.ruleFirings.size === 0 && (
           <EmptyState
             icon={<BellRing className="size-4" />}
             title="Todo en orden"
@@ -302,10 +302,6 @@ function AlertsTab({ ctx }: { ctx: Ctx }) {
                   </span>
                 </span>
               </button>
-              <ShareRow
-                ws={ws}
-                text={`Sentinel: ${x.meta.name} registra ${x.reading.value} ${x.reading.unit} (fuera de umbral, dato simulado). Ubicación: ${mapsLink(...(x.feat.geometry.coordinates as [number, number]))}`}
-              />
             </div>
           ))}
         </div>

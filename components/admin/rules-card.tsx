@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { MAX_RULES, describeRule } from "@/lib/admin/rules";
 import { MODE_ROLE, type AlertRule } from "@/lib/admin/types";
 import type { Ctx } from "./ctx";
@@ -31,7 +32,27 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
   const [focos, setFocos] = useState(100);
 
   const add = () => {
-    const base = { id: crypto.randomUUID().slice(0, 8), enabled: true };
+    const inRange = (n: number, lo: number, hi: number) =>
+      Number.isFinite(n) && n >= lo && n <= hi;
+    const ok =
+      kind === "zone_fire"
+        ? inRange(min, 1, 99)
+        : kind === "risk"
+          ? inRange(score, 10, 100) && inRange(days, 1, 7)
+          : inRange(focos, 1, 99_999);
+    if (!ok)
+      return toast.error("Revisá los valores de la regla", {
+        description:
+          kind === "zone_fire"
+            ? "Mínimo de focos entre 1 y 99."
+            : kind === "risk"
+              ? "Índice entre 10 y 100, y días entre 1 y 7."
+              : "Focos en 24 h: un número mayor a 0.",
+      });
+    const id = (
+      globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)
+    ).slice(0, 8);
+    const base = { id, enabled: true };
     const rule: AlertRule =
       kind === "zone_fire"
         ? { ...base, kind, zoneId, min }

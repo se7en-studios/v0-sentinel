@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { cn } from "@/lib/utils";
 import type { OpacityKey } from "@/lib/admin/types";
 import type { ShowLayers } from "./map-view";
@@ -105,6 +106,12 @@ const T = {
 export function LayersPanel({ ctx }: { ctx: Ctx }) {
   const { ws, show, setShow, setSettings } = ctx;
   const o = ws.settings.opacity;
+  const lastOpacity = useRef<Partial<Record<OpacityKey, number>>>({});
+  // off remembers the current value; on brings it back instead of the default
+  const toggleOpacity = (k: OpacityKey, dflt: number) => (v: boolean) => {
+    if (!v && o[k] > 0) lastOpacity.current[k] = o[k];
+    setSettings({ opacity: { ...o, [k]: v ? (lastOpacity.current[k] ?? dflt) : 0 } });
+  };
   const op = (k: OpacityKey) => ({
     value: o[k],
     onChange: (v: number) => setSettings({ opacity: { ...o, [k]: v } }),
@@ -136,27 +143,21 @@ export function LayersPanel({ ctx }: { ctx: Ctx }) {
             label="Imagen satelital"
             thumb={T.imagery}
             checked={o.imagery > 0}
-            onCheck={(v) =>
-              setSettings({ opacity: { ...o, imagery: v ? 1 : 0 } })
-            }
+            onCheck={toggleOpacity("imagery", 1)}
             slider={op("imagery")}
           />
           <LayerRow
             label="Relieve sombreado"
             thumb={T.hill}
             checked={o.relief > 0}
-            onCheck={(v) =>
-              setSettings({ opacity: { ...o, relief: v ? 0.6 : 0 } })
-            }
+            onCheck={toggleOpacity("relief", 0.6)}
             slider={op("relief")}
           />
           <LayerRow
             label="Hipsometría"
             thumb={T.tint}
             checked={o.tint > 0}
-            onCheck={(v) =>
-              setSettings({ opacity: { ...o, tint: v ? 0.3 : 0 } })
-            }
+            onCheck={toggleOpacity("tint", 0.3)}
             slider={{ ...op("tint"), max: 0.8 }}
           />
           <LayerRow

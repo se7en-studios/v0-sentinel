@@ -9,7 +9,7 @@ import { MODE_ROLE } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
 import type { Ctx } from "./ctx";
 import { BriefingCard } from "./briefing-card";
-import { Badge, Card, EmptyState, KV, Skeleton, Stat } from "./ui";
+import { Badge, Btn, Card, EmptyState, KV, Skeleton, Stat } from "./ui";
 
 const MAX_ZONES = 8;
 const REGION_ROW = "__region";
@@ -37,6 +37,7 @@ export function ForecastView({ ctx }: { ctx: Ctx }) {
     [ws.features],
   );
   const [rows, setRows] = useState<Row[] | null>(null);
+  const [attempt, setAttempt] = useState(0);
   const [sel, setSel] = useState<{ row: string; day: number }>({
     row: REGION_ROW,
     day: 0,
@@ -62,11 +63,12 @@ export function ForecastView({ ctx }: { ctx: Ctx }) {
     return () => {
       cancelled = true;
     };
-  }, [zones, ws.meta, center]);
+  }, [zones, ws.meta, center, attempt]);
 
   const active = rows?.find((r) => r.id === sel.row) ?? rows?.[0];
   const day = active?.days?.[sel.day];
-  const region = rows?.[0]?.days;
+  const regionDays = rows?.[0]?.days;
+  const region = regionDays?.length ? regionDays : null;
   const worst = region?.reduce((a, d) => (d.score > a.score ? d : a));
   const best = region?.reduce((a, d) => (d.score < a.score ? d : a));
 
@@ -88,7 +90,18 @@ export function ForecastView({ ctx }: { ctx: Ctx }) {
       {!rows ? (
         <Skeleton className="h-64 w-full" />
       ) : !region ? (
-        <EmptyState icon={<CloudOff className="size-5" />} title="Sin pronóstico">
+        <EmptyState icon={<CloudOff className="size-5" />} title="Sin pronóstico"
+          action={
+            <Btn
+              onClick={() => {
+                setRows(null);
+                setAttempt((n) => n + 1);
+              }}
+            >
+              Reintentar
+            </Btn>
+          }
+        >
           No se pudo consultar Open-Meteo. Revisá tu conexión y volvé a
           intentar.
         </EmptyState>

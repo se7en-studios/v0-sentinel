@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { toast } from "sonner";
-import { isFeat } from "@/lib/admin/store";
+import { isFeat, parseWorkspace } from "@/lib/admin/store";
 import { Download, Trash2, Upload } from "lucide-react";
 import {
   DEFAULT_SETTINGS,
@@ -48,7 +48,11 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
     const bad = (msg = "Archivo inválido. Usá un .geojson exportado desde Sentinel (máx. 2 MB).") => toast.error(msg);
     if (f.size > 2_000_000) return bad();
     try {
-      const j = JSON.parse(await f.text()) as { features?: unknown; meta?: unknown };
+      const j = JSON.parse(await f.text()) as {
+        features?: unknown;
+        meta?: unknown;
+        settings?: unknown;
+      };
       if (!Array.isArray(j.features)) return bad();
       const features = j.features
         .map((x: Workspace["features"][number], i: number) => ({
@@ -57,14 +61,23 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
           geometry: x?.geometry,
           properties: { mode: String(x?.properties?.mode) },
         }))
-        .filter(isFeat);
+        .filter(isFeat)
+        .filter((x, i, all) => all.findIndex((y) => y.id === x.id) === i);
       if (features.length === 0) return bad("No hay elementos compatibles. Solo se importan zonas, líneas, rutas y sensores creados en Sentinel (MultiPolígonos no soportados).");
       if (!window.confirm(`Esto reemplaza tu espacio actual (${ws.features.length} elementos) por ${features.length} importados. ¿Continuar? Podés deshacer con Ctrl Z.`)) return;
       const rawMeta = (j.meta ?? {}) as Workspace["meta"];
       const meta = Object.fromEntries(
         features.map((x) => [x.id, { ...rawMeta[x.id], name: typeof rawMeta[x.id]?.name === "string" ? rawMeta[x.id].name.slice(0, 80) : x.id }]),
       );
-      ctx.replaceWorkspace({ ...ws, features, meta });
+      // settings travel with the export; parseWorkspace validates them like any stored data
+      const next = parseWorkspace({
+        features,
+        meta,
+        settings:
+          j.settings && typeof j.settings === "object" ? j.settings : ws.settings,
+        notes: ws.notes,
+      });
+      ctx.replaceWorkspace(next);
       toast.success(`${features.length} elementos importados`);
     } catch {
       bad();
@@ -88,7 +101,8 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
       <div>
         <h1 className="font-heading text-2xl font-bold">Configuración</h1>
         <p className="text-[13px] text-foreground/55">
-          Se guarda en este navegador. Exportá el espacio de trabajo para
+          Se guarda automáticamente: en la nube si ingresaste con una
+          cuenta, o en este navegador si no. Exportá el espacio de trabajo para
           compartirlo o respaldarlo.
         </p>
       </div>
@@ -305,7 +319,22 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
           >
             <Trash2 className="size-3.5" /> Vaciar espacio de trabajo
           </Btn>
-          <Btn onClick={() => setSettings({ ...DEFAULT_SETTINGS })}>
+          <Btn
+            onClick={() => {
+              if (
+                !window.confirm(
+                  "¿Restablecer capas, umbrales, unidades y opacidades? Se conservan tu organización, tus contactos y tus reglas de alerta.",
+                )
+              )
+                return;
+              setSettings({
+                ...DEFAULT_SETTINGS,
+                org: s.org,
+                notify: s.notify,
+                rules: s.rules,
+              });
+            }}
+          >
             Restablecer ajustes
           </Btn>
         </div>
