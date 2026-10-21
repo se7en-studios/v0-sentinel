@@ -7,10 +7,10 @@ import { firebaseEnabled } from "@/lib/admin/firebase";
 import { verifyFirebaseToken } from "@/lib/admin/firebase-verify";
 import { nearestPlace } from "@/lib/admin/places";
 import type { FireCluster, FirePoint, FiresPayload } from "@/lib/admin/types";
+import { fetchFirmsCsv } from "@/lib/firms";
 
 // west,south,east,north around Argentina; the country polygon filters the rest.
 const AR_BBOX = "-74,-56,-52,-21";
-const SOURCE = "VIIRS_SNPP_NRT";
 const CONF: Record<string, number> = { l: 0, n: 1, h: 2 };
 const CELL = 0.15;
 
@@ -115,22 +115,25 @@ export async function GET(req: Request) {
   }
   try {
     // FIRMS caps a request at 5 days: fetch today-4..today and today-9..today-5.
-    const base = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${key}/${SOURCE}/${AR_BBOX}/5`;
     const older = new Date(Date.now() - 9 * 86_400_000)
       .toISOString()
       .slice(0, 10);
     const [recent, prior] = await Promise.all(
-      [base, `${base}/${older}`].map((u) =>
-        fetch(u, { next: { revalidate: 1800 } }).then((r) => r.text()),
+      ["", `/${older}`].map((date) =>
+        fetchFirmsCsv(
+          (source) =>
+            `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${key}/${source}/${AR_BBOX}/5${date}`,
+          { next: { revalidate: 1800 } },
+        ),
       ),
     );
-    if (!recent.startsWith("latitude")) {
+    if (recent === null) {
       return NextResponse.json(
         { error: "NASA FIRMS no respondió datos válidos" },
         { status: 502 },
       );
     }
-    const priorRows = prior.startsWith("latitude")
+    const priorRows = prior
       ? prior.trim().split(String.fromCharCode(10)).slice(1)
       : [];
     const csv = [recent.trim(), ...priorRows].join(String.fromCharCode(10));

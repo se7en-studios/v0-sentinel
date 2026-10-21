@@ -1,9 +1,9 @@
 import { Flame, MapPin, Satellite } from "lucide-react";
 import { AnimatedNumber } from "@/components/ui/animated-number";
+import { FIRMS_LABEL, fetchFirmsCsv } from "@/lib/firms";
 
 // ponytail: Argentina bounding box (west,south,east,north).
 const ARG_BBOX = "-73,-55,-53,-21";
-const SOURCE = "VIIRS_SNPP_NRT";
 const CHUNK_DAYS = 5;
 const WINDOW_DAYS = 90;
 
@@ -23,16 +23,12 @@ function countHighConfidenceRows(csv: string): number {
 async function fetchChunkCount(startDate: string): Promise<number> {
   const key = process.env.NASA_FIRMS_KEY;
   if (!key) return 0;
-  try {
-    const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${key}/${SOURCE}/${ARG_BBOX}/${CHUNK_DAYS}/${startDate}`;
-    const res = await fetch(url, { next: { revalidate: 86400 } });
-    if (!res.ok) return 0;
-    const csv = await res.text();
-    if (csv.startsWith("Invalid") || csv.startsWith("Error")) return 0;
-    return countHighConfidenceRows(csv);
-  } catch {
-    return 0;
-  }
+  const csv = await fetchFirmsCsv(
+    (source) =>
+      `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${key}/${source}/${ARG_BBOX}/${CHUNK_DAYS}/${startDate}`,
+    { next: { revalidate: 86400 } },
+  );
+  return csv === null ? 0 : countHighConfidenceRows(csv);
 }
 
 async function fetchYtdDetectionCount(): Promise<number | null> {
@@ -156,7 +152,7 @@ export async function FireImpactStats() {
             color: "rgba(26,24,18,0.42)",
           }}
         >
-          Fuente: NASA FIRMS (VIIRS_SNPP_NRT), detecciones satelitales de calor
+          Fuente: NASA FIRMS ({FIRMS_LABEL}), detecciones satelitales de calor
           en territorio argentino. Datos preliminares, no verificados en campo,
           no distingue incendios forestales de otras fuentes de calor (quemas
           agrícolas, etc.).

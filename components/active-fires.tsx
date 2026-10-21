@@ -1,10 +1,10 @@
 import { FireMapLazy } from "@/components/ui/fire-map-lazy";
+import { FIRMS_LABEL, fetchFirmsCsv } from "@/lib/firms";
 
 // ponytail: Latin America bounding box (west,south,east,north) — Mexico's
 // northern border down to Cape Horn, wide enough to cover every country in
 // data/latam-countries.json.
 const LATAM_BBOX = "-118,-56,-34,33";
-const SOURCE = "VIIRS_SNPP_NRT";
 const DAY_RANGE = 1;
 
 interface FirePoint {
@@ -47,16 +47,12 @@ async function fetchActiveFires(): Promise<FirePoint[] | null> {
   const key = process.env.NASA_FIRMS_KEY;
   if (!key) return null;
 
-  try {
-    const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${key}/${SOURCE}/${LATAM_BBOX}/${DAY_RANGE}`;
-    const res = await fetch(url, { next: { revalidate: 3600 } });
-    if (!res.ok) return null;
-    const csv = await res.text();
-    if (csv.startsWith("Invalid") || csv.startsWith("Error")) return null;
-    return parseCsv(csv);
-  } catch {
-    return null;
-  }
+  const csv = await fetchFirmsCsv(
+    (source) =>
+      `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${key}/${source}/${LATAM_BBOX}/${DAY_RANGE}`,
+    { next: { revalidate: 3600 } },
+  );
+  return csv === null ? null : parseCsv(csv);
 }
 
 export async function ActiveFires() {
@@ -150,7 +146,7 @@ export async function ActiveFires() {
             color: "rgba(26,24,18,0.42)",
           }}
         >
-          Fuente: NASA FIRMS (VIIRS_SNPP_NRT). Datos preliminares, no
+          Fuente: NASA FIRMS ({FIRMS_LABEL}). Datos preliminares, no
           verificados en campo.
         </p>
       </div>

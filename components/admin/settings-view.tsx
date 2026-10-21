@@ -314,8 +314,8 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
       <Card title="Fuentes de datos">
         <ul className="space-y-1 text-[12.5px] text-foreground/70">
           <li>
-            <b>Focos de calor:</b> NASA FIRMS, VIIRS S-NPP (375 m), casi tiempo
-            real.
+            <b>Focos de calor:</b> NASA FIRMS, VIIRS NOAA-20 + NOAA-21 (375 m),
+            casi tiempo real.
           </li>
           <li>
             <b>Imágenes:</b> Esri World Imagery · Sentinel-2 cloudless
