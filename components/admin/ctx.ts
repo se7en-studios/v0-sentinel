@@ -27,6 +27,8 @@ export interface SpreadInfo {
   reachKm: number;
 }
 
+export type PanelSeg = "Capas" | "Análisis" | "Alertas" | "Notas";
+
 export type Tab =
   "general" | "zonas" | "drones" | "recursos" | "pronostico" | "metricas" | "config";
 
@@ -183,6 +185,8 @@ export interface Ctx {
   camera: Camera;
   alertCount: number;
   ruleFirings: Map<string, string>;
+  panelSeg: PanelSeg;
+  setPanelSeg: (s: PanelSeg) => void;
 
   // resources (simulated) and active drone
   units: UnitState[];

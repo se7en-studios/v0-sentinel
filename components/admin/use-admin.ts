@@ -58,6 +58,7 @@ import type {
   SensorState,
   SpreadInfo,
   Tab,
+  PanelSeg,
 } from "./ctx";
 import type { MapHandle } from "./map-view";
 import type { PaletteAction } from "./command-palette";
@@ -897,6 +898,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   );
 
   // ---- user alert rules ----
+  const [panelSeg, setPanelSeg] = useState<PanelSeg>("Capas");
   const [forecast, setForecast] = useState<DayForecast[] | null>(null);
   const needsForecast = s.rules.some((r) => r.kind === "risk" && r.enabled);
   useEffect(() => {
@@ -935,7 +937,13 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
       toast.warning("Regla de alerta activada", {
         description: detail,
         duration: 12_000,
-        action: { label: "Ver reglas", onClick: () => goTab("general") },
+        action: {
+          label: "Ver reglas",
+          onClick: () => {
+            goTab("general");
+            setPanelSeg("Alertas");
+          },
+        },
       });
       if (
         s.notify.browser &&
@@ -1027,11 +1035,10 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     panelOpen,
     setPanelOpen,
     camera,
-    alertCount:
-      alertIds.size +
-      sensors.filter((x) => x.reading.alert).length +
-      ruleFirings.size,
+    alertCount: alertIds.size + sensors.filter((x) => x.reading.alert).length,
     ruleFirings,
+    panelSeg,
+    setPanelSeg,
     units,
     dispatchUnit,
     recallUnit,

@@ -25,7 +25,6 @@ import { RulesCard } from "./rules-card";
 import { Badge, Btn, Card, EmptyState, Segmented } from "./ui";
 
 const SEGS = ["Capas", "Análisis", "Alertas", "Notas"] as const;
-type Seg = (typeof SEGS)[number];
 
 const WINDOWS = [
   { value: 24, label: "24 h" },
@@ -414,7 +413,7 @@ const POINTS = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"];
 const compass = (deg: number) => POINTS[Math.round((((deg % 360) + 360) % 360) / 45) % 8];
 
 export function GeneralPanel({ ctx }: { ctx: Ctx }) {
-  const [seg, setSeg] = useState<Seg>("Capas");
+  const { panelSeg: seg, setPanelSeg: setSeg } = ctx;
   return (
     <div>
       <div className="px-3 pt-3 empty:hidden">
@@ -440,9 +439,9 @@ export function GeneralPanel({ ctx }: { ctx: Ctx }) {
             )}
           >
             {x}
-            {x === "Alertas" && ctx.alertCount > 0 && (
+            {x === "Alertas" && ctx.alertCount + ctx.ruleFirings.size > 0 && (
               <span className="num ml-1 inline-grid min-w-4 place-items-center rounded-full bg-[#b83a3a] px-1 text-[9.5px] font-bold text-white">
-                {ctx.alertCount}
+                {ctx.alertCount + ctx.ruleFirings.size}
               </span>
             )}
             {seg === x && (
