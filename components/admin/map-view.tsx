@@ -834,6 +834,9 @@ export const MapView = forwardRef<MapHandle, Props>(
           entry.m.setLngLat(d.pos);
           entry.body.style.transform = `rotate(${Math.round(d.heading / 4) * 4}deg)`;
           entry.el.classList.toggle("snt-drone--sel", d.selected);
+          // minimal: only the selected drone carries its name
+          const tag = entry.el.querySelector<HTMLElement>(".snt-drone__label");
+          if (tag) tag.hidden = !d.selected;
           entry.el.style.setProperty(
             "--lift",
             `${Math.round(18 + Math.min(34, d.altitude / 4))}px`,

@@ -1,8 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { BASES } from "@/lib/admin/map-config";
-import type { BaseLayer, OpacityKey } from "@/lib/admin/types";
+import type { OpacityKey } from "@/lib/admin/types";
 import type { ShowLayers } from "./map-view";
 import type { Ctx } from "./ctx";
 import { Slider } from "./ui";
@@ -37,12 +36,12 @@ function LayerRow({
   return (
     <li
       className={cn(
-        "flex items-center gap-2.5 px-1 py-1.5",
+        "group/row flex items-center gap-2.5 rounded-lg px-1 py-1 transition-colors hover:bg-foreground/[0.035]",
         disabled && "opacity-45",
       )}
     >
       <span
-        className="relative size-7 shrink-0 overflow-hidden rounded-[7px] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)]"
+        className="relative size-6 shrink-0 overflow-hidden rounded-md shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)]"
         style={{ background: thumb }}
         aria-hidden
       />
@@ -77,7 +76,7 @@ function LayerRow({
           min={slider.min}
           max={slider.max}
           step={slider.step}
-          className="w-[86px] shrink-0"
+          className="w-[86px] shrink-0 opacity-0 transition-opacity duration-150 group-focus-within/row:opacity-100 group-hover/row:opacity-100 [@media(hover:none)]:opacity-100"
         />
       )}
     </li>
@@ -116,56 +115,9 @@ export function LayersPanel({ ctx }: { ctx: Ctx }) {
 
   return (
     <div>
-      <div className="px-4 pt-3.5">
-        <h3 className="mb-2 text-[10.5px] font-semibold uppercase tracking-[0.1em] text-foreground/50">
-          Mapa base
-        </h3>
-        <div
-          className="grid grid-cols-5 gap-1.5"
-          role="radiogroup"
-          aria-label="Mapa base"
-        >
-          {(Object.keys(BASES) as BaseLayer[]).map((id) => {
-            const b = BASES[id];
-            const on = ws.settings.baseLayer === id;
-            return (
-              <button
-                key={id}
-                type="button"
-                role="radio"
-                aria-checked={on}
-                title={`${b.label} · ${b.hint}`}
-                onClick={() => setSettings({ baseLayer: id })}
-                className={cn(
-                  "group relative overflow-hidden rounded-lg border text-left transition-[border-color,box-shadow,transform] duration-150 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  on
-                    ? "border-primary shadow-[0_0_0_2px_color-mix(in_srgb,var(--primary)_25%,transparent)]"
-                    : "border-[var(--hairline)] hover:border-foreground/30",
-                )}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={b.thumb}
-                  alt=""
-                  loading="lazy"
-                  width={64}
-                  height={48}
-                  className="aspect-[4/3] w-full object-cover"
-                />
-                <span className="block truncate bg-card px-1 py-0.5 text-center text-[9.5px] font-medium">
-                  {b.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       <div className="px-4 pb-1 pt-3.5">
-        <h3 className="mb-0.5 text-[10.5px] font-semibold uppercase tracking-[0.1em] text-foreground/50">
-          Capas
-        </h3>
         <ul>
+          {/* Relieve y base */}
           <LayerRow
             label="Terreno 3D"
             thumb={T.terrain}
@@ -208,6 +160,22 @@ export function LayersPanel({ ctx }: { ctx: Ctx }) {
             slider={{ ...op("tint"), max: 0.8 }}
           />
           <LayerRow
+            label="Bosque en volumen"
+            thumb={T.forest}
+            checked={show.forest}
+            onCheck={tog("forest")}
+            disabled={!d3}
+          />
+          <LayerRow
+            label="Edificios 3D"
+            thumb={T.buildings}
+            checked={show.buildings}
+            onCheck={tog("buildings")}
+          />
+        </ul>
+        <h4 className="mb-0.5 mt-3 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-foreground/40">Detección</h4>
+        <ul>
+          <LayerRow
             label="Anomalías térmicas"
             thumb={T.fires}
             checked={show.fires}
@@ -229,6 +197,9 @@ export function LayersPanel({ ctx }: { ctx: Ctx }) {
             slider={op("spread")}
             badge="demo"
           />
+        </ul>
+        <h4 className="mb-0.5 mt-3 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-foreground/40">Operación</h4>
+        <ul>
           <LayerRow
             label="Zonas monitoreadas"
             thumb={T.zones}
@@ -263,19 +234,9 @@ export function LayersPanel({ ctx }: { ctx: Ctx }) {
             onCheck={tog("sensors")}
             badge="sim"
           />
-          <LayerRow
-            label="Bosque en volumen"
-            thumb={T.forest}
-            checked={show.forest}
-            onCheck={tog("forest")}
-            disabled={!d3}
-          />
-          <LayerRow
-            label="Edificios 3D"
-            thumb={T.buildings}
-            checked={show.buildings}
-            onCheck={tog("buildings")}
-          />
+        </ul>
+        <h4 className="mb-0.5 mt-3 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-foreground/40">Mapa</h4>
+        <ul>
           <LayerRow
             label="Nombres y cotas"
             thumb={T.names}

@@ -83,7 +83,7 @@ function Scrubber({ ctx }: { ctx: Ctx }) {
 
   const head = cursor ?? range.t1;
   return (
-    <div className="relative flex-1 select-none px-3 pb-1 pt-5">
+    <div className="relative flex-1 select-none px-3 pb-1 pt-5 max-sm:order-last max-sm:basis-full">
       <div
         ref={track}
         role="slider"
@@ -308,7 +308,7 @@ export function TimelineDock({ ctx }: { ctx: Ctx }) {
       aria-label="Línea de tiempo"
       className="shrink-0 border-t border-[var(--hairline)] bg-card"
     >
-      <div className="flex items-center gap-1 border-b border-[var(--hairline)] pl-2 pr-1">
+      <div className="flex flex-wrap items-center gap-1 border-b border-[var(--hairline)] pl-2 pr-1 sm:flex-nowrap">
         <h2 className="mr-2 hidden text-[10px] font-semibold uppercase tracking-[0.1em] text-foreground/50 sm:block">
           Línea de tiempo
         </h2>
@@ -364,7 +364,7 @@ export function TimelineDock({ ctx }: { ctx: Ctx }) {
           En vivo
         </button>
       </div>
-      <div className="grid h-[150px] grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_270px]">
+      <div className="grid h-[132px] grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_270px]">
         <MiniChart
           title="Focos acumulados"
           data={series}

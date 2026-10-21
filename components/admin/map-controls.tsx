@@ -122,7 +122,7 @@ function SearchBox({ a }: { a: A }) {
   };
 
   return (
-    <div className="relative w-[min(22rem,calc(100vw-6rem))]">
+    <div className="relative w-[min(22rem,calc(100vw-9.5rem))]">
       <form
         role="search"
         onSubmit={(e) => {
@@ -281,19 +281,17 @@ function Chips({ a }: { a: A }) {
     },
   ];
   return (
-    <div className="flex flex-col items-end gap-1" aria-live="polite">
-      {items.map((c) => (
-        <span
-          key={c.k}
-          className={cn(
-            glass,
-            "num flex items-baseline gap-1.5 rounded-lg px-2.5 py-1 text-[11px]",
-          )}
-        >
+    <div
+      className={cn(glass, "num hidden items-center gap-2.5 rounded-lg px-2.5 py-1 text-[11px] sm:flex")}
+      aria-live="polite"
+    >
+      {items.map((c, i) => (
+        <span key={c.k} className="flex items-baseline gap-1" title={c.k}>
+          {i > 0 && <span className="mr-1.5 h-3 w-px self-center bg-[var(--hairline)]" aria-hidden />}
           <b className="font-semibold" style={{ color: c.c }}>
             {c.v}
           </b>
-          <span className="text-foreground/55">{c.k}</span>
+          <span className="text-foreground/50">{["focos", "FRP", "alta conf."][i]}</span>
         </span>
       ))}
     </div>
@@ -391,6 +389,19 @@ function ViewCluster({ a }: { a: A }) {
 
 function Legend({ a }: { a: A }) {
   const d3 = a.ctx.view === "3d";
+  const [open, setOpen] = useState(false);
+  if (!open)
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-expanded={false}
+        className={cn(glass, "hidden h-7 items-center gap-1.5 px-2.5 text-[10.5px] font-medium text-foreground/60 hover:text-foreground md:flex")}
+      >
+        <span className="h-1.5 w-6 rounded-full" style={{ background: "linear-gradient(90deg,#f5a524,#ff6a1a,#c8321e)" }} aria-hidden />
+        Leyenda
+      </button>
+    );
   return (
     <div
       className={cn(
@@ -399,8 +410,11 @@ function Legend({ a }: { a: A }) {
       )}
       aria-label="Leyenda"
     >
-      <div className="mb-1 font-medium text-foreground/85">
+      <div className="mb-1 flex items-center justify-between font-medium text-foreground/85">
         Intensidad del foco (FRP)
+        <button type="button" onClick={() => setOpen(false)} aria-label="Ocultar leyenda" className="text-foreground/40 hover:text-foreground">
+          <X className="size-3" />
+        </button>
       </div>
       <div
         className="h-1.5 rounded-full"
@@ -476,7 +490,7 @@ function Ruler({ a }: { a: A }) {
       {ticks.xs.map((t) => (
         <span
           key={`x${t.v}`}
-          className="mono absolute top-0 -translate-x-1/2 rounded-b bg-card/80 px-1 text-[9px] text-foreground/60"
+          className="mono absolute top-0 -translate-x-1/2 px-1 text-[8.5px] text-foreground/45 [text-shadow:0_0_3px_var(--card)]"
           style={{ left: t.px }}
         >
           {fmtDeg(t.v, "E", "O")}
@@ -485,7 +499,7 @@ function Ruler({ a }: { a: A }) {
       {ticks.ys.map((t) => (
         <span
           key={`y${t.v}`}
-          className="mono absolute right-0 -translate-y-1/2 rounded-l bg-card/80 px-1 text-[9px] text-foreground/60"
+          className="mono absolute right-0 -translate-y-1/2 px-1 text-[8.5px] text-foreground/45 [text-shadow:0_0_3px_var(--card)]"
           style={{ top: t.px }}
         >
           {fmtDeg(t.v, "N", "S")}

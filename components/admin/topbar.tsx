@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+
 import {
   Box,
   CalendarRange,
@@ -56,6 +58,13 @@ function fmtRange(days: string[]) {
 
 export function Topbar({ a }: { a: A }) {
   const { ctx, s, region } = a;
+  const nav = useRef<HTMLElement>(null);
+  // on narrow screens the strip scrolls: keep the active mode visible
+  useEffect(() => {
+    nav.current
+      ?.querySelector('[aria-current="page"]')
+      ?.scrollIntoView({ inline: "center", block: "nearest" });
+  }, [ctx.tab]);
   const airborne = ctx.drones.filter((d) => d.track).length;
   const badge = (id: string) =>
     id === "zonas"
@@ -125,7 +134,8 @@ export function Topbar({ a }: { a: A }) {
       )}
 
       <nav
-        className="mx-1 flex min-w-0 flex-1 items-center justify-center gap-0.5 overflow-x-auto"
+        ref={nav}
+        className="mx-1 flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [&>*:first-child]:ml-auto [&>*:last-child]:mr-auto"
         aria-label="Modos"
       >
         {TABS.map((t) => {

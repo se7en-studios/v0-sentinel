@@ -50,7 +50,12 @@ export function AdminApp({
 
   return (
     <div className="admin-root fixed inset-0 flex flex-col bg-background text-foreground">
-      <Topbar a={a} />
+      {/* client-only: Radix menu ids differ between server and client renders */}
+      {a.mounted ? (
+        <Topbar a={a} />
+      ) : (
+        <header className="h-11 shrink-0 border-b border-[var(--hairline)] bg-card" />
+      )}
       <Toaster position="bottom-center" />
       {a.mounted && (
         <CommandPalette
@@ -62,8 +67,8 @@ export function AdminApp({
 
       {a.isMapTab ? (
         <main className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
-          <div className="flex min-h-[64vh] min-w-0 flex-1 flex-col lg:min-h-0">
-            <div className="relative min-h-0 flex-1">
+          <div className="flex min-w-0 flex-1 flex-col lg:min-h-0">
+            <div className="relative h-[58vh] min-h-[340px] shrink-0 lg:h-auto lg:min-h-0 lg:flex-1 lg:shrink">
               {a.ready && (
                 <MapView
                   ref={a.mapRef}
@@ -90,7 +95,9 @@ export function AdminApp({
                   selectedId={ctx.selectedId}
                   editing={ctx.editing}
                   drones={a.droneMarkers}
-                  unitMarkers={ctx.tab === "recursos" ? a.unitMarkers : undefined}
+                  unitMarkers={
+                    ctx.tab === "recursos" ? a.unitMarkers : undefined
+                  }
                   units={a.s.units}
                   onSelect={ctx.select}
                   onCreate={(f) => {

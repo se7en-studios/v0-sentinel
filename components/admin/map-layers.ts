@@ -160,8 +160,23 @@ export function addDataLayers(map: MLMap) {
       paint: {
         "color-relief-opacity": 0.3,
         "color-relief-color": expr([
-          "interpolate", ["linear"], ["elevation"],
-          0, "#2c6a40", 500, "#5d8c4b", 1100, "#9a9c58", 1700, "#b89d6c", 2300, "#c8b8a0", 3000, "#e6e0d6", 3800, "#ffffff",
+          "interpolate",
+          ["linear"],
+          ["elevation"],
+          0,
+          "#2c6a40",
+          500,
+          "#5d8c4b",
+          1100,
+          "#9a9c58",
+          1700,
+          "#b89d6c",
+          2300,
+          "#c8b8a0",
+          3000,
+          "#e6e0d6",
+          3800,
+          "#ffffff",
         ]),
       },
     },
@@ -177,7 +192,15 @@ export function addDataLayers(map: MLMap) {
     layout: { visibility: "none" },
     paint: {
       "fill-extrusion-color": "#1d5634",
-      "fill-extrusion-height": expr(["interpolate", ["linear"], ["zoom"], 9, 60, 14, 38]),
+      "fill-extrusion-height": expr([
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        9,
+        60,
+        14,
+        38,
+      ]),
       "fill-extrusion-base": 0,
       "fill-extrusion-opacity": 0.42,
       "fill-extrusion-vertical-gradient": true,
@@ -295,8 +318,18 @@ export function addDataLayers(map: MLMap) {
     });
   ext("zones3d-vol", "zones3d", 0.16, expr(["==", ["get", "k"], "vol"]));
   ext("zones3d-wall", "zones3d", 0.5, expr(["==", ["get", "k"], "wall"]));
-  ext("routes3d-curtain", "routes3d", 0.1, expr(["==", ["get", "k"], "curtain"]));
-  ext("routes3d-ribbon", "routes3d", 0.95, expr(["==", ["get", "k"], "ribbon"]));
+  ext(
+    "routes3d-curtain",
+    "routes3d",
+    0.1,
+    expr(["==", ["get", "k"], "curtain"]),
+  );
+  ext(
+    "routes3d-ribbon",
+    "routes3d",
+    0.95,
+    expr(["==", ["get", "k"], "ribbon"]),
+  );
   ext("smoke3d", "fires3d", 0.4, expr(["==", ["get", "k"], "smoke"]));
   ext("fires3d", "fires3d", 0.94, expr(["==", ["get", "k"], "fire"]));
   ext("sens3d", "sens3d", 0.96);
@@ -480,19 +513,27 @@ export function addDataLayers(map: MLMap) {
     type: "symbol",
     source: "items",
     layout: {
+      // minimal: name only when far out, name + measure once zoomed in
       "text-field": expr([
-        "format",
-        ["get", "name"],
-        { "text-font": ["literal", FONT_BOLD] },
-        "\n",
-        {},
-        ["get", "sub"],
-        { "font-scale": 0.85 },
+        "step",
+        ["zoom"],
+        ["format", ["get", "name"], { "text-font": ["literal", FONT_BOLD] }],
+        10,
+        [
+          "format",
+          ["get", "name"],
+          { "text-font": ["literal", FONT_BOLD] },
+          "\n",
+          {},
+          ["get", "sub"],
+          { "font-scale": 0.85 },
+        ],
       ]),
       "text-font": FONT,
       "text-size": 12.5,
       "text-anchor": "center",
       "text-max-width": 10,
+      "text-padding": 8,
       "text-letter-spacing": 0.01,
     },
     paint: {

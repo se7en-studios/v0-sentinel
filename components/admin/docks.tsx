@@ -189,7 +189,7 @@ export function DroneDock({ ctx }: { ctx: Ctx }) {
           ))}
         </div>
       </div>
-      <div className="grid h-[150px] grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_270px]">
+      <div className="grid h-[132px] grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_270px]">
         <Mini title="Altura (AGL)" unit="m" color="#0f7a4f" data={series.alt} />
         <div className="hidden h-full min-h-0 border-l border-[var(--hairline)] sm:block">
           <Mini
@@ -256,7 +256,7 @@ export function ResourcesDock({ ctx }: { ctx: Ctx }) {
         </h2>
         <Badge tone="sim">simulado</Badge>
       </div>
-      <div className="grid h-[150px] grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_270px]">
+      <div className="grid h-[132px] grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_270px]">
         <Mini
           title="Personal desplegado" hm
           unit="pers."
