@@ -315,7 +315,11 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
       total: allFires.length,
       last24,
       frp: Math.round(frp),
-      hectares: Math.round(allFires.length * HA_PER_DETECTION),
+      hectares: Math.round(
+        new Set(
+          allFires.map((p) => `${Math.round(p[0] / 0.004)}:${Math.round(p[1] / 0.004)}`),
+        ).size * HA_PER_DETECTION,
+      ),
       perDay: perDay.map(({ day, label, count, frp: f }) => ({
         day,
         label,

@@ -64,7 +64,7 @@ export function MetricsView({ ctx }: { ctx: Ctx }) {
           {
             label: "Superficie estimada",
             value: fmtArea(stats.hectares, u),
-            sub: "cota superior (≈14 ha por foco)",
+            sub: "cota superior (≈14 ha por píxel único)",
           },
           {
             label: "Potencia radiativa",
@@ -177,6 +177,12 @@ export function MetricsView({ ctx }: { ctx: Ctx }) {
               </BarChart>
             </ResponsiveContainer>
           </div>
+          <p className="mt-2 text-[11px] text-foreground/60">
+            Solo figuran los años con una cifra oficial que se pudo rastrear: faltan 2021,
+            2022 y 2025, y las barras no son una tendencia continua. La de 2023 sale de
+            una nota de prensa de 2024 y conviene verificarla con el SNMF antes de usarla
+            en un informe.
+          </p>
           <ul className="mt-2 space-y-0.5 text-[11px] text-foreground/50">
             {BURNED_HISTORY.map((h) => (
               <li key={h.year}>
@@ -267,7 +273,7 @@ export function MetricsView({ ctx }: { ctx: Ctx }) {
       <Card title="Impacto y exposición" right={<Badge>según tus supuestos</Badge>}>
         {ws.settings.valuePerHa > 0 ? (
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <Stat label="Superficie vigilada" value={fmtArea(ctx.protectedHa, u)} />
+            <Stat label="Superficie vigilada" value={fmtArea(ctx.protectedHa, u)} sub={zones.length > 1 ? "suma de zonas; si se solapan, cuenta doble" : undefined} />
             <Stat label="Valor bajo vigilancia" value={`USD ${Math.round(ctx.protectedHa * ws.settings.valuePerHa).toLocaleString("es-AR")}`} tone="ok" />
             <Stat label="Zonas con focos (48 h)" value={fmtArea(ctx.atRiskHa, u)} tone={ctx.atRiskHa ? "fire" : undefined} />
             <Stat label="Valor expuesto ahora" value={`USD ${Math.round(ctx.atRiskHa * ws.settings.valuePerHa).toLocaleString("es-AR")}`} tone={ctx.atRiskHa ? "fire" : undefined} />
