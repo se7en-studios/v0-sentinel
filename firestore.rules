@@ -10,5 +10,22 @@ service cloud.firestore {
                    && request.resource.data.json is string
                    && request.resource.data.json.size() < 900000;
     }
+
+    // Read-only share links: a frozen snapshot addressed by a long random token.
+    // Anyone with the token may read it (get) until it expires; nobody may list.
+    // Only the signed-in owner can create, list (to revoke) or delete their own.
+    match /shares/{token} {
+      allow get: if resource.data.expiresAt > request.time.toMillis();
+      allow list: if request.auth != null && resource.data.owner == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.owner == request.auth.uid
+                    && request.resource.data.json is string
+                    && request.resource.data.json.size() < 900000
+                    && request.resource.data.expiresAt is number
+                    && request.resource.data.expiresAt > request.time.toMillis()
+                    && request.resource.data.expiresAt <= request.time.toMillis() + 8 * 86400000
+                    && token.size() == 32;
+      allow delete: if request.auth != null && resource.data.owner == request.auth.uid;
+    }
   }
 }

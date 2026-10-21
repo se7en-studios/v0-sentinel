@@ -11,6 +11,8 @@ import {
   FileText,
   Image as ImageIcon,
   Layers,
+  Eye,
+  EyeOff,
   Link2,
   LogOut,
   Map as MapIcon,
@@ -256,6 +258,17 @@ export function Topbar({ a }: { a: A }) {
             <DropdownMenuItem onSelect={ctx.shareView}>
               <Link2 className="size-4" /> Copiar enlace de esta vista
             </DropdownMenuItem>
+            {a.canShare && (
+              <>
+                <DropdownMenuItem onSelect={a.shareReadOnly}>
+                  <Eye className="size-4" /> Enlace de solo lectura (7 días)
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={a.revokeLinks}>
+                  <EyeOff className="size-4" /> Revocar enlaces compartidos
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem onSelect={ctx.exportPng}>
               <ImageIcon className="size-4" /> Exportar mapa como imagen
             </DropdownMenuItem>

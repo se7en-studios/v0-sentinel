@@ -1083,6 +1083,47 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
       () => toast.error("No se pudo copiar el enlace"),
     );
   }
+  // frozen, tokenised copy for people without an account; contacts and settings stay out
+  async function shareReadOnly() {
+    if (!cloud) return;
+    const v = mapRef.current?.getView();
+    try {
+      const { createShare, SHARE_DAYS } = await import("@/lib/admin/share");
+      const { token, expiresAt } = await createShare(cloud.uid, {
+        v: 1,
+        org: s.org,
+        region: {
+          name: region.name,
+          center: v?.center ?? region.center,
+          zoom: v?.zoom ?? region.zoom,
+        },
+        baseLayer: s.baseLayer,
+        features: ws.features,
+        meta: ws.meta,
+        fires,
+        days: payload?.days ?? [],
+        createdAt: Date.now(),
+      });
+      const url = `${window.location.origin}/admin/ver/${token}`;
+      await navigator.clipboard.writeText(url);
+      toast.success("Enlace de solo lectura copiado", {
+        description: `Vence en ${SHARE_DAYS} días (${new Date(expiresAt).toLocaleDateString("es-AR", { day: "numeric", month: "long" })}). Muestra una foto de tus zonas y focos, sin contactos.`,
+        duration: 9000,
+      });
+    } catch {
+      toast.error("No se pudo crear el enlace");
+    }
+  }
+  async function revokeLinks() {
+    if (!cloud) return;
+    try {
+      const { revokeShares } = await import("@/lib/admin/share");
+      const n = await revokeShares(cloud.uid);
+      toast.success(n ? `${n} ${n === 1 ? "enlace revocado" : "enlaces revocados"}` : "No había enlaces activos");
+    } catch {
+      toast.error("No se pudieron revocar los enlaces");
+    }
+  }
   async function exportPng() {
     const img = await mapRef.current?.snapshot();
     if (!img) return toast("Abrí un panel con mapa para exportar la imagen");
@@ -1232,6 +1273,9 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     now,
     dark,
     toggleTheme,
+    canShare: Boolean(cloud),
+    shareReadOnly,
+    revokeLinks,
     undo,
     redo,
     canUndo,
