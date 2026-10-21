@@ -438,9 +438,17 @@ export const MapView = forwardRef<MapHandle, Props>(
               );
             }
             const dash = Math.floor(t / 110) % DASH_FRAMES.length;
-            if (dash !== lastDash && map.getLayer("route-flow") && latest.current.show.routes) {
+            if (
+              dash !== lastDash &&
+              map.getLayer("route-flow") &&
+              latest.current.show.routes
+            ) {
               lastDash = dash;
-              map.setPaintProperty("route-flow", "line-dasharray", DASH_FRAMES[dash]);
+              map.setPaintProperty(
+                "route-flow",
+                "line-dasharray",
+                DASH_FRAMES[dash],
+              );
             }
           };
           raf = requestAnimationFrame(tick);
@@ -545,12 +553,14 @@ export const MapView = forwardRef<MapHandle, Props>(
             easing: (t) => 1 - Math.pow(1 - t, 3),
           });
         } else {
-          map.easeTo({
-            pitch: 0,
-            bearing: 0,
-            duration: 900,
-            easing: (t) => 1 - Math.pow(1 - t, 3),
-          });
+          // easeTo would cancel the intro flyTo on first load, when there is nothing to reset
+          if (map.getPitch() > 0.5 || Math.abs(map.getBearing()) > 0.5)
+            map.easeTo({
+              pitch: 0,
+              bearing: 0,
+              duration: 900,
+              easing: (t) => 1 - Math.pow(1 - t, 3),
+            });
           if (map.getTerrain())
             map.setTerrain(null as unknown as maplibregl.TerrainSpecification);
           try {
