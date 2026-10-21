@@ -21,6 +21,7 @@ import type { Ctx } from "./ctx";
 import { LayersPanel } from "./panel-layers";
 import { OverviewCard, WeatherCard } from "./panel-overview";
 import { Onboarding } from "./onboarding";
+import { RulesCard } from "./rules-card";
 import { Badge, Btn, Card, EmptyState, Segmented } from "./ui";
 
 const SEGS = ["Capas", "Análisis", "Alertas", "Notas"] as const;
@@ -310,6 +311,8 @@ function AlertsTab({ ctx }: { ctx: Ctx }) {
           ))}
         </div>
       </Card>
+
+      <RulesCard ctx={ctx} />
 
       <Card
         bare

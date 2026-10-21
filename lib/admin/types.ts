@@ -17,6 +17,13 @@ export interface Meta {
   sensorType?: SensorType;
 }
 
+/** User-defined alert: fires a toast (and optional browser notification) when its condition turns true. */
+export type AlertRule = { id: string; enabled: boolean } & (
+  | { kind: "zone_fire"; zoneId: string; min: number } // zoneId "" = any zone
+  | { kind: "risk"; score: number; days: number }
+  | { kind: "activity"; focos: number }
+);
+
 export interface Settings {
   org: string;
   regionId: string;
@@ -29,6 +36,7 @@ export interface Settings {
   valuePerHa: number;
   opacity: Record<OpacityKey, number>;
   thresholds: { temp: number; humidity: number; smoke: number; wind: number };
+  rules: AlertRule[];
   notify: {
     email: string;
     whatsapp: string;
@@ -158,5 +166,6 @@ export const DEFAULT_SETTINGS: Settings = {
   valuePerHa: 0,
   opacity: { imagery: 1, relief: 0.6, tint: 0.3, fires: 1, zones: 1, spread: 1, routes: 1, labels: 1 },
   thresholds: { temp: 45, humidity: 20, smoke: 150, wind: 50 },
+  rules: [],
   notify: { email: "", whatsapp: "", onZoneHit: true, onSensor: true, browser: false },
 };

@@ -1,5 +1,6 @@
 "use client";
 
+import { cleanRules } from "./rules";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   DEFAULT_SETTINGS,
@@ -103,6 +104,7 @@ export function parseWorkspace(input: unknown): Workspace {
         ) as Workspace["settings"]["opacity"],
         thresholds: { ...DEFAULT_SETTINGS.thresholds, ...st.thresholds },
         notify: { ...DEFAULT_SETTINGS.notify, ...st.notify },
+        rules: cleanRules(st.rules),
       },
     };
   } catch {

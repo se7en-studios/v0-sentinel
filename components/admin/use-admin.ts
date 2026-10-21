@@ -18,6 +18,8 @@ import {
 } from "@/lib/admin/sim";
 import { useWorkspace } from "@/lib/admin/store";
 import { fetchWeather, type Weather } from "@/lib/admin/weather";
+import { fetchForecast, type DayForecast } from "@/lib/admin/forecast";
+import { evaluateRules } from "@/lib/admin/rules";
 import { HA_PER_DETECTION } from "@/lib/admin/history";
 import { nearestPlace } from "@/lib/admin/places";
 import {
@@ -894,6 +896,60 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     [units],
   );
 
+  // ---- user alert rules ----
+  const [forecast, setForecast] = useState<DayForecast[] | null>(null);
+  const needsForecast = s.rules.some((r) => r.kind === "risk" && r.enabled);
+  useEffect(() => {
+    if (!needsForecast) return;
+    let cancelled = false;
+    fetchForecast(center[1], center[0]).then(
+      (f) => !cancelled && setForecast(f),
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [needsForecast, center]);
+  const ruleFirings = useMemo(
+    () =>
+      evaluateRules(s.rules, {
+        zones: ws.features
+          .filter((f) => MODE_ROLE[String(f.properties.mode)] === "zone")
+          .map((z) => ({
+            id: z.id,
+            name: ws.meta[z.id]?.name ?? "Zona",
+            recent: zoneHits[z.id]?.recent ?? 0,
+          })),
+        last24: stats.last24,
+        forecast,
+      }),
+    [s.rules, ws.features, ws.meta, zoneHits, stats.last24, forecast],
+  );
+  const seenRules = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    if (!payload) return;
+    const prev = seenRules.current;
+    seenRules.current = new Set(ruleFirings.keys());
+    if (!prev) return;
+    for (const [id, detail] of ruleFirings) {
+      if (prev.has(id)) continue;
+      toast.warning("Regla de alerta activada", {
+        description: detail,
+        duration: 12_000,
+        action: { label: "Ver reglas", onClick: () => goTab("general") },
+      });
+      if (
+        s.notify.browser &&
+        typeof Notification !== "undefined" &&
+        Notification.permission === "granted"
+      )
+        new Notification("Sentinel: regla de alerta", {
+          body: detail,
+          tag: `rule-${id}`,
+        });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ruleFirings, payload, s.notify.browser]);
+
   const ctx: Ctx = {
     ws,
     setSettings,
@@ -971,7 +1027,11 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     panelOpen,
     setPanelOpen,
     camera,
-    alertCount: alertIds.size + sensors.filter((x) => x.reading.alert).length,
+    alertCount:
+      alertIds.size +
+      sensors.filter((x) => x.reading.alert).length +
+      ruleFirings.size,
+    ruleFirings,
     units,
     dispatchUnit,
     recallUnit,

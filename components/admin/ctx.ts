@@ -182,6 +182,7 @@ export interface Ctx {
   setPanelOpen: (v: boolean) => void;
   camera: Camera;
   alertCount: number;
+  ruleFirings: Map<string, string>;
 
   // resources (simulated) and active drone
   units: UnitState[];
