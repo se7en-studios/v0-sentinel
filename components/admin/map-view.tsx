@@ -422,14 +422,21 @@ export const MapView = forwardRef<MapHandle, Props>(
           let last = 0;
           let lastGlow = -1;
           let lastDash = -1;
+          // touch devices are the ones that overheat: half the repaint rate there
+          const everyMs = window.matchMedia("(pointer: coarse)").matches
+            ? 180
+            : 90;
           const tick = (t: number) => {
             raf = requestAnimationFrame(tick);
             // each paint change forces a full map repaint: skip while hidden or while the map is already moving
-            if (document.hidden || t - last < 90 || map.isMoving()) return;
+            if (document.hidden || t - last < everyMs || map.isMoving()) return;
             last = t;
             const s = (Math.sin(t / 650) + 1) / 2;
             const glow = Math.round(s * 12) / 12;
-            if (glow !== lastGlow && map.getLayer("fires-glow")) {
+            const firesOn =
+              latest.current.show.fires &&
+              (latest.current.opacity?.fires ?? 1) > 0;
+            if (firesOn && glow !== lastGlow && map.getLayer("fires-glow")) {
               lastGlow = glow;
               map.setPaintProperty(
                 "fires-glow",
