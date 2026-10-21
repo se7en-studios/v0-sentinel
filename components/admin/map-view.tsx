@@ -64,7 +64,7 @@ export interface MapHandle {
     bearing: number;
     pitch: number;
   } | null;
-  snapshot: () => string | null;
+  snapshot: () => Promise<string | null>;
   getBounds: () => [number, number, number, number] | null;
   project: (lng: number, lat: number) => [number, number] | null;
   zoomBy: (delta: number) => void;
@@ -246,16 +246,22 @@ export const MapView = forwardRef<MapHandle, Props>(
           zoom: mapRef.current.getZoom() + delta,
           duration: 350,
         }),
-      snapshot: () => {
-        const m = mapRef.current;
-        if (!m) return null;
-        m.triggerRepaint();
-        try {
-          return m.getCanvas().toDataURL("image/jpeg", 0.88);
-        } catch {
-          return null;
-        }
-      },
+      // captured on the next render: lets the canvas run without preserveDrawingBuffer
+      snapshot: () =>
+        new Promise<string | null>((resolve) => {
+          const m = mapRef.current;
+          if (!m) return resolve(null);
+          const timer = setTimeout(() => resolve(null), 1500);
+          m.once("render", () => {
+            clearTimeout(timer);
+            try {
+              resolve(m.getCanvas().toDataURL("image/jpeg", 0.88));
+            } catch {
+              resolve(null);
+            }
+          });
+          m.triggerRepaint();
+        }),
     }));
 
     // ---- bootstrap ----
@@ -271,8 +277,9 @@ export const MapView = forwardRef<MapHandle, Props>(
         container: box.current,
         canvasContextAttributes: {
           antialias: true,
-          preserveDrawingBuffer: true,
         },
+        // high-DPI screens multiply fill-rate (terrain + extrusions); 1.75 looks the same at a fraction of the cost
+        pixelRatio: Math.min(window.devicePixelRatio || 1, 1.75),
         center: p.region.center,
         zoom: calm ? p.region.zoom : Math.max(3.4, p.region.zoom - 1.3),
         maxBounds: AR_BOUNDS,
@@ -413,23 +420,28 @@ export const MapView = forwardRef<MapHandle, Props>(
         // ambient motion: fire glow pulse + route flow. Skipped for reduced motion.
         if (!calm) {
           let last = 0;
+          let lastGlow = -1;
+          let lastDash = -1;
           const tick = (t: number) => {
             raf = requestAnimationFrame(tick);
-            if (document.hidden || t - last < 70) return;
+            // each paint change forces a full map repaint: skip while hidden or while the map is already moving
+            if (document.hidden || t - last < 90 || map.isMoving()) return;
             last = t;
             const s = (Math.sin(t / 650) + 1) / 2;
-            if (map.getLayer("fires-glow"))
+            const glow = Math.round(s * 12) / 12;
+            if (glow !== lastGlow && map.getLayer("fires-glow")) {
+              lastGlow = glow;
               map.setPaintProperty(
                 "fires-glow",
                 "circle-opacity",
-                (0.3 + 0.32 * s) * (latest.current.opacity?.fires ?? 1),
+                (0.3 + 0.32 * glow) * (latest.current.opacity?.fires ?? 1),
               );
-            if (map.getLayer("route-flow"))
-              map.setPaintProperty(
-                "route-flow",
-                "line-dasharray",
-                DASH_FRAMES[Math.floor(t / 80) % DASH_FRAMES.length],
-              );
+            }
+            const dash = Math.floor(t / 110) % DASH_FRAMES.length;
+            if (dash !== lastDash && map.getLayer("route-flow") && latest.current.show.routes) {
+              lastDash = dash;
+              map.setPaintProperty("route-flow", "line-dasharray", DASH_FRAMES[dash]);
+            }
           };
           raf = requestAnimationFrame(tick);
           map.flyTo({

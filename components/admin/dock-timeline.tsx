@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { memo, useMemo, useRef } from "react";
 import {
   Area,
   AreaChart,
@@ -153,13 +153,15 @@ function Scrubber({ ctx }: { ctx: Ctx }) {
   );
 }
 
-function MiniChart({
+// memo: recharts is the costliest thing in the dock and only needs data, range and cursor
+const MiniChart = memo(function MiniChart({
   title,
   data,
   dataKey,
   color,
   unit,
-  ctx,
+  range,
+  cursor,
   step,
 }: {
   title: string;
@@ -167,11 +169,11 @@ function MiniChart({
   dataKey: "cum" | "count" | "frp";
   color: string;
   unit: string;
-  ctx: Ctx;
+  range: Ctx["range"];
+  cursor: Ctx["cursor"];
   step?: boolean;
 }) {
   const id = `g-${dataKey}`;
-  const { range, cursor } = ctx;
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-col px-3 pb-1.5 pt-2">
       <div className="mb-0.5 flex items-baseline justify-between">
@@ -235,7 +237,7 @@ function MiniChart({
       </div>
     </div>
   );
-}
+});
 
 function EventsList({ ctx }: { ctx: Ctx }) {
   return (
@@ -369,7 +371,8 @@ export function TimelineDock({ ctx }: { ctx: Ctx }) {
           dataKey="cum"
           color="#e8710a"
           unit="focos"
-          ctx={ctx}
+          range={range}
+          cursor={cursor}
         />
         <div className="hidden h-full min-h-0 border-l border-[var(--hairline)] sm:block">
           <MiniChart
@@ -378,7 +381,8 @@ export function TimelineDock({ ctx }: { ctx: Ctx }) {
             dataKey="count"
             color="#c9a300"
             unit="focos/h"
-            ctx={ctx}
+            range={range}
+            cursor={cursor}
             step
           />
         </div>
@@ -389,7 +393,8 @@ export function TimelineDock({ ctx }: { ctx: Ctx }) {
             dataKey="frp"
             color="#c8321e"
             unit="MW/h"
-            ctx={ctx}
+            range={range}
+            cursor={cursor}
           />
         </div>
         <div className="hidden h-full min-h-0 sm:block">

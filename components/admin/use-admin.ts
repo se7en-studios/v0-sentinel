@@ -3,15 +3,30 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { alongRoute, distKm, firesInZone } from "@/lib/admin/geo";
 import { demoWorkspace } from "@/lib/admin/demo";
-import { UNITS, etaFromBase, unitState, type Dispatch, type OpsEntry } from "@/lib/admin/resources";
-import { FLEET, droneTelemetry, riskScore, sensorReading } from "@/lib/admin/sim";
+import {
+  UNITS,
+  etaFromBase,
+  unitState,
+  type Dispatch,
+  type OpsEntry,
+} from "@/lib/admin/resources";
+import {
+  FLEET,
+  droneTelemetry,
+  riskScore,
+  sensorReading,
+} from "@/lib/admin/sim";
 import { useWorkspace } from "@/lib/admin/store";
 import { fetchWeather, type Weather } from "@/lib/admin/weather";
 import { HA_PER_DETECTION } from "@/lib/admin/history";
 import { nearestPlace } from "@/lib/admin/places";
 import { HORIZONS, spreadPolygon } from "@/lib/admin/spread";
 import { fmtArea, areaHa, centerOf } from "@/lib/admin/geo";
-import { downloadDataUrl, downloadFiresCsv, printReport } from "@/lib/admin/report";
+import {
+  downloadDataUrl,
+  downloadFiresCsv,
+  printReport,
+} from "@/lib/admin/report";
 import { toast } from "sonner";
 import {
   MODE_ROLE,
@@ -24,7 +39,17 @@ import {
   type Role,
 } from "@/lib/admin/types";
 import { TABS } from "./tabs";
-import type { Camera, Ctx, DroneState, FeedItem, FireStats, HourPoint, KeyEvent, SensorState, Tab } from "./ctx";
+import type {
+  Camera,
+  Ctx,
+  DroneState,
+  FeedItem,
+  FireStats,
+  HourPoint,
+  KeyEvent,
+  SensorState,
+  Tab,
+} from "./ctx";
 import type { MapHandle } from "./map-view";
 import type { PaletteAction } from "./command-palette";
 
@@ -67,7 +92,20 @@ export interface CloudSession {
 }
 
 export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
-  const { ws, ready, setFeatures, setMeta, setSettings, replace, setNotes, undo, redo, canUndo, canRedo, sync } = useWorkspace(cloud?.uid);
+  const {
+    ws,
+    ready,
+    setFeatures,
+    setMeta,
+    setSettings,
+    replace,
+    setNotes,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    sync,
+  } = useWorkspace(cloud?.uid);
   const s = ws.settings;
   const mapRef = useRef<MapHandle>(null);
 
@@ -85,7 +123,11 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   const [cursor, setCursor] = useState<number | null>(null);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
-  const [camera, setCamera] = useState<Camera>({ bearing: 0, pitch: 0, zoom: 8 });
+  const [camera, setCamera] = useState<Camera>({
+    bearing: 0,
+    pitch: 0,
+    zoom: 8,
+  });
   const [show, setShow] = useState({
     fires: true,
     heat: true,
@@ -125,7 +167,10 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     setLoading(true);
     try {
       const token = cloud ? await cloud.getToken() : null;
-      const res = await fetch("/api/admin/fires", token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+      const res = await fetch(
+        "/api/admin/fires",
+        token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
+      );
       const j = (await res.json()) as FiresPayload;
       if (!res.ok) throw new Error(j.error ?? "Error al cargar focos");
       setPayload(j);
@@ -138,19 +183,34 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   }, [cloud]);
   useEffect(() => {
     load();
-    const t = setInterval(load, Math.max(5, Number(s.refreshMin) || 30) * 60_000);
+    const t = setInterval(
+      load,
+      Math.max(5, Number(s.refreshMin) || 30) * 60_000,
+    );
     return () => clearInterval(t);
   }, [load, s.refreshMin]);
 
+  // the clock re-renders the whole panel: tick fast only where live telemetry is on screen, pause when hidden
+  const tickMs =
+    tab === "drones" || tab === "recursos"
+      ? 1000
+      : tab === "general" || tab === "zonas"
+        ? 2000
+        : 15_000;
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
+    const t = setInterval(() => {
+      if (!document.hidden) setNow(Date.now());
+    }, tickMs);
     return () => clearInterval(t);
-  }, []);
+  }, [tickMs]);
 
   useEffect(() => {
     let cancelled = false;
     const t = setTimeout(
-      () => fetchWeather(center[1], center[0]).then((w) => !cancelled && setWeather(w)),
+      () =>
+        fetchWeather(center[1], center[0]).then(
+          (w) => !cancelled && setWeather(w),
+        ),
       700,
     );
     return () => {
@@ -178,7 +238,8 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   const fires = useMemo(() => {
     const days = payload?.days ?? [];
     const end = cursor === null ? Infinity : cursor;
-    const start = hours >= 240 ? -Infinity : (cursor ?? Date.now()) - hours * 3600_000;
+    const start =
+      hours >= 240 ? -Infinity : (cursor ?? Date.now()) - hours * 3600_000;
     return allFires.filter((p) => {
       const t = pointTs(days, p);
       return t <= end && t >= start;
@@ -243,13 +304,20 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
 
   // ---- timeline: range, hourly series ----
   const range = useMemo(() => {
-    const t0 = payload?.days.length ? Date.parse(`${payload.days[0]}T00:00:00Z`) : Date.now() - 10 * 864e5;
+    const t0 = payload?.days.length
+      ? Date.parse(`${payload.days[0]}T00:00:00Z`)
+      : Date.now() - 10 * 864e5;
     return { t0, t1: Math.max(Date.now(), t0 + 864e5) };
   }, [payload]);
   const series = useMemo<HourPoint[]>(() => {
     if (!payload) return [];
     const n = Math.ceil((range.t1 - range.t0) / 3600_000);
-    const arr: HourPoint[] = Array.from({ length: n + 1 }, (_, i) => ({ t: range.t0 + i * 3600_000, count: 0, frp: 0, cum: 0 }));
+    const arr: HourPoint[] = Array.from({ length: n + 1 }, (_, i) => ({
+      t: range.t0 + i * 3600_000,
+      count: 0,
+      frp: 0,
+      cum: 0,
+    }));
     for (const p of allFires) {
       const i = Math.floor((pointTs(payload.days, p) - range.t0) / 3600_000);
       if (arr[i]) {
@@ -301,7 +369,9 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
           : {}),
       });
       setSelectedId(f.id);
-      toast.success(`${NAME_PREFIX[role]} creada`, { description: "Podés renombrarla en el panel lateral." });
+      toast.success(`${NAME_PREFIX[role]} creada`, {
+        description: "Podés renombrarla en el panel lateral.",
+      });
     },
     [ws.features, setFeatures, setMeta],
   );
@@ -309,7 +379,9 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   const removeFeature = useCallback(
     (id: string) => {
       setFeatures(ws.features.filter((f) => f.id !== id));
-      toast("Elemento eliminado", { action: { label: "Deshacer", onClick: () => undo() } });
+      toast("Elemento eliminado", {
+        action: { label: "Deshacer", onClick: () => undo() },
+      });
       setSelectedId((cur) => (cur === id ? null : cur));
       setEditingRaw(false);
     },
@@ -332,7 +404,10 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     );
     replace({
       ...ws,
-      features: [...ws.features, ...d.features.filter((f) => !ws.features.some((x) => x.id === f.id))],
+      features: [
+        ...ws.features,
+        ...d.features.filter((f) => !ws.features.some((x) => x.id === f.id)),
+      ],
       meta: { ...ws.meta, ...d.meta },
     });
     mapRef.current?.flyTo(
@@ -365,7 +440,12 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape" || e.defaultPrevented) return;
       const t = e.target as HTMLElement | null;
-      if (t && (["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName) || t.closest("[role=dialog]"))) return;
+      if (
+        t &&
+        (["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName) ||
+          t.closest("[role=dialog]"))
+      )
+        return;
       setToolRaw(null);
       setEditingRaw(false);
       setSelectedId(null);
@@ -377,7 +457,8 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
 
   // ---- zone hits (time independent) ----
   const zoneHits = useMemo(() => {
-    const out: Record<string, { recent: number; total: number; last: number }> = {};
+    const out: Record<string, { recent: number; total: number; last: number }> =
+      {};
     if (!payload) return out;
     const lastDay = payload.days.length - 1;
     for (const z of ws.features) {
@@ -415,7 +496,8 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
           spec,
           route,
           telem,
-          track: route && !rtb.has(spec.id) ? alongRoute(route, telem.distKm) : null,
+          track:
+            route && !rtb.has(spec.id) ? alongRoute(route, telem.distKm) : null,
         };
       }),
     [ws.features, ws.meta, now, rtb],
@@ -465,13 +547,45 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
       const n = nearestPlace(p[0], p[1]);
       return `${n.km} km de ${n.near}`;
     };
-    out.push({ id: "first", t: pointTs(days, first), kind: "first", title: "Primer foco detectado", sub: place(first), at: [first[1], first[0]] });
-    const peak = series.reduce((m, x) => (x.count > m.count ? x : m), series[0] ?? { t: 0, count: 0, frp: 0, cum: 0 });
-    if (peak.count > 0) out.push({ id: "peak", t: peak.t, kind: "peak", title: "Pico de actividad", sub: `${peak.count} focos en una hora` });
-    out.push({ id: "frp", t: pointTs(days, strongest), kind: "frp", title: `Mayor potencia: ${Math.round(strongest[2])} MW`, sub: place(strongest), at: [strongest[1], strongest[0]] });
+    out.push({
+      id: "first",
+      t: pointTs(days, first),
+      kind: "first",
+      title: "Primer foco detectado",
+      sub: place(first),
+      at: [first[1], first[0]],
+    });
+    const peak = series.reduce(
+      (m, x) => (x.count > m.count ? x : m),
+      series[0] ?? { t: 0, count: 0, frp: 0, cum: 0 },
+    );
+    if (peak.count > 0)
+      out.push({
+        id: "peak",
+        t: peak.t,
+        kind: "peak",
+        title: "Pico de actividad",
+        sub: `${peak.count} focos en una hora`,
+      });
+    out.push({
+      id: "frp",
+      t: pointTs(days, strongest),
+      kind: "frp",
+      title: `Mayor potencia: ${Math.round(strongest[2])} MW`,
+      sub: place(strongest),
+      at: [strongest[1], strongest[0]],
+    });
     for (const z of ws.features) {
       const h = zoneHits[z.id];
-      if (h?.total) out.push({ id: `z-${z.id}`, t: h.last, kind: "zone", title: `Foco en ${ws.meta[z.id]?.name ?? "zona"}`, sub: `${h.total} detecciones en 10 días`, featId: z.id });
+      if (h?.total)
+        out.push({
+          id: `z-${z.id}`,
+          t: h.last,
+          kind: "zone",
+          title: `Foco en ${ws.meta[z.id]?.name ?? "zona"}`,
+          sub: `${h.total} detecciones en 10 días`,
+          featId: z.id,
+        });
     }
     return out.sort((a, b) => b.t - a.t);
   }, [payload, allFires, series, ws.features, ws.meta, zoneHits]);
@@ -479,7 +593,9 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   // ---- risk per zone: real weather at each zone center ----
   useEffect(() => {
     let cancelled = false;
-    const zones = ws.features.filter((f) => MODE_ROLE[String(f.properties.mode)] === "zone");
+    const zones = ws.features.filter(
+      (f) => MODE_ROLE[String(f.properties.mode)] === "zone",
+    );
     Promise.all(
       zones.map(async (z) => {
         const [lng, lat] = centerOf(z);
@@ -493,14 +609,19 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
       }),
     ).then((rows) => {
       if (cancelled) return;
-      setZoneRisk(Object.fromEntries(rows.filter((r) => r[1])) as Ctx["zoneRisk"]);
+      setZoneRisk(
+        Object.fromEntries(rows.filter((r) => r[1])) as Ctx["zoneRisk"],
+      );
     });
     return () => {
       cancelled = true;
     };
   }, [ws.features]);
   const zoneRiskColors = useMemo(
-    () => Object.fromEntries(Object.entries(zoneRisk).map(([id, r]) => [id, r.color])),
+    () =>
+      Object.fromEntries(
+        Object.entries(zoneRisk).map(([id, r]) => [id, r.color]),
+      ),
     [zoneRisk],
   );
   const setFollowId = useCallback((id: string | null) => {
@@ -543,7 +664,10 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
           feats.push({
             type: "Feature",
             properties: { h, label: h === predH ? `+${h} h` : "" },
-            geometry: { type: "Polygon", coordinates: [spreadPolygon(c.lat, c.lng, w, h)] },
+            geometry: {
+              type: "Polygon",
+              coordinates: [spreadPolygon(c.lat, c.lng, w, h)],
+            },
           });
         }
       }
@@ -599,10 +723,27 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
       });
     }
     for (const id of rtb) {
-      items.push({ id: `r-${id}`, t: now, kind: "drone", title: `${FLEET.find((d) => d.id === id)?.name} retornando al dock`, sub: "Orden manual del operador", sim: true });
+      items.push({
+        id: `r-${id}`,
+        t: now,
+        kind: "drone",
+        title: `${FLEET.find((d) => d.id === id)?.name} retornando al dock`,
+        sub: "Orden manual del operador",
+        sim: true,
+      });
     }
     return items.sort((a, b) => b.t - a.t);
-  }, [allFires, payload, ws.features, ws.meta, zoneHits, sensors, rtb, now, s.bufferKm]);
+  }, [
+    allFires,
+    payload,
+    ws.features,
+    ws.meta,
+    zoneHits,
+    sensors,
+    rtb,
+    now,
+    s.bufferKm,
+  ]);
 
   // ---- exposure & exports ----
   const protectedHa = ws.features
@@ -612,9 +753,9 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     .filter((f) => (zoneHits[f.id]?.recent ?? 0) > 0)
     .reduce((a, z) => a + areaHa(z), 0);
   const exportCsv = () => payload && downloadFiresCsv(fires, payload.days);
-  const exportReport = () =>
+  const exportReport = async () =>
     printReport({
-      mapImage: mapRef.current?.snapshot() ?? null,
+      mapImage: (await mapRef.current?.snapshot()) ?? null,
       org: s.org,
       stats,
       zones: ws.features
@@ -625,7 +766,11 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
           recent: zoneHits[z.id]?.recent ?? 0,
           total: zoneHits[z.id]?.total ?? 0,
         })),
-      clusters: clusters.map((c) => ({ text: `${c.km} km de ${c.near}`, count: c.count, frp: c.frp })),
+      clusters: clusters.map((c) => ({
+        text: `${c.km} km de ${c.near}`,
+        count: c.count,
+        frp: c.frp,
+      })),
       exposure:
         s.valuePerHa > 0
           ? `Valor bajo vigilancia: USD ${Math.round(protectedHa * s.valuePerHa).toLocaleString("es-AR")} (${fmtArea(protectedHa, s.units)} a USD ${s.valuePerHa}/ha). En zonas con focos recientes: USD ${Math.round(atRiskHa * s.valuePerHa).toLocaleString("es-AR")}.`
@@ -647,7 +792,10 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     });
 
   // ---- simulated response units ----
-  const units = useMemo(() => UNITS.map((u) => unitState(u, region.center, orders[u.id], now)), [region, orders, now]);
+  const units = useMemo(
+    () => UNITS.map((u) => unitState(u, region.center, orders[u.id], now)),
+    [region, orders, now],
+  );
   const dispatchUnit = useCallback(
     (id: string, target: [number, number], label: string) => {
       const spec = UNITS.find((u) => u.id === id);
@@ -655,20 +803,49 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
       const t = Date.now();
       setOrders((o) => ({ ...o, [id]: { target, label, since: t } }));
       const eta = etaFromBase(spec, region.center, target);
-      setOpsLog((l) => [{ id: `${id}-${t}`, t, text: `${spec.name} despachada a ${label} · ETA ${eta} min` }, ...l].slice(0, 40));
-      toast.success(`${spec.name} despachada`, { description: `${label} · ETA ${eta} min (simulado)` });
+      setOpsLog((l) =>
+        [
+          {
+            id: `${id}-${t}`,
+            t,
+            text: `${spec.name} despachada a ${label} · ETA ${eta} min`,
+          },
+          ...l,
+        ].slice(0, 40),
+      );
+      toast.success(`${spec.name} despachada`, {
+        description: `${label} · ETA ${eta} min (simulado)`,
+      });
     },
     [region],
   );
   const recallUnit = useCallback((id: string) => {
     const t = Date.now();
     if (ordersRef.current[id]?.recalledAt || !ordersRef.current[id]) return;
-    setOrders((o) => (o[id] && !o[id].recalledAt ? { ...o, [id]: { ...o[id], recalledAt: t } } : o));
+    setOrders((o) =>
+      o[id] && !o[id].recalledAt
+        ? { ...o, [id]: { ...o[id], recalledAt: t } }
+        : o,
+    );
     const spec = UNITS.find((u) => u.id === id);
-    if (spec) setOpsLog((l) => [{ id: `${id}-r-${t}`, t, text: `${spec.name} regresa a base` }, ...l].slice(0, 40));
+    if (spec)
+      setOpsLog((l) =>
+        [
+          { id: `${id}-r-${t}`, t, text: `${spec.name} regresa a base` },
+          ...l,
+        ].slice(0, 40),
+      );
   }, []);
   const unitMarkers = useMemo(
-    () => units.filter((u) => u.status !== "disponible").map((u) => ({ id: u.spec.id, name: u.spec.name, kind: u.spec.kind, pos: u.pos })),
+    () =>
+      units
+        .filter((u) => u.status !== "disponible")
+        .map((u) => ({
+          id: u.spec.id,
+          name: u.spec.name,
+          kind: u.spec.kind,
+          pos: u.pos,
+        })),
     [units],
   );
 
@@ -757,10 +934,17 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     setActiveDrone,
   };
 
-  const isMapTab = tab === "general" || tab === "zonas" || tab === "drones" || tab === "recursos";
+  const isMapTab =
+    tab === "general" ||
+    tab === "zonas" ||
+    tab === "drones" ||
+    tab === "recursos";
   const dayLabels = payload?.days ?? [];
   const fd = followId ? drones.find((d) => d.spec.id === followId) : undefined;
-  const followDrone = fd?.track && view === "3d" ? { pos: fd.track.pos, heading: fd.track.heading } : null;
+  const followDrone =
+    fd?.track && view === "3d"
+      ? { pos: fd.track.pos, heading: fd.track.heading }
+      : null;
   const droneMarkers = drones
     .filter((d) => d.track)
     .map((d) => ({
@@ -784,7 +968,10 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   }, []);
 
   useEffect(() => {
-    if (firesError) toast.error("No se pudieron cargar los focos de NASA", { description: firesError });
+    if (firesError)
+      toast.error("No se pudieron cargar los focos de NASA", {
+        description: firesError,
+      });
   }, [firesError]);
 
   useEffect(() => {
@@ -813,15 +1000,32 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     seenAlerts.current = new Set(alertIds);
     if (!prev || !s.notify.browser || !s.notify.onZoneHit) return;
     for (const id of alertIds) {
-      if (prev.has(id) || typeof Notification === "undefined" || Notification.permission !== "granted") continue;
-      new Notification("Sentinel: foco detectado", { body: `${ws.meta[id]?.name ?? "Zona"}: ${zoneHits[id]?.recent ?? 0} focos en 48 h`, tag: id });
+      if (
+        prev.has(id) ||
+        typeof Notification === "undefined" ||
+        Notification.permission !== "granted"
+      )
+        continue;
+      new Notification("Sentinel: foco detectado", {
+        body: `${ws.meta[id]?.name ?? "Zona"}: ${zoneHits[id]?.recent ?? 0} focos en 48 h`,
+        tag: id,
+      });
     }
-  }, [alertIds, payload, s.notify.browser, s.notify.onZoneHit, ws.meta, zoneHits]);
+  }, [
+    alertIds,
+    payload,
+    s.notify.browser,
+    s.notify.onZoneHit,
+    ws.meta,
+    zoneHits,
+  ]);
 
   // restore a shared view (#v=lng,lat,zoom,view)
   useEffect(() => {
     if (!ready) return;
-    const m = window.location.hash.match(/^#v=(-?[\d.]+),(-?[\d.]+),([\d.]+),(2d|3d)$/);
+    const m = window.location.hash.match(
+      /^#v=(-?[\d.]+),(-?[\d.]+),([\d.]+),(2d|3d)$/,
+    );
     if (!m) return;
     const t = setTimeout(() => {
       setView(m[4] as "2d" | "3d");
@@ -839,10 +1043,13 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
       () => toast.error("No se pudo copiar el enlace"),
     );
   }
-  function exportPng() {
-    const img = mapRef.current?.snapshot();
+  async function exportPng() {
+    const img = await mapRef.current?.snapshot();
     if (!img) return toast("Abrí un panel con mapa para exportar la imagen");
-    downloadDataUrl(`sentinel-mapa-${new Date().toISOString().slice(0, 10)}.jpg`, img);
+    downloadDataUrl(
+      `sentinel-mapa-${new Date().toISOString().slice(0, 10)}.jpg`,
+      img,
+    );
     toast.success("Mapa exportado");
   }
 
@@ -852,24 +1059,121 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     setEditingRaw(false);
   }
   const actions: PaletteAction[] = [
-    ...TABS.map((t) => ({ id: `tab-${t.id}`, group: "Ir a", label: t.label, run: () => goTab(t.id) })),
+    ...TABS.map((t) => ({
+      id: `tab-${t.id}`,
+      group: "Ir a",
+      label: t.label,
+      run: () => goTab(t.id),
+    })),
     { id: "v2", group: "Vista", label: "Mapa 2D", run: () => setView("2d") },
-    { id: "v3", group: "Vista", label: "Mapa 3D con relieve", run: () => setView("3d") },
-    { id: "orbit", group: "Vista", label: "Órbita automática", run: () => { setView("3d"); setOrbit((o) => !o); } },
-    { id: "panel", group: "Vista", label: "Mostrar u ocultar panel lateral", run: () => setPanelOpen((o) => !o) },
-    { id: "theme", group: "Vista", label: dark ? "Modo claro" : "Modo oscuro", run: toggleTheme },
-    ...BASES.map((b) => ({ id: `b-${b.id}`, group: "Capa base", label: b.label, run: () => setSettings({ baseLayer: b.id }) })),
-    ...REGIONS.map((r) => ({ id: `r-${r.id}`, group: "Volar a", label: r.name, run: () => { goTab("general"); setSettings({ regionId: r.id }); mapRef.current?.flyTo(r.center, r.zoom); } })),
-    { id: "p12", group: "Análisis", label: "Predicción de propagación +12 h", run: () => { goTab("general"); setPredH(12); } },
-    { id: "p0", group: "Análisis", label: "Apagar predicción", run: () => setPredH(0) },
-    { id: "undo", group: "Edición", label: "Deshacer", hint: "Ctrl Z", run: () => undo() },
-    { id: "redo", group: "Edición", label: "Rehacer", hint: "Ctrl Shift Z", run: () => redo() },
-    { id: "share", group: "Compartir", label: "Copiar enlace de esta vista", run: shareView },
-    { id: "png", group: "Reportes", label: "Exportar mapa como imagen", run: exportPng },
-    { id: "csv", group: "Reportes", label: "Descargar focos (CSV)", run: exportCsv },
-    { id: "pdf", group: "Reportes", label: "Generar reporte PDF", run: exportReport },
-    { id: "reload", group: "Datos", label: "Actualizar datos satelitales", run: load },
-    { id: "demo", group: "Datos", label: "Cargar zonas, rutas y sensores demo", run: loadDemo },
+    {
+      id: "v3",
+      group: "Vista",
+      label: "Mapa 3D con relieve",
+      run: () => setView("3d"),
+    },
+    {
+      id: "orbit",
+      group: "Vista",
+      label: "Órbita automática",
+      run: () => {
+        setView("3d");
+        setOrbit((o) => !o);
+      },
+    },
+    {
+      id: "panel",
+      group: "Vista",
+      label: "Mostrar u ocultar panel lateral",
+      run: () => setPanelOpen((o) => !o),
+    },
+    {
+      id: "theme",
+      group: "Vista",
+      label: dark ? "Modo claro" : "Modo oscuro",
+      run: toggleTheme,
+    },
+    ...BASES.map((b) => ({
+      id: `b-${b.id}`,
+      group: "Capa base",
+      label: b.label,
+      run: () => setSettings({ baseLayer: b.id }),
+    })),
+    ...REGIONS.map((r) => ({
+      id: `r-${r.id}`,
+      group: "Volar a",
+      label: r.name,
+      run: () => {
+        goTab("general");
+        setSettings({ regionId: r.id });
+        mapRef.current?.flyTo(r.center, r.zoom);
+      },
+    })),
+    {
+      id: "p12",
+      group: "Análisis",
+      label: "Predicción de propagación +12 h",
+      run: () => {
+        goTab("general");
+        setPredH(12);
+      },
+    },
+    {
+      id: "p0",
+      group: "Análisis",
+      label: "Apagar predicción",
+      run: () => setPredH(0),
+    },
+    {
+      id: "undo",
+      group: "Edición",
+      label: "Deshacer",
+      hint: "Ctrl Z",
+      run: () => undo(),
+    },
+    {
+      id: "redo",
+      group: "Edición",
+      label: "Rehacer",
+      hint: "Ctrl Shift Z",
+      run: () => redo(),
+    },
+    {
+      id: "share",
+      group: "Compartir",
+      label: "Copiar enlace de esta vista",
+      run: shareView,
+    },
+    {
+      id: "png",
+      group: "Reportes",
+      label: "Exportar mapa como imagen",
+      run: exportPng,
+    },
+    {
+      id: "csv",
+      group: "Reportes",
+      label: "Descargar focos (CSV)",
+      run: exportCsv,
+    },
+    {
+      id: "pdf",
+      group: "Reportes",
+      label: "Generar reporte PDF",
+      run: exportReport,
+    },
+    {
+      id: "reload",
+      group: "Datos",
+      label: "Actualizar datos satelitales",
+      run: load,
+    },
+    {
+      id: "demo",
+      group: "Datos",
+      label: "Cargar zonas, rutas y sensores demo",
+      run: loadDemo,
+    },
   ];
 
   const logout = async () => {
