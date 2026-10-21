@@ -54,6 +54,7 @@ export async function fetchForecast(
   } catch {
     v = null;
   }
-  if (v) cache.set(key, { t: Date.now(), v });
+  // a failure is remembered for a minute so panning around while offline does not hammer the API
+  cache.set(key, { t: v ? Date.now() : Date.now() - (TTL_MS - 60_000), v });
   return v;
 }
