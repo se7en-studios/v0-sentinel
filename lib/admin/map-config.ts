@@ -72,13 +72,15 @@ export const BASES: Record<BaseLayer, BaseDef> = {
     attribution: "Esri, HERE, Garmin, USGS, NGA",
     thumb: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/4/9/5",
   },
+  // One satellite per mosaic: mixing NOAA-20 and NOAA-21 tiles in one source
+  // would patch together passes ~50 min apart with different clouds.
   viirs: {
     label: "VIIRS ayer",
     hint: "NASA · color real diario",
-    tiles: `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_CorrectedReflectance_TrueColor/default/${yesterday()}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`,
+    tiles: `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_NOAA20_CorrectedReflectance_TrueColor/default/${yesterday()}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`,
     maxzoom: 9,
-    attribution: "NASA GIBS · VIIRS color real (ayer)",
-    thumb: `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_CorrectedReflectance_TrueColor/default/${yesterday()}/GoogleMapsCompatible_Level9/4/9/5.jpg`,
+    attribution: "NASA GIBS · VIIRS NOAA-20 color real (ayer)",
+    thumb: `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_NOAA20_CorrectedReflectance_TrueColor/default/${yesterday()}/GoogleMapsCompatible_Level9/4/9/5.jpg`,
   },
 };
 

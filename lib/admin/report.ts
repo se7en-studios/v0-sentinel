@@ -85,7 +85,7 @@ ${d.mapImage && /^data:image\/(jpeg|png);base64,[A-Za-z0-9+/=]+$/.test(d.mapImag
 <h2>Zonas monitoreadas</h2>${rows ? `<table><tr><th>Zona</th><th>Superficie</th><th>Focos 48 h</th><th>Focos 10 d</th></tr>${rows}</table>` : "<p>Sin zonas definidas.</p>"}
 ${d.exposure ? `<h2>Exposición</h2><p>${esc(d.exposure)}</p>` : ""}
 <h2>Concentraciones principales</h2><ul>${cl || "<li>Sin concentraciones relevantes.</li>"}</ul>
-<p><small>Fuentes: NASA FIRMS (VIIRS S-NPP NRT), Open-Meteo, Esri/Sentinel-2 como base. La superficie estimada es una cota superior (≈14 ha por detección). Las predicciones de propagación son demostrativas.</small></p>
+<p><small>Fuentes: NASA FIRMS (VIIRS NOAA-20 + NOAA-21 NRT), Open-Meteo, Esri/Sentinel-2 como base. La superficie estimada es una cota superior (≈14 ha por detección). Las predicciones de propagación son demostrativas.</small></p>
 </body></html>`);
   w.document.close();
   return true;
