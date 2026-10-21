@@ -15,6 +15,7 @@ const attempts = new Map<string, { n: number; reset: number }>();
 
 function limited(ip: string) {
   const now = Date.now();
+  for (const [k, v] of attempts) if (v.reset < now) attempts.delete(k);
   const cur = attempts.get(ip);
   if (!cur || cur.reset < now) {
     attempts.set(ip, { n: 1, reset: now + WINDOW_MS });
