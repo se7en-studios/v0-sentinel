@@ -19,6 +19,7 @@ import { ForecastView } from "./forecast-view";
 import { IncidentsView } from "./incidents-view";
 import { SettingsView } from "./settings-view";
 import { GuidedTour } from "./tour";
+import { StatusStrip } from "./status-strip";
 
 export type { CloudSession };
 
@@ -59,6 +60,7 @@ export function AdminApp({
       ) : (
         <header className="h-11 shrink-0 border-b border-[var(--hairline)] bg-card" />
       )}
+      {a.mounted && <StatusStrip ctx={ctx} />}
       <Toaster position="bottom-center" />
       {a.tour && <GuidedTour a={a} />}
       {a.mounted && (

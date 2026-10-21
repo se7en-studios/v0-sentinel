@@ -12,6 +12,7 @@ import type {
 } from "@/lib/admin/types";
 import type { DroneSpec } from "@/lib/admin/sim";
 import type { Weather } from "@/lib/admin/weather";
+import type { DayForecast } from "@/lib/admin/forecast";
 import type { OpsEntry, UnitState } from "@/lib/admin/resources";
 import type { MapHandle, ShowLayers } from "./map-view";
 
@@ -185,6 +186,9 @@ export interface Ctx {
   camera: Camera;
   alertCount: number;
   ruleFirings: Map<string, string>;
+  forecast: DayForecast[] | null;
+  /** ms epoch of the newest detection received, 0 when none */
+  lastDetection: number;
   panelSeg: PanelSeg;
   setPanelSeg: (s: PanelSeg) => void;
 

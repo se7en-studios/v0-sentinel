@@ -961,17 +961,30 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   // ---- user alert rules ----
   const [panelSeg, setPanelSeg] = useState<PanelSeg>("Capas");
   const [forecast, setForecast] = useState<DayForecast[] | null>(null);
-  const needsForecast = s.rules.some((r) => r.kind === "risk" && r.enabled);
+  // the status strip always shows today's risk, so the outlook is always loaded (cached 30 min, debounced while panning)
   useEffect(() => {
-    if (!needsForecast) return;
     let cancelled = false;
-    fetchForecast(center[1], center[0]).then(
-      (f) => !cancelled && setForecast(f),
+    const t = setTimeout(
+      () =>
+        fetchForecast(center[1], center[0]).then(
+          (f) => !cancelled && setForecast(f),
+        ),
+      800,
     );
     return () => {
       cancelled = true;
+      clearTimeout(t);
     };
-  }, [needsForecast, center]);
+  }, [center]);
+  // newest detection actually received, to tell "no fires" from "no fresh data"
+  const lastDetection = useMemo(
+    () =>
+      payload?.points.reduce(
+        (m, p) => Math.max(m, pointTs(payload.days, p)),
+        0,
+      ) ?? 0,
+    [payload],
+  );
   const ruleFirings = useMemo(
     () =>
       evaluateRules(s.rules, {
@@ -1116,6 +1129,8 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     camera,
     alertCount: alertIds.size + sensors.filter((x) => x.reading.alert).length,
     ruleFirings,
+    forecast,
+    lastDetection,
     panelSeg,
     setPanelSeg,
     units,

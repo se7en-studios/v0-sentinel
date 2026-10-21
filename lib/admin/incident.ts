@@ -108,6 +108,43 @@ function groups(points: FirePoint[]) {
   return [...out.values()].filter((g) => g.length >= MIN_POINTS);
 }
 
+// cells sized so one ring of neighbours always covers JUMP_KM (same longitude trick as groups())
+const jumpCellLat = JUMP_KM / KM_LAT;
+const jumpCellLng = jumpCellLat / 0.55;
+const jumpKey = (p: FirePoint) =>
+  `${Math.floor(p[0] / jumpCellLat)}:${Math.floor(p[1] / jumpCellLng)}`;
+
+function addToGrid(grid: Map<string, FirePoint[]>, p: FirePoint) {
+  const k = jumpKey(p);
+  const cell = grid.get(k);
+  if (cell) cell.push(p);
+  else grid.set(k, [p]);
+}
+
+/** For each of today's detections with nothing earlier within JUMP_KM, the distance to the nearest earlier one. Near-linear: only isolated points pay for a full scan. */
+function isolatedKm(
+  today: FirePoint[],
+  seen: Map<string, FirePoint[]>,
+  g: FirePoint[],
+  day: number,
+) {
+  const out: number[] = [];
+  for (const p of today) {
+    const [cy, cx] = jumpKey(p).split(":").map(Number);
+    let near = false;
+    for (let dy = -1; dy <= 1 && !near; dy++)
+      for (let dx = -1; dx <= 1 && !near; dx++)
+        near = (seen.get(`${cy + dy}:${cx + dx}`) ?? []).some(
+          (q) => kmBetween(p, q) < JUMP_KM,
+        );
+    if (near) continue;
+    let min = Infinity;
+    for (const q of g) if (q[4] < day) min = Math.min(min, kmBetween(p, q));
+    if (min >= JUMP_KM && Number.isFinite(min)) out.push(min);
+  }
+  return out;
+}
+
 /** Largest-FRP incidents with a day-by-day cumulative outline. Pure; the outline is convex, so it overestimates ragged fires. */
 export function buildIncidents(points: FirePoint[], limit = 8): Incident[] {
   return groups(points)
@@ -117,6 +154,7 @@ export function buildIncidents(points: FirePoint[], limit = 8): Incident[] {
       const perDay: Incident["perDay"] = [];
       const hulls: Incident["hulls"] = [];
       const events: IncidentEvent[] = [];
+      const seen = new Map<string, FirePoint[]>();
       let prevArea = 0;
       for (let d = firstDay; d <= lastDay; d++) {
         const upTo = g.filter((p) => p[4] <= d);
@@ -149,10 +187,7 @@ export function buildIncidents(points: FirePoint[], limit = 8): Incident[] {
               title: "Crecimiento explosivo",
               sub: `+${Math.round(delta).toLocaleString("es-AR")} ha en 24 h`,
             });
-          const before = g.filter((p) => p[4] < d);
-          const far = today
-            .map((p) => Math.min(...before.map((q) => kmBetween(p, q))))
-            .filter((km) => km >= JUMP_KM);
+          const far = isolatedKm(today, seen, g, d);
           if (far.length)
             events.push({
               day: d,
@@ -162,10 +197,15 @@ export function buildIncidents(points: FirePoint[], limit = 8): Incident[] {
             });
         }
         prevArea = a;
+        for (const p of today) addToGrid(seen, p);
       }
       const n = perDay.length;
+      // the earliest detection anchors the id: it stays put while the 10-day window slides, unlike an arbitrary member
+      const first = g.reduce((m, p) =>
+        p[4] < m[4] || (p[4] === m[4] && p[5] < m[5]) ? p : m,
+      );
       return {
-        id: `${g[0][0].toFixed(2)},${g[0][1].toFixed(2)}`,
+        id: `${first[0].toFixed(2)},${first[1].toFixed(2)}`,
         lat: g.reduce((s, p) => s + p[0], 0) / g.length,
         lng: g.reduce((s, p) => s + p[1], 0) / g.length,
         count: g.length,
