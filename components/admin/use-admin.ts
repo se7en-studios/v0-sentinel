@@ -20,7 +20,13 @@ import { useWorkspace } from "@/lib/admin/store";
 import { fetchWeather, type Weather } from "@/lib/admin/weather";
 import { HA_PER_DETECTION } from "@/lib/admin/history";
 import { nearestPlace } from "@/lib/admin/places";
-import { HORIZONS, spreadLevel, spreadPolygon, spreadRate, spreadRingsKm } from "@/lib/admin/spread";
+import {
+  HORIZONS,
+  spreadLevel,
+  spreadPolygon,
+  spreadRate,
+  spreadRingsKm,
+} from "@/lib/admin/spread";
 import { fmtArea, areaHa, centerOf } from "@/lib/admin/geo";
 import {
   downloadDataUrl,
@@ -122,6 +128,8 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   const [opsLog, setOpsLog] = useState<OpsEntry[]>([]);
   const [activeDrone, setActiveDrone] = useState<string | null>(null);
   const [cursor, setCursor] = useState<number | null>(null);
+  const cursorRef = useRef(cursor);
+  cursorRef.current = cursor;
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [camera, setCamera] = useState<Camera>({
@@ -166,7 +174,9 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   const [center, setCenter] = useState<[number, number]>(region.center);
 
   // ---- data loading ----
+  const loadSeq = useRef(0);
   const load = useCallback(async () => {
+    const seq = ++loadSeq.current;
     setLoading(true);
     try {
       const token = cloud ? await cloud.getToken() : null;
@@ -176,12 +186,14 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
       );
       const j = (await res.json()) as FiresPayload;
       if (!res.ok) throw new Error(j.error ?? "Error al cargar focos");
+      if (seq !== loadSeq.current) return;
       setPayload(j);
       setFiresError(null);
     } catch (e) {
+      if (seq !== loadSeq.current) return;
       setFiresError(e instanceof Error ? e.message : "Error al cargar focos");
     } finally {
-      setLoading(false);
+      if (seq === loadSeq.current) setLoading(false);
     }
   }, [cloud]);
   useEffect(() => {
@@ -340,14 +352,15 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   useEffect(() => {
     if (!playing) return;
     const id = setInterval(() => {
-      setCursor((c) => {
-        const next = (c ?? range.t0) + speed * 1.2 * 3600_000;
-        if (next >= range.t1) {
-          setPlaying(false);
-          return null;
-        }
-        return next;
-      });
+      const next = (cursorRef.current ?? range.t0) + speed * 1.2 * 3600_000;
+      if (next >= range.t1) {
+        cursorRef.current = null;
+        setCursor(null);
+        setPlaying(false);
+        return;
+      }
+      cursorRef.current = next;
+      setCursor(next);
     }, 100);
     return () => clearInterval(id);
   }, [playing, speed, range]);
@@ -647,6 +660,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     const hot = clusters.filter((c) => c.count >= 3).slice(0, 6);
     if (hot.length === 0) {
       setSpread((cur) => (cur ? null : cur));
+      setSpreadInfo((cur) => (cur.length ? [] : cur));
       return;
     }
     Promise.all(
@@ -1119,7 +1133,11 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     try {
       const { revokeShares } = await import("@/lib/admin/share");
       const n = await revokeShares(cloud.uid);
-      toast.success(n ? `${n} ${n === 1 ? "enlace revocado" : "enlaces revocados"}` : "No había enlaces activos");
+      toast.success(
+        n
+          ? `${n} ${n === 1 ? "enlace revocado" : "enlaces revocados"}`
+          : "No había enlaces activos",
+      );
     } catch {
       toast.error("No se pudieron revocar los enlaces");
     }
@@ -1146,7 +1164,12 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
       label: t.label,
       run: () => goTab(t.id),
     })),
-    { id: "tour", group: "Vista", label: "Recorrido guiado", run: () => setTour(true) },
+    {
+      id: "tour",
+      group: "Vista",
+      label: "Recorrido guiado",
+      run: () => setTour(true),
+    },
     { id: "v2", group: "Vista", label: "Mapa 2D", run: () => setView("2d") },
     {
       id: "v3",

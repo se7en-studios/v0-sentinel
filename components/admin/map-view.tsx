@@ -469,6 +469,8 @@ export const MapView = forwardRef<MapHandle, Props>(
         cancelAnimationFrame(cursorRaf);
         m.forEach(({ m: mk }) => mk.remove());
         m.clear();
+        unitEls.current.forEach((mk) => mk.remove());
+        unitEls.current.clear();
         drawRef.current = null;
         try {
           map.remove();
