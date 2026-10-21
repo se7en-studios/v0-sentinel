@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import {
   Circle,
   Pencil,
@@ -14,18 +15,18 @@ import type { Tab } from "./ctx";
 
 const TOOLS: Record<
   string,
-  { mode: string; label: string; Icon: typeof Circle }[]
+  { mode: string; label: string; key: string; Icon: typeof Circle }[]
 > = {
   zonas: [
-    { mode: "zone-polygon", label: "Polígono libre", Icon: Pentagon },
-    { mode: "zone-free", label: "Mano alzada", Icon: Pencil },
-    { mode: "zone-rect", label: "Rectángulo", Icon: Square },
-    { mode: "zone-circle", label: "Círculo (radio)", Icon: Circle },
-    { mode: "line", label: "Línea / cortafuego", Icon: Ruler },
+    { mode: "zone-polygon", label: "Polígono libre", key: "P", Icon: Pentagon },
+    { mode: "zone-free", label: "Mano alzada", key: "M", Icon: Pencil },
+    { mode: "zone-rect", label: "Rectángulo", key: "R", Icon: Square },
+    { mode: "zone-circle", label: "Círculo (radio)", key: "C", Icon: Circle },
+    { mode: "line", label: "Línea / cortafuego", key: "L", Icon: Ruler },
   ],
   drones: [
-    { mode: "route", label: "Ruta de dron", Icon: Route },
-    { mode: "sensor", label: "Colocar sensor", Icon: Radio },
+    { mode: "route", label: "Ruta de dron", key: "R", Icon: Route },
+    { mode: "sensor", label: "Colocar sensor", key: "S", Icon: Radio },
   ],
 };
 
@@ -41,33 +42,57 @@ export function Toolbar({
   editing: boolean;
 }) {
   const items = TOOLS[tab] ?? [];
+  useEffect(() => {
+    if (editing) return;
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (
+        t &&
+        (t.isContentEditable ||
+          ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName))
+      )
+        return;
+      const hit = items.find(
+        (i) => i.key.toLowerCase() === e.key.toLowerCase(),
+      );
+      if (!hit) return;
+      e.preventDefault();
+      setTool(tool === hit.mode ? null : hit.mode);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [items, tool, setTool, editing]);
   return (
     <div
       role="toolbar"
       aria-label="Herramientas de dibujo"
-      className="absolute left-3 top-14 flex flex-col gap-1 rounded-lg border border-border bg-background/90 p-1 backdrop-blur"
+      aria-orientation="vertical"
+      className="glass absolute left-3 top-[4.25rem] z-10 flex flex-col gap-0.5 rounded-xl border border-[var(--hairline)] p-1 shadow-[var(--shadow-1)]"
     >
-      {items.map(({ mode, label, Icon }) => {
+      {items.map(({ mode, label, key, Icon }) => {
         const on = tool === mode;
         return (
           <button
             key={mode}
             type="button"
-            title={label}
             aria-label={label}
             aria-pressed={on}
             disabled={editing}
             onClick={() => setTool(on ? null : mode)}
             className={cn(
-              "group relative grid size-10 place-items-center rounded-md text-foreground/75 transition-colors disabled:opacity-40",
+              "group relative grid size-10 place-items-center rounded-lg text-foreground/65 transition-[background-color,color,transform] duration-150 active:scale-95 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               on
-                ? "bg-primary text-primary-foreground"
-                : "hover:bg-foreground/8 hover:text-foreground",
+                ? "bg-[var(--fire)] text-white shadow-sm"
+                : "hover:bg-foreground/[0.07] hover:text-foreground",
             )}
           >
             <Icon className="size-[18px]" aria-hidden />
-            <span className="pointer-events-none absolute left-12 z-10 hidden whitespace-nowrap rounded bg-[#0c0b09] px-2 py-1 text-[11px] text-white group-hover:block group-focus-visible:block">
+            <span className="pointer-events-none absolute left-12 z-20 flex items-center gap-2 whitespace-nowrap rounded-lg bg-foreground px-2.5 py-1.5 text-[11px] font-medium text-background opacity-0 shadow-lg transition-opacity duration-100 group-hover:opacity-100 group-focus-visible:opacity-100">
               {label}
+              <kbd className="mono rounded bg-background/20 px-1 text-[9.5px]">
+                {key}
+              </kbd>
             </span>
           </button>
         );

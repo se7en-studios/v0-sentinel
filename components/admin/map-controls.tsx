@@ -1,0 +1,556 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Box,
+  Layers,
+  Maximize2,
+  Minimize2,
+  Minus,
+  Navigation2,
+  Plus,
+  Rotate3d,
+  Search,
+  X,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { BASES } from "@/lib/admin/map-config";
+import type { BaseLayer } from "@/lib/admin/types";
+import type { useAdmin } from "./use-admin";
+import { Toolbar } from "./toolbar";
+
+type A = ReturnType<typeof useAdmin>;
+
+const glass =
+  "glass rounded-xl border border-[var(--hairline)] shadow-[var(--shadow-1)]";
+
+/** Compass: needle follows the bearing; click resets north. */
+function Compass({ a }: { a: A }) {
+  const { bearing, pitch } = a.ctx.camera;
+  return (
+    <button
+      type="button"
+      onClick={() => a.mapRef.current?.resetNorth()}
+      aria-label={`Orientar al norte (rumbo ${Math.round(((bearing % 360) + 360) % 360)}°)`}
+      title="Orientar al norte"
+      className={cn(
+        glass,
+        "group grid size-10 place-items-center transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+      )}
+    >
+      <span
+        className="relative grid size-7 place-items-center"
+        style={{ transform: `rotate(${-bearing}deg)` }}
+      >
+        <Navigation2
+          className="size-5 fill-[var(--fire)] text-[var(--fire)] transition-transform group-hover:scale-110"
+          aria-hidden
+        />
+        <span className="absolute -top-1 text-[7px] font-bold text-foreground/70">
+          N
+        </span>
+      </span>
+      {pitch > 1 && (
+        <span className="sr-only">Inclinación {Math.round(pitch)}°</span>
+      )}
+    </button>
+  );
+}
+
+type Hit = { label: string; lat: number; lng: number };
+
+/** Place / coordinate search with suggestions (Nominatim, Argentina only). */
+function SearchBox({ a }: { a: A }) {
+  const [q, setQ] = useState("");
+  const [hits, setHits] = useState<Hit[]>([]);
+  const [open, setOpen] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const abort = useRef<AbortController | null>(null);
+
+  const go = (h: Hit) => {
+    a.mapRef.current?.flyTo([h.lng, h.lat], 11.5);
+    setOpen(false);
+    setQ(h.label.split(",")[0]);
+  };
+
+  useEffect(() => {
+    const text = q.trim();
+    setMsg(null);
+    const m = text.match(/^(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)$/);
+    if (m) {
+      setHits([
+        {
+          label: `Coordenadas ${m[1]}, ${m[2]}`,
+          lat: Number(m[1]),
+          lng: Number(m[2]),
+        },
+      ]);
+      return;
+    }
+    if (text.length < 3) {
+      setHits([]);
+      return;
+    }
+    const t = setTimeout(async () => {
+      abort.current?.abort();
+      abort.current = new AbortController();
+      try {
+        const r = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(text)}&countrycodes=ar&format=json&limit=5&accept-language=es`,
+          {
+            signal: abort.current.signal,
+          },
+        );
+        const j = (await r.json()) as {
+          display_name: string;
+          lat: string;
+          lon: string;
+        }[];
+        setHits(
+          j.map((x) => ({
+            label: x.display_name,
+            lat: Number(x.lat),
+            lng: Number(x.lon),
+          })),
+        );
+        if (!j.length) setMsg("Sin resultados en Argentina");
+      } catch {
+        /* aborted or offline */
+      }
+    }, 380);
+    return () => {
+      clearTimeout(t);
+      abort.current?.abort();
+    };
+  }, [q]);
+
+  return (
+    <div className="relative w-[min(22rem,calc(100vw-6rem))]">
+      <form
+        role="search"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (hits[0]) go(hits[0]);
+        }}
+        className={cn(
+          glass,
+          "flex h-10 items-center gap-2 px-3 focus-within:ring-2 focus-within:ring-ring",
+        )}
+      >
+        <Search className="size-3.5 shrink-0 text-foreground/45" aria-hidden />
+        <input
+          value={q}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 140)}
+          aria-label="Buscar ciudad o coordenadas"
+          placeholder="Buscar ciudad, paraje o lat, lng…"
+          className="min-w-0 flex-1 bg-transparent text-[12.5px] outline-none placeholder:text-foreground/40"
+        />
+        {q && (
+          <button
+            type="button"
+            aria-label="Borrar búsqueda"
+            onClick={() => setQ("")}
+            className="text-foreground/40 hover:text-foreground"
+          >
+            <X className="size-3.5" />
+          </button>
+        )}
+      </form>
+      {open && (hits.length > 0 || msg) && (
+        <ul
+          className={cn(
+            glass,
+            "absolute inset-x-0 top-12 z-30 overflow-hidden p-1",
+          )}
+          role="listbox"
+        >
+          {msg && (
+            <li className="px-2.5 py-2 text-[11.5px] text-foreground/50">
+              {msg}
+            </li>
+          )}
+          {hits.map((h) => (
+            <li key={`${h.lat},${h.lng}`}>
+              <button
+                type="button"
+                role="option"
+                aria-selected="false"
+                onMouseDown={() => go(h)}
+                className="w-full truncate rounded-lg px-2.5 py-1.5 text-left text-[12px] hover:bg-foreground/[0.06]"
+              >
+                {h.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function BasePicker({ a }: { a: A }) {
+  const [open, setOpen] = useState(false);
+  const cur = a.s.baseLayer;
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        className={cn(
+          glass,
+          "flex h-10 items-center gap-2 pl-1.5 pr-2.5 text-[11.5px] font-medium transition-transform active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        )}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={BASES[cur].thumb}
+          alt=""
+          width={28}
+          height={28}
+          className="size-7 rounded-md object-cover shadow-[inset_0_0_0_1px_rgba(0,0,0,0.15)]"
+        />
+        <span className="hidden sm:inline">{BASES[cur].label}</span>
+        <Layers className="size-3.5 text-foreground/50" aria-hidden />
+      </button>
+      {open && (
+        <ul
+          role="listbox"
+          aria-label="Mapa base"
+          className={cn(glass, "absolute right-0 top-12 z-30 w-52 p-1")}
+        >
+          {(Object.keys(BASES) as BaseLayer[]).map((id) => (
+            <li key={id}>
+              <button
+                type="button"
+                role="option"
+                aria-selected={id === cur}
+                onClick={() => {
+                  a.setSettings({ baseLayer: id });
+                  setOpen(false);
+                }}
+                className={cn(
+                  "flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left transition-colors hover:bg-foreground/[0.06]",
+                  id === cur && "bg-primary/10",
+                )}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={BASES[id].thumb}
+                  alt=""
+                  width={32}
+                  height={32}
+                  loading="lazy"
+                  className="size-8 rounded-md object-cover"
+                />
+                <span className="min-w-0">
+                  <span className="block truncate text-[12px] font-medium">
+                    {BASES[id].label}
+                  </span>
+                  <span className="block truncate text-[10px] text-foreground/45">
+                    {BASES[id].hint}
+                  </span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function Chips({ a }: { a: A }) {
+  const f = a.fires;
+  const avg = f.length
+    ? Math.round(f.reduce((x, p) => x + p[2], 0) / f.length)
+    : 0;
+  const high = f.filter((p) => p[3] === 2).length;
+  const items = [
+    { k: "focos visibles", v: f.length.toLocaleString("es-AR"), c: "#c2540a" },
+    { k: "FRP promedio", v: `${avg} MW`, c: "#8a6a00" },
+    {
+      k: "alta confianza",
+      v: high.toLocaleString("es-AR"),
+      c: "var(--primary)",
+    },
+  ];
+  return (
+    <div className="flex flex-col items-end gap-1" aria-live="polite">
+      {items.map((c) => (
+        <span
+          key={c.k}
+          className={cn(
+            glass,
+            "num flex items-baseline gap-1.5 rounded-lg px-2.5 py-1 text-[11px]",
+          )}
+        >
+          <b className="font-semibold" style={{ color: c.c }}>
+            {c.v}
+          </b>
+          <span className="text-foreground/55">{c.k}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** Bottom-right cluster: 2D/3D, zoom factor and fullscreen, like the reference. */
+function ViewCluster({ a }: { a: A }) {
+  const { ctx } = a;
+  const [full, setFull] = useState(false);
+  useEffect(() => {
+    const on = () => setFull(Boolean(document.fullscreenElement));
+    document.addEventListener("fullscreenchange", on);
+    return () => document.removeEventListener("fullscreenchange", on);
+  }, []);
+  const factor = Math.pow(2, ctx.camera.zoom - a.region.zoom);
+  return (
+    <div className={cn(glass, "flex items-center gap-0.5 p-1")}>
+      {(["2d", "3d"] as const).map((v) => (
+        <button
+          key={v}
+          type="button"
+          aria-pressed={ctx.view === v}
+          onClick={() => ctx.setView(v)}
+          className={cn(
+            "flex h-7 items-center gap-1 rounded-lg px-2.5 text-[11.5px] font-bold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            ctx.view === v
+              ? "bg-[var(--fire)] text-white shadow-sm"
+              : "text-foreground/55 hover:bg-foreground/[0.06] hover:text-foreground",
+          )}
+        >
+          {v === "3d" && <Box className="size-3" aria-hidden />}
+          {v}
+        </button>
+      ))}
+      {ctx.view === "3d" && (
+        <button
+          type="button"
+          aria-pressed={ctx.orbit}
+          aria-label="Órbita automática"
+          title="Órbita automática"
+          onClick={() => ctx.setOrbit(!ctx.orbit)}
+          className={cn(
+            "grid size-7 place-items-center rounded-lg transition-colors",
+            ctx.orbit
+              ? "bg-primary text-primary-foreground"
+              : "text-foreground/55 hover:bg-foreground/[0.06]",
+          )}
+        >
+          <Rotate3d className="size-3.5" />
+        </button>
+      )}
+      <span className="mx-0.5 h-4 w-px bg-[var(--hairline)]" />
+      <button
+        type="button"
+        aria-label="Alejar"
+        onClick={() => a.mapRef.current?.zoomBy(-0.8)}
+        className="grid size-7 place-items-center rounded-lg text-foreground/55 hover:bg-foreground/[0.06]"
+      >
+        <Minus className="size-3.5" />
+      </button>
+      <span className="num w-9 text-center text-[11px] font-medium text-foreground/70">
+        {factor >= 10 ? Math.round(factor) : factor.toFixed(1)}×
+      </span>
+      <button
+        type="button"
+        aria-label="Acercar"
+        onClick={() => a.mapRef.current?.zoomBy(0.8)}
+        className="grid size-7 place-items-center rounded-lg text-foreground/55 hover:bg-foreground/[0.06]"
+      >
+        <Plus className="size-3.5" />
+      </button>
+      <span className="mx-0.5 h-4 w-px bg-[var(--hairline)]" />
+      <button
+        type="button"
+        aria-label={full ? "Salir de pantalla completa" : "Pantalla completa"}
+        onClick={() =>
+          document.fullscreenElement
+            ? document.exitFullscreen()
+            : document.documentElement
+                .requestFullscreen()
+                .catch(() => undefined)
+        }
+        className="grid size-7 place-items-center rounded-lg text-foreground/55 hover:bg-foreground/[0.06]"
+      >
+        {full ? (
+          <Minimize2 className="size-3.5" />
+        ) : (
+          <Maximize2 className="size-3.5" />
+        )}
+      </button>
+    </div>
+  );
+}
+
+function Legend({ a }: { a: A }) {
+  const d3 = a.ctx.view === "3d";
+  return (
+    <div
+      className={cn(
+        glass,
+        "hidden w-44 p-2.5 text-[10.5px] text-foreground/70 md:block",
+      )}
+      aria-label="Leyenda"
+    >
+      <div className="mb-1 font-medium text-foreground/85">
+        Intensidad del foco (FRP)
+      </div>
+      <div
+        className="h-1.5 rounded-full"
+        style={{ background: "linear-gradient(90deg,#f5a524,#ff6a1a,#c8321e)" }}
+      />
+      <div className="mt-0.5 flex justify-between text-foreground/50">
+        <span>baja</span>
+        <span>alta</span>
+      </div>
+      <div className="mt-2 flex flex-wrap gap-x-2.5 gap-y-1">
+        {[
+          ["Riesgo bajo", "#0f7a4f"],
+          ["Moderado", "#c9a300"],
+          ["Alto", "#e8710a"],
+          ["Extremo", "#b83a3a"],
+        ].map(([l, c]) => (
+          <span key={l} className="flex items-center gap-1">
+            <span className="size-2 rounded-full" style={{ background: c }} />
+            {l}
+          </span>
+        ))}
+      </div>
+      {d3 && (
+        <div className="mt-1.5 text-foreground/50">
+          Altura de columna = intensidad · humo a favor del viento
+        </div>
+      )}
+    </div>
+  );
+}
+
+function fmtDeg(v: number, pos: string, neg: string) {
+  const a = Math.abs(v);
+  const d = Math.floor(a);
+  const m = Math.round((a - d) * 60);
+  return `${d}°${String(m).padStart(2, "0")}′${v >= 0 ? pos : neg}`;
+}
+
+/** Latitude / longitude ruler on the map edges (2D, north-up only). */
+function Ruler({ a }: { a: A }) {
+  const { camera, view } = a.ctx;
+  const ticks = useMemo(() => {
+    if (view !== "2d" || camera.pitch > 1 || Math.abs(camera.bearing) > 0.5)
+      return null;
+    const m = a.mapRef.current;
+    const b = m?.getBounds();
+    if (!m || !b) return null;
+    const [w, s, e, n] = b;
+    const steps = [0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10];
+    const pick = (span: number) => steps.find((x) => span / x <= 6) ?? 10;
+    const lngStep = pick(e - w);
+    const latStep = pick(n - s);
+    const xs: { v: number; px: number }[] = [];
+    for (let v = Math.ceil(w / lngStep) * lngStep; v <= e; v += lngStep) {
+      const p = m.project(v, (s + n) / 2);
+      if (p) xs.push({ v, px: p[0] });
+    }
+    const ys: { v: number; px: number }[] = [];
+    for (let v = Math.ceil(s / latStep) * latStep; v <= n; v += latStep) {
+      const p = m.project((w + e) / 2, v);
+      if (p) ys.push({ v, px: p[1] });
+    }
+    return { xs, ys };
+    // camera changes on every frame of a move, which is when this must update
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [camera, view]);
+  if (!ticks) return null;
+  return (
+    <div
+      className="pointer-events-none absolute inset-0 z-[5] hidden overflow-hidden lg:block"
+      aria-hidden
+    >
+      {ticks.xs.map((t) => (
+        <span
+          key={`x${t.v}`}
+          className="mono absolute top-0 -translate-x-1/2 rounded-b bg-card/80 px-1 text-[9px] text-foreground/60"
+          style={{ left: t.px }}
+        >
+          {fmtDeg(t.v, "E", "O")}
+        </span>
+      ))}
+      {ticks.ys.map((t) => (
+        <span
+          key={`y${t.v}`}
+          className="mono absolute right-0 -translate-y-1/2 rounded-l bg-card/80 px-1 text-[9px] text-foreground/60"
+          style={{ top: t.px }}
+        >
+          {fmtDeg(t.v, "N", "S")}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+export function MapOverlays({
+  a,
+  cursor,
+}: {
+  a: A;
+  cursor: [number, number] | null;
+}) {
+  const { ctx } = a;
+  return (
+    <>
+      <Ruler a={a} />
+      <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex items-start justify-between gap-2 [&>*]:pointer-events-auto">
+        <Compass a={a} />
+        <SearchBox a={a} />
+        <div className="flex flex-col items-end gap-1.5">
+          <BasePicker a={a} />
+          {ctx.tab === "general" && <Chips a={a} />}
+        </div>
+      </div>
+
+      {(ctx.tab === "zonas" || ctx.tab === "drones") && (
+        <Toolbar
+          tab={ctx.tab}
+          tool={ctx.tool}
+          setTool={ctx.setTool}
+          editing={ctx.editing}
+        />
+      )}
+
+      {(a.live || ctx.tool) && (
+        <div
+          className={cn(
+            glass,
+            "pointer-events-none absolute bottom-24 left-1/2 z-10 -translate-x-1/2 px-3.5 py-2 text-center text-[12px]",
+          )}
+        >
+          {a.live && <b className="num mr-2 text-primary">{a.live}</b>}
+          <span className="text-foreground/60">
+            Click para marcar · doble click para terminar · Esc cancela
+          </span>
+        </div>
+      )}
+
+      <div className="pointer-events-none absolute bottom-9 left-3 z-10 flex flex-col items-start gap-2 [&>*]:pointer-events-auto">
+        {ctx.tab === "general" && <Legend a={a} />}
+        <div
+          className="mono rounded-md bg-card/80 px-2 py-1 text-[10px] text-foreground/60 backdrop-blur"
+          aria-live="off"
+        >
+          {cursor ? `${cursor[1].toFixed(4)}°, ${cursor[0].toFixed(4)}°` : "—"}
+        </div>
+      </div>
+      <div className="pointer-events-none absolute bottom-3 right-3 z-10 [&>*]:pointer-events-auto">
+        <ViewCluster a={a} />
+      </div>
+    </>
+  );
+}

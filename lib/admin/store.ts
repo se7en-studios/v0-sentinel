@@ -13,9 +13,9 @@ const KEY = "sentinel-admin-workspace-v1";
 
 // ponytail: the workspace lives in this browser's localStorage. Moving it to a
 // per-client table (Supabase) is the upgrade once accounts exist.
-const EMPTY: Workspace = { features: [], meta: {}, settings: DEFAULT_SETTINGS };
+const EMPTY: Workspace = { features: [], meta: {}, settings: DEFAULT_SETTINGS, notes: "" };
 
-const BASE_LAYERS = ["esri", "s2", "viirs"];
+const BASE_LAYERS = ["esri", "s2", "viirs", "light", "topo"];
 const CONFS = ["l", "n", "h"];
 const finite = (c: unknown): boolean =>
   Array.isArray(c) ? c.length > 0 && c.every(finite) : typeof c === "number" && Number.isFinite(c);
@@ -58,6 +58,7 @@ export function parseWorkspace(input: unknown): Workspace {
     return {
       features,
       meta,
+      notes: typeof p.notes === "string" ? p.notes.slice(0, 20_000) : "",
       settings: {
         ...DEFAULT_SETTINGS,
         ...st,
@@ -67,6 +68,12 @@ export function parseWorkspace(input: unknown): Workspace {
         refreshMin: [10, 30, 60].includes(Number(st.refreshMin)) ? Number(st.refreshMin) : DEFAULT_SETTINGS.refreshMin,
         bufferKm: Number.isFinite(Number(st.bufferKm)) ? Number(st.bufferKm) : DEFAULT_SETTINGS.bufferKm,
         valuePerHa: Number.isFinite(Number(st.valuePerHa)) ? Math.max(0, Number(st.valuePerHa)) : 0,
+        opacity: Object.fromEntries(
+          Object.entries(DEFAULT_SETTINGS.opacity).map(([k, d]) => {
+            const v = Number((st.opacity as Record<string, unknown> | undefined)?.[k]);
+            return [k, Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : d];
+          }),
+        ) as Workspace["settings"]["opacity"],
         thresholds: { ...DEFAULT_SETTINGS.thresholds, ...st.thresholds },
         notify: { ...DEFAULT_SETTINGS.notify, ...st.notify },
       },
@@ -186,6 +193,7 @@ export function useWorkspace(uid?: string) {
     (patch: Partial<Workspace["settings"]>) => setWs((w) => ({ ...w, settings: { ...w.settings, ...patch } })),
     [],
   );
+  const setNotes = useCallback((notes: string) => setWs((w) => ({ ...w, notes: notes.slice(0, 20_000) })), []);
   const replace = useCallback(
     (next: Workspace) => {
       remember();
@@ -214,6 +222,7 @@ export function useWorkspace(uid?: string) {
     setMeta,
     setSettings,
     replace,
+    setNotes,
     undo,
     redo,
     sync,

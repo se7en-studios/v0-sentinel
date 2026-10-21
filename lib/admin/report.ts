@@ -79,7 +79,7 @@ h1{font-size:22px;margin:0}h2{font-size:13px;text-transform:uppercase;letter-spa
 small{color:#777}@media print{button{display:none}}</style></head><body>
 <button onclick="print()" style="float:right;padding:8px 14px">Imprimir / guardar PDF</button>
 <h1>Reporte de monitoreo · ${esc(d.org)}</h1><small>Generado ${new Date().toLocaleString("es-AR")} · Sentinel Cloud</small>
-${d.mapImage && d.mapImage.startsWith("data:image/") ? `<img src="${d.mapImage}" alt="Mapa" style="width:100%;border-radius:8px;margin-top:14px">` : ""}
+${d.mapImage && /^data:image\/(jpeg|png);base64,[A-Za-z0-9+/=]+$/.test(d.mapImage) ? `<img src="${d.mapImage}" alt="Mapa" style="width:100%;border-radius:8px;margin-top:14px">` : ""}
 <h2>Resumen satelital (Argentina, 10 días)</h2>
 <div class="k"><div><b>${d.stats.last24}</b>focos 24 h</div><div><b>${d.stats.total}</b>focos 10 días</div><div><b>${d.stats.frp} MW</b>potencia total</div><div><b>${d.stats.hectares} ha</b>superficie est. (cota sup.)</div></div>
 <h2>Zonas monitoreadas</h2>${rows ? `<table><tr><th>Zona</th><th>Superficie</th><th>Focos 48 h</th><th>Focos 10 d</th></tr>${rows}</table>` : "<p>Sin zonas definidas.</p>"}
@@ -100,4 +100,5 @@ export function alertLinks(text: string, whatsapp: string, email: string) {
   };
 }
 
-export const mapsLink = (lng: number, lat: number) => `https://www.google.com/maps?q=${lat.toFixed(5)},${lng.toFixed(5)}`;
+export const mapsLink = (lng: number, lat: number) =>
+  `https://www.google.com/maps?q=${lat.toFixed(5)},${lng.toFixed(5)}`;

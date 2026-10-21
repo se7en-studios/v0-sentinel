@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Inter } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
@@ -13,6 +13,12 @@ const inter = Inter({
   weight: ["300", "400", "500", "600"],
   subsets: ["latin"],
   variable: "--font-sans",
+});
+
+const jetbrains = JetBrains_Mono({
+  weight: ["400", "500", "600"],
+  subsets: ["latin"],
+  variable: "--font-mono",
 });
 
 const siteUrl = "https://www.sentineltech.com.ar";
@@ -185,7 +191,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} ${plusJakarta.variable} font-sans antialiased bg-[#faf7f0] text-[#1a1812]`}
+        className={`${inter.variable} ${plusJakarta.variable} ${jetbrains.variable} font-sans antialiased bg-[#faf7f0] text-[#1a1812]`}
       >
         <a
           href="#main-content"

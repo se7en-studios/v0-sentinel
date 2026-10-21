@@ -1,6 +1,7 @@
 export type Role = "zone" | "line" | "route" | "sensor";
 export type SensorType = "temp" | "humidity" | "smoke" | "wind";
-export type BaseLayer = "esri" | "s2" | "viirs";
+export type BaseLayer = "esri" | "s2" | "viirs" | "light" | "topo";
+export type OpacityKey = "imagery" | "relief" | "tint" | "fires" | "zones" | "spread" | "routes" | "labels";
 export type Confidence = "l" | "n" | "h";
 
 export interface Feat {
@@ -26,6 +27,7 @@ export interface Settings {
   exaggeration: number;
   refreshMin: number;
   valuePerHa: number;
+  opacity: Record<OpacityKey, number>;
   thresholds: { temp: number; humidity: number; smoke: number; wind: number };
   notify: {
     email: string;
@@ -40,6 +42,7 @@ export interface Workspace {
   features: Feat[];
   meta: Record<string, Meta>;
   settings: Settings;
+  notes: string;
 }
 
 // [lat, lng, frp, confidence 0|1|2, dayIdx, hhmm, isNight 0|1]
@@ -150,9 +153,10 @@ export const DEFAULT_SETTINGS: Settings = {
   minConfidence: "n",
   bufferKm: 5,
   units: "ha",
-  exaggeration: 1.5,
+  exaggeration: 2,
   refreshMin: 30,
   valuePerHa: 0,
+  opacity: { imagery: 1, relief: 0.6, tint: 0.3, fires: 1, zones: 1, spread: 1, routes: 1, labels: 1 },
   thresholds: { temp: 45, humidity: 20, smoke: 150, wind: 50 },
   notify: { email: "", whatsapp: "", onZoneHit: true, onSensor: true, browser: false },
 };

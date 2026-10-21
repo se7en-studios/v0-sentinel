@@ -24,7 +24,7 @@ export async function verifyFirebaseToken(token: string): Promise<boolean> {
       .split(",")
       .map((e) => e.trim().toLowerCase())
       .filter(Boolean);
-    if (allowed.length === 0) return true;
+    if (allowed.length === 0) return process.env.NODE_ENV !== "production";
     return allowed.includes(String(payload.email ?? "").toLowerCase());
   } catch {
     return false;

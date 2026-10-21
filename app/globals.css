@@ -271,12 +271,27 @@ html {
   }
 }
 
-/* Admin panel theme: light is the default token set, this block is the dark HUD. */
-.admin-root {
+/* Admin panel design tokens. Light is the default; .admin-dark is the HUD variant. */
+/* custom tokens live on :root so portaled menus/dialogs inherit them */
+:root {
+  --fire: #e5532d;
+  --fire-soft: rgba(229, 83, 45, 0.12);
+  --surface: #fbf9f4;
+  --surface-2: #f3efe5;
+  --hairline: rgba(26, 24, 18, 0.09);
+  --shadow-1: 0 1px 2px rgba(26, 24, 18, 0.05), 0 0 0 1px rgba(26, 24, 18, 0.04);
+  --shadow-2: 0 10px 30px -10px rgba(26, 24, 18, 0.22), 0 2px 6px rgba(26, 24, 18, 0.06), 0 0 0 1px rgba(26, 24, 18, 0.05);
+  --glass: rgba(251, 249, 244, 0.82);
   --chart-axis: rgba(26, 24, 18, 0.5);
   --chart-tip: #faf7f0;
+  --radius-panel: 12px;
 }
-.admin-root.admin-dark {
+.admin-root {
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+html.admin-dark {
   --background: #0a0f0d;
   --foreground: #e8f1ec;
   --card: #111815;
@@ -292,7 +307,96 @@ html {
   --border: rgba(232, 241, 236, 0.1);
   --input: rgba(232, 241, 236, 0.12);
   --ring: rgba(47, 191, 122, 0.45);
+  --surface: #0f1512;
+  --surface-2: #141c18;
+  --hairline: rgba(232, 241, 236, 0.09);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(232, 241, 236, 0.06);
+  --shadow-2: 0 14px 34px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(232, 241, 236, 0.08);
+  --glass: rgba(15, 21, 18, 0.82);
   --chart-axis: rgba(232, 241, 236, 0.5);
   --chart-tip: #111815;
   color-scheme: dark;
+}
+.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum", "zero"; }
+.mono { font-family: var(--font-mono), ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.glass { background: var(--glass); backdrop-filter: blur(14px) saturate(1.4); -webkit-backdrop-filter: blur(14px) saturate(1.4); }
+.admin-root ::selection { background: color-mix(in srgb, var(--primary) 28%, transparent); }
+.admin-root * { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--foreground) 22%, transparent) transparent; }
+.admin-root button, .admin-root [role="button"] { -webkit-tap-highlight-color: transparent; }
+@media (prefers-reduced-motion: reduce) {
+  .admin-root *, .admin-root *::before, .admin-root *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* ---- Map chrome: popups, drone markers, controls ---- */
+.snt-popup .maplibregl-popup-content {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, #fff 94%, transparent);
+  box-shadow: 0 10px 30px -8px rgba(8, 16, 12, 0.35), 0 0 0 1px rgba(8, 16, 12, 0.06);
+  backdrop-filter: blur(10px);
+}
+.snt-popup .maplibregl-popup-tip { display: none; }
+.snt-pop { display: grid; gap: 2px; font: 500 11.5px/1.45 var(--font-sans), Inter, sans-serif; color: #1a1812; font-variant-numeric: tabular-nums; }
+.snt-pop b { font-size: 12px; font-weight: 650; }
+.snt-pop span { color: rgba(26, 24, 18, 0.62); }
+
+.maplibregl-ctrl-scale {
+  background: transparent !important;
+  border-color: rgba(255, 255, 255, 0.9) !important;
+  color: #fff !important;
+  font: 600 10px var(--font-sans), Inter, sans-serif !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+.maplibregl-ctrl-attrib {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(6px);
+  border-radius: 8px 0 0 0;
+  font-size: 10px !important;
+}
+
+.snt-drone {
+  --lift: 28px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+.snt-drone__label {
+  margin-bottom: 2px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(10, 18, 14, 0.82);
+  color: #fff;
+  font: 650 10px var(--font-sans), Inter, sans-serif;
+  letter-spacing: 0.05em;
+  backdrop-filter: blur(4px);
+}
+.snt-drone__body { transition: transform 0.9s linear; filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.45)); }
+.snt-drone__body svg path { fill: #0f7a4f; stroke: rgba(255, 255, 255, 0.9); }
+.snt-drone--sel .snt-drone__body svg path { fill: #e8710a; stroke: #fff; }
+.snt-drone__stem {
+  width: 1px;
+  height: var(--lift);
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
+}
+.snt-drone__shadow {
+  width: 14px;
+  height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.5), transparent 70%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .snt-drone__body { transition: none; }
+}
+
+.snt-unit { display: flex; flex-direction: column; align-items: center; gap: 2px; pointer-events: none; }
+.snt-unit__dot {
+  display: grid; place-items: center; width: 22px; height: 22px; border-radius: 7px;
+  background: #e5532d; color: #fff; font: 700 11px var(--font-sans), Inter, sans-serif;
+  border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+.snt-unit__label {
+  padding: 1px 6px; border-radius: 999px; background: rgba(10, 18, 14, 0.82); color: #fff;
+  font: 650 9.5px var(--font-sans), Inter, sans-serif; letter-spacing: 0.04em;
 }

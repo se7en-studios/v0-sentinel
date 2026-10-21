@@ -12,9 +12,11 @@ import type {
 } from "@/lib/admin/types";
 import type { DroneSpec } from "@/lib/admin/sim";
 import type { Weather } from "@/lib/admin/weather";
-import type { MapHandle } from "./map-view";
+import type { OpsEntry, UnitState } from "@/lib/admin/resources";
+import type { MapHandle, ShowLayers } from "./map-view";
 
-export type Tab = "general" | "zonas" | "drones" | "metricas" | "config";
+export type Tab =
+  "general" | "zonas" | "drones" | "recursos" | "metricas" | "config";
 
 export interface FireStats {
   total: number;
@@ -54,12 +56,48 @@ export interface SensorState {
   fireKm: number | null;
 }
 
+/** One point of the hourly series that drives the timeline charts. */
+export interface HourPoint {
+  t: number;
+  count: number;
+  frp: number;
+  cum: number;
+}
+
+export interface KeyEvent {
+  id: string;
+  t: number;
+  kind: "first" | "peak" | "frp" | "zone" | "sensor";
+  title: string;
+  sub?: string;
+  at?: [number, number];
+  featId?: string;
+}
+
+export interface FeedItem {
+  id: string;
+  t: number;
+  kind: "fire" | "zone" | "sensor" | "drone";
+  title: string;
+  sub: string;
+  at?: [number, number];
+  featId?: string;
+  sim?: boolean;
+}
+
+export interface Camera {
+  bearing: number;
+  pitch: number;
+  zoom: number;
+}
+
 export interface Ctx {
   ws: Workspace;
   setSettings: (p: Partial<Settings>) => void;
   setMeta: (id: string, p: Partial<Meta>) => void;
   setFeatures: (f: Feat[]) => void;
   replaceWorkspace: (w: Workspace) => void;
+  setNotes: (t: string) => void;
   payload: FiresPayload | null;
   firesError: string | null;
   loading: boolean;
@@ -67,12 +105,11 @@ export interface Ctx {
   fires: FirePoint[];
   stats: FireStats;
   clusters: FireCluster[];
-  dayFilter: number | null;
-  setDayFilter: (d: number | null) => void;
   now: number;
   weather: Weather | null;
   map: RefObject<MapHandle | null>;
   tab: Tab;
+  goTab: (t: Tab) => void;
   tool: string | null;
   setTool: (t: string | null) => void;
   selectedId: string | null;
@@ -97,7 +134,10 @@ export interface Ctx {
   atRiskHa: number;
   exportCsv: () => void;
   exportReport: () => void;
-  zoneRisk: Record<string, { score: number; label: string; color: string; wx: Weather }>;
+  zoneRisk: Record<
+    string,
+    { score: number; label: string; color: string; wx: Weather }
+  >;
   followId: string | null;
   setFollowId: (id: string | null) => void;
   undo: () => boolean;
@@ -106,15 +146,35 @@ export interface Ctx {
   canRedo: boolean;
   shareView: () => void;
   exportPng: () => void;
-}
 
-export interface FeedItem {
-  id: string;
-  t: number;
-  kind: "fire" | "zone" | "sensor" | "drone";
-  title: string;
-  sub: string;
-  at?: [number, number];
-  featId?: string;
-  sim?: boolean;
+  // time cursor / playback
+  range: { t0: number; t1: number };
+  cursor: number | null;
+  setCursor: (t: number | null) => void;
+  playing: boolean;
+  setPlaying: (v: boolean) => void;
+  speed: number;
+  setSpeed: (v: number) => void;
+  series: HourPoint[];
+  events: KeyEvent[];
+
+  // view state
+  view: "2d" | "3d";
+  setView: (v: "2d" | "3d") => void;
+  show: ShowLayers;
+  setShow: (s: ShowLayers) => void;
+  orbit: boolean;
+  setOrbit: (v: boolean) => void;
+  panelOpen: boolean;
+  setPanelOpen: (v: boolean) => void;
+  camera: Camera;
+  alertCount: number;
+
+  // resources (simulated) and active drone
+  units: UnitState[];
+  dispatchUnit: (id: string, target: [number, number], label: string) => void;
+  recallUnit: (id: string) => void;
+  opsLog: OpsEntry[];
+  activeDrone: string | null;
+  setActiveDrone: (id: string | null) => void;
 }
