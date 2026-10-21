@@ -119,8 +119,12 @@ export function GuidedTour({ a }: { a: A }) {
   // dialog focus: move in on open, give it back to the opener on close
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null;
-    root.current?.focus();
-    return () => prev?.focus?.();
+    // after the palette's own focus-restore has run
+    const t = setTimeout(() => root.current?.focus(), 0);
+    return () => {
+      clearTimeout(t);
+      if (prev?.isConnected) prev.focus();
+    };
   }, []);
 
   useEffect(() => {
