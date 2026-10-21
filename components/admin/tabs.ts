@@ -6,6 +6,7 @@ export const TABS: { id: Tab; label: string; short: string }[] = [
   { id: "drones", label: "Drones y sensores", short: "Drones" },
   { id: "recursos", label: "Recursos", short: "Recursos" },
   { id: "pronostico", label: "Pronóstico", short: "Riesgo" },
+  { id: "incidentes", label: "Incidentes", short: "Incidentes" },
   { id: "metricas", label: "Métricas", short: "Métricas" },
   { id: "config", label: "Configuración", short: "Config" },
 ];

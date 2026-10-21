@@ -30,7 +30,7 @@ export interface SpreadInfo {
 export type PanelSeg = "Capas" | "Análisis" | "Alertas" | "Notas";
 
 export type Tab =
-  "general" | "zonas" | "drones" | "recursos" | "pronostico" | "metricas" | "config";
+  "general" | "zonas" | "drones" | "recursos" | "pronostico" | "incidentes" | "metricas" | "config";
 
 export interface FireStats {
   total: number;
