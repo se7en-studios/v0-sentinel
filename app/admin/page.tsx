@@ -1,10 +1,14 @@
 import { AdminApp } from "@/components/admin/admin-app";
+import { FirebaseGate } from "@/components/admin/firebase-gate";
+import { firebaseEnabled } from "@/lib/admin/firebase";
 import { LoginForm } from "@/components/admin/login-form";
 import { authConfigured, authRequired, isAuthed } from "@/lib/admin/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
+  // per-client Firebase accounts when configured, shared ADMIN_PASSWORD otherwise
+  if (firebaseEnabled) return <FirebaseGate />;
   if (!authConfigured() && !(await isAuthed())) {
     return (
       <main className="grid min-h-dvh place-items-center bg-[#faf7f0] px-6 text-center text-[#1a1812]">

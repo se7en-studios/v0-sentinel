@@ -37,8 +37,16 @@ export function isFeat(f: unknown): f is Feat {
 function load(): Workspace {
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return EMPTY;
-    const p = JSON.parse(raw) as Partial<Workspace>;
+    return raw ? parseWorkspace(JSON.parse(raw)) : EMPTY;
+  } catch {
+    return EMPTY;
+  }
+}
+
+/** Turns untrusted stored data (localStorage or cloud) into a safe Workspace. */
+export function parseWorkspace(input: unknown): Workspace {
+  try {
+    const p = (input ?? {}) as Partial<Workspace>;
     const st = (p.settings ?? {}) as Partial<Workspace["settings"]>;
     const features = Array.isArray(p.features) ? p.features.filter(isFeat) : [];
     const meta = Object.fromEntries(
@@ -74,10 +82,14 @@ interface Snap {
 }
 const HISTORY_MAX = 40;
 
-export function useWorkspace() {
+export type SyncState = "local" | "loading" | "saving" | "saved" | "error";
+
+export function useWorkspace(uid?: string) {
   const [ws, setWs] = useState<Workspace>(EMPTY);
   const [ready, setReady] = useState(false);
   const [, bump] = useState(0);
+  const [sync, setSync] = useState<SyncState>(uid ? "loading" : "local");
+  const dirty = useRef(false);
   const skip = useRef(true);
   const latest = useRef(ws);
   latest.current = ws;
@@ -85,9 +97,37 @@ export function useWorkspace() {
   const future = useRef<Snap[]>([]);
 
   useEffect(() => {
-    setWs(load());
-    setReady(true);
-  }, []);
+    if (!uid) {
+      setWs(load());
+      setReady(true);
+      return;
+    }
+    // cloud account: server copy wins; if none yet, adopt what this browser had
+    let cancelled = false;
+    (async () => {
+      try {
+        const { loadCloud } = await import("./cloud");
+        const remote = await loadCloud(uid);
+        if (cancelled) return;
+        const local = load();
+        if (remote) setWs(parseWorkspace(remote));
+        else {
+          setWs(local);
+          dirty.current = local.features.length > 0;
+        }
+        setSync("saved");
+      } catch {
+        if (cancelled) return;
+        setWs(load());
+        setSync("error");
+      } finally {
+        if (!cancelled) setReady(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [uid]);
 
   useEffect(() => {
     if (!ready) return;
@@ -100,7 +140,21 @@ export function useWorkspace() {
     } catch {
       /* quota or private mode: keep working in memory */
     }
-  }, [ws, ready]);
+    if (!uid) return;
+    dirty.current = true;
+    setSync("saving");
+    const t = setTimeout(async () => {
+      try {
+        const { saveCloud } = await import("./cloud");
+        await saveCloud(uid, ws);
+        dirty.current = false;
+        setSync("saved");
+      } catch {
+        setSync("error");
+      }
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [ws, ready, uid]);
 
   const remember = useCallback(() => {
     const w = latest.current;
@@ -162,6 +216,7 @@ export function useWorkspace() {
     replace,
     undo,
     redo,
+    sync,
     canUndo: past.current.length > 0,
     canRedo: future.current.length > 0,
   };

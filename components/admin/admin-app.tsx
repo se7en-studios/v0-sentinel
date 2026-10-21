@@ -103,8 +103,15 @@ const pointTs = (days: string[], p: FirePoint) => {
   return Date.parse(`${days[p[4]]}T${hh.slice(0, 2)}:${hh.slice(2)}:00Z`);
 };
 
-export function AdminApp({ authRequired }: { authRequired: boolean }) {
-  const { ws, ready, setFeatures, setMeta, setSettings, replace, undo, redo, canUndo, canRedo } = useWorkspace();
+export interface CloudSession {
+  uid: string;
+  email: string | null;
+  getToken: () => Promise<string>;
+  signOut: () => Promise<void>;
+}
+
+export function AdminApp({ authRequired, cloud }: { authRequired: boolean; cloud?: CloudSession }) {
+  const { ws, ready, setFeatures, setMeta, setSettings, replace, undo, redo, canUndo, canRedo, sync } = useWorkspace(cloud?.uid);
   const s = ws.settings;
   const mapRef = useRef<MapHandle>(null);
 
@@ -151,7 +158,8 @@ export function AdminApp({ authRequired }: { authRequired: boolean }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/fires");
+      const token = cloud ? await cloud.getToken() : null;
+      const res = await fetch("/api/admin/fires", token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
       const j = (await res.json()) as FiresPayload;
       if (!res.ok) throw new Error(j.error ?? "Error al cargar focos");
       setPayload(j);
@@ -161,7 +169,7 @@ export function AdminApp({ authRequired }: { authRequired: boolean }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [cloud]);
   useEffect(() => {
     load();
     const t = setInterval(load, Math.max(5, Number(s.refreshMin) || 30) * 60_000);
@@ -806,6 +814,7 @@ export function AdminApp({ authRequired }: { authRequired: boolean }) {
   ];
 
   const logout = async () => {
+    if (cloud) return cloud.signOut();
     await fetch("/api/admin/logout", { method: "POST" });
     window.location.reload();
   };
@@ -900,6 +909,15 @@ export function AdminApp({ authRequired }: { authRequired: boolean }) {
         >
           <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
         </button>
+        {cloud && (
+          <span
+            className="hidden max-w-[11rem] items-center gap-1.5 truncate text-[11px] text-foreground/50 xl:flex"
+            title={cloud.email ?? ""}
+          >
+            <span className={cn("size-1.5 shrink-0 rounded-full", sync === "error" ? "bg-[#b83a3a]" : sync === "saved" ? "bg-primary" : "animate-pulse bg-[#c9a300]")} />
+            {sync === "saved" ? "Guardado en la nube" : sync === "error" ? "Sin conexión: guardado local" : "Sincronizando…"}
+          </span>
+        )}
         {authRequired && (
           <button
             type="button"

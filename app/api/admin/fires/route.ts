@@ -3,6 +3,8 @@ import inside from "@turf/boolean-point-in-polygon";
 import { point } from "@turf/helpers";
 import countries from "@/data/latam-countries.json";
 import { isAuthed } from "@/lib/admin/auth";
+import { firebaseEnabled } from "@/lib/admin/firebase";
+import { verifyFirebaseToken } from "@/lib/admin/firebase-verify";
 import { nearestPlace } from "@/lib/admin/places";
 import type { FireCluster, FirePoint, FiresPayload } from "@/lib/admin/types";
 
@@ -93,8 +95,16 @@ function clusterize(points: FirePoint[]): FireCluster[] {
     });
 }
 
-export async function GET() {
-  if (!(await isAuthed()))
+async function allowed(req: Request) {
+  if (firebaseEnabled) {
+    const token = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+    return token ? verifyFirebaseToken(token) : false;
+  }
+  return isAuthed();
+}
+
+export async function GET(req: Request) {
+  if (!(await allowed(req)))
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   const key = process.env.NASA_FIRMS_KEY;
   if (!key) {
