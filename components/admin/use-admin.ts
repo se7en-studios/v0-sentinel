@@ -78,6 +78,8 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   const [editing, setEditingRaw] = useState(false);
   const [live, setLive] = useState<string | null>(null);
   const [orders, setOrders] = useState<Record<string, Dispatch>>({});
+  const ordersRef = useRef(orders);
+  ordersRef.current = orders;
   const [opsLog, setOpsLog] = useState<OpsEntry[]>([]);
   const [activeDrone, setActiveDrone] = useState<string | null>(null);
   const [cursor, setCursor] = useState<number | null>(null);
@@ -109,8 +111,6 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   const [followId, setFollowIdRaw] = useState<string | null>(null);
   const [zoneRisk, setZoneRisk] = useState<Ctx["zoneRisk"]>({});
   const [spread, setSpread] = useState<GeoJSON.FeatureCollection | null>(null);
-  const [query, setQuery] = useState("");
-  const [searchMsg, setSearchMsg] = useState<string | null>(null);
   const windCache = useRef(new Map<string, Weather>());
   const [payload, setPayload] = useState<FiresPayload | null>(null);
   const [firesError, setFiresError] = useState<string | null>(null);
@@ -604,29 +604,6 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     return items.sort((a, b) => b.t - a.t);
   }, [allFires, payload, ws.features, ws.meta, zoneHits, sensors, rtb, now, s.bufferKm]);
 
-  // ---- search (coordinates or place name, Argentina only) ----
-  const search = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = query.trim();
-    if (!q) return;
-    setSearchMsg(null);
-    const m = q.match(/^(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)$/);
-    if (m) {
-      mapRef.current?.flyTo([Number(m[2]), Number(m[1])], 12);
-      return;
-    }
-    try {
-      const r = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&countrycodes=ar&format=json&limit=1`,
-      );
-      const j = (await r.json()) as { lat: string; lon: string }[];
-      if (!j[0]) return setSearchMsg("Sin resultados en Argentina");
-      mapRef.current?.flyTo([Number(j[0].lon), Number(j[0].lat)], 11);
-    } catch {
-      setSearchMsg("No se pudo buscar");
-    }
-  };
-
   // ---- exposure & exports ----
   const protectedHa = ws.features
     .filter((f) => MODE_ROLE[String(f.properties.mode)] === "zone")
@@ -685,6 +662,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   );
   const recallUnit = useCallback((id: string) => {
     const t = Date.now();
+    if (ordersRef.current[id]?.recalledAt || !ordersRef.current[id]) return;
     setOrders((o) => (o[id] && !o[id].recalledAt ? { ...o, [id]: { ...o[id], recalledAt: t } } : o));
     const spec = UNITS.find((u) => u.id === id);
     if (spec) setOpsLog((l) => [{ id: `${id}-r-${t}`, t, text: `${spec.name} regresa a base` }, ...l].slice(0, 40));
@@ -956,10 +934,6 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     setCamera,
     camera,
     unitMarkers,
-    search,
-    query,
-    setQuery,
-    searchMsg,
     setSettings,
     payload,
     panelOpen,

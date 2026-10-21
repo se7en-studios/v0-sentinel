@@ -87,6 +87,7 @@ function Scrubber({ ctx }: { ctx: Ctx }) {
       <div
         ref={track}
         role="slider"
+        suppressHydrationWarning // range ends at Date.now(), differs between server and client
         tabIndex={0}
         aria-label="Línea de tiempo de detecciones"
         aria-valuemin={range.t0}

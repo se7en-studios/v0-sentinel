@@ -87,42 +87,39 @@ function SearchBox({ a }: { a: A }) {
       ]);
       return;
     }
-    if (text.length < 3) {
-      setHits([]);
-      return;
-    }
-    const t = setTimeout(async () => {
-      abort.current?.abort();
-      abort.current = new AbortController();
-      try {
-        const r = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(text)}&countrycodes=ar&format=json&limit=5&accept-language=es`,
-          {
-            signal: abort.current.signal,
-          },
-        );
-        const j = (await r.json()) as {
-          display_name: string;
-          lat: string;
-          lon: string;
-        }[];
-        setHits(
-          j.map((x) => ({
-            label: x.display_name,
-            lat: Number(x.lat),
-            lng: Number(x.lon),
-          })),
-        );
-        if (!j.length) setMsg("Sin resultados en Argentina");
-      } catch {
-        /* aborted or offline */
-      }
-    }, 380);
-    return () => {
-      clearTimeout(t);
-      abort.current?.abort();
-    };
+    setHits([]);
+    return () => abort.current?.abort();
   }, [q]);
+
+  // Nominatim's policy forbids autocomplete, so place names are only searched on submit
+  const searchPlace = async (text: string) => {
+    if (text.length < 3) return;
+    abort.current?.abort();
+    abort.current = new AbortController();
+    setMsg("Buscando…");
+    try {
+      const r = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(text)}&countrycodes=ar&format=json&limit=5&accept-language=es`,
+        { signal: abort.current.signal },
+      );
+      const j = (await r.json()) as {
+        display_name: string;
+        lat: string;
+        lon: string;
+      }[];
+      setMsg(j.length ? null : "Sin resultados en Argentina");
+      const found = j.map((x) => ({
+        label: x.display_name,
+        lat: Number(x.lat),
+        lng: Number(x.lon),
+      }));
+      setHits(found);
+      setOpen(true);
+      if (found[0]) go(found[0]);
+    } catch (err) {
+      if ((err as Error).name !== "AbortError") setMsg("No se pudo buscar");
+    }
+  };
 
   return (
     <div className="relative w-[min(22rem,calc(100vw-6rem))]">
@@ -131,6 +128,7 @@ function SearchBox({ a }: { a: A }) {
         onSubmit={(e) => {
           e.preventDefault();
           if (hits[0]) go(hits[0]);
+          else void searchPlace(q.trim());
         }}
         className={cn(
           glass,
@@ -145,9 +143,10 @@ function SearchBox({ a }: { a: A }) {
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
+          onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
           onBlur={() => setTimeout(() => setOpen(false), 140)}
           aria-label="Buscar ciudad o coordenadas"
-          placeholder="Buscar ciudad, paraje o lat, lng…"
+          placeholder="Buscar ciudad (Enter) o lat, lng…"
           className="min-w-0 flex-1 bg-transparent text-[12.5px] outline-none placeholder:text-foreground/40"
         />
         {q && (
