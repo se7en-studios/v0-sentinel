@@ -910,6 +910,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
       description:
         "Hay cambios nuevos en la nube y también cambios tuyos sin subir. Elegí cuáles conservar.",
       duration: Infinity,
+      dismissible: false,
       action: { label: "Usar la nube", onClick: () => resolveConflict("server") },
       cancel: { label: "Mantener lo mío", onClick: () => resolveConflict("mine") },
     });
@@ -1386,6 +1387,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     goTab,
     isMapTab,
     retrySync,
+    resolveConflict,
     firesError,
     now,
     dark,

@@ -357,6 +357,24 @@ export function Topbar({ a }: { a: A }) {
                     : a.sync === "conflict"
                       ? "Cambios en conflicto"
                       : "Sincronizando…"}
+                {a.sync === "conflict" && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => a.resolveConflict("server")}
+                      className="ml-1 rounded px-1 font-semibold text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      Usar la nube
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => a.resolveConflict("mine")}
+                      className="rounded px-1 font-semibold underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      Mantener lo mío
+                    </button>
+                  </>
+                )}
                 {a.sync === "error" && (
                   <button
                     type="button"

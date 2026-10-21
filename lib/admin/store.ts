@@ -177,8 +177,25 @@ export function useWorkspace(uid?: string) {
   latest.current = ws;
   const past = useRef<Snap[]>([]);
   const future = useRef<Snap[]>([]);
+  const prevUid = useRef<string | undefined>(uid);
 
   useEffect(() => {
+    if (prevUid.current !== uid) {
+      // another account in the same tab: nothing of the previous one may reach it
+      prevUid.current = uid;
+      dirty.current = false;
+      rev.current = 0;
+      queued.current = false;
+      editedAt.current = 0;
+      past.current = [];
+      future.current = [];
+      skip.current = true;
+      setReady(false);
+      setWs(EMPTY);
+    }
+    loadFailed.current = false;
+    conflicted.current = false;
+    conflictRemote.current = null;
     if (!uid) {
       setWs(readStored(KEY)?.ws ?? EMPTY);
       setReady(true);
@@ -197,11 +214,19 @@ export function useWorkspace(uid?: string) {
         conflicted.current = false;
         conflictRemote.current = null;
         if (remote) {
-          rev.current = remote.rev;
-          if (mine?.dirty && mine.rev === remote.rev) {
+          const alreadyUp = mine?.dirty && mine.at === remote.clientAt;
+          // while a conflict is open keep the base this browser edited from, so a reload cannot silently overwrite the server
+          const diverged = mine?.dirty && !alreadyUp && mine.rev !== remote.rev;
+          rev.current = diverged ? mine.rev : remote.rev;
+          if (alreadyUp) {
+            // the upload landed but the tab died before it could say so
+            const next = parseWorkspace(remote.data);
+            writeStored(keyFor(uid), { ws: next, at: mine.at, dirty: false, rev: remote.rev });
+            setWs(next);
+          } else if (mine?.dirty && !diverged) {
             setWs(mine.ws);
             pushNow = true;
-          } else if (mine?.dirty) {
+          } else if (diverged) {
             // both sides changed since they last agreed: let the user choose
             setWs(mine.ws);
             conflicted.current = true;
@@ -219,6 +244,7 @@ export function useWorkspace(uid?: string) {
             const legacy = readStored(KEY);
             if (legacy && legacy.ws.features.length) {
               seed = legacy.ws;
+              writeStored(keyFor(uid), { ws: seed, at: Date.now(), dirty: true, rev: 0 });
               try {
                 localStorage.removeItem(KEY);
               } catch {
@@ -259,24 +285,25 @@ export function useWorkspace(uid?: string) {
       const w = latest.current;
       const at = editedAt.current || Date.now();
       setSync("saving");
-      const cloud = await import("./cloud");
       try {
-        rev.current = await cloud.saveCloud(uid, w, rev.current, at, force);
-        const key = keyFor(uid);
-        const cur = readStored(key);
-        // only mark clean if nothing was edited while the request was in flight
-        if (cur)
-          writeStored(key, { ...cur, rev: rev.current, dirty: cur.at !== at });
-        if (!cur || cur.at === at) dirty.current = false;
-        setSync(dirty.current ? "saving" : "saved");
-      } catch (e) {
-        if (e instanceof cloud.ConflictError) {
+        const cloud = await import("./cloud");
+        try {
+          rev.current = await cloud.saveCloud(uid, w, rev.current, at, force);
+          const key = keyFor(uid);
+          const cur = readStored(key);
+          // only mark clean if nothing was edited while the request was in flight
+          if (cur)
+            writeStored(key, { ...cur, rev: rev.current, dirty: cur.at !== at });
+          if (editedAt.current === at) dirty.current = false;
+          setSync(dirty.current ? "saving" : "saved");
+        } catch (e) {
+          if (!(e instanceof cloud.ConflictError)) throw e;
           conflicted.current = true;
           conflictRemote.current = await cloud.loadCloud(uid).catch(() => null);
           setSync("conflict");
-        } else {
-          setSync("error");
         }
+      } catch {
+        setSync("error"); // offline, or the chunk failed to load: the next edit or "Reintentar" tries again
       } finally {
         inflight.current = false;
         if (queued.current) {

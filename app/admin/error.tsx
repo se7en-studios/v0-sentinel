@@ -35,7 +35,7 @@ export default function AdminError({
   const wipe = () => {
     try {
       for (const [k, v] of Object.entries(storedWorkspaces())) {
-        localStorage.setItem(BACKUP + k, v);
+        localStorage.setItem(`${BACKUP}${Date.now()}:${k}`, v);
         localStorage.removeItem(k);
       }
     } catch {
