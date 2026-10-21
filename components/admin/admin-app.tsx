@@ -16,6 +16,7 @@ import { DroneDock, ResourcesDock } from "./docks";
 import { DronePip } from "./drone-pip";
 import { MetricsView } from "./metrics-view";
 import { SettingsView } from "./settings-view";
+import { GuidedTour } from "./tour";
 
 export type { CloudSession };
 
@@ -57,6 +58,7 @@ export function AdminApp({
         <header className="h-11 shrink-0 border-b border-[var(--hairline)] bg-card" />
       )}
       <Toaster position="bottom-center" />
+      {a.tour && <GuidedTour a={a} />}
       {a.mounted && (
         <CommandPalette
           open={a.paletteOpen}

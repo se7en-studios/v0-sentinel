@@ -148,6 +148,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   const [orbit, setOrbit] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [tour, setTour] = useState(false);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const [followId, setFollowIdRaw] = useState<string | null>(null);
@@ -1065,6 +1066,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
       label: t.label,
       run: () => goTab(t.id),
     })),
+    { id: "tour", group: "Vista", label: "Recorrido guiado", run: () => setTour(true) },
     { id: "v2", group: "Vista", label: "Mapa 2D", run: () => setView("2d") },
     {
       id: "v3",
@@ -1197,6 +1199,8 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     canRedo,
     setPaletteOpen,
     paletteOpen,
+    tour,
+    setTour,
     load,
     loading,
     authRequired,

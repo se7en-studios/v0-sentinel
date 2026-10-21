@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 
 import {
   Box,
+  Play,
   CalendarRange,
   ChevronDown,
   Command,
@@ -180,6 +181,10 @@ export function Topbar({ a }: { a: A }) {
             align="end"
             className="w-60 rounded-xl border-[var(--hairline)] p-1.5 shadow-[var(--shadow-2)]"
           >
+            <DropdownMenuItem onSelect={() => a.setTour(true)}>
+              <Play className="size-4" /> Recorrido guiado
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => ctx.setView("2d")}>
               <MapIcon className="size-4" /> Mapa 2D
             </DropdownMenuItem>

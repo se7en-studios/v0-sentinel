@@ -400,3 +400,8 @@ html.admin-dark {
   padding: 1px 6px; border-radius: 999px; background: rgba(10, 18, 14, 0.82); color: #fff;
   font: 650 9.5px var(--font-sans), Inter, sans-serif; letter-spacing: 0.04em;
 }
+
+/* guided tour: progress fill of the current step */
+@keyframes tour-fill { from { width: 0; } to { width: 100%; } }
+.tour-fill { animation: tour-fill linear forwards; }
+@media (prefers-reduced-motion: reduce) { .tour-fill { animation: none; width: 100%; } }
