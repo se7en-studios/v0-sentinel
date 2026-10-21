@@ -8,7 +8,7 @@ import {
   signOut,
   type User,
 } from "firebase/auth";
-import { SentinelLogo } from "@/components/sentinel-logo";
+import { LoginShell } from "./login-shell";
 import { fb } from "@/lib/admin/firebase";
 import { AdminApp, type CloudSession } from "./admin-app";
 import { Btn, inputCls } from "./ui";
@@ -60,16 +60,10 @@ function CloudLogin() {
   };
 
   return (
-    <main className="grid min-h-dvh place-items-center bg-[#faf7f0] px-4">
-      <form
-        onSubmit={submit}
-        className="w-full max-w-sm rounded-2xl border border-black/8 bg-white p-7 shadow-xl shadow-black/5"
-      >
-        <SentinelLogo className="mb-1 h-6 w-auto" />
-        <h1 className="font-heading text-xl font-bold">Panel de monitoreo</h1>
-        <p className="mb-5 mt-1 text-[13px] text-foreground/55">
-          Ingresá con la cuenta de tu organización.
-        </p>
+    <LoginShell
+      subtitle="Ingresá con la cuenta de tu organización."
+      onSubmit={submit}
+    >
         <label
           htmlFor="em"
           className="mb-1 block text-[12px] font-medium text-foreground/70"
@@ -122,8 +116,7 @@ function CloudLogin() {
         >
           Olvidé mi contraseña
         </button>
-      </form>
-    </main>
+    </LoginShell>
   );
 }
 

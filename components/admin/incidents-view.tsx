@@ -109,7 +109,7 @@ export function IncidentsView({ ctx }: { ctx: Ctx }) {
   const units = ws.settings.units;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4 p-4 sm:p-6">
+    <div className="view-in mx-auto max-w-6xl space-y-4 p-4 sm:p-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-heading text-2xl font-bold">Incidentes</h1>

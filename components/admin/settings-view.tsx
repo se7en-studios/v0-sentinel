@@ -84,7 +84,7 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
   );
 
   return (
-    <div className="mx-auto max-w-4xl space-y-4 p-4 sm:p-6">
+    <div className="view-in mx-auto max-w-4xl space-y-4 p-4 sm:p-6">
       <div>
         <h1 className="font-heading text-2xl font-bold">Configuración</h1>
         <p className="text-[13px] text-foreground/55">

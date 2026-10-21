@@ -71,7 +71,7 @@ export function ForecastView({ ctx }: { ctx: Ctx }) {
   const best = region?.reduce((a, d) => (d.score < a.score ? d : a));
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4 p-4 sm:p-6">
+    <div className="view-in mx-auto max-w-6xl space-y-4 p-4 sm:p-6">
       <div>
         <h1 className="font-heading text-2xl font-bold">
           Pronóstico de riesgo

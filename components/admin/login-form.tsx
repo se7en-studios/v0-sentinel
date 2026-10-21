@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { SentinelLogo } from "@/components/sentinel-logo";
+import { LoginShell } from "./login-shell";
 import { Btn, inputCls } from "./ui";
 
 export function LoginForm() {
@@ -25,16 +25,10 @@ export function LoginForm() {
   };
 
   return (
-    <main className="grid min-h-dvh place-items-center bg-[#0c0b09] px-4">
-      <form
-        onSubmit={submit}
-        className="w-full max-w-sm rounded-xl border border-white/10 bg-[#faf7f0] p-7 shadow-2xl"
-      >
-        <SentinelLogo className="mb-1 h-6 w-auto" />
-        <h1 className="font-heading text-xl font-bold">Panel de monitoreo</h1>
-        <p className="mb-5 mt-1 text-[13px] text-foreground/55">
-          Acceso para clientes de Sentinel Cloud.
-        </p>
+    <LoginShell
+      subtitle="Acceso para clientes de Sentinel Cloud."
+      onSubmit={submit}
+    >
         <label
           htmlFor="pw"
           className="mb-1 block text-[12px] font-medium text-foreground/70"
@@ -63,7 +57,6 @@ export function LoginForm() {
         >
           {busy ? "Ingresando…" : "Ingresar"}
         </Btn>
-      </form>
-    </main>
+    </LoginShell>
   );
 }
