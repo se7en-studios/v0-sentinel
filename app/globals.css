@@ -270,3 +270,29 @@ html {
     scroll-behavior: auto !important;
   }
 }
+
+/* Admin panel theme: light is the default token set, this block is the dark HUD. */
+.admin-root {
+  --chart-axis: rgba(26, 24, 18, 0.5);
+  --chart-tip: #faf7f0;
+}
+.admin-root.admin-dark {
+  --background: #0a0f0d;
+  --foreground: #e8f1ec;
+  --card: #111815;
+  --card-foreground: #e8f1ec;
+  --popover: #111815;
+  --popover-foreground: #e8f1ec;
+  --secondary: #17201c;
+  --muted: #17201c;
+  --muted-foreground: rgba(232, 241, 236, 0.5);
+  --primary: #2fbf7a;
+  --primary-foreground: #04140c;
+  --accent: #2fbf7a;
+  --border: rgba(232, 241, 236, 0.1);
+  --input: rgba(232, 241, 236, 0.12);
+  --ring: rgba(47, 191, 122, 0.45);
+  --chart-axis: rgba(232, 241, 236, 0.5);
+  --chart-tip: #111815;
+  color-scheme: dark;
+}

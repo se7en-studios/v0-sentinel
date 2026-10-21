@@ -1,0 +1,158 @@
+export type Role = "zone" | "line" | "route" | "sensor";
+export type SensorType = "temp" | "humidity" | "smoke" | "wind";
+export type BaseLayer = "esri" | "s2" | "viirs";
+export type Confidence = "l" | "n" | "h";
+
+export interface Feat {
+  id: string;
+  type: "Feature";
+  geometry: { type: string; coordinates: unknown };
+  properties: Record<string, unknown>;
+}
+
+export interface Meta {
+  name: string;
+  droneId?: string;
+  sensorType?: SensorType;
+}
+
+export interface Settings {
+  org: string;
+  regionId: string;
+  baseLayer: BaseLayer;
+  minConfidence: Confidence;
+  bufferKm: number;
+  units: "ha" | "km2";
+  exaggeration: number;
+  refreshMin: number;
+  valuePerHa: number;
+  thresholds: { temp: number; humidity: number; smoke: number; wind: number };
+  notify: {
+    email: string;
+    whatsapp: string;
+    onZoneHit: boolean;
+    onSensor: boolean;
+    browser: boolean;
+  };
+}
+
+export interface Workspace {
+  features: Feat[];
+  meta: Record<string, Meta>;
+  settings: Settings;
+}
+
+// [lat, lng, frp, confidence 0|1|2, dayIdx, hhmm, isNight 0|1]
+export type FirePoint = [
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+];
+
+export interface FireCluster {
+  lat: number;
+  lng: number;
+  count: number;
+  frp: number;
+  near: string;
+  km: number;
+}
+
+export interface FiresPayload {
+  updated: string;
+  days: string[];
+  points: FirePoint[];
+  clusters: FireCluster[];
+  error?: string;
+}
+
+export const MODE_ROLE: Record<string, Role> = {
+  "zone-polygon": "zone",
+  "zone-circle": "zone",
+  "zone-rect": "zone",
+  "zone-free": "zone",
+  line: "line",
+  route: "route",
+  sensor: "sensor",
+};
+
+export const ROLE_COLOR: Record<Role, string> = {
+  zone: "#0f7a4f",
+  line: "#1b6fb8",
+  route: "#e8710a",
+  sensor: "#0e9aa7",
+};
+
+export const SENSOR_LABEL: Record<SensorType, { label: string; unit: string }> =
+  {
+    temp: { label: "Temperatura", unit: "°C" },
+    humidity: { label: "Humedad", unit: "%" },
+    smoke: { label: "Humo / CO", unit: "ppm" },
+    wind: { label: "Viento", unit: "km/h" },
+  };
+
+export interface Region {
+  id: string;
+  name: string;
+  center: [number, number];
+  zoom: number;
+}
+
+export const REGIONS: Region[] = [
+  { id: "ar", name: "Argentina completa", center: [-65, -38], zoom: 3.6 },
+  {
+    id: "patagonia-andina",
+    name: "Patagonia Andina (Bariloche - El Bolsón)",
+    center: [-71.5, -41.6],
+    zoom: 8.6,
+  },
+  {
+    id: "chubut",
+    name: "Chubut cordillerano (Esquel - Cholila)",
+    center: [-71.5, -42.9],
+    zoom: 8.6,
+  },
+  {
+    id: "neuquen",
+    name: "Neuquén (Villa La Angostura - San Martín)",
+    center: [-71.2, -40.4],
+    zoom: 8.4,
+  },
+  {
+    id: "cordoba",
+    name: "Sierras de Córdoba",
+    center: [-64.6, -31.8],
+    zoom: 8,
+  },
+  {
+    id: "corrientes",
+    name: "Esteros del Iberá (Corrientes)",
+    center: [-57.4, -28.4],
+    zoom: 7.6,
+  },
+  { id: "delta", name: "Delta del Paraná", center: [-60.5, -33.5], zoom: 7.4 },
+  {
+    id: "mendoza",
+    name: "Mendoza - San Rafael",
+    center: [-68.6, -34.6],
+    zoom: 7.4,
+  },
+];
+
+export const DEFAULT_SETTINGS: Settings = {
+  org: "Sentinel Technologies",
+  regionId: "patagonia-andina",
+  baseLayer: "esri",
+  minConfidence: "n",
+  bufferKm: 5,
+  units: "ha",
+  exaggeration: 1.5,
+  refreshMin: 30,
+  valuePerHa: 0,
+  thresholds: { temp: 45, humidity: 20, smoke: 150, wind: 50 },
+  notify: { email: "", whatsapp: "", onZoneHit: true, onSensor: true, browser: false },
+};

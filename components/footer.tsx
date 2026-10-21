@@ -15,6 +15,7 @@ const footerLinks = {
   ],
   Soporte: [
     { label: "Blog", href: "/blog" },
+    { label: "Panel de monitoreo", href: "/admin" },
     { label: "Contacto", href: "/#contacto" },
     { label: "FAQ", href: "/#faq" },
   ],
