@@ -28,7 +28,7 @@ export interface SpreadInfo {
 }
 
 export type Tab =
-  "general" | "zonas" | "drones" | "recursos" | "metricas" | "config";
+  "general" | "zonas" | "drones" | "recursos" | "pronostico" | "metricas" | "config";
 
 export interface FireStats {
   total: number;

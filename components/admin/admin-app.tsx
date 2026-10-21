@@ -15,6 +15,7 @@ import { TimelineDock } from "./dock-timeline";
 import { DroneDock, ResourcesDock } from "./docks";
 import { DronePip } from "./drone-pip";
 import { MetricsView } from "./metrics-view";
+import { ForecastView } from "./forecast-view";
 import { SettingsView } from "./settings-view";
 import { GuidedTour } from "./tour";
 
@@ -135,6 +136,7 @@ export function AdminApp({
         </main>
       ) : (
         <main className="min-h-0 flex-1 overflow-y-auto bg-[var(--surface)]">
+          {ctx.tab === "pronostico" && <ForecastView ctx={ctx} />}
           {ctx.tab === "metricas" && <MetricsView ctx={ctx} />}
           {ctx.tab === "config" && <SettingsView ctx={ctx} />}
         </main>
