@@ -52,7 +52,7 @@ export function StatusStrip({ ctx }: { ctx: Ctx }) {
   return (
     <ul
       aria-label="Estado general"
-      className="flex shrink-0 items-center gap-x-5 overflow-x-auto border-b border-[var(--hairline)] bg-card px-4 py-1.5 text-[11.5px]"
+      className="no-scrollbar flex shrink-0 items-center gap-x-5 overflow-x-auto border-b border-[var(--hairline)] bg-card px-4 py-1.5 text-[11.5px]"
     >
       <Item
         tone={

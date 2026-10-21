@@ -16,6 +16,7 @@ import {
   Link2,
   LogOut,
   Map as MapIcon,
+  MoreHorizontal,
   Moon,
   PanelRight,
   Redo2,
@@ -138,7 +139,7 @@ export function Topbar({ a }: { a: A }) {
 
       <nav
         ref={nav}
-        className="mx-1 flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [&>*:first-child]:ml-auto [&>*:last-child]:mr-auto"
+        className="no-scrollbar mx-1 flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [&>*:first-child]:ml-auto [&>*:last-child]:mr-auto"
         aria-label="Modos"
       >
         {TABS.map((t) => {
@@ -319,6 +320,96 @@ export function Topbar({ a }: { a: A }) {
           Ctrl K
         </kbd>
       </button>
+
+      {/* phones: everything the desktop menus offer, in one place */}
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          className="grid size-8 shrink-0 place-items-center rounded-lg text-foreground/70 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-foreground/[0.06] md:hidden"
+          aria-label="Más opciones"
+        >
+          <MoreHorizontal className="size-4" aria-hidden />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="end"
+          className="max-h-[75dvh] w-64 overflow-y-auto rounded-xl border-[var(--hairline)] p-1.5 shadow-[var(--shadow-2)]"
+        >
+          <DropdownMenuItem onSelect={() => a.setPaletteOpen(true)}>
+            <Command className="size-4" /> Buscar y comandos
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled={!ctx.canUndo} onSelect={() => ctx.undo()}>
+            <Undo2 className="size-4" /> Deshacer
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled={!ctx.canRedo} onSelect={() => ctx.redo()}>
+            <Redo2 className="size-4" /> Rehacer
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-foreground/45">
+            Región
+          </DropdownMenuLabel>
+          {REGIONS.map((r) => (
+            <DropdownMenuItem
+              key={r.id}
+              onSelect={() => {
+                a.goTab("general");
+                a.setSettings({ regionId: r.id });
+                a.mapRef.current?.flyTo(r.center, r.zoom);
+              }}
+              className={cn(r.id === s.regionId && "font-medium text-primary")}
+            >
+              <MapIcon className="size-4" /> {r.name.split("(")[0].trim()}
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-foreground/45">
+            Vista
+          </DropdownMenuLabel>
+          <DropdownMenuItem onSelect={() => ctx.setView(ctx.view === "3d" ? "2d" : "3d")}>
+            <Box className="size-4" /> {ctx.view === "3d" ? "Mapa 2D" : "Mapa 3D con relieve"}
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => a.setTour(true)}>
+            <Play className="size-4" /> Recorrido guiado
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={a.toggleTheme}>
+            {a.dark ? <Sun className="size-4" /> : <Moon className="size-4" />}{" "}
+            {a.dark ? "Modo claro" : "Modo oscuro"}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-foreground/45">
+            Propagación prevista
+          </DropdownMenuLabel>
+          {[0, ...HORIZONS].map((h) => (
+            <DropdownMenuItem
+              key={h}
+              onSelect={() => {
+                a.goTab("general");
+                ctx.setPredH(h);
+              }}
+              className={cn(ctx.predH === h && "font-medium text-primary")}
+            >
+              <Flame className="size-4" />{" "}
+              {h === 0 ? "Desactivada" : `Proyección a +${h} h`}
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-foreground/45">
+            Compartir y exportar
+          </DropdownMenuLabel>
+          <DropdownMenuItem onSelect={ctx.shareView}>
+            <Link2 className="size-4" /> Copiar enlace de esta vista
+          </DropdownMenuItem>
+          {a.canShare && (
+            <DropdownMenuItem onSelect={a.shareReadOnly}>
+              <Eye className="size-4" /> Enlace de solo lectura (7 días)
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem onSelect={ctx.exportReport}>
+            <FileText className="size-4" /> Reporte PDF
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={ctx.exportCsv}>
+            <Download className="size-4" /> Focos en CSV
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <DropdownMenu>
         <DropdownMenuTrigger
