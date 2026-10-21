@@ -287,7 +287,8 @@ export function MetricsView({ ctx }: { ctx: Ctx }) {
 }
 
 /** Last half of the window vs the half before it, so a rising or falling season is visible at a glance. */
-function TrendCard({ perDay }: { perDay: Ctx["stats"]["perDay"] }) {
+function TrendCard({ perDay: all }: { perDay: Ctx["stats"]["perDay"] }) {
+  const perDay = all.slice(0, -1); // today is still filling in and would drag the comparison down
   const h = Math.floor(perDay.length / 2);
   if (h < 2) return null;
   const sum = (days: typeof perDay, k: "count" | "frp") =>
@@ -308,7 +309,7 @@ function TrendCard({ perDay }: { perDay: Ctx["stats"]["perDay"] }) {
   return (
     <Card
       title={`Tendencia: últimos ${h} días vs ${h} anteriores`}
-      right={<Badge>incluye hoy parcial</Badge>}
+      right={<Badge>sin contar hoy</Badge>}
     >
       <div className="grid gap-4 sm:grid-cols-2">
         {rows.map((r) => (

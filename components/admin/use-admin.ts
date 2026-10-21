@@ -89,6 +89,33 @@ const EMPTY_STATS: FireStats = {
   day: 0,
 };
 
+
+const ART_MS = 3 * 3600_000; // Argentina is UTC-3 all year
+
+/** Daily series in Argentina time, gap-filled so a quiet day shows as 0 instead of vanishing. */
+function artPerDay(
+  byDay: Map<string, { count: number; frp: number }>,
+  firstDay: string | undefined,
+) {
+  const keys = [...byDay.keys()].sort();
+  const start = Date.parse(`${keys[0] ?? firstDay ?? "1970-01-01"}T00:00:00Z`);
+  const end = Date.parse(
+    `${new Date(Date.now() - ART_MS).toISOString().slice(0, 10)}T00:00:00Z`,
+  );
+  const out: { day: string; label: string; count: number; frp: number }[] = [];
+  for (let t = start; t <= Math.max(end, start); t += 864e5) {
+    const day = new Date(t).toISOString().slice(0, 10);
+    const e = byDay.get(day);
+    out.push({
+      day,
+      label: `${day.slice(8)}/${day.slice(5, 7)}`,
+      count: e?.count ?? 0,
+      frp: Math.round(e?.frp ?? 0),
+    });
+  }
+  return out;
+}
+
 const pointTs = (days: string[], p: FirePoint) => {
   const hh = String(p[5]).padStart(4, "0");
   return Date.parse(`${days[p[4]]}T${hh.slice(0, 2)}:${hh.slice(2)}:00Z`);
@@ -281,13 +308,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     if (!payload) return EMPTY_STATS;
     const days = payload.days;
     const cutoff = Date.now() - 24 * 3600 * 1000;
-    const perDay = days.map((d, i) => ({
-      day: d,
-      label: d.slice(8) + "/" + d.slice(5, 7),
-      count: 0,
-      frp: 0,
-      i,
-    }));
+    const byDay = new Map<string, { count: number; frp: number }>();
     const perHour = Array.from({ length: 24 }, (_, hour) => ({
       hour,
       count: 0,
@@ -297,8 +318,13 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     let night = 0;
     const conf = [0, 0, 0];
     for (const p of allFires) {
-      perDay[p[4]].count += 1;
-      perDay[p[4]].frp += p[2];
+      const dayKey = new Date(pointTs(days, p) - ART_MS)
+        .toISOString()
+        .slice(0, 10);
+      const e = byDay.get(dayKey) ?? { count: 0, frp: 0 };
+      e.count += 1;
+      e.frp += p[2];
+      byDay.set(dayKey, e);
       frp += p[2];
       if (p[6]) night += 1;
       const hh = Math.floor(p[5] / 100);
@@ -320,12 +346,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
           allFires.map((p) => `${Math.round(p[0] / 0.004)}:${Math.round(p[1] / 0.004)}`),
         ).size * HA_PER_DETECTION,
       ),
-      perDay: perDay.map(({ day, label, count, frp: f }) => ({
-        day,
-        label,
-        count,
-        frp: Math.round(f),
-      })),
+      perDay: artPerDay(byDay, days[0]),
       perHour,
       byConf: [
         { name: "Baja", value: conf[0] },
@@ -491,23 +512,26 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // ---- zone hits (time independent) ----
+  // 10-minute steps: recency windows follow the clock without re-running the geometry every tick
+  const nowStep = Math.floor(now / 600_000);
+
+  // ---- zone hits: "recent" = detections in the last 48 h of real time ----
   const zoneHits = useMemo(() => {
     const out: Record<string, { recent: number; total: number; last: number }> =
       {};
     if (!payload) return out;
-    const lastDay = payload.days.length - 1;
+    const since = nowStep * 600_000 - 48 * 3600_000;
     for (const z of ws.features) {
       if (MODE_ROLE[String(z.properties.mode)] !== "zone") continue;
       const hits = firesInZone(z, allFires, s.bufferKm);
       out[z.id] = {
         total: hits.length,
-        recent: hits.filter((p) => p[4] >= lastDay - 1).length,
+        recent: hits.filter((p) => pointTs(payload.days, p) >= since).length,
         last: hits.reduce((m, p) => Math.max(m, pointTs(payload.days, p)), 0),
       };
     }
     return out;
-  }, [ws.features, allFires, payload, s.bufferKm]);
+  }, [ws.features, allFires, payload, s.bufferKm, nowStep]);
   const alertIds = useMemo(
     () =>
       new Set(
@@ -540,9 +564,12 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   );
 
   const recentFires = useMemo(() => {
-    const last = (payload?.days.length ?? 1) - 1;
-    return allFires.filter((p) => p[4] === last && p[3] >= 1);
-  }, [allFires, payload]);
+    if (!payload) return [];
+    const since = nowStep * 600_000 - 24 * 3600_000;
+    return allFires.filter(
+      (p) => p[3] >= 1 && pointTs(payload.days, p) >= since,
+    );
+  }, [allFires, payload, nowStep]);
   const sensors = useMemo<SensorState[]>(
     () =>
       ws.features
