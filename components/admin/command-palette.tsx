@@ -35,7 +35,6 @@ export function CommandPalette({
       onOpenChange={setOpen}
       title="Paleta de comandos"
       description="Buscá una acción, región o panel"
-      showCloseButton={false}
     >
       <CommandInput placeholder="Ir a… cambiar vista… exportar…" />
       <CommandList>

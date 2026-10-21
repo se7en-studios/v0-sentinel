@@ -53,19 +53,23 @@ function Mini({
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-col px-3 pb-1.5 pt-2">
       <div className="mb-0.5 flex items-baseline justify-between">
-        <h3 className="text-[10px] font-semibold uppercase tracking-[0.09em] text-foreground/50">
+        <h3 className="text-[10px] font-semibold uppercase tracking-[0.09em] text-foreground/65">
           {title}
         </h3>
         <span className="num text-[10.5px] font-medium text-foreground/70">
           {data.length
             ? Math.round(data[data.length - 1].v).toLocaleString("es-AR")
             : "—"}{" "}
-          <span className="text-foreground/40">{unit}</span>
+          <span className="text-foreground/60">{unit}</span>
         </span>
       </div>
-      <div className="relative min-h-0 flex-1">
+      <div
+        className="relative min-h-0 flex-1"
+        role="img"
+        aria-label={`${title}: ${data.length ? Math.round(data[data.length - 1].v).toLocaleString("es-AR") : "sin datos"} ${unit}`}
+      >
         {empty && (
-          <span className="pointer-events-none absolute inset-0 z-10 grid place-items-center text-[11px] text-foreground/35">
+          <span className="pointer-events-none absolute inset-0 z-10 grid place-items-center text-[11px] text-foreground/60">
             Sin actividad
           </span>
         )}
@@ -177,18 +181,18 @@ export function DroneDock({ ctx }: { ctx: Ctx }) {
       className="shrink-0 border-t border-[var(--hairline)] bg-card"
     >
       <div className="flex items-center gap-2 border-b border-[var(--hairline)] px-3 py-1.5">
-        <h2 className="text-[10px] font-semibold uppercase tracking-[0.1em] text-foreground/50">
+        <h2 className="text-[10px] font-semibold uppercase tracking-[0.1em] text-foreground/65">
           Telemetría · {d.spec.name}
         </h2>
         <Badge tone="sim">simulado</Badge>
-        <div className="ml-auto flex gap-1">
+        <div className="ml-auto flex gap-1" role="group" aria-label="Dron activo">
           {FLEET.map((f) => (
             <button
               key={f.id}
               type="button"
               aria-pressed={f.id === d.spec.id}
               onClick={() => ctx.setActiveDrone(f.id)}
-              className={`rounded-md px-2 py-0.5 text-[10.5px] font-medium transition-colors ${f.id === d.spec.id ? "bg-foreground text-background" : "text-foreground/55 hover:bg-foreground/[0.06]"}`}
+              className={`rounded-md px-2 py-2 text-[10.5px] font-medium transition-colors sm:py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${f.id === d.spec.id ? "bg-foreground text-background" : "text-foreground/55 hover:bg-foreground/[0.06]"}`}
             >
               {f.name.replace("SNT-", "")}
             </button>
@@ -215,11 +219,11 @@ export function DroneDock({ ctx }: { ctx: Ctx }) {
           />
         </div>
         <div className="hidden h-full min-h-0 overflow-y-auto border-l border-[var(--hairline)] px-3 pb-2 pt-2 sm:block">
-          <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.09em] text-foreground/50">
+          <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.09em] text-foreground/65">
             Detecciones cerca
           </h3>
           {detections.length === 0 && (
-            <p className="text-[11px] text-foreground/40">
+            <p className="text-[11px] text-foreground/60">
               {d.track
                 ? "Sin focos a menos de 6 km de la ruta."
                 : "El dron no está en vuelo."}
@@ -257,12 +261,12 @@ export function ResourcesDock({ ctx }: { ctx: Ctx }) {
       className="shrink-0 border-t border-[var(--hairline)] bg-card"
     >
       <div className="flex items-center gap-2 border-b border-[var(--hairline)] px-3 py-1.5">
-        <h2 className="text-[10px] font-semibold uppercase tracking-[0.1em] text-foreground/50">
+        <h2 className="text-[10px] font-semibold uppercase tracking-[0.1em] text-foreground/65">
           Operaciones · última hora
         </h2>
         <Badge tone="sim">simulado</Badge>
       </div>
-      <div className="grid h-[132px] grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_270px]">
+      <div className="grid grid-cols-1 grid-rows-[96px_auto] sm:h-[132px] sm:grid-rows-none sm:grid-cols-[1fr_1fr_1fr_270px]">
         <Mini
           title="Personal desplegado" hm
           unit="pers."
@@ -287,19 +291,19 @@ export function ResourcesDock({ ctx }: { ctx: Ctx }) {
             data={line}
           />
         </div>
-        <div className="hidden min-h-0 flex-col border-l border-[var(--hairline)] px-3 pb-2 pt-2 sm:flex">
-          <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.09em] text-foreground/50">
+        <div className="flex max-h-24 min-h-0 flex-col border-t border-[var(--hairline)] px-3 pb-2 pt-2 sm:max-h-none sm:border-l sm:border-t-0">
+          <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.09em] text-foreground/65">
             Registro de operaciones
           </h3>
           {ctx.opsLog.length === 0 && (
-            <p className="text-[11px] text-foreground/40">
+            <p className="text-[11px] text-foreground/60">
               Sin operaciones. Despachá unidades desde el panel.
             </p>
           )}
           <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto">
             {ctx.opsLog.map((e) => (
               <li key={e.id} className="text-[10.5px] leading-snug">
-                <span className="num mr-1.5 text-foreground/40">
+                <span className="num mr-1.5 text-foreground/60">
                   {new Date(e.t).toLocaleTimeString("es-AR", {
                     hour: "2-digit",
                     minute: "2-digit",

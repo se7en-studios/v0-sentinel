@@ -46,7 +46,7 @@ import { IconBtn } from "./ui";
 type A = ReturnType<typeof useAdmin>;
 
 const trigger =
-  "inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[12px] font-medium text-foreground/70 transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-foreground/[0.06] data-[state=open]:text-foreground";
+  "relative inline-flex h-8 items-center gap-1 rounded-lg px-2 before:absolute before:-inset-1 before:content-[''] text-[12px] font-medium text-foreground/70 transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-foreground/[0.06] data-[state=open]:text-foreground";
 
 function fmtRange(days: string[]) {
   if (!days.length) return null;

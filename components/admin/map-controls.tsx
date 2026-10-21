@@ -395,7 +395,6 @@ function Legend({ a }: { a: A }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-expanded={false}
         className={cn(glass, "hidden h-7 items-center gap-1.5 px-2.5 text-[10.5px] font-medium text-foreground/60 hover:text-foreground md:flex")}
       >
         <span className="h-1.5 w-6 rounded-full" style={{ background: "linear-gradient(90deg,#f5a524,#ff6a1a,#c8321e)" }} aria-hidden />
@@ -408,11 +407,12 @@ function Legend({ a }: { a: A }) {
         glass,
         "hidden w-44 p-2.5 text-[10.5px] text-foreground/70 md:block",
       )}
+      role="group"
       aria-label="Leyenda"
     >
       <div className="mb-1 flex items-center justify-between font-medium text-foreground/85">
         Intensidad del foco (FRP)
-        <button type="button" onClick={() => setOpen(false)} aria-label="Ocultar leyenda" className="text-foreground/40 hover:text-foreground">
+        <button type="button" onClick={() => setOpen(false)} aria-label="Ocultar leyenda" className="rounded text-foreground/55 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <X className="size-3" />
         </button>
       </div>

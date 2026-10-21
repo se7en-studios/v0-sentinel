@@ -89,7 +89,7 @@ export function DronePip({ ctx }: { ctx: Ctx }) {
             aria-pressed={mode === m}
             onClick={() => setMode(m)}
             className={cn(
-              "rounded-md px-2 py-0.5 text-[10px] font-bold uppercase transition-colors",
+              "rounded-md px-2 py-1.5 text-[10px] font-bold uppercase transition-colors sm:py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               mode === m
                 ? "bg-[var(--fire)] text-white"
                 : "text-white/55 hover:text-white",
@@ -102,7 +102,7 @@ export function DronePip({ ctx }: { ctx: Ctx }) {
           type="button"
           aria-label={big ? "Reducir cámara" : "Ampliar cámara"}
           onClick={() => setBig(!big)}
-          className="grid size-6 place-items-center rounded-md text-white/60 hover:bg-white/10 hover:text-white"
+          className="grid size-8 place-items-center rounded-md text-white/60 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:size-6"
         >
           {big ? (
             <Minimize2 className="size-3" />
@@ -114,7 +114,7 @@ export function DronePip({ ctx }: { ctx: Ctx }) {
           type="button"
           aria-label="Cerrar cámara"
           onClick={() => setOpen(false)}
-          className="grid size-6 place-items-center rounded-md text-white/60 hover:bg-white/10 hover:text-white"
+          className="grid size-8 place-items-center rounded-md text-white/60 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:size-6"
         >
           <X className="size-3" />
         </button>

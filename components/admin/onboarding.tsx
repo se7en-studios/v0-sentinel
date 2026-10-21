@@ -77,7 +77,7 @@ export function Onboarding({
           type="button"
           onClick={dismiss}
           aria-label="Ocultar primeros pasos"
-          className="grid size-6 place-items-center rounded text-foreground/45 hover:bg-foreground/8"
+          className="grid size-8 place-items-center rounded text-foreground/45 hover:bg-foreground/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:size-6"
         >
           <X className="size-3.5" />
         </button>
@@ -95,7 +95,7 @@ export function Onboarding({
               type="button"
               onClick={s.go}
               disabled={s.done}
-              className="flex w-full items-center gap-2 rounded px-1 py-1 text-left text-[12.5px] hover:bg-foreground/5 disabled:hover:bg-transparent"
+              className="flex w-full items-center gap-2 rounded px-1 py-1.5 text-left text-[12.5px] hover:bg-foreground/5 disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <span
                 className={cn(
