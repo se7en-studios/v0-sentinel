@@ -1,20 +1,60 @@
-import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  runTransaction,
+  serverTimestamp,
+} from "firebase/firestore";
 import { fb } from "./firebase";
 import type { Workspace } from "./types";
 
 // Firestore rejects nested arrays (GeoJSON coordinates are nested), so the
 // workspace is stored as one JSON string in workspaces/{uid}.json.
-// ponytail: last write wins across devices; add per-element merge if two
-// people edit the same account at once.
-export async function loadCloud(uid: string): Promise<unknown | null> {
-  const snap = await getDoc(doc(fb().db, "workspaces", uid));
-  const json = snap.data()?.json;
-  return typeof json === "string" ? JSON.parse(json) : null;
+// `rev` counts successful saves; a save only lands if nobody else bumped it
+// since this client last read it, so two devices can no longer overwrite each
+// other silently. ponytail: whole-document conflict (keep mine / take server);
+// per-element merge is the upgrade if two people edit one account at once.
+export interface CloudCopy {
+  data: unknown;
+  rev: number;
+  /** ms epoch of the edit that produced this copy */
+  clientAt: number;
 }
 
-export async function saveCloud(uid: string, ws: Workspace) {
-  await setDoc(doc(fb().db, "workspaces", uid), {
-    json: JSON.stringify(ws),
-    updatedAt: serverTimestamp(),
+export class ConflictError extends Error {}
+
+export async function loadCloud(uid: string): Promise<CloudCopy | null> {
+  const snap = await getDoc(doc(fb().db, "workspaces", uid));
+  const d = snap.data();
+  if (typeof d?.json !== "string") return null;
+  return {
+    data: JSON.parse(d.json),
+    rev: Number(d.rev) || 0,
+    clientAt: Number(d.clientAt) || 0,
+  };
+}
+
+/** Returns the new revision. Throws ConflictError when the server moved on. */
+export async function saveCloud(
+  uid: string,
+  ws: Workspace,
+  baseRev: number,
+  clientAt: number,
+  force = false,
+): Promise<number> {
+  const db = fb().db;
+  const ref = doc(db, "workspaces", uid);
+  return runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const current = Number(snap.data()?.rev) || 0;
+    if (!force && snap.exists() && current !== baseRev)
+      throw new ConflictError();
+    const rev = current + 1;
+    tx.set(ref, {
+      json: JSON.stringify(ws),
+      rev,
+      clientAt,
+      updatedAt: serverTimestamp(),
+    });
+    return rev;
   });
 }

@@ -115,6 +115,8 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     canUndo,
     canRedo,
     sync,
+    retry: retrySync,
+    resolveConflict,
   } = useWorkspace(cloud?.uid);
   const s = ws.settings;
   const mapRef = useRef<MapHandle>(null);
@@ -897,6 +899,22 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     [units],
   );
 
+  // two devices (or tabs) edited the same account: never overwrite silently
+  useEffect(() => {
+    if (sync !== "conflict") {
+      toast.dismiss("sync-conflict");
+      return;
+    }
+    toast.warning("Tu espacio de trabajo cambió en otro dispositivo", {
+      id: "sync-conflict",
+      description:
+        "Hay cambios nuevos en la nube y también cambios tuyos sin subir. Elegí cuáles conservar.",
+      duration: Infinity,
+      action: { label: "Usar la nube", onClick: () => resolveConflict("server") },
+      cancel: { label: "Mantener lo mío", onClick: () => resolveConflict("mine") },
+    });
+  }, [sync, resolveConflict]);
+
   // ---- user alert rules ----
   const [panelSeg, setPanelSeg] = useState<PanelSeg>("Capas");
   const [forecast, setForecast] = useState<DayForecast[] | null>(null);
@@ -1367,6 +1385,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     tab,
     goTab,
     isMapTab,
+    retrySync,
     firesError,
     now,
     dark,

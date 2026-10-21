@@ -1,6 +1,7 @@
 "use client";
 
 import { cleanRules } from "./rules";
+import type { CloudCopy } from "./cloud";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   DEFAULT_SETTINGS,
@@ -47,12 +48,43 @@ export function isFeat(f: unknown): f is Feat {
   );
 }
 
-function load(): Workspace {
+/** What this browser keeps per account: the workspace plus enough to know whether the cloud copy is behind. */
+interface Stored {
+  ws: Workspace;
+  /** ms epoch of the last local edit */
+  at: number;
+  /** edits not yet confirmed by the cloud */
+  dirty: boolean;
+  /** cloud revision this copy was based on */
+  rev: number;
+}
+
+// one key per account: a shared key let the next login adopt (and upload) the previous account's work
+const keyFor = (uid?: string) => (uid ? `${KEY}:${uid}` : KEY);
+
+function readStored(key: string): Stored | null {
   try {
-    const raw = localStorage.getItem(KEY);
-    return raw ? parseWorkspace(JSON.parse(raw)) : EMPTY;
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const j = JSON.parse(raw);
+    if (j && typeof j === "object" && "ws" in j)
+      return {
+        ws: parseWorkspace(j.ws),
+        at: Number(j.at) || 0,
+        dirty: j.dirty === true,
+        rev: Number(j.rev) || 0,
+      };
+    return { ws: parseWorkspace(j), at: 0, dirty: false, rev: 0 }; // pre-envelope format
   } catch {
-    return EMPTY;
+    return null;
+  }
+}
+
+function writeStored(key: string, v: Stored) {
+  try {
+    localStorage.setItem(key, JSON.stringify(v));
+  } catch {
+    /* quota or private mode: keep working in memory */
   }
 }
 
@@ -118,15 +150,28 @@ interface Snap {
 }
 const HISTORY_MAX = 40;
 
-export type SyncState = "local" | "loading" | "saving" | "saved" | "error";
+export type SyncState =
+  | "local"
+  | "loading"
+  | "saving"
+  | "saved"
+  | "error"
+  | "conflict";
 
 export function useWorkspace(uid?: string) {
   const [ws, setWs] = useState<Workspace>(EMPTY);
   const [ready, setReady] = useState(false);
   const [, bump] = useState(0);
+  const [loadTick, setLoadTick] = useState(0);
   const [sync, setSync] = useState<SyncState>(uid ? "loading" : "local");
   const dirty = useRef(false);
   const loadFailed = useRef(false);
+  const conflicted = useRef(false);
+  const conflictRemote = useRef<CloudCopy | null>(null);
+  const rev = useRef(0);
+  const editedAt = useRef(0);
+  const inflight = useRef(false);
+  const queued = useRef(false);
   const skip = useRef(true);
   const latest = useRef(ws);
   latest.current = ws;
@@ -135,27 +180,62 @@ export function useWorkspace(uid?: string) {
 
   useEffect(() => {
     if (!uid) {
-      setWs(load());
+      setWs(readStored(KEY)?.ws ?? EMPTY);
       setReady(true);
       return;
     }
-    // cloud account: server copy wins; if none yet, adopt what this browser had
+    // cloud account: the server copy wins unless this browser holds newer edits it never managed to upload
     let cancelled = false;
     (async () => {
+      let pushNow = false;
       try {
         const { loadCloud } = await import("./cloud");
         const remote = await loadCloud(uid);
         if (cancelled) return;
-        const local = load();
-        if (remote) setWs(parseWorkspace(remote));
-        else {
-          setWs(local);
-          dirty.current = local.features.length > 0;
+        const mine = readStored(keyFor(uid));
+        loadFailed.current = false;
+        conflicted.current = false;
+        conflictRemote.current = null;
+        if (remote) {
+          rev.current = remote.rev;
+          if (mine?.dirty && mine.rev === remote.rev) {
+            setWs(mine.ws);
+            pushNow = true;
+          } else if (mine?.dirty) {
+            // both sides changed since they last agreed: let the user choose
+            setWs(mine.ws);
+            conflicted.current = true;
+            conflictRemote.current = remote;
+            dirty.current = true;
+            setSync("conflict");
+          } else {
+            setWs(parseWorkspace(remote.data));
+          }
+        } else {
+          rev.current = 0;
+          let seed = mine?.ws;
+          if (!seed || !seed.features.length) {
+            // first login on this browser: adopt the pre-account workspace once, then drop it so no other account can
+            const legacy = readStored(KEY);
+            if (legacy && legacy.ws.features.length) {
+              seed = legacy.ws;
+              try {
+                localStorage.removeItem(KEY);
+              } catch {
+                /* private mode */
+              }
+            }
+          }
+          seed = seed ?? EMPTY;
+          setWs(seed);
+          pushNow = seed.features.length > 0;
         }
-        setSync("saved");
+        if (pushNow) dirty.current = true;
+        skip.current = !pushNow;
+        if (!conflicted.current) setSync(pushNow ? "saving" : "saved");
       } catch {
         if (cancelled) return;
-        setWs(load());
+        setWs(readStored(keyFor(uid))?.ws ?? EMPTY);
         loadFailed.current = true; // never overwrite the server copy we couldn't read
         setSync("error");
       } finally {
@@ -165,7 +245,48 @@ export function useWorkspace(uid?: string) {
     return () => {
       cancelled = true;
     };
-  }, [uid]);
+  }, [uid, loadTick]);
+
+  const push = useCallback(
+    async (force = false) => {
+      if (!uid || loadFailed.current || conflicted.current) return;
+      if (!dirty.current && !force) return;
+      if (inflight.current) {
+        queued.current = true;
+        return;
+      }
+      inflight.current = true;
+      const w = latest.current;
+      const at = editedAt.current || Date.now();
+      setSync("saving");
+      const cloud = await import("./cloud");
+      try {
+        rev.current = await cloud.saveCloud(uid, w, rev.current, at, force);
+        const key = keyFor(uid);
+        const cur = readStored(key);
+        // only mark clean if nothing was edited while the request was in flight
+        if (cur)
+          writeStored(key, { ...cur, rev: rev.current, dirty: cur.at !== at });
+        if (!cur || cur.at === at) dirty.current = false;
+        setSync(dirty.current ? "saving" : "saved");
+      } catch (e) {
+        if (e instanceof cloud.ConflictError) {
+          conflicted.current = true;
+          conflictRemote.current = await cloud.loadCloud(uid).catch(() => null);
+          setSync("conflict");
+        } else {
+          setSync("error");
+        }
+      } finally {
+        inflight.current = false;
+        if (queued.current) {
+          queued.current = false;
+          void push();
+        }
+      }
+    },
+    [uid],
+  );
 
   useEffect(() => {
     if (!ready) return;
@@ -173,26 +294,69 @@ export function useWorkspace(uid?: string) {
       skip.current = false;
       return;
     }
-    try {
-      localStorage.setItem(KEY, JSON.stringify(ws));
-    } catch {
-      /* quota or private mode: keep working in memory */
-    }
-    if (!uid || loadFailed.current) return;
+    editedAt.current = Date.now();
+    writeStored(keyFor(uid), {
+      ws,
+      at: editedAt.current,
+      dirty: Boolean(uid),
+      rev: rev.current,
+    });
+    if (!uid || loadFailed.current || conflicted.current) return;
     dirty.current = true;
     setSync("saving");
-    const t = setTimeout(async () => {
-      try {
-        const { saveCloud } = await import("./cloud");
-        await saveCloud(uid, ws);
-        dirty.current = false;
-        setSync("saved");
-      } catch {
-        setSync("error");
-      }
-    }, 1200);
+    const t = setTimeout(() => void push(), 1200);
     return () => clearTimeout(t);
-  }, [ws, ready, uid]);
+  }, [ws, ready, uid, push]);
+
+  // closing or hiding the tab inside the debounce window must not lose the last edits
+  useEffect(() => {
+    if (!uid) return;
+    const flush = () => {
+      if (document.visibilityState === "hidden" && dirty.current) void push();
+    };
+    document.addEventListener("visibilitychange", flush);
+    window.addEventListener("pagehide", flush);
+    return () => {
+      document.removeEventListener("visibilitychange", flush);
+      window.removeEventListener("pagehide", flush);
+    };
+  }, [uid, push]);
+
+  const retry = useCallback(() => {
+    if (loadFailed.current) setLoadTick((n) => n + 1);
+    else void push(true);
+  }, [push]);
+
+  const resolveConflict = useCallback(
+    (choice: "server" | "mine") => {
+      const remote = conflictRemote.current;
+      if (choice === "server" && !remote) {
+        conflicted.current = false;
+        setLoadTick((n) => n + 1);
+        return;
+      }
+      conflicted.current = false;
+      conflictRemote.current = null;
+      if (remote) rev.current = remote.rev;
+      if (choice === "server" && remote) {
+        const next = parseWorkspace(remote.data);
+        dirty.current = false;
+        skip.current = true;
+        writeStored(keyFor(uid), {
+          ws: next,
+          at: Date.now(),
+          dirty: false,
+          rev: remote.rev,
+        });
+        setWs(next);
+        setSync("saved");
+      } else {
+        dirty.current = true;
+        void push(true);
+      }
+    },
+    [uid, push],
+  );
 
   const remember = useCallback(() => {
     const w = latest.current;
@@ -269,6 +433,8 @@ export function useWorkspace(uid?: string) {
     undo,
     redo,
     sync,
+    retry,
+    resolveConflict,
     canUndo: past.current.length > 0,
     canRedo: future.current.length > 0,
   };

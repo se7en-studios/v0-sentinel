@@ -343,7 +343,7 @@ export function Topbar({ a }: { a: A }) {
                 <span
                   className={cn(
                     "size-1.5 rounded-full",
-                    a.sync === "error"
+                    a.sync === "error" || a.sync === "conflict"
                       ? "bg-[#b83a3a]"
                       : a.sync === "saved"
                         ? "bg-primary"
@@ -354,7 +354,18 @@ export function Topbar({ a }: { a: A }) {
                   ? "Guardado en la nube"
                   : a.sync === "error"
                     ? "Sin conexión: guardado local"
-                    : "Sincronizando…"}
+                    : a.sync === "conflict"
+                      ? "Cambios en conflicto"
+                      : "Sincronizando…"}
+                {a.sync === "error" && (
+                  <button
+                    type="button"
+                    onClick={a.retrySync}
+                    className="ml-1 rounded px-1 font-semibold text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    Reintentar
+                  </button>
+                )}
               </div>
             )}
           </div>
