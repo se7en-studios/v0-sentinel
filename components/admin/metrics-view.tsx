@@ -87,6 +87,8 @@ export function MetricsView({ ctx }: { ctx: Ctx }) {
         ))}
       </div>
 
+      <TrendCard perDay={stats.perDay} />
+
       <div className="grid gap-4 lg:grid-cols-3">
         <Card
           title="Focos por día"
@@ -275,5 +277,60 @@ export function MetricsView({ ctx }: { ctx: Ctx }) {
         )}
       </Card>
     </div>
+  );
+}
+
+/** Last half of the window vs the half before it, so a rising or falling season is visible at a glance. */
+function TrendCard({ perDay }: { perDay: Ctx["stats"]["perDay"] }) {
+  const h = Math.floor(perDay.length / 2);
+  if (h < 2) return null;
+  const sum = (days: typeof perDay, k: "count" | "frp") =>
+    days.reduce((a, d) => a + d[k], 0);
+  const recent = perDay.slice(-h);
+  const prev = perDay.slice(-2 * h, -h);
+  const rows = (["count", "frp"] as const).map((k) => {
+    const now = sum(recent, k);
+    const before = sum(prev, k);
+    return {
+      label: k === "count" ? "Focos" : "Potencia radiativa",
+      unit: k === "count" ? "" : " MW",
+      now,
+      before,
+      pct: before > 0 ? Math.round(((now - before) / before) * 100) : null,
+    };
+  });
+  return (
+    <Card
+      title={`Tendencia: últimos ${h} días vs ${h} anteriores`}
+      right={<Badge>incluye hoy parcial</Badge>}
+    >
+      <div className="grid gap-4 sm:grid-cols-2">
+        {rows.map((r) => (
+          <div key={r.label} className="flex items-end justify-between gap-3">
+            <Stat
+              label={r.label}
+              value={`${Math.round(r.now).toLocaleString("es-AR")}${r.unit}`}
+              sub={`antes: ${Math.round(r.before).toLocaleString("es-AR")}${r.unit}`}
+            />
+            <span
+              className={
+                r.pct === null
+                  ? "num text-[13px] font-semibold text-foreground/45"
+                  : r.pct > 0
+                    ? "num text-[15px] font-bold text-[#c8321e]"
+                    : "num text-[15px] font-bold text-primary"
+              }
+              aria-label={
+                r.pct === null
+                  ? "sin período previo para comparar"
+                  : `${r.pct > 0 ? "sube" : "baja"} ${Math.abs(r.pct)} por ciento`
+              }
+            >
+              {r.pct === null ? "—" : `${r.pct > 0 ? "▲ +" : r.pct < 0 ? "▼ " : ""}${r.pct}%`}
+            </span>
+          </div>
+        ))}
+      </div>
+    </Card>
   );
 }
