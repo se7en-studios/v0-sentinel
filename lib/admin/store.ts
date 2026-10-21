@@ -13,14 +13,26 @@ const KEY = "sentinel-admin-workspace-v1";
 
 // ponytail: the workspace lives in this browser's localStorage. Moving it to a
 // per-client table (Supabase) is the upgrade once accounts exist.
-const EMPTY: Workspace = { features: [], meta: {}, settings: DEFAULT_SETTINGS, notes: "" };
+const EMPTY: Workspace = {
+  features: [],
+  meta: {},
+  settings: DEFAULT_SETTINGS,
+  notes: "",
+};
 
 const BASE_LAYERS = ["esri", "s2", "viirs", "light", "topo"];
 const CONFS = ["l", "n", "h"];
 const finite = (c: unknown): boolean =>
-  Array.isArray(c) ? c.length > 0 && c.every(finite) : typeof c === "number" && Number.isFinite(c);
+  Array.isArray(c)
+    ? c.length > 0 && c.every(finite)
+    : typeof c === "number" && Number.isFinite(c);
 
-const GEOMETRY_FOR = { zone: "Polygon", line: "LineString", route: "LineString", sensor: "Point" } as const;
+const GEOMETRY_FOR = {
+  zone: "Polygon",
+  line: "LineString",
+  route: "LineString",
+  sensor: "Point",
+} as const;
 
 /** Keeps only features that every renderer can safely handle. */
 export function isFeat(f: unknown): f is Feat {
@@ -52,7 +64,10 @@ export function parseWorkspace(input: unknown): Workspace {
     const meta = Object.fromEntries(
       features.map((f) => {
         const m = (p.meta ?? {})[f.id];
-        return [f.id, { ...m, name: typeof m?.name === "string" ? m.name : f.id }];
+        return [
+          f.id,
+          { ...m, name: typeof m?.name === "string" ? m.name : f.id },
+        ];
       }),
     );
     return {
@@ -62,15 +77,27 @@ export function parseWorkspace(input: unknown): Workspace {
       settings: {
         ...DEFAULT_SETTINGS,
         ...st,
-        baseLayer: BASE_LAYERS.includes(st.baseLayer as string) ? st.baseLayer! : DEFAULT_SETTINGS.baseLayer,
-        minConfidence: CONFS.includes(st.minConfidence as string) ? st.minConfidence! : DEFAULT_SETTINGS.minConfidence,
+        baseLayer: BASE_LAYERS.includes(st.baseLayer as string)
+          ? st.baseLayer!
+          : DEFAULT_SETTINGS.baseLayer,
+        minConfidence: CONFS.includes(st.minConfidence as string)
+          ? st.minConfidence!
+          : DEFAULT_SETTINGS.minConfidence,
         units: st.units === "km2" ? "km2" : "ha",
-        refreshMin: [10, 30, 60].includes(Number(st.refreshMin)) ? Number(st.refreshMin) : DEFAULT_SETTINGS.refreshMin,
-        bufferKm: Number.isFinite(Number(st.bufferKm)) ? Number(st.bufferKm) : DEFAULT_SETTINGS.bufferKm,
-        valuePerHa: Number.isFinite(Number(st.valuePerHa)) ? Math.max(0, Number(st.valuePerHa)) : 0,
+        refreshMin: [10, 30, 60].includes(Number(st.refreshMin))
+          ? Number(st.refreshMin)
+          : DEFAULT_SETTINGS.refreshMin,
+        bufferKm: Number.isFinite(Number(st.bufferKm))
+          ? Number(st.bufferKm)
+          : DEFAULT_SETTINGS.bufferKm,
+        valuePerHa: Number.isFinite(Number(st.valuePerHa))
+          ? Math.max(0, Number(st.valuePerHa))
+          : 0,
         opacity: Object.fromEntries(
           Object.entries(DEFAULT_SETTINGS.opacity).map(([k, d]) => {
-            const v = Number((st.opacity as Record<string, unknown> | undefined)?.[k]);
+            const v = Number(
+              (st.opacity as Record<string, unknown> | undefined)?.[k],
+            );
             return [k, Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : d];
           }),
         ) as Workspace["settings"]["opacity"],
@@ -97,6 +124,7 @@ export function useWorkspace(uid?: string) {
   const [, bump] = useState(0);
   const [sync, setSync] = useState<SyncState>(uid ? "loading" : "local");
   const dirty = useRef(false);
+  const loadFailed = useRef(false);
   const skip = useRef(true);
   const latest = useRef(ws);
   latest.current = ws;
@@ -126,6 +154,7 @@ export function useWorkspace(uid?: string) {
       } catch {
         if (cancelled) return;
         setWs(load());
+        loadFailed.current = true; // never overwrite the server copy we couldn't read
         setSync("error");
       } finally {
         if (!cancelled) setReady(true);
@@ -147,7 +176,7 @@ export function useWorkspace(uid?: string) {
     } catch {
       /* quota or private mode: keep working in memory */
     }
-    if (!uid) return;
+    if (!uid || loadFailed.current) return;
     dirty.current = true;
     setSync("saving");
     const t = setTimeout(async () => {
@@ -165,7 +194,10 @@ export function useWorkspace(uid?: string) {
 
   const remember = useCallback(() => {
     const w = latest.current;
-    past.current = [...past.current, { features: w.features, meta: w.meta }].slice(-HISTORY_MAX);
+    past.current = [
+      ...past.current,
+      { features: w.features, meta: w.meta },
+    ].slice(-HISTORY_MAX);
     future.current = [];
     bump((n) => n + 1);
   }, []);
@@ -175,7 +207,9 @@ export function useWorkspace(uid?: string) {
       remember();
       setWs((w) => {
         const ids = new Set(features.map((f) => f.id));
-        const meta = Object.fromEntries(Object.entries(w.meta).filter(([id]) => ids.has(id)));
+        const meta = Object.fromEntries(
+          Object.entries(w.meta).filter(([id]) => ids.has(id)),
+        );
         return { ...w, features, meta };
       });
     },
@@ -185,15 +219,22 @@ export function useWorkspace(uid?: string) {
     (id: string, patch: Partial<Meta>) =>
       setWs((w) => ({
         ...w,
-        meta: { ...w.meta, [id]: { ...w.meta[id], name: w.meta[id]?.name ?? "", ...patch } },
+        meta: {
+          ...w.meta,
+          [id]: { ...w.meta[id], name: w.meta[id]?.name ?? "", ...patch },
+        },
       })),
     [],
   );
   const setSettings = useCallback(
-    (patch: Partial<Workspace["settings"]>) => setWs((w) => ({ ...w, settings: { ...w.settings, ...patch } })),
+    (patch: Partial<Workspace["settings"]>) =>
+      setWs((w) => ({ ...w, settings: { ...w.settings, ...patch } })),
     [],
   );
-  const setNotes = useCallback((notes: string) => setWs((w) => ({ ...w, notes: notes.slice(0, 20_000) })), []);
+  const setNotes = useCallback(
+    (notes: string) => setWs((w) => ({ ...w, notes: notes.slice(0, 20_000) })),
+    [],
+  );
   const replace = useCallback(
     (next: Workspace) => {
       remember();

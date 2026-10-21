@@ -494,11 +494,7 @@ export const MapView = forwardRef<MapHandle, Props>(
         );
         appliedBase.current = props.baseLayer;
       };
-      if (map.isStyleLoaded()) swap();
-      else map.once("idle", swap);
-      return () => {
-        map.off("idle", swap);
-      };
+      swap(); // not gated on isStyleLoaded(): it never settles under the ambient repaint
     }, [props.baseLayer, ready]);
 
     // ---- 2D / 3D: terrain, camera, sky ----
@@ -552,11 +548,8 @@ export const MapView = forwardRef<MapHandle, Props>(
           }
         }
       };
-      if (map.isStyleLoaded()) apply();
-      else map.once("idle", apply);
-      return () => {
-        map.off("idle", apply);
-      };
+      // `ready` means the style loaded; isStyleLoaded() also tracks tiles and never settles under the ambient repaint
+      apply();
       // eslint-disable-next-line react-hooks/exhaustive-deps -- exaggeration has its own effect below
     }, [props.view, ready]);
 
