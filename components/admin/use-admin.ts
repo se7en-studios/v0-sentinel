@@ -783,12 +783,20 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   ]);
 
   // ---- exposure & exports ----
-  const protectedHa = ws.features
-    .filter((f) => MODE_ROLE[String(f.properties.mode)] === "zone")
-    .reduce((a, z) => a + areaHa(z), 0);
-  const atRiskHa = ws.features
-    .filter((f) => (zoneHits[f.id]?.recent ?? 0) > 0)
-    .reduce((a, z) => a + areaHa(z), 0);
+  const protectedHa = useMemo(
+    () =>
+      ws.features
+        .filter((f) => MODE_ROLE[String(f.properties.mode)] === "zone")
+        .reduce((a, z) => a + areaHa(z), 0),
+    [ws.features],
+  );
+  const atRiskHa = useMemo(
+    () =>
+      ws.features
+        .filter((f) => (zoneHits[f.id]?.recent ?? 0) > 0)
+        .reduce((a, z) => a + areaHa(z), 0),
+    [ws.features, zoneHits],
+  );
   const exportCsv = () => payload && downloadFiresCsv(fires, payload.days);
   const exportReport = async () =>
     printReport({
