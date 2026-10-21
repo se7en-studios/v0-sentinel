@@ -49,6 +49,7 @@ function Mini({
   hm?: boolean;
 }) {
   const id = `m-${title.replace(/\W/g, "")}`;
+  const empty = data.length > 0 && data.every((d) => d.v === 0);
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-col px-3 pb-1.5 pt-2">
       <div className="mb-0.5 flex items-baseline justify-between">
@@ -62,7 +63,12 @@ function Mini({
           <span className="text-foreground/40">{unit}</span>
         </span>
       </div>
-      <div className="min-h-0 flex-1">
+      <div className="relative min-h-0 flex-1">
+        {empty && (
+          <span className="pointer-events-none absolute inset-0 z-10 grid place-items-center text-[11px] text-foreground/35">
+            Sin actividad
+          </span>
+        )}
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={data}

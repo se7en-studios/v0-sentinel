@@ -105,7 +105,7 @@ export function ResourcesPanel({ ctx }: { ctx: Ctx }) {
           <Stat
             label="Agua"
             value={water >= 1000 ? `${(water / 1000).toFixed(1)}k` : water}
-            sub="litros en operación"
+            sub="L en operación"
           />
         </div>
       </Card>
@@ -126,7 +126,7 @@ export function ResourcesPanel({ ctx }: { ctx: Ctx }) {
             </option>
           ))}
         </select>
-        <div className="mt-2.5 grid grid-cols-2 gap-2">
+        <div className="mt-2.5 grid grid-cols-[3fr_2fr] gap-2">
           <Btn
             variant="fire"
             disabled={ranked.length === 0}
@@ -138,7 +138,7 @@ export function ResourcesPanel({ ctx }: { ctx: Ctx }) {
                 )
             }
           >
-            <Flame className="size-3.5" /> Enviar las 3 más cercanas
+            <Flame className="size-3.5" /> Enviar 3 cercanas
           </Btn>
           <Btn
             disabled={active.length === 0}
@@ -201,14 +201,17 @@ export function ResourcesPanel({ ctx }: { ctx: Ctx }) {
                         </span>
                       </span>
                     </button>
-                    <span
-                      className={cn(
-                        "shrink-0 rounded-md px-1.5 py-0.5 text-[9.5px] font-semibold uppercase tracking-wide",
-                        STATUS_TONE[u.status],
-                      )}
-                    >
-                      {u.status}
-                    </span>
+                    {/* minimal: an available unit needs no badge, the Enviar button says it */}
+                    {u.status !== "disponible" && (
+                      <span
+                        className={cn(
+                          "shrink-0 rounded-md px-1.5 py-0.5 text-[9.5px] font-semibold uppercase tracking-wide",
+                          STATUS_TONE[u.status],
+                        )}
+                      >
+                        {u.status}
+                      </span>
+                    )}
                     {u.status === "disponible" ? (
                       <Btn
                         className="h-7 min-h-7 px-2 text-[11px]"
