@@ -16,7 +16,17 @@ import { nearestPlace } from "@/lib/admin/places";
 import { fmtArea } from "@/lib/admin/geo";
 import { cn } from "@/lib/utils";
 import type { Ctx } from "./ctx";
-import { Badge, Card, EmptyState, Stat } from "./ui";
+import { Badge, Btn, Card, EmptyState, Segmented, Stat } from "./ui";
+
+const REGION_KM = 300;
+const LIST_MAX = 8;
+type Scope = "region" | "ar";
+
+const kmFrom = (center: [number, number], i: Incident) => {
+  const dy = (i.lat - center[1]) * 111.32;
+  const dx = (i.lng - center[0]) * 111.32 * Math.cos((i.lat * Math.PI) / 180);
+  return Math.hypot(dx, dy);
+};
 
 const AXIS = { fontSize: 11, fill: "var(--chart-axis)" };
 const FIRST = [245, 165, 36];
@@ -81,9 +91,18 @@ const dayLabel = (iso: string | undefined) =>
 export function IncidentsView({ ctx }: { ctx: Ctx }) {
   const { payload, ws } = ctx;
   const days = payload?.days ?? [];
-  const incidents = useMemo(
-    () => (payload ? buildIncidents(payload.points) : []),
+  const all = useMemo(
+    () => (payload ? buildIncidents(payload.points, 60) : []),
     [payload],
+  );
+  const [scope, setScope] = useState<Scope>("region");
+  const incidents = useMemo(
+    () =>
+      (scope === "ar"
+        ? all
+        : all.filter((i) => kmFrom(ctx.center, i) <= REGION_KM)
+      ).slice(0, LIST_MAX),
+    [all, scope, ctx.center],
   );
   const [selId, setSelId] = useState<string | null>(null);
   const inc = incidents.find((i) => i.id === selId) ?? incidents[0];
@@ -91,17 +110,40 @@ export function IncidentsView({ ctx }: { ctx: Ctx }) {
 
   return (
     <div className="mx-auto max-w-6xl space-y-4 p-4 sm:p-6">
-      <div>
-        <h1 className="font-heading text-2xl font-bold">Incidentes</h1>
-        <p className="text-[13px] text-foreground/55">
-          Los mayores grupos de focos de los últimos 10 días, con el avance de
-          su perímetro día a día y los eventos que lo marcaron.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-2xl font-bold">Incidentes</h1>
+          <p className="text-[13px] text-foreground/55">
+            Los mayores grupos de focos de los últimos 10 días, con el avance de
+            su perímetro día a día y los eventos que lo marcaron.
+          </p>
+        </div>
+        <Segmented
+          label="Alcance"
+          value={scope}
+          onChange={setScope}
+          options={[
+            { value: "region", label: `Región (${REGION_KM} km)` },
+            { value: "ar", label: "Argentina" },
+          ]}
+        />
       </div>
 
       {!inc ? (
-        <EmptyState icon={<Flame className="size-5" />} title="Sin incidentes">
-          No hay grupos de 5 o más focos cercanos en la ventana actual.
+        <EmptyState
+          icon={<Flame className="size-5" />}
+          title="Sin incidentes"
+          action={
+            scope === "region" && all.length > 0 ? (
+              <Btn onClick={() => setScope("ar")}>
+                Ver {all.length} en Argentina
+              </Btn>
+            ) : undefined
+          }
+        >
+          {scope === "region"
+            ? `No hay grupos de 5 o más focos a menos de ${REGION_KM} km de la región en vista.`
+            : "No hay grupos de 5 o más focos cercanos en la ventana actual."}
         </EmptyState>
       ) : (
         <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
