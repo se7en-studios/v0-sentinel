@@ -1,5 +1,4 @@
-// Self-check: npx tsx lib/admin/incident.check.ts
-import assert from "node:assert";
+import { expect, test } from "vitest";
 import { buildIncidents } from "./incident";
 import type { FirePoint } from "./types";
 
@@ -24,23 +23,12 @@ const pts: FirePoint[] = [
   pt(-41, -70.955, 2),
   pt(-30, -60, 0), // lone detection elsewhere: below MIN_POINTS, dropped
 ];
+test("buildIncidents", () => {
 const inc = buildIncidents(pts);
-assert.equal(inc.length, 1, "one incident, lone point dropped");
+expect(inc.length, "one incident, lone point dropped").toBe(1);
 const [i] = inc;
-assert.equal(i.perDay.length, 3);
-assert.ok(
-  i.perDay[1].areaHa > i.perDay[0].areaHa,
-  "area grows with new detections",
-);
-assert.ok(
-  i.events.some((e) => e.kind === "ignition" && e.day === 0),
-  "ignition",
-);
-assert.ok(
-  i.events.some((e) => e.kind === "jump" && e.day === 2),
-  "isolated point flagged as a jump",
-);
-console.log(
-  "incident ok",
-  i.perDay.map((d) => d.areaHa),
-);
+expect(i.perDay.length).toBe(3);
+expect(i.perDay[1].areaHa > i.perDay[0].areaHa, "area grows with new detections").toBe(true);
+expect(i.events.some((e) => e.kind === "ignition" && e.day === 0), "ignition").toBe(true);
+expect(i.events.some((e) => e.kind === "jump" && e.day === 2), "isolated point flagged as a jump").toBe(true);
+});
