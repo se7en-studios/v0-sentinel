@@ -265,14 +265,14 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
             onChange={(v) =>
               setSettings({ notify: { ...s.notify, onZoneHit: v } })
             }
-            label="Avisar cuando entra un foco a una zona"
+            label="Avisar cuando entra un foco a una zona (con el panel abierto)"
           />
           <Toggle
             checked={s.notify.onSensor}
             onChange={(v) =>
               setSettings({ notify: { ...s.notify, onSensor: v } })
             }
-            label="Avisar cuando un sensor supera su umbral"
+            label="Avisar cuando un sensor supera su umbral (simulado, con el panel abierto)"
           />
           <Toggle
             checked={s.notify.browser}

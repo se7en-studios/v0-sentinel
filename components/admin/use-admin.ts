@@ -960,6 +960,24 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
       }),
     [s.rules, ws.features, ws.meta, zoneHits, stats.last24, forecast],
   );
+  // simulated sensors crossing their threshold: same "only what is new" rule as zone fires
+  const seenSensors = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const now = new Set(
+      sensors.filter((x) => x.reading.alert).map((x) => x.feat.id),
+    );
+    const prev = seenSensors.current;
+    seenSensors.current = now;
+    if (!prev || !s.notify.onSensor) return;
+    for (const x of sensors) {
+      if (!now.has(x.feat.id) || prev.has(x.feat.id)) continue;
+      toast.warning(`${x.meta.name} fuera de umbral`, {
+        description: `${x.reading.value} ${x.reading.unit} · dato simulado`,
+        duration: 10_000,
+      });
+    }
+  }, [sensors, s.notify.onSensor]);
+
   const seenRules = useRef<Set<string> | null>(null);
   useEffect(() => {
     if (!payload) return;
