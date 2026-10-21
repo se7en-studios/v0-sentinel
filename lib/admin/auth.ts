@@ -8,7 +8,14 @@ const SESSION_DAYS = 14;
 // "<expiry>.<hmac>" signed with ADMIN_SESSION_SECRET (falls back to the
 // password); rotating either invalidates every session. Per-client accounts
 // (Supabase auth) are the next step once there is a first paying client.
-const password = () => process.env.ADMIN_PASSWORD ?? "";
+// Tolerate the usual copy/paste slips in the env var: surrounding spaces,
+// a trailing newline, or quotes pasted together with the value.
+export const normalizePassword = (v: string) => {
+  const t = v.trim();
+  const q = t[0];
+  return (q === '"' || q === "'") && t.length > 1 && t.endsWith(q) ? t.slice(1, -1).trim() : t;
+};
+const password = () => normalizePassword(process.env.ADMIN_PASSWORD ?? "");
 const secret = () => process.env.ADMIN_SESSION_SECRET || password();
 
 /**
@@ -35,7 +42,7 @@ export function passwordMatches(input: string) {
   // hash both sides so the comparison is constant-length
   const h = (v: string) =>
     createHmac("sha256", "pw-compare").update(v).digest("hex");
-  return safeEqual(h(input), h(expected));
+  return safeEqual(h(normalizePassword(input)), h(expected));
 }
 
 export function newSessionToken() {

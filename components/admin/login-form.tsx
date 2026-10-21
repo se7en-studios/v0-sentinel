@@ -19,7 +19,8 @@ export function LoginForm() {
       body: JSON.stringify({ password: pw }),
     }).catch(() => null);
     if (res?.ok) return window.location.reload();
-    setErr(res ? "Contraseña incorrecta" : "No se pudo conectar");
+    const j = (await res?.json().catch(() => null)) as { error?: string } | null;
+    setErr(res ? (j?.error ?? "Contraseña incorrecta") : "No se pudo conectar");
     setBusy(false);
   };
 
