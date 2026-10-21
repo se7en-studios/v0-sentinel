@@ -8,6 +8,7 @@ import { compass } from "@/lib/admin/weather";
 import { MODE_ROLE } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
 import type { Ctx } from "./ctx";
+import { BriefingCard } from "./briefing-card";
 import { Badge, Card, EmptyState, KV, Skeleton, Stat } from "./ui";
 
 const MAX_ZONES = 8;
@@ -81,6 +82,8 @@ export function ForecastView({ ctx }: { ctx: Ctx }) {
           acumulada.
         </p>
       </div>
+
+      {rows && <BriefingCard ctx={ctx} forecast={region} />}
 
       {!rows ? (
         <Skeleton className="h-64 w-full" />
