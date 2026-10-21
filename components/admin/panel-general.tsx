@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   BellRing,
@@ -95,14 +95,15 @@ function AnalysisTab({ ctx }: { ctx: Ctx }) {
         title="Predicción de propagación"
         right={<Badge tone="sim">demostrativo</Badge>}
       >
-        <div className="flex items-center justify-between text-[12px]">
+        <div className="flex items-center justify-between gap-2 text-[12px]">
           <span className="font-medium">
             {ctx.predH ? `Proyección a +${ctx.predH} h` : "Desactivada"}
           </span>
-          <span className="text-[10.5px] text-foreground/45">
-            viento y humedad reales
-          </span>
+          <PredPlay ctx={ctx} />
         </div>
+        <p className="mt-0.5 text-[10.5px] text-foreground/45">
+          Usa viento y humedad reales.
+        </p>
         <input
           type="range"
           min={0}
@@ -130,7 +131,10 @@ function AnalysisTab({ ctx }: { ctx: Ctx }) {
           ))}
         </div>
         {ctx.predH > 0 && ctx.spreadInfo.length > 0 && (
-          <ul className="mt-3 space-y-1.5" aria-label="Condiciones de propagación">
+          <ul
+            className="mt-3 space-y-1.5"
+            aria-label="Condiciones de propagación"
+          >
             {ctx.spreadInfo.map((c, i) => (
               <li
                 key={`${c.near}-${i}`}
@@ -151,11 +155,13 @@ function AnalysisTab({ ctx }: { ctx: Ctx }) {
                   </span>
                 </div>
                 <div className="num mt-0.5 text-foreground/55">
-                  Viento {Math.round(c.wind)} km/h del {compass(c.windDir)} · HR {Math.round(c.rh)} % ·{" "}
-                  {Math.round(c.temp)} °C · lluvia 7 d {Math.round(c.rain7d)} mm
+                  Viento {Math.round(c.wind)} km/h del {compass(c.windDir)} · HR{" "}
+                  {Math.round(c.rh)} % · {Math.round(c.temp)} °C · lluvia 7 d{" "}
+                  {Math.round(c.rain7d)} mm
                 </div>
                 <div className="num text-foreground/55">
-                  ≈ {c.rate.toFixed(1)} km/h · avanzaría ~{c.reachKm.toFixed(1)} km en {ctx.predH} h
+                  ≈ {c.rate.toFixed(1)} km/h · avanzaría ~{c.reachKm.toFixed(1)}{" "}
+                  km en {ctx.predH} h
                 </div>
               </li>
             ))}
@@ -163,7 +169,8 @@ function AnalysisTab({ ctx }: { ctx: Ctx }) {
         )}
         <p className="mt-2 text-[10.5px] leading-snug text-foreground/45">
           Elipse a favor del viento desde las concentraciones principales.
-          Modelo simplificado (viento, humedad, temperatura y lluvia): no considera combustible ni pendiente.
+          Modelo simplificado (viento, humedad, temperatura y lluvia): no
+          considera combustible ni pendiente.
         </p>
       </Card>
 
@@ -212,6 +219,34 @@ function AnalysisTab({ ctx }: { ctx: Ctx }) {
         </div>
       </Card>
     </>
+  );
+}
+
+const PRED_STEP_MS = 1400;
+
+/** Steps the projection through its horizons so the advance of the front reads as motion. */
+function PredPlay({ ctx }: { ctx: Ctx }) {
+  const [playing, setPlaying] = useState(false);
+  const { predH, setPredH } = ctx;
+  useEffect(() => {
+    if (!playing) return;
+    const t = setTimeout(() => {
+      const i = HORIZONS.indexOf(predH as (typeof HORIZONS)[number]);
+      setPredH(HORIZONS[(i + 1) % HORIZONS.length]);
+    }, PRED_STEP_MS);
+    return () => clearTimeout(t);
+  }, [playing, predH, setPredH]);
+  return (
+    <Btn
+      onClick={() => {
+        if (!playing && !predH) setPredH(HORIZONS[0]);
+        setPlaying((p) => !p);
+      }}
+      aria-pressed={playing}
+      className="min-h-8"
+    >
+      {playing ? "Pausar" : "Animar avance"}
+    </Btn>
   );
 }
 
@@ -406,7 +441,8 @@ function NotesTab({ ctx }: { ctx: Ctx }) {
 }
 
 const POINTS = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"];
-const compass = (deg: number) => POINTS[Math.round((((deg % 360) + 360) % 360) / 45) % 8];
+const compass = (deg: number) =>
+  POINTS[Math.round((((deg % 360) + 360) % 360) / 45) % 8];
 
 export function GeneralPanel({ ctx }: { ctx: Ctx }) {
   const { panelSeg: seg, setPanelSeg: setSeg } = ctx;
