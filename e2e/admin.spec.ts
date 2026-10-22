@@ -91,6 +91,13 @@ test("una regla con valores inválidos se rechaza y una válida se crea", async 
   await expect(page.getByText(/50\+ focos en 24 h/)).toBeVisible();
 });
 
+test("si falla el clima, la tarjeta lo dice y ofrece reintentar", async ({ page }) => {
+  await page.route("**/api.open-meteo.com/**", (r) => r.abort());
+  await page.goto("/admin");
+  await expect(page.getByText("No pudimos consultar el clima")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("button", { name: "Reintentar" }).first()).toBeVisible();
+});
+
 test.describe("en un teléfono", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 

@@ -15,7 +15,7 @@ import { spreadRingsKm } from "@/lib/admin/spread";
 import { areaHa, fmtArea } from "@/lib/admin/geo";
 import { MODE_ROLE, REGIONS } from "@/lib/admin/types";
 import type { Ctx } from "./ctx";
-import { Card, KV, Skeleton } from "./ui";
+import { Btn, Card, KV, Skeleton } from "./ui";
 
 /** Reference-style incident overview, adapted to monitoring: key facts at a glance. */
 export function OverviewCard({ ctx }: { ctx: Ctx }) {
@@ -166,6 +166,16 @@ export function WeatherCard({ ctx }: { ctx: Ctx }) {
             reemplazan el FWI oficial.
           </p>
         </>
+      ) : ctx.weatherStatus === "error" ? (
+        <div className="rounded-lg bg-foreground/[0.04] p-3 text-[12px] leading-snug">
+          <p className="text-foreground/70">
+            No pudimos consultar el clima. Los demás datos del panel siguen al
+            día.
+          </p>
+          <Btn onClick={ctx.retryWeather} className="mt-2 min-h-8">
+            Reintentar
+          </Btn>
+        </div>
       ) : (
         <div className="grid grid-cols-3 gap-1.5">
           {Array.from({ length: 6 }, (_, i) => (

@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { centerOf } from "@/lib/admin/geo";
 import { riskScore } from "@/lib/admin/sim";
-import { fetchWeather, type Weather } from "@/lib/admin/weather";
+import { fetchWeather, type Weather, type WeatherStatus } from "@/lib/admin/weather";
 import { fetchForecast, type DayForecast } from "@/lib/admin/forecast";
 import {
   HORIZONS,
@@ -28,24 +28,29 @@ export function useWeatherRisk(
 ) {
   const windCache = useRef(new Map<string, Weather>());
   const [weather, setWeather] = useState<Weather | null>(null);
+  // null weather alone cannot tell "still loading" from "the request failed"
+  const [weatherStatus, setWeatherStatus] = useState<WeatherStatus>("loading");
+  const [weatherTry, setWeatherTry] = useState(0);
   const [zoneRisk, setZoneRisk] = useState<Ctx["zoneRisk"]>({});
   const [spreadResult, setSpreadResult] = useState<SpreadResult | null>(null);
   const [forecast, setForecast] = useState<DayForecast[] | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    const t = setTimeout(
-      () =>
-        fetchWeather(center[1], center[0]).then(
-          (w) => !cancelled && setWeather(w),
-        ),
-      700,
-    );
+    const t = setTimeout(() => {
+      setWeatherStatus("loading");
+      fetchWeather(center[1], center[0]).then((w) => {
+        if (cancelled) return;
+        setWeather(w);
+        setWeatherStatus(w ? "ready" : "error");
+      });
+    }, 700);
     return () => {
       cancelled = true;
       clearTimeout(t);
     };
-  }, [center]);
+  }, [center, weatherTry]);
+  const retryWeather = useCallback(() => setWeatherTry((n) => n + 1), []);
 
   // ---- risk per zone: real weather at each zone center ----
   useEffect(() => {
@@ -164,5 +169,14 @@ export function useWeatherRisk(
     };
   }, [center]);
 
-  return { weather, zoneRisk, zoneRiskColors, spread, spreadInfo, forecast };
+  return {
+    weather,
+    weatherStatus,
+    retryWeather,
+    zoneRisk,
+    zoneRiskColors,
+    spread,
+    spreadInfo,
+    forecast,
+  };
 }

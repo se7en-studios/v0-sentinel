@@ -14,7 +14,7 @@ import type {
 import type { DroneSpec } from "@/lib/admin/sim";
 import type { AckMap } from "@/lib/admin/alert-ack";
 import type { IncidentMetaMap, IncidentStatus } from "@/lib/admin/incident-meta";
-import type { Weather } from "@/lib/admin/weather";
+import type { Weather, WeatherStatus } from "@/lib/admin/weather";
 import type { DayForecast } from "@/lib/admin/forecast";
 import type { OpsEntry, UnitState } from "@/lib/admin/resources";
 import type { MapHandle, ShowLayers } from "./map-view";
@@ -135,6 +135,8 @@ export interface Ctx {
   clusters: FireCluster[];
   now: number;
   weather: Weather | null;
+  weatherStatus: WeatherStatus;
+  retryWeather: () => void;
   map: RefObject<MapHandle | null>;
   tab: Tab;
   goTab: (t: Tab) => void;

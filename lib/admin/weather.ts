@@ -1,3 +1,6 @@
+/** loading until the request settles; error when Open-Meteo did not answer */
+export type WeatherStatus = "loading" | "ready" | "error";
+
 export interface Weather {
   temp: number;
   rh: number;

@@ -216,6 +216,8 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     clusters,
     now,
     weather: wr.weather,
+    weatherStatus: wr.weatherStatus,
+    retryWeather: wr.retryWeather,
     map: mapRef,
     tab,
     tool: ft.tool,
