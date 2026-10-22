@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, type RefObject } from "react";
 import { toast } from "sonner";
 import { evaluateRules } from "@/lib/admin/rules";
+import type { EarlyView } from "@/lib/admin/early";
 import type { DayForecast } from "@/lib/admin/forecast";
 import {
   MODE_ROLE,
@@ -19,6 +20,11 @@ interface Params {
   firesError: string | null;
   zoneHits: Ctx["zoneHits"];
   alertIds: Set<string>;
+  earlyByZone: Record<string, EarlyView[]>;
+  /** every open early detection, in a zone or not: the baseline of what was already known */
+  earlyOpen: EarlyView[];
+  /** the first early pull landed: what was already there does not toast */
+  earlyReady: boolean;
   sensors: SensorState[];
   last24: number;
   forecast: DayForecast[] | null;
@@ -32,6 +38,9 @@ interface Params {
   mapRef: RefObject<MapHandle | null>;
 }
 
+/** ~5 km: a spot keeps its toast identity even when its first scan drifts a little between polls */
+const EARLY_CELL = 0.05;
+
 const canNotifyBrowser = () =>
   typeof Notification !== "undefined" && Notification.permission === "granted";
 
@@ -43,6 +52,9 @@ export function useNotifications({
   firesError,
   zoneHits,
   alertIds,
+  earlyByZone,
+  earlyOpen,
+  earlyReady,
   sensors,
   last24,
   forecast,
@@ -121,7 +133,6 @@ export function useNotifications({
     if (!prev) return;
     for (const [id, detail] of ruleFirings) {
       if (prev.has(id)) continue;
-      // eslint-disable-next-line react-hooks/purity -- evaluated inside an effect, at event time
       if (isAcked(ws.alertAck[ruleKey(id)], 0, Date.now())) continue;
       toast.warning("Regla de alerta activada", {
         description: detail,
@@ -189,7 +200,6 @@ export function useNotifications({
       if (prev.has(id)) continue;
       const name = ws.meta[id]?.name ?? "Zona";
       const hits = zoneHits[id]?.recent ?? 0;
-      // eslint-disable-next-line react-hooks/purity -- evaluated inside an effect, at event time
       if (isAcked(ws.alertAck[zoneKey(id)], hits, Date.now())) continue;
       const zone = ws.features.find((f) => f.id === id);
       toast.warning(`Foco nuevo en ${name}`, {
@@ -220,6 +230,54 @@ export function useNotifications({
     ws.features,
     ws.alertAck,
     zoneHits,
+    goTab,
+    mapRef,
+  ]);
+
+  // GOES saw heat inside (or next to) a zone and no polar satellite has confirmed it yet
+  // "seen" covers every open spot, not only those inside a zone: zones that load late, a
+  // switch turned off and on, or a polar pass re-opening a spot must not replay old news
+  const seenEarly = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    if (!earlyReady || !s.earlyAlerts) return;
+    const cell = (e: EarlyView) =>
+      `${Math.round(e.lat / EARLY_CELL)},${Math.round(e.lng / EARLY_CELL)}`;
+    const known = new Set(earlyOpen.map(cell));
+    const prev = seenEarly.current;
+    seenEarly.current = new Set([...(prev ?? []), ...known]);
+    if (!prev || !s.notify.onZoneHit) return;
+    const now = new Map<string, { zoneId: string; e: EarlyView }>();
+    for (const [zoneId, list] of Object.entries(earlyByZone))
+      for (const e of list) if (!now.has(cell(e))) now.set(cell(e), { zoneId, e });
+    for (const [k, { zoneId, e }] of now) {
+      if (prev.has(k)) continue;
+      const name = ws.meta[zoneId]?.name ?? "Zona";
+      const min = Math.max(0, Math.round((Date.now() - e.lastAt) / 60_000));
+      toast.warning(`Posible foco cerca de ${name}`, {
+        description: `GOES-19 vio calor hace ${min} min y ningún satélite polar lo confirmó todavía.`,
+        duration: 15_000,
+        action: {
+          label: "Ver",
+          onClick: () => {
+            goTab("general");
+            mapRef.current?.flyTo([e.lng, e.lat], 11);
+          },
+        },
+      });
+      if (s.notify.browser && canNotifyBrowser())
+        new Notification("Sentinel: alerta temprana", {
+          body: `${name}: calor detectado por GOES-19 hace ${min} min`,
+          tag: `early-${k}`,
+        });
+    }
+  }, [
+    earlyByZone,
+    earlyOpen,
+    earlyReady,
+    s.earlyAlerts,
+    s.notify.onZoneHit,
+    s.notify.browser,
+    ws.meta,
     goTab,
     mapRef,
   ]);

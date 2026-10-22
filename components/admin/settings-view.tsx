@@ -171,6 +171,18 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
               </select>
             </Field>
             <Toggle
+              checked={s.earlyAlerts}
+              onChange={(v) => setSettings({ earlyAlerts: v })}
+              label="Alertas tempranas (GOES-19)"
+              hint="Suma el satélite geoestacionario GOES-19, que mira Argentina cada 10 minutos. Avisa horas antes que un satélite polar, con píxeles de 2 a 4 km y más falsas alarmas: por eso se marcan como sin confirmar hasta que otro satélite las ve."
+            />
+            <Toggle
+              checked={s.useModis}
+              onChange={(v) => setSettings({ useModis: v })}
+              label="Incluir MODIS (Terra y Aqua)"
+              hint="Suma pasadas extra de MODIS, con píxeles de 1 km. Terra pasa unas horas antes que los VIIRS, así que a veces ve un foco primero. Es menos preciso: apagalo si ves demasiado ruido."
+            />
+            <Toggle
               checked={s.hideNoise}
               onChange={(v) => setSettings({ hideNoise: v })}
               label="Ocultar calor industrial"

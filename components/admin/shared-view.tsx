@@ -20,6 +20,7 @@ const MapView = dynamic(() => import("./map-view").then((m) => m.MapView), {
 
 const SHOW: ShowLayers = {
   fires: true,
+  early: false,
   heat: true,
   zones: true,
   lines: true,

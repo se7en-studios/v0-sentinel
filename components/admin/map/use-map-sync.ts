@@ -11,7 +11,7 @@ import {
   zoneVolumes,
 } from "@/lib/admin/map-3d";
 import { DEFAULT_SETTINGS } from "@/lib/admin/types";
-import { fireCollection, setSource, setVis } from "./helpers";
+import { earlyCollection, fireCollection, setSource, setVis } from "./helpers";
 import { applyOpacity } from "./opacity";
 import type { MapProps } from "./types";
 
@@ -182,6 +182,12 @@ function useDataSources(props: MapProps, mapRef: MapRef, ready: boolean) {
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready) return;
+    setSource(map, "early", earlyCollection(props.early ?? []));
+  }, [props.early, ready, mapRef]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
     if (props.view !== "3d") {
       setSource(map, "fires3d", emptyFC());
       return;
@@ -221,6 +227,7 @@ function useVisibility(props: MapProps, mapRef: MapRef, ready: boolean) {
     const d3 = props.view === "3d";
     setVis(map, ["fires-heat"], s.fires && s.heat);
     setVis(map, ["fires-glow", "fires-pt"], s.fires);
+    setVis(map, ["early-halo", "early-pt"], s.early);
     setVis(map, ["fires-cluster", "fires-cluster-count"], s.fires);
     setVis(map, ["fires3d"], s.fires && d3);
     setVis(map, ["zones3d-vol", "zones3d-wall"], s.zones && d3);

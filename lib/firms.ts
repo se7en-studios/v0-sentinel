@@ -71,3 +71,21 @@ export async function fetchFirmsCsv(
   }
   return out.join("\n");
 }
+
+/** MODIS (Terra and Aqua, 1 km): extra overpasses, deduplicated against VIIRS by the caller. */
+export const FIRMS_MODIS = "MODIS_NRT";
+
+/** One FIRMS product's CSV, or null when it did not answer with data. */
+export async function fetchFirmsSource(
+  source: string,
+  url: (source: string) => string,
+  init?: RequestInit,
+): Promise<string | null> {
+  try {
+    const res = await fetch(url(source), init);
+    const text = res.ok ? await res.text() : "";
+    return text.startsWith("latitude") ? text : null;
+  } catch {
+    return null;
+  }
+}

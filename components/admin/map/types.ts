@@ -1,6 +1,8 @@
 import type { Map as MLMap } from "maplibre-gl";
 import type { Wind } from "@/lib/admin/map-3d";
+import type { EarlyView } from "@/lib/admin/early";
 import type { FireInfo } from "@/lib/admin/noise";
+import type { TerrainInfo } from "@/lib/admin/terrain";
 import type {
   BaseLayer,
   Feat,
@@ -46,6 +48,8 @@ export interface MapHandle {
 
 export interface ShowLayers {
   fires: boolean;
+  /** GOES-19 early detections */
+  early: boolean;
   heat: boolean;
   zones: boolean;
   lines: boolean;
@@ -69,6 +73,10 @@ export interface MapProps {
   fires: FirePoint[];
   /** classifier verdict per detection (score, industrial/static reason, fresh) for the popup */
   fireInfo?: Map<FirePoint, FireInfo>;
+  /** GOES-19 early detections worth drawing (open or confirmed; industrial ones left out) */
+  early?: EarlyView[];
+  /** fuel and slope under a clicked detection, shown in its popup */
+  terrainAt?: (lat: number, lng: number) => Promise<TerrainInfo | null>;
   spread: GeoJSON.FeatureCollection | null;
   orbit: boolean;
   follow: { pos: [number, number]; heading: number } | null;

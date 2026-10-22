@@ -2,12 +2,24 @@ import type { Map as MLMap, GeoJSONSource } from "maplibre-gl";
 import type { MutableRefObject } from "react";
 import { clusterTargetZoom } from "@/lib/admin/map-cluster";
 import { MEASURING_ATTR } from "@/lib/admin/map-measure";
-import { firePopup, reducedMotion, type FireProps } from "./helpers";
+import {
+  earlyPopup,
+  firePopup,
+  reducedMotion,
+  type EarlyProps,
+  type FireProps,
+} from "./helpers";
 import type { MapProps } from "./types";
 
 const SELECTABLE = ["sensor-pt", "route-flow", "path-line", "zone-fill"];
-const FIRE_HITS = ["fires3d", "fires-pt", "fires-cluster"];
-const HOVERABLE = [...SELECTABLE, "fires-pt", "fires3d", "fires-cluster"];
+const FIRE_HITS = ["fires3d", "fires-pt", "fires-cluster", "early-pt"];
+const HOVERABLE = [
+  ...SELECTABLE,
+  "fires-pt",
+  "fires3d",
+  "fires-cluster",
+  "early-pt",
+];
 
 /** True while the measure tool owns map clicks. */
 export const isMeasuring = (map: MLMap) =>
@@ -45,6 +57,15 @@ export function attachInteractions(
     const fire = map.queryRenderedFeatures(e.point, {
       layers: present(map, FIRE_HITS),
     })[0];
+    if (fire?.layer.id === "early-pt") {
+      earlyPopup(
+        map,
+        e.lngLat,
+        fire.properties as EarlyProps,
+        latest.current.terrainAt,
+      );
+      return;
+    }
     if (fire) {
       const pr = fire.properties as FireProps & { cluster_id?: number };
       if (pr.cluster_id !== undefined && fire.geometry.type === "Point")
@@ -53,7 +74,14 @@ export function attachInteractions(
           pr.cluster_id,
           fire.geometry.coordinates as [number, number],
         );
-      else firePopup(map, e.lngLat, pr, latest.current.dayLabels);
+      else
+        firePopup(
+          map,
+          e.lngLat,
+          pr,
+          latest.current.dayLabels,
+          latest.current.terrainAt,
+        );
       return;
     }
     latest.current.onSelect(null);

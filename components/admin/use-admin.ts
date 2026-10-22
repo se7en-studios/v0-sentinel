@@ -10,6 +10,8 @@ import { useFeatures } from "./hooks/use-features";
 import { useFeedExports } from "./hooks/use-feed-exports";
 import { RULE_ACK_DEFAULT_MIN, isAcked, ruleKey, zoneKey } from "@/lib/admin/alert-ack";
 import { ASSIGNEE_MAX, type IncidentStatus } from "@/lib/admin/incident-meta";
+import { useEarly } from "./hooks/use-early";
+import { useTerrain } from "./hooks/use-terrain";
 import { useFiresData } from "./hooks/use-fires-data";
 import { useNotifications } from "./hooks/use-notifications";
 import { buildPaletteActions } from "./hooks/palette-actions";
@@ -61,6 +63,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   });
   const [show, setShow] = useState({
     fires: true,
+    early: true,
     heat: true,
     zones: true,
     lines: true,
@@ -97,6 +100,15 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
 
   const fd = useFiresData(cloud, s);
   const { payload, firesError, loading, load, allFires, stats, clusters } = fd;
+  const ea = useEarly(
+    cloud,
+    s.earlyAlerts,
+    fd.polarRefs,
+    ws.features,
+    s.bufferKm,
+    nowStep,
+  );
+  const terrainAt = useTerrain(cloud);
   const pb = usePlayback(payload, allFires, fd.range, hours);
   const { fires } = pb;
 
@@ -164,6 +176,9 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     firesError,
     zoneHits,
     alertIds,
+    earlyByZone: ea.earlyByZone,
+    earlyOpen: ea.earlyOpen,
+    earlyReady: ea.earlyPayload !== null,
     sensors: sim.sensors,
     last24: stats.last24,
     forecast: wr.forecast,
@@ -208,6 +223,13 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
       addNote(text, cloud?.email ?? ws.settings.org ?? "Operador", featId),
     removeNote,
     payload,
+    early: ea.early,
+    earlyOpen: ea.earlyOpen,
+    earlyByZone: ea.earlyByZone,
+    earlyError: ea.earlyError,
+    terrainAt,
+    sources: [...(payload?.sources ?? []), ...(ea.earlyPayload?.sources ?? [])],
+    earlyFetchedAt: ea.earlyPayload?.fetchedAt ?? 0,
     firesError,
     loading,
     reload: load,
@@ -278,7 +300,10 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
       [...alertIds].filter(
         (id) =>
           !isAcked(ws.alertAck[zoneKey(id)], zoneHits[id]?.recent ?? 0, now),
-      ).length + sim.sensors.filter((x) => x.reading.alert).length,
+      ).length +
+      // a zone with only an early GOES detection (no polar pass yet) still needs a look
+      Object.keys(ea.earlyByZone).filter((id) => !alertIds.has(id)).length +
+      sim.sensors.filter((x) => x.reading.alert).length,
     alertAck: ws.alertAck,
     ackZoneAlert: (featId: string, detections: number, snoozeMin?: number) => {
       const t = Date.now();
@@ -407,6 +432,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     alertIds,
     fires,
     fireInfo: fd.fireInfo,
+    earlyOnMap: ea.early.filter((e) => e.status !== "noise"),
     dayLabels,
     show,
     setShow,

@@ -88,6 +88,8 @@ export function AdminApp({
                   alertIds={a.alertIds}
                   fires={a.fires}
                   fireInfo={a.fireInfo}
+                  early={a.earlyOnMap}
+                  terrainAt={ctx.terrainAt}
                   dayLabels={a.dayLabels}
                   show={ctx.show}
                   spread={ctx.predH ? a.spread : null}

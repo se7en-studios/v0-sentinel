@@ -92,6 +92,7 @@ export function addDataLayers(map: MLMap) {
     "items",
     "sel",
     "fires",
+    "early",
     "spread",
     "fires3d",
     "zones3d",
@@ -301,6 +302,35 @@ export function addDataLayers(map: MLMap) {
       "circle-opacity": 0.95,
       "circle-stroke-color": "#fff7e6",
       "circle-stroke-width": 1.2,
+    },
+  });
+
+  // --- early warning (GOES-19): cyan rings, hollow until a polar satellite confirms ---
+  map.addLayer({
+    id: "early-halo",
+    type: "circle",
+    source: "early",
+    paint: {
+      "circle-radius": ["interpolate", ["linear"], ["zoom"], 4, 9, 9, 20, 13, 58],
+      "circle-color": "#22d3ee",
+      "circle-blur": 0.8,
+      "circle-opacity": ["case", ["==", ["get", "status"], "open"], 0.24, 0.08],
+    },
+  });
+  map.addLayer({
+    id: "early-pt",
+    type: "circle",
+    source: "early",
+    paint: {
+      "circle-radius": ["interpolate", ["linear"], ["zoom"], 4, 4.5, 12, 9],
+      "circle-color": "rgba(34,211,238,0.22)",
+      "circle-stroke-color": [
+        "case",
+        ["==", ["get", "status"], "open"],
+        "#22d3ee",
+        "#7aa6b3",
+      ],
+      "circle-stroke-width": ["case", ["==", ["get", "status"], "open"], 2.2, 1.2],
     },
   });
 

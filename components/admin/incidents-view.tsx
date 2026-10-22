@@ -23,6 +23,7 @@ import {
 } from "@/lib/admin/incident-meta";
 import { cn } from "@/lib/utils";
 import type { Ctx } from "./ctx";
+import { TerrainCard } from "./terrain-card";
 import {
   Badge,
   Btn,
@@ -255,6 +256,7 @@ export function IncidentsView({ ctx }: { ctx: Ctx }) {
               ))}
             </div>
 
+            <TerrainCard ctx={ctx} lat={inc.lat} lng={inc.lng} />
             <Card title="Seguimiento del incidente">
               <div className="grid gap-3 sm:grid-cols-2">
                 <Field label="Estado">

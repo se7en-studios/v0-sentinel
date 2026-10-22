@@ -1,4 +1,5 @@
 import type { OpsState } from "./resources";
+import type { EarlyDetection } from "./early";
 import type { AckMap } from "./alert-ack";
 import type { IncidentMetaMap } from "./incident-meta";
 export type Role = "zone" | "line" | "route" | "sensor";
@@ -44,6 +45,10 @@ export interface Settings {
   hideNoise: boolean;
   /** detections scored below this (0-90) are left out; 0 keeps everything */
   minScore: number;
+  /** include MODIS (1 km pixels, Terra and Aqua) next to VIIRS */
+  useModis: boolean;
+  /** show GOES early detections in the alerts list and raise toasts for them */
+  earlyAlerts: boolean;
   bufferKm: number;
   units: "ha" | "km2";
   exaggeration: number;
@@ -86,6 +91,7 @@ export interface Workspace {
 }
 
 // [lat, lng, frp, confidence 0|1|2, dayIdx, hhmm, isNight 0|1]
+/** lat, lng, FRP MW, confidence 0-2, day index, hhmm UTC, night 0/1 and, when known, the satellite code (fire-sources.ts) */
 export type FirePoint = [
   number,
   number,
@@ -94,7 +100,28 @@ export type FirePoint = [
   number,
   number,
   number,
+  number?,
 ];
+
+/** How one data feed behaved on the last pull, for the per-satellite latency table. */
+export interface SourceStatus {
+  id: string;
+  label: string;
+  ok: boolean;
+  /** detections the feed contributed */
+  count: number;
+  /** ms epoch (UTC) of its newest acquisition */
+  newestAt?: number;
+  error?: string;
+}
+
+export interface EarlyPayload {
+  updated: string;
+  fetchedAt: number;
+  early: EarlyDetection[];
+  sources: SourceStatus[];
+  error?: string;
+}
 
 export interface FireCluster {
   lat: number;
@@ -114,6 +141,8 @@ export interface FiresPayload {
   fetchedAt?: number;
   /** ms epoch (UTC) of the newest detection in `points` */
   newestDetectionAt?: number;
+  /** per-feed status of the polar satellites */
+  sources?: SourceStatus[];
   error?: string;
 }
 
@@ -197,6 +226,8 @@ export const DEFAULT_SETTINGS: Settings = {
   minConfidence: "n",
   hideNoise: true,
   minScore: 0,
+  useModis: true,
+  earlyAlerts: true,
   bufferKm: 5,
   units: "ha",
   exaggeration: 2,

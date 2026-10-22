@@ -156,6 +156,8 @@ export function parseWorkspace(input: unknown): Workspace {
           ? st.minConfidence!
           : DEFAULT_SETTINGS.minConfidence,
         hideNoise: st.hideNoise !== false,
+        useModis: st.useModis !== false,
+        earlyAlerts: st.earlyAlerts !== false,
         minScore: Number.isFinite(Number(st.minScore))
           ? Math.min(90, Math.max(0, Math.round(Number(st.minScore))))
           : 0,

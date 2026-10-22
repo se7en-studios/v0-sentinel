@@ -9,8 +9,11 @@ import type {
   Role,
   SensorType,
   Settings,
+  SourceStatus,
   Workspace,
 } from "@/lib/admin/types";
+import type { EarlyView } from "@/lib/admin/early";
+import type { TerrainInfo } from "@/lib/admin/terrain";
 import type { DroneSpec } from "@/lib/admin/sim";
 import type { AckMap } from "@/lib/admin/alert-ack";
 import type { IncidentMetaMap, IncidentStatus } from "@/lib/admin/incident-meta";
@@ -132,6 +135,19 @@ export interface Ctx {
   /** set the status and/or assignee of a detected incident; the author and time are filled in */
   updateIncident: (id: string, patch: { status?: IncidentStatus; assignee?: string }) => void;
   payload: FiresPayload | null;
+  /** GOES-19 early detections resolved against the polar passes (open, confirmed or industrial) */
+  early: EarlyView[];
+  /** open ones that are still showing: what needs a look */
+  earlyOpen: EarlyView[];
+  /** open early detections inside (or within the alert radius of) each zone */
+  earlyByZone: Record<string, EarlyView[]>;
+  earlyError: string | null;
+  /** land cover, elevation and slope under a point (null when it cannot be read) */
+  terrainAt: (lat: number, lng: number) => Promise<TerrainInfo | null>;
+  /** every data feed, polar and geostationary, with its newest acquisition (for the latency table) */
+  sources: SourceStatus[];
+  /** ms epoch of the last early-warning pull, 0 before the first */
+  earlyFetchedAt: number;
   firesError: string | null;
   loading: boolean;
   reload: () => void;

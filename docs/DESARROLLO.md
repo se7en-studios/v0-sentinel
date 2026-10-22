@@ -50,6 +50,22 @@ Se guarda como un único JSON por cuenta (hasta 900 KB en Firestore) y en localS
 
 La sincronización (`lib/admin/store.ts` y `cloud.ts`) usa un número de revisión y una transacción: dos pestañas o dispositivos no se pisan en silencio, y ante un conflicto el panel deja elegir. Cada campo nuevo del espacio de trabajo necesita su función `clean*` y un test.
 
+## Fuentes satelitales
+
+| Fuente | Qué aporta | Dónde |
+|---|---|---|
+| NASA FIRMS · VIIRS NOAA-20 y NOAA-21 | focos de 375 m, entre 2 y 3 pasadas por día cada uno | `/api/admin/fires`, `lib/firms.ts` |
+| NASA FIRMS · MODIS (Terra y Aqua) | focos de 1 km; Terra pasa unas horas antes que los VIIRS. Se descarta lo que VIIRS ya vio a menos de 1 km y 1 h (`lib/admin/fires-parse.ts`) | `/api/admin/fires` |
+| GOES-19 por NASA FIRMS (`GOES_NRT`) y por INPE (archivos de 10 min, sin clave) | alerta temprana: Argentina cada 10 minutos con ~20 min de demora, píxeles de 2 a 4 km | `/api/admin/early`, `lib/server/early-sources.ts` |
+| ESA WorldCover 10 m y Copernicus DEM GLO-30 (AWS Open Data, leídos con `geotiff`) | combustible, elevación, pendiente y exposición bajo un punto | `/api/admin/terrain`, `lib/server/terrain.ts` |
+
+- **Suomi NPP deja de entregar el 2026-11-01**; por eso no se suma.
+- **GOES es crudo y ruidoso.** FIRMS lista el mismo píxel en cada escaneo y mezcla Meteosat, que se descarta (945 de 1.066 píxeles aparecían una sola vez). Un punto solo de FIRMS exige 3 escaneos; INPE ya filtra, alcanza uno. Cada alerta temprana está *abierta* hasta que un satélite polar la confirma a menos de 4,5 km (`resolveEarly`), y se *descarta* si cae sobre un sitio industrial o un píxel fijo.
+- **Las alertas tempranas se consultan cada 5 minutos**, aparte de los focos polares (cada 30), y entran a los avisos y al contador de alertas solo si caen dentro de una zona o de su radio.
+- **El terreno se consulta al hacer clic** en un foco o al abrir un incidente (1 a 4 s la primera vez, después queda en memoria). Los buckets de AWS no tienen CORS, por eso pasa por el servidor.
+- **No integrado todavía** (piden cuenta propia): Sentinel-3 SLSTR (EUMETSAT, EUMDAC) y Meteosat LSA SAF. El segundo casi no cubre Argentina; el primero sumaría pasadas polares nuevas.
+- **Licencias:** `components/admin/sources-card.tsx` lista cada fuente con su atribución. Open-Meteo gratuito es para uso no comercial: antes de vender el servicio hace falta su plan de pago.
+
 ## Pendientes conocidos
 
 - Reglas de Firestore que validen la revisión: hace falta el emulador para probarlas antes de desplegar.

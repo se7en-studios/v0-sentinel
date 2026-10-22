@@ -91,6 +91,8 @@ const T = {
   tint: "linear-gradient(90deg,#2c6a40,#9a9c58 40%,#c8b8a0 75%,#fff)",
   fires: "radial-gradient(circle at 50% 50%,#ffe29a,#ff6a1a 45%,#a81f0c 100%)",
   heat: "radial-gradient(circle,#fff0b8,#ff8a2a 50%,rgba(226,64,31,.2))",
+  early:
+    "radial-gradient(circle,#0b1f26 0 28%,#22d3ee 30% 46%,rgba(34,211,238,.25) 48%)",
   spread: "radial-gradient(ellipse at 30% 50%,#ff7a45,#ffb08a 55%,#f6e7de)",
   zones: "linear-gradient(135deg,rgba(15,122,79,.85),rgba(15,122,79,.35))",
   lines: "linear-gradient(135deg,#f3efe4 40%,#1b6fb8 41% 59%,#f3efe4 60%)",
@@ -183,6 +185,13 @@ export function LayersPanel({ ctx }: { ctx: Ctx }) {
             onCheck={tog("fires")}
             slider={op("fires")}
             badge="NASA"
+          />
+          <LayerRow
+            label="Alerta temprana"
+            thumb={T.early}
+            checked={show.early}
+            onCheck={tog("early")}
+            badge="GOES"
           />
           <LayerRow
             label="Mapa de calor"

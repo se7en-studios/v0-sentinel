@@ -91,11 +91,106 @@ test("una regla con valores inválidos se rechaza y una válida se crea", async 
   await expect(page.getByText(/50\+ focos en 24 h/)).toBeVisible();
 });
 
-test("si falla el clima, la tarjeta lo dice y ofrece reintentar", async ({ page }) => {
+test("si falla el clima, la tarjeta lo dice y ofrece reintentar", async ({
+  page,
+}) => {
   await page.route("**/api.open-meteo.com/**", (r) => r.abort());
   await page.goto("/admin");
-  await expect(page.getByText("No pudimos consultar el clima")).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByRole("button", { name: "Reintentar" }).first()).toBeVisible();
+  await expect(page.getByText("No pudimos consultar el clima")).toBeVisible({
+    timeout: 15_000,
+  });
+  await expect(
+    page.getByRole("button", { name: "Reintentar" }).first(),
+  ).toBeVisible();
+});
+
+test("GOES-19: la alerta temprana aparece en Alertas y las fuentes en Métricas", async ({
+  page,
+}) => {
+  const now = Date.now();
+  const min = 60_000;
+  const goes = (id: string, label: string, count: number) => ({
+    id,
+    label,
+    ok: true,
+    count,
+    newestAt: now - 12 * min,
+  });
+  await page.route("**/api/admin/early", (r) =>
+    r.fulfill({
+      json: {
+        updated: new Date(now).toISOString(),
+        fetchedAt: now,
+        early: [
+          {
+            lat: -24.7512,
+            lng: -60.7155,
+            frp: 131.5,
+            scans: 12,
+            firstAt: now - 90 * min,
+            lastAt: now - 12 * min,
+            sources: ["FIRMS", "INPE"],
+          },
+        ],
+        sources: [
+          goes("goes-firms", "GOES-19 · NASA FIRMS", 40),
+          goes("goes-inpe", "GOES-19 · INPE", 9),
+        ],
+      },
+    }),
+  );
+  await page.route("**/api/admin/fires", (r) =>
+    r.fulfill({
+      json: {
+        updated: new Date(now).toISOString(),
+        days: [new Date(now).toISOString().slice(0, 10)],
+        points: [],
+        clusters: [],
+        fetchedAt: now,
+        sources: [
+          {
+            id: "n20",
+            label: "NOAA-20 · VIIRS",
+            ok: true,
+            count: 0,
+            newestAt: now - 6 * 60 * min,
+          },
+        ],
+      },
+    }),
+  );
+  await page.goto("/admin");
+  await expect(page.getByText("1 sin confirmar")).toBeVisible({
+    timeout: 15_000,
+  });
+  await page.getByRole("tab", { name: "Alertas" }).click();
+  const list = page.getByRole("list", { name: "Alertas tempranas abiertas" });
+  await expect(list.getByText(/12 escaneos/)).toBeVisible();
+  await expect(list.getByText("NASA + INPE")).toBeVisible();
+  await tab(page, "Métricas").click();
+  const table = page.getByRole("table", {
+    name: "Estado de cada fuente satelital",
+  });
+  await expect(
+    table.getByRole("rowheader", { name: "GOES-19 · INPE" }),
+  ).toBeVisible();
+  await expect(
+    table.getByRole("rowheader", { name: "NOAA-20 · VIIRS" }),
+  ).toBeVisible();
+});
+
+test("GOES y MODIS se pueden apagar en Configuración", async ({
+  page,
+}) => {
+  await page.goto("/admin");
+  await tab(page, "Configuración").click();
+  const toggle = page.getByRole("checkbox", { name: /Alertas tempranas/ });
+  await expect(toggle).toBeChecked();
+  await toggle.uncheck({ force: true });
+  await expect(toggle).not.toBeChecked();
+  await expect(
+    page.getByRole("checkbox", { name: /Incluir MODIS/ }),
+  ).toBeChecked();
 });
 
 test.describe("en un teléfono", () => {

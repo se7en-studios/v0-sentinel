@@ -17,6 +17,7 @@ import { areaHa, fmtArea, fmtKm, lengthKm } from "@/lib/admin/geo";
 import { BURNED_HISTORY } from "@/lib/admin/history";
 import { MODE_ROLE } from "@/lib/admin/types";
 import type { Ctx } from "./ctx";
+import { SourcesCard } from "./sources-card";
 import { Badge, Card, ChartFrame, DataGate, Stat } from "./ui";
 
 const AXIS = { fontSize: 11, fill: "var(--chart-axis)" };
@@ -273,6 +274,7 @@ export function MetricsView({ ctx }: { ctx: Ctx }) {
         </Card>
       </div>
 
+      <SourcesCard ctx={ctx} />
       <Card title="Operación" right={<Badge tone="sim">demo simulado</Badge>}>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
           <Stat label="Drones en ruta" value={`${active}/${drones.length}`} />

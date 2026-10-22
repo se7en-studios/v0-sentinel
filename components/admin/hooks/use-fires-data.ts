@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { isModis } from "@/lib/admin/fire-sources";
+import type { PolarRef } from "@/lib/admin/early";
 import { classifyPoints, fireInfoMap } from "@/lib/admin/noise";
 import { HA_PER_DETECTION } from "@/lib/admin/history";
 import type { FireCluster, FiresPayload, Settings } from "@/lib/admin/types";
@@ -23,7 +25,10 @@ const EMPTY_STATS: FireStats = {
 /** Satellite payload: polling load, confidence/noise filters, stats and the hourly series. */
 export function useFiresData(
   cloud: CloudSession | undefined,
-  s: Pick<Settings, "refreshMin" | "minConfidence" | "hideNoise" | "minScore">,
+  s: Pick<
+    Settings,
+    "refreshMin" | "minConfidence" | "hideNoise" | "minScore" | "useModis"
+  >,
 ) {
   const [payload, setPayload] = useState<FiresPayload | null>(null);
   const [firesError, setFiresError] = useState<string | null>(null);
@@ -83,11 +88,27 @@ export function useFiresData(
       (payload?.points ?? []).filter(
         (p, i) =>
           p[3] >= minConf &&
+          (s.useModis || !isModis(p[7])) &&
           classified.score[i] >= s.minScore &&
           !(s.hideNoise && classified.reason[i]),
       ),
-    [payload, minConf, classified, s.hideNoise, s.minScore],
+    [payload, minConf, classified, s.hideNoise, s.minScore, s.useModis],
   );
+  // what a GOES detection is checked against: nominal-or-better polar pixels, flagged when they look fixed
+  const polarRefs = useMemo<PolarRef[]>(() => {
+    if (!payload) return [];
+    const out: PolarRef[] = [];
+    payload.points.forEach((p, i) => {
+      if (p[3] > 0 && (s.useModis || !isModis(p[7])))
+        out.push({
+          lat: p[0],
+          lng: p[1],
+          at: pointTs(payload.days, p),
+          noise: classified.reason[i] !== null,
+        });
+    });
+    return out;
+  }, [payload, classified, s.useModis]);
 
   const stats = useMemo<FireStats>(() => {
     if (!payload) return EMPTY_STATS;
@@ -198,6 +219,7 @@ export function useFiresData(
     load,
     noiseCount,
     fireInfo,
+    polarRefs,
     allFires,
     stats,
     range,

@@ -21,6 +21,7 @@ import { alertLinks, mapsLink } from "@/lib/admin/report";
 import { centerOf } from "@/lib/admin/geo";
 import type { Confidence } from "@/lib/admin/types";
 import type { Ctx } from "./ctx";
+import { EarlyCard } from "./early-card";
 import { LayersPanel } from "./panel-layers";
 import { OverviewCard, WeatherCard } from "./panel-overview";
 import { Onboarding } from "./onboarding";
@@ -261,6 +262,7 @@ function AlertsTab({ ctx }: { ctx: Ctx }) {
   const sensorAlerts = sensors.filter((x) => x.reading.alert);
   return (
     <>
+      <EarlyCard ctx={ctx} />
       <Card
         bare
         title="Alertas activas"

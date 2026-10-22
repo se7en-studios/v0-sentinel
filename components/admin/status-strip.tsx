@@ -56,6 +56,10 @@ export function StatusStrip({ ctx }: { ctx: Ctx }) {
     unackedRules,
     payload,
     noiseCount,
+    earlyOpen,
+    earlyFetchedAt,
+    sources,
+    now,
   } = ctx;
   const today = forecast?.[0];
   const stale =
@@ -66,6 +70,13 @@ export function StatusStrip({ ctx }: { ctx: Ctx }) {
     payload?.fetchedAt && payload.newestDetectionAt
       ? Math.max(0, Math.round((payload.fetchedAt - payload.newestDetectionAt) / 60_000))
       : null;
+
+  // age of the newest GOES scan: the fastest feed we have, so its delay is worth showing
+  const goesNewest = Math.max(
+    0,
+    ...sources.filter((x) => x.id.startsWith("goes")).map((x) => x.newestAt ?? 0),
+  );
+  const goesMin = goesNewest > 0 ? Math.max(0, Math.round((now - goesNewest) / 60_000)) : null;
 
   return (
     <ul
@@ -95,6 +106,19 @@ export function StatusStrip({ ctx }: { ctx: Ctx }) {
           tone={latencyMin > LATENCY_WARN_MIN ? "warn" : "ok"}
           label="Demora del satélite"
           value={fmtMinutes(latencyMin)}
+        />
+      )}
+      {earlyFetchedAt > 0 && (
+        <Item
+          tone={earlyOpen.length > 0 ? "warn" : "ok"}
+          label="Alerta temprana"
+          value={
+            earlyOpen.length > 0
+              ? `${earlyOpen.length} sin confirmar${goesMin !== null ? ` · GOES hace ${fmtMinutes(goesMin)}` : ""}`
+              : goesMin !== null
+                ? `sin novedades · GOES hace ${fmtMinutes(goesMin)}`
+                : "sin novedades"
+          }
         />
       )}
       <Item
