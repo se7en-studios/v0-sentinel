@@ -51,3 +51,31 @@ describe("cleanAckMap", () => {
     expect(Object.keys(cleanAckMap(many))).toHaveLength(ACK_MAX);
   });
 });
+
+describe("early alerts", () => {
+  test("a spot keeps its key while its position drifts inside ~5 km", async () => {
+    const { earlyKey } = await import("./alert-ack");
+    expect(earlyKey({ lat: -41.1, lng: -71.3 })).toBe(earlyKey({ lat: -41.11, lng: -71.31 }));
+    expect(earlyKey({ lat: -41.1, lng: -71.3 })).not.toBe(earlyKey({ lat: -40.5, lng: -71.3 }));
+  });
+
+  test("acknowledged or snoozed spots leave the pending list until the deadline", async () => {
+    const { earlyKey, pendingEarly } = await import("./alert-ack");
+    const a = { lat: -41.1, lng: -71.3 };
+    const b = { lat: -30, lng: -60 };
+    const acks = { [earlyKey(a)]: { t: 0, by: "ana", n: 0, until: 10_000 } };
+    expect(pendingEarly([a, b], acks, 5_000)).toEqual([b]);
+    expect(pendingEarly([a, b], acks, 10_000)).toEqual([a, b]);
+  });
+});
+
+describe("cleanAckMap cap", () => {
+  test("keeps the newest acknowledgements when there are more than the cap", () => {
+    const raw: Record<string, unknown> = {};
+    for (let i = 0; i < ACK_MAX + 5; i++) raw[`early:${i}`] = { t: i, by: "x", n: 0 };
+    const out = cleanAckMap(raw);
+    expect(Object.keys(out)).toHaveLength(ACK_MAX);
+    expect(out[`early:${ACK_MAX + 4}`]).toBeDefined();
+    expect(out["early:0"]).toBeUndefined();
+  });
+});

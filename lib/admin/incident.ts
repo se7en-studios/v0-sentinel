@@ -220,3 +220,16 @@ export function buildIncidents(points: FirePoint[], limit = 8): Incident[] {
     .sort((a, b) => b.frp - a.frp)
     .slice(0, limit);
 }
+
+/**
+ * Incidents that gained area in the latest day of data: [id, lat, lng, hectares gained].
+ * An incident whose last detection is older than `lastDay` stopped growing as far as the data shows.
+ * The hectares come from the convex outline, so they overestimate ragged fires.
+ */
+export function recentGrowth(incidents: Incident[], lastDay: number) {
+  return incidents
+    .filter(
+      (i) => i.growthHa > 0 && i.perDay[i.perDay.length - 1].day >= lastDay,
+    )
+    .map((i) => ({ id: i.id, lat: i.lat, lng: i.lng, ha: i.growthHa }));
+}

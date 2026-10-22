@@ -17,11 +17,30 @@ export function startAmbient(
   let lastDash = -1;
   // touch devices are the ones that overheat: half the repaint rate there
   const everyMs = window.matchMedia("(pointer: coarse)").matches ? 180 : 90;
+  // a paint change starts MapLibre's default 300 ms transition: apply the small steps instantly
+  const instant = { duration: 0, delay: 0 };
+  for (const [layer, prop] of [
+    ["fires-glow", "circle-opacity-transition"],
+    ["route-flow", "line-dasharray-transition"],
+  ])
+    if (map.getLayer(layer))
+      // transition props are valid style-spec paint keys the typings leave out
+      map.setPaintProperty(layer, prop as never, instant as never);
   let raf = 0;
+  // a map scrolled out of view keeps no animation alive
+  let inView = true;
+  const watcher =
+    typeof IntersectionObserver === "undefined"
+      ? null
+      : new IntersectionObserver(([e]) => {
+          inView = e?.isIntersecting ?? true;
+        });
+  watcher?.observe(map.getContainer());
   const tick = (t: number) => {
     raf = requestAnimationFrame(tick);
-    // each paint change forces a full map repaint: skip while hidden or while the map is already moving
-    if (document.hidden || t - last < everyMs || map.isMoving()) return;
+    // each paint change forces a full map repaint: skip while hidden, off screen or while the map is already moving
+    if (document.hidden || !inView || t - last < everyMs || map.isMoving())
+      return;
     last = t;
     const s = (Math.sin(t / 650) + 1) / 2;
     const glow = Math.round(s * 12) / 12;
@@ -53,5 +72,8 @@ export function startAmbient(
     curve: 1.6,
     essential: false,
   });
-  return () => cancelAnimationFrame(raf);
+  return () => {
+    cancelAnimationFrame(raf);
+    watcher?.disconnect();
+  };
 }

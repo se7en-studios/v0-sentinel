@@ -31,24 +31,24 @@ export function Onboarding({
   const steps = [
     {
       done: roles.includes("zone"),
-      label: "Marcá tu primera zona de monitoreo",
+      label: ctx.t("onb.zone"),
       go: () => goTab("zonas"),
     },
     {
       done: roles.includes("route"),
-      label: "Armá una ruta de dron (o generala desde la zona)",
+      label: ctx.t("onb.route"),
       go: () => goTab("drones"),
     },
     {
       done: roles.includes("sensor"),
-      label: "Colocá un sensor",
+      label: ctx.t("onb.sensor"),
       go: () => goTab("drones"),
     },
     {
       done: Boolean(
         ctx.ws.settings.notify.email || ctx.ws.settings.notify.whatsapp,
       ),
-      label: "Cargá un contacto para alertas",
+      label: ctx.t("onb.contact"),
       go: () => goTab("config"),
     },
   ];
@@ -67,16 +67,16 @@ export function Onboarding({
   return (
     <section
       className="rounded-xl border border-primary/25 bg-primary/[0.06] p-3.5"
-      aria-label="Primeros pasos"
+      aria-label={ctx.t("onb.aria")}
     >
       <div className="mb-2 flex items-center justify-between">
         <h3 className="text-[12.5px] font-semibold">
-          Primeros pasos · {doneCount}/{steps.length}
+          {ctx.t("onb.title", { done: doneCount, total: steps.length })}
         </h3>
         <button
           type="button"
           onClick={dismiss}
-          aria-label="Ocultar primeros pasos"
+          aria-label={ctx.t("onb.hide")}
           className="grid size-8 place-items-center rounded text-foreground/45 hover:bg-foreground/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:size-6"
         >
           <X className="size-3.5" />
@@ -116,7 +116,7 @@ export function Onboarding({
       </ul>
       {ctx.ws.features.length === 0 && (
         <Btn className="mt-2.5 w-full" onClick={ctx.loadDemo}>
-          O probá con datos de ejemplo
+          {ctx.t("onb.demo")}
         </Btn>
       )}
     </section>

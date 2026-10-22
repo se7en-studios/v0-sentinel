@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { fetchForecast } from "./forecast";
+import { fetchForecast, fwiWeatherAt } from "./forecast";
 
 // 14 days: 7 past + 7 forecast
 const daily = {
@@ -84,5 +84,45 @@ describe("fetchForecast", () => {
     vi.advanceTimersByTime(61_000);
     expect(await fetchForecast(la, 10)).toHaveLength(7);
     expect(f).toHaveBeenCalledTimes(2);
+  });
+
+  test("adds an FWI and its category to every day, and hot dry windy weather rates high", async () => {
+    vi.stubGlobal("fetch", vi.fn(ok));
+    const v = await fetchForecast(nextLat(), 10);
+    for (const d of v!) {
+      expect(d.fwi).toBeGreaterThan(0);
+      expect(d.fwiLabel).toBeTruthy();
+    }
+    expect(v![6].fwi!).toBeGreaterThan(v![0].fwi!); // codes keep drying under the same weather
+    expect(["Muy alto", "Extremo"]).toContain(v![6].fwiLabel);
+  });
+});
+
+describe("fwiWeatherAt", () => {
+  const j = {
+    daily: {
+      time: ["2026-01-01", "2026-01-02"],
+      temperature_2m_max: [35, 36],
+      relative_humidity_2m_min: [15, 16],
+      wind_speed_10m_max: [40, 41],
+      wind_direction_10m_dominant: [270, 270],
+      precipitation_sum: [0, null],
+    },
+    hourly: {
+      temperature_2m: Array.from({ length: 48 }, (_, h) => h),
+      relative_humidity_2m: Array.from({ length: 48 }, () => 30),
+      wind_speed_10m: Array.from({ length: 48 }, () => 12),
+    },
+  };
+  test("uses the local-noon hour of the right day", () => {
+    expect(fwiWeatherAt(j, 1)).toEqual({ temp: 36, rh: 30, wind: 12, rain: 0 });
+  });
+  test("falls back to the daily extremes without hourly data", () => {
+    expect(fwiWeatherAt({ daily: j.daily }, 0)).toEqual({
+      temp: 35,
+      rh: 15,
+      wind: 40,
+      rain: 0,
+    });
   });
 });

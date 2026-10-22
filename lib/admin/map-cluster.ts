@@ -50,7 +50,4 @@ export const CLUSTER_LABEL_EXPR = expr([
 
 /** Zoom to reach when a cluster is clicked: never less than a step in, capped at the handover zoom. */
 export const clusterTargetZoom = (expansion: number, current: number) =>
-  Math.min(
-    CLUSTER_MAX_ZOOM + 0.5,
-    Math.max(expansion, current + 1),
-  );
+  Math.min(CLUSTER_MAX_ZOOM + 0.5, Math.max(expansion, current + 1));

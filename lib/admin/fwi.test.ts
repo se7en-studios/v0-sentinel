@@ -5,6 +5,7 @@ import {
   dayLength,
   dryingFactor,
   fwiDanger,
+  fwiSeries,
   fwiStep,
   nextDc,
   nextDmc,
@@ -150,5 +151,44 @@ describe("fwiDanger", () => {
       "Muy alto",
       "Extremo",
     ]);
+  });
+});
+
+describe("fwiSeries", () => {
+  test("first day equals fwiStep from the start state and state carries over", () => {
+    const days = [
+      { date: "2026-04-10", weather: wx(17, 42, 25) },
+      { date: "2026-04-11", weather: wx(17, 42, 25) },
+    ];
+    const out = fwiSeries(days, 46);
+    expect(out[0].fwi).toBeCloseTo(10.1, 1);
+    expect(out[1].state.dc).toBeGreaterThan(out[0].state.dc);
+    expect(out[1].state.ffmc).toBeGreaterThan(out[0].state.ffmc);
+  });
+
+  test("a soaking rain drops the moisture codes", () => {
+    const dry = fwiSeries(
+      Array.from({ length: 5 }, (_, i) => ({
+        date: `2026-01-0${i + 1}`,
+        weather: wx(32, 20, 25),
+      })),
+      -38,
+    );
+    const wet = fwiSeries(
+      [
+        ...Array.from({ length: 4 }, (_, i) => ({
+          date: `2026-01-0${i + 1}`,
+          weather: wx(32, 20, 25),
+        })),
+        { date: "2026-01-05", weather: wx(20, 90, 5, 40) },
+      ],
+      -38,
+    );
+    expect(wet[4].fwi).toBeLessThan(dry[4].fwi);
+    expect(wet[4].state.ffmc).toBeLessThan(dry[4].state.ffmc);
+  });
+
+  test("empty input gives empty output", () => {
+    expect(fwiSeries([], -38)).toEqual([]);
   });
 });

@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { Copy, Send } from "lucide-react";
 import { toast } from "sonner";
-import { buildBriefing } from "@/lib/admin/briefing";
+import { buildBriefing, delayedSources } from "@/lib/admin/briefing";
 import type { DayForecast } from "@/lib/admin/forecast";
 import { MODE_ROLE } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
@@ -27,7 +27,7 @@ export function BriefingCard({
   ctx: Ctx;
   forecast?: DayForecast[] | null;
 }) {
-  const { ws, stats, zoneHits, clusters } = ctx;
+  const { ws, stats, zoneHits, clusters, earlyOpen, sources, now } = ctx;
   const b = useMemo(() => {
     const zones = ws.features
       .filter((f) => MODE_ROLE[String(f.properties.mode)] === "zone")
@@ -43,6 +43,8 @@ export function BriefingCard({
       frpMw: stats.frp,
       zones,
       clusters,
+      earlyOpen: earlyOpen.length,
+      delayed: delayedSources(sources, now),
       today: forecast?.[0],
       worst: forecast?.length
         ? forecast.reduce((a, d) => (d.score > a.score ? d : a))
@@ -51,7 +53,7 @@ export function BriefingCard({
         ? forecast.reduce((a, d) => (d.score < a.score ? d : a))
         : undefined,
     });
-  }, [ws, stats, zoneHits, clusters, forecast]);
+  }, [ws, stats, zoneHits, clusters, forecast, earlyOpen, sources, now]);
   const t = TONE[b.tone];
 
   const copy = () =>

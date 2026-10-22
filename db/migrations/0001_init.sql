@@ -51,7 +51,9 @@ create index features_geom_idx on features using gist (geom);
 -- ───────────────────────────── detecciones y alertas ─────────────────────────────
 create table observations (
   id          bigint generated always as identity primary key,
-  source      text not null,                      -- 'VIIRS_NOAA20_NRT', 'VIIRS_NOAA21_NRT', 'GOES19_FDCF', …
+  source      text not null,                      -- 'VIIRS_NOAA20_NRT', 'VIIRS_NOAA21_NRT', 'MODIS_NRT', 'GOES_NRT' (FIRMS), 'INPE_10MIN' / 'INPE_DAILY' (INPE: GOES-19 y respaldo polar)
+  satellite   text,                               -- 'N20', 'N21', 'Terra', 'Aqua', 'GOES-19' (Suomi NPP deja de entregar datos el 2026-11-01)
+  is_backup   boolean not null default false,     -- true cuando la fila vino del respaldo de INPE porque FIRMS no respondió
   acquired_at timestamptz not null,               -- cuándo lo vio el satélite
   received_at timestamptz not null default now(), -- cuándo lo recibimos (latencia = received_at - acquired_at)
   geom        geography(point, 4326) not null,
@@ -63,6 +65,17 @@ create table observations (
   unique (source, acquired_at, geom)
 );
 create index observations_time_idx on observations (acquired_at desc);
+
+-- estado de cada fuente (lo que hoy devuelve GET /api/admin/health): una fila por sonda
+create table source_health (
+  id         bigint generated always as identity primary key,
+  source_id  text not null,                      -- 'firms-viirs', 'firms-modis', 'firms-goes', 'inpe', 'aws-terrain'
+  at         timestamptz not null default now(),
+  ok         boolean not null,
+  latency_ms integer,
+  newest_at  timestamptz                         -- dato más reciente que mostró la fuente (frescura)
+);
+create index source_health_idx on source_health (source_id, at desc);
 create index observations_geom_idx on observations using gist (geom);
 
 create table incidents (
@@ -181,6 +194,9 @@ alter table deliveries          enable row level security;
 alter table audit_log           enable row level security;
 -- observations: datos satelitales abiertos, legibles por cualquier usuario autenticado; solo el servicio escribe.
 alter table observations enable row level security;
+alter table source_health enable row level security;
+create policy source_health_read on source_health for select to authenticated using (true);
+revoke insert, update, delete on source_health from anon, authenticated;
 create policy observations_read on observations for select to authenticated using (true);
 revoke insert, update, delete on observations from anon, authenticated;
 revoke all on deliveries, audit_log from anon, authenticated;

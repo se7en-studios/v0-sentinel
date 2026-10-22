@@ -1,6 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { loadMapPrefs, saveMapPrefs } from "@/lib/admin/map-prefs";
+import { buildIncidents } from "@/lib/admin/incident";
+import { incidentContaining } from "@/lib/admin/map-popup";
 import { translate, type Translate } from "@/lib/admin/i18n";
 import { useWorkspace } from "@/lib/admin/store";
 import { REGIONS } from "@/lib/admin/types";
@@ -9,8 +12,18 @@ import type { MapHandle } from "./map-view";
 import { useClock } from "./hooks/use-clock";
 import { useFeatures } from "./hooks/use-features";
 import { useFeedExports } from "./hooks/use-feed-exports";
-import { RULE_ACK_DEFAULT_MIN, isAcked, ruleKey, zoneKey } from "@/lib/admin/alert-ack";
-import { ASSIGNEE_MAX, type IncidentStatus } from "@/lib/admin/incident-meta";
+import {
+  RULE_ACK_DEFAULT_MIN,
+  isAcked,
+  ruleKey,
+  zoneKey,
+  earlyKey,
+  pendingEarly,
+} from "@/lib/admin/alert-ack";
+import {
+  applyIncidentChange,
+  type IncidentStatus,
+} from "@/lib/admin/incident-meta";
 import { useEarly } from "./hooks/use-early";
 import { useTerrain } from "./hooks/use-terrain";
 import { useFiresData } from "./hooks/use-fires-data";
@@ -80,11 +93,26 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     forest: true,
     buildings: true,
   });
+  // remembered layers and 2D/3D: restored after hydration, saved on every change
+  // state (not a ref): saving stays off until the restored values are what is rendered, else defaults overwrite them
+  const [prefsLoaded, setPrefsLoaded] = useState(false);
+  useEffect(() => {
+    const p = loadMapPrefs({ show, view });
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage only exists on the client
+    setShow(p.show);
+    setView(p.view);
+    setPrefsLoaded(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once on mount
+  }, []);
+  useEffect(() => {
+    if (prefsLoaded) saveMapPrefs({ show, view });
+  }, [prefsLoaded, show, view]);
   const [hours, setHours] = useState(240);
   const [predH, setPredH] = useState(0);
   const [orbit, setOrbit] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [tour, setTour] = useState(false);
   const [mounted, setMounted] = useState(false);
   // eslint-disable-next-line react-hooks/set-state-in-effect -- client-only flag, must flip after hydration
@@ -116,6 +144,21 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   const terrainAt = useTerrain(cloud);
   const pb = usePlayback(payload, allFires, fd.range, hours);
   const { fires } = pb;
+  // stable identity: the map only repaints the early layer when the detections change
+  const earlyOnMap = useMemo(
+    () => ea.early.filter((e) => e.status !== "noise"),
+    [ea.early],
+  );
+  // popup "Ver incidente": builds the incident list lazily, once per data change
+  const incidentList = useMemo(
+    () => (payload ? buildIncidents(allFires, 60) : []),
+    [payload, allFires],
+  );
+  const incidentAt = useCallback(
+    (lat: number, lng: number) =>
+      incidentContaining(incidentList, lat, lng) !== null,
+    [incidentList],
+  );
 
   // fly when the saved region changes (skip first render: the map starts there)
   const firstRegion = useRef(true);
@@ -156,7 +199,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     nowStep,
     setOps,
   });
-  const wr = useWeatherRisk(center, ws.features, clusters, predH);
+  const wr = useWeatherRisk(center, ws.features, clusters, predH, terrainAt);
   const setFollowId = useCallback((id: string | null) => {
     setFollowIdRaw(id);
     if (id) {
@@ -187,6 +230,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     sensors: sim.sensors,
     last24: stats.last24,
     forecast: wr.forecast,
+    growth: fd.growth,
     sync,
     resolveConflict,
     undo,
@@ -308,7 +352,10 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
           !isAcked(ws.alertAck[zoneKey(id)], zoneHits[id]?.recent ?? 0, now),
       ).length +
       // a zone with only an early GOES detection (no polar pass yet) still needs a look
-      Object.keys(ea.earlyByZone).filter((id) => !alertIds.has(id)).length +
+      Object.entries(ea.earlyByZone).filter(
+        ([id, list]) =>
+          !alertIds.has(id) && pendingEarly(list, ws.alertAck, now).length > 0,
+      ).length +
       sim.sensors.filter((x) => x.reading.alert).length,
     alertAck: ws.alertAck,
     ackZoneAlert: (featId: string, detections: number, snoozeMin?: number) => {
@@ -334,15 +381,34 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
       });
     },
     reopenRule: (ruleId: string) => setAck(ruleKey(ruleId), null),
-    incidentMeta: ws.incidentMeta,
-    updateIncident: (id: string, patch: { status?: IncidentStatus; assignee?: string }) => {
-      const cur = ws.incidentMeta[id];
-      setIncidentMeta(id, {
-        status: patch.status ?? cur?.status ?? "detected",
-        assignee: (patch.assignee ?? cur?.assignee ?? "").trim().slice(0, ASSIGNEE_MAX),
+    earlyPending: pendingEarly(ea.earlyOpen, ws.alertAck, now),
+    ackEarly: (
+      e: { lat: number; lng: number },
+      snoozeMin = RULE_ACK_DEFAULT_MIN,
+    ) => {
+      const t = Date.now();
+      setAck(earlyKey(e), {
+        t,
         by: cloud?.email ?? ws.settings.org ?? "Operador",
-        t: Date.now(),
+        n: 0,
+        until: t + snoozeMin * 60_000,
       });
+    },
+    reopenEarly: (e: { lat: number; lng: number }) => setAck(earlyKey(e), null),
+    incidentMeta: ws.incidentMeta,
+    updateIncident: (
+      id: string,
+      patch: { status?: IncidentStatus; assignee?: string },
+    ) => {
+      setIncidentMeta(
+        id,
+        applyIncidentChange(
+          ws.incidentMeta[id],
+          patch,
+          cloud?.email ?? ws.settings.org ?? "Operador",
+          Date.now(),
+        ),
+      );
     },
     ruleFirings,
     forecast: wr.forecast,
@@ -392,6 +458,8 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     exportReport: fx.exportReport,
     load,
     loadDemo: ft.loadDemo,
+    t,
+    openShortcuts: () => setShortcutsOpen(true),
   });
 
   const logout = async () => {
@@ -420,6 +488,8 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     canRedo,
     setPaletteOpen,
     paletteOpen,
+    shortcutsOpen,
+    setShortcutsOpen,
     tour,
     setTour,
     load,
@@ -438,7 +508,8 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     alertIds,
     fires,
     fireInfo: fd.fireInfo,
-    earlyOnMap: ea.early.filter((e) => e.status !== "noise"),
+    earlyOnMap,
+    incidentAt,
     dayLabels,
     show,
     setShow,

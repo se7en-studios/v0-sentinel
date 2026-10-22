@@ -185,6 +185,9 @@ function useDataSources(props: MapProps, mapRef: MapRef, ready: boolean) {
     setSource(map, "early", earlyCollection(props.early ?? []));
   }, [props.early, ready, mapRef]);
 
+  // `wind` is a fresh object on every parent render: key on its numbers so 2D idles
+  const windDir = props.wind.dir;
+  const windSpeed = props.wind.speed;
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready) return;
@@ -192,7 +195,11 @@ function useDataSources(props: MapProps, mapRef: MapRef, ready: boolean) {
       setSource(map, "fires3d", emptyFC());
       return;
     }
-    setSource(map, "fires3d", fireBeacons(props.fires, props.wind));
+    setSource(
+      map,
+      "fires3d",
+      fireBeacons(props.fires, { dir: windDir, speed: windSpeed }),
+    );
     setSource(map, "routes3d", routeRibbons(props.features));
     setSource(
       map,
@@ -202,7 +209,8 @@ function useDataSources(props: MapProps, mapRef: MapRef, ready: boolean) {
     setSource(map, "sens3d", sensorPosts(props.features, props.alertIds));
   }, [
     props.fires,
-    props.wind,
+    windDir,
+    windSpeed,
     props.features,
     props.alertIds,
     props.zoneRisk,
@@ -265,7 +273,8 @@ function useCamera(props: MapProps, mapRef: MapRef, ready: boolean) {
     if (!map || !ready || !props.orbit) return;
     let raf = 0;
     const step = () => {
-      map.setBearing(map.getBearing() + 0.1);
+      // a hidden tab would keep repainting the whole 3D scene for nobody
+      if (!document.hidden) map.setBearing(map.getBearing() + 0.1);
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { MAX_RULES, describeRule } from "@/lib/admin/rules";
+import { FWI_VERY_HIGH, MAX_RULES, describeRule } from "@/lib/admin/rules";
 import { isAcked, ruleKey } from "@/lib/admin/alert-ack";
 import { MODE_ROLE, type AlertRule } from "@/lib/admin/types";
 import type { Ctx } from "./ctx";
@@ -14,6 +14,9 @@ const KINDS: { value: Kind; label: string }[] = [
   { value: "zone_fire", label: "Foco en una zona" },
   { value: "risk", label: "Riesgo meteorológico" },
   { value: "activity", label: "Actividad en Argentina" },
+  { value: "early_open", label: "Alerta temprana GOES sin confirmar" },
+  { value: "fwi", label: "Índice canadiense (FWI)" },
+  { value: "growth", label: "Crecimiento de un incidente" },
 ];
 
 /** Editable numbers of a rule; the ones a kind does not use keep their defaults. */
@@ -23,8 +26,18 @@ interface Values {
   score: number;
   days: number;
   focos: number;
+  fwi: number;
+  ha: number;
 }
-const DEFAULTS: Values = { zoneId: "", min: 1, score: 55, days: 3, focos: 100 };
+const DEFAULTS: Values = {
+  zoneId: "",
+  min: 1,
+  score: 55,
+  days: 3,
+  focos: 100,
+  fwi: FWI_VERY_HIGH,
+  ha: 100,
+};
 
 const valuesOf = (r: AlertRule): Values => ({
   ...DEFAULTS,
@@ -32,7 +45,13 @@ const valuesOf = (r: AlertRule): Values => ({
     ? { zoneId: r.zoneId, min: r.min }
     : r.kind === "risk"
       ? { score: r.score, days: r.days }
-      : { focos: r.focos }),
+      : r.kind === "early_open"
+        ? { zoneId: r.zoneId }
+        : r.kind === "fwi"
+          ? { fwi: r.fwi, days: r.days }
+          : r.kind === "growth"
+            ? { ha: r.ha }
+            : { focos: r.focos }),
 });
 
 const inRange = (n: number, lo: number, hi: number) =>
@@ -46,6 +65,15 @@ function problem(kind: Kind, v: Values): string | null {
     return inRange(v.score, 10, 100) && inRange(v.days, 1, 7)
       ? null
       : "Índice entre 10 y 100, y días entre 1 y 7.";
+  if (kind === "early_open") return null;
+  if (kind === "fwi")
+    return inRange(v.fwi, 5, 100) && inRange(v.days, 1, 7)
+      ? null
+      : "FWI entre 5 y 100, y días entre 1 y 7.";
+  if (kind === "growth")
+    return inRange(v.ha, 1, 99_999)
+      ? null
+      : "Hectáreas: un número entre 1 y 99.999.";
   return inRange(v.focos, 1, 99_999)
     ? null
     : "Focos en 24 h: un número mayor a 0.";
@@ -60,7 +88,13 @@ const withValues = (
     ? { ...base, kind, zoneId: v.zoneId, min: v.min }
     : kind === "risk"
       ? { ...base, kind, score: v.score, days: v.days }
-      : { ...base, kind, focos: v.focos };
+      : kind === "early_open"
+        ? { ...base, kind, zoneId: v.zoneId }
+        : kind === "fwi"
+          ? { ...base, kind, fwi: v.fwi, days: v.days }
+          : kind === "growth"
+            ? { ...base, kind, ha: v.ha }
+            : { ...base, kind, focos: v.focos };
 
 const rejected = (msg: string) =>
   toast.error("Revisá los valores de la regla", { description: msg });
@@ -79,26 +113,68 @@ function ValueFields({
   zoneName: (id: string) => string;
 }) {
   const num =
-    (k: "min" | "score" | "days" | "focos") =>
+    (k: "min" | "score" | "days" | "focos" | "fwi" | "ha") =>
     (e: { target: { value: string } }) =>
       onChange({ [k]: Number(e.target.value) });
+  const zoneSelect = (
+    <Field label="Zona">
+      <select
+        className={inputCls}
+        value={v.zoneId}
+        onChange={(e) => onChange({ zoneId: e.target.value })}
+      >
+        <option value="">Cualquiera</option>
+        {zones.map((z) => (
+          <option key={z.id} value={z.id}>
+            {zoneName(z.id)}
+          </option>
+        ))}
+      </select>
+    </Field>
+  );
+  if (kind === "early_open") return zoneSelect;
+  if (kind === "fwi")
+    return (
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="FWI ≥ (20 = muy alto)">
+          <input
+            className={inputCls}
+            type="number"
+            min={5}
+            max={100}
+            value={v.fwi}
+            onChange={num("fwi")}
+          />
+        </Field>
+        <Field label="En los próximos (días)">
+          <input
+            className={inputCls}
+            type="number"
+            min={1}
+            max={7}
+            value={v.days}
+            onChange={num("days")}
+          />
+        </Field>
+      </div>
+    );
+  if (kind === "growth")
+    return (
+      <Field label="Creció al menos (ha, último día)">
+        <input
+          className={inputCls}
+          type="number"
+          min={1}
+          max={99999}
+          value={v.ha}
+          onChange={num("ha")}
+        />
+      </Field>
+    );
   if (kind === "zone_fire")
     return (
       <div className="grid grid-cols-[1fr_84px] gap-2">
-        <Field label="Zona">
-          <select
-            className={inputCls}
-            value={v.zoneId}
-            onChange={(e) => onChange({ zoneId: e.target.value })}
-          >
-            <option value="">Cualquiera</option>
-            {zones.map((z) => (
-              <option key={z.id} value={z.id}>
-                {zoneName(z.id)}
-              </option>
-            ))}
-          </select>
-        </Field>
+        {zoneSelect}
         <Field label="Mín. focos">
           <input
             className={inputCls}
@@ -206,7 +282,8 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
       {rules.length === 0 && (
         <p className="mb-3 text-[12px] leading-snug text-foreground/60">
           Definí cuándo querés que el panel te avise: un foco en una zona,
-          riesgo alto en los próximos días o un pico de actividad.
+          riesgo alto en los próximos días, una alerta temprana sin confirmar,
+          el FWI en nivel muy alto o un incidente que crece rápido.
         </p>
       )}
       <ul className="space-y-2">
@@ -241,16 +318,26 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
                           <span className="text-foreground/65">
                             Pospuesta por <b>{ack?.by || "Operador"}</b>
                           </span>
-                          <Btn onClick={() => ctx.reopenRule(r.id)} className="min-h-7">
+                          <Btn
+                            onClick={() => ctx.reopenRule(r.id)}
+                            className="min-h-7"
+                          >
                             Reabrir
                           </Btn>
                         </>
                       ) : (
                         <>
-                          <Btn variant="solid" onClick={() => ctx.ackRule(r.id)} className="min-h-7">
+                          <Btn
+                            variant="solid"
+                            onClick={() => ctx.ackRule(r.id)}
+                            className="min-h-7"
+                          >
                             Reconocer
                           </Btn>
-                          <Btn onClick={() => ctx.ackRule(r.id, 60)} className="min-h-7">
+                          <Btn
+                            onClick={() => ctx.ackRule(r.id, 60)}
+                            className="min-h-7"
+                          >
                             Posponer 1 h
                           </Btn>
                         </>

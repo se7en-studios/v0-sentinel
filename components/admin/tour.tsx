@@ -3,14 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Pause, Play, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
+import type { MsgKey, Translate } from "@/lib/admin/i18n";
 import { MODE_ROLE } from "@/lib/admin/types";
 import type { useAdmin } from "./use-admin";
 
 type A = ReturnType<typeof useAdmin>;
 
 interface Step {
-  title: string;
-  text: (a: A) => string;
+  title: MsgKey;
+  text: (a: A, t: Translate) => string;
   run: (a: A) => void;
 }
 
@@ -23,9 +25,11 @@ const BTN =
 
 const STEPS: Step[] = [
   {
-    title: "Satélite en vivo",
-    text: (a) =>
-      `${a.fires.length.toLocaleString("es-AR")} detecciones térmicas reales de NASA en los últimos 10 días, actualizadas solas.`,
+    title: "tour.s1.title",
+    text: (a, t) =>
+      t("tour.s1.text", {
+        n: a.fires.length.toLocaleString(NUM_LOCALE[a.s.locale]),
+      }),
     run: (a) => {
       a.ctx.setOrbit(false);
       a.goTab("general");
@@ -37,12 +41,12 @@ const STEPS: Step[] = [
     },
   },
   {
-    title: "El foco más intenso",
-    text: (a) => {
+    title: "tour.s2.title",
+    text: (a, t) => {
       const top = a.fires.reduce((m, p) => (p[2] > m ? p[2] : m), 0);
       return top
-        ? `Foco de ${Math.round(top)} MW de potencia radiativa. En 3D la columna de humo sigue el viento real.`
-        : "En 3D cada foco levanta una columna de humo que sigue el viento real.";
+        ? t("tour.s2.text", { mw: Math.round(top) })
+        : t("tour.s2.alt");
     },
     run: (a) => {
       const top = a.fires.reduce<(typeof a.fires)[number] | null>(
@@ -54,9 +58,8 @@ const STEPS: Step[] = [
     },
   },
   {
-    title: "Tus zonas, con medidas exactas",
-    text: () =>
-      "Polígonos, mano alzada, círculos por radio y cortafuegos, con superficie y longitud reales.",
+    title: "tour.s3.title",
+    text: (_a, t) => t("tour.s3.text"),
     run: (a) => {
       a.goTab("zonas");
       const zone = a.ws.features.find(
@@ -66,33 +69,29 @@ const STEPS: Step[] = [
     },
   },
   {
-    title: "Drones y sensores",
-    text: () =>
-      "Flota con cámara térmica, telemetría y ruta crítica sobre el perímetro. Simulado en esta demo.",
+    title: "tour.s4.title",
+    text: (_a, t) => t("tour.s4.text"),
     run: (a) => {
       a.goTab("drones");
       a.ctx.setView("3d");
     },
   },
   {
-    title: "Respuesta coordinada",
-    text: () =>
-      "Brigadas, autobombas y aviones hidrantes con ETA sobre cada alerta. Simulado en esta demo.",
+    title: "tour.s5.title",
+    text: (_a, t) => t("tour.s5.text"),
     run: (a) => {
       a.goTab("recursos");
       a.ctx.setView("2d");
     },
   },
   {
-    title: "Métricas y reportes",
-    text: () =>
-      "Superficie, potencia radiativa y riesgo por zona, listos para exportar en PDF o CSV.",
+    title: "tour.s6.title",
+    text: (_a, t) => t("tour.s6.text"),
     run: (a) => a.goTab("metricas"),
   },
   {
-    title: "Un solo panel",
-    text: () =>
-      "Sentinel Cloud: vigilancia satelital para tu campo o forestación.",
+    title: "tour.s7.title",
+    text: (_a, t) => t("tour.s7.text"),
     run: (a) => {
       a.goTab("general");
       a.ctx.setView("3d");
@@ -110,6 +109,7 @@ export function GuidedTour({ a }: { a: A }) {
   latest.current = a;
   const { setTour } = a;
   const last = STEPS.length - 1;
+  const t = a.ctx.t;
 
   useEffect(() => {
     STEPS[i].run(latest.current);
@@ -158,7 +158,7 @@ export function GuidedTour({ a }: { a: A }) {
       ref={root}
       tabIndex={-1}
       role="dialog"
-      aria-label="Recorrido guiado"
+      aria-label={t("tour.aria")}
       className="outline-none glass fixed inset-x-3 bottom-4 z-40 mx-auto w-auto max-w-md rounded-2xl border border-[var(--hairline)] p-4 shadow-[var(--shadow-2)] sm:bottom-6"
     >
       <div className="mb-3 flex gap-1" aria-hidden>
@@ -183,14 +183,14 @@ export function GuidedTour({ a }: { a: A }) {
         ))}
       </div>
       <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-foreground/45">
-        {i + 1} de {STEPS.length}
+        {t("tour.count", { i: i + 1, n: STEPS.length })}
       </p>
       <div aria-live={playing ? "off" : "polite"}>
         <h2 className="mt-0.5 text-[15px] font-semibold leading-tight">
-          {step.title}
+          {t(step.title)}
         </h2>
         <p className="mt-1 text-[12.5px] leading-snug text-foreground/70">
-          {step.text(a)}
+          {step.text(a, t)}
         </p>
       </div>
       <div className="mt-3 flex items-center gap-1">
@@ -198,7 +198,7 @@ export function GuidedTour({ a }: { a: A }) {
           type="button"
           onClick={() => setI((n) => Math.max(0, n - 1))}
           disabled={i === 0}
-          aria-label="Paso anterior"
+          aria-label={t("tour.prev")}
           className={cn(BTN, "disabled:opacity-30")}
         >
           <ChevronLeft className="size-4" aria-hidden />
@@ -206,7 +206,7 @@ export function GuidedTour({ a }: { a: A }) {
         <button
           type="button"
           onClick={() => setPlaying((p) => !p)}
-          aria-label={playing ? "Pausar" : "Reproducir"}
+          aria-label={playing ? t("tour.pause") : t("tour.play")}
           className={BTN}
         >
           {playing ? <Pause className="size-4" aria-hidden /> : <Play className="size-4" aria-hidden />}
@@ -215,7 +215,7 @@ export function GuidedTour({ a }: { a: A }) {
           type="button"
           onClick={() => setI((n) => Math.min(last, n + 1))}
           disabled={i === last}
-          aria-label="Paso siguiente"
+          aria-label={t("tour.next")}
           className={cn(BTN, "disabled:opacity-30")}
         >
           <ChevronRight className="size-4" aria-hidden />
@@ -225,7 +225,7 @@ export function GuidedTour({ a }: { a: A }) {
           onClick={close}
           className="ml-auto flex h-10 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium text-foreground/60 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-8"
         >
-          <X className="size-3.5" aria-hidden /> {i === last ? "Terminar" : "Salir"}
+          <X className="size-3.5" aria-hidden /> {i === last ? t("tour.finish") : t("tour.exit")}
         </button>
       </div>
     </section>

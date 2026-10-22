@@ -3,6 +3,7 @@
 import type { ComponentProps, ReactNode } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { Translate } from "@/lib/admin/i18n";
 
 /** Section header used across panels: micro label + optional action. */
 export function SectionTitle({
@@ -32,15 +33,18 @@ export function Card({
   children,
   className,
   bare,
+  id,
 }: {
   title?: string;
   right?: ReactNode;
   children: ReactNode;
   className?: string;
   bare?: boolean;
+  id?: string;
 }) {
   return (
     <section
+      id={id}
       className={cn(
         bare
           ? "border-b border-[var(--hairline)] px-4 py-3.5 last:border-b-0"
@@ -130,29 +134,33 @@ export function Toggle({
   hint?: string;
 }) {
   return (
-    <label className="group flex cursor-pointer items-center gap-2.5 py-1.5 text-[12.5px]">
+    <label className="group flex cursor-pointer items-start gap-2.5 py-1.5 text-[12.5px]">
       <input
         type="checkbox"
         className="peer sr-only"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
       />
-      <span className="relative h-[18px] w-8 shrink-0 rounded-full bg-foreground/18 transition-colors duration-150 peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-ring after:absolute after:left-[2px] after:top-[2px] after:size-[14px] after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:duration-150 peer-checked:after:translate-x-[14px]" />
+      <span className="relative mt-px h-[18px] w-8 shrink-0 rounded-full bg-foreground/50 transition-colors duration-150 peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-ring after:absolute after:left-[2px] after:top-[2px] after:size-[14px] after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:duration-150 peer-checked:after:translate-x-[14px]" />
       {swatch && (
         <span
-          className="size-2.5 shrink-0 rounded-[3px]"
+          className="mt-[5px] size-2.5 shrink-0 rounded-[3px]"
           style={{ background: swatch }}
         />
       )}
-      <span
-        className={cn(
-          "min-w-0 flex-1 truncate transition-colors",
-          !checked && "text-foreground/45",
+      <span className="min-w-0 flex-1">
+        <span
+          className={cn(
+            "block break-words transition-colors",
+            !checked && "text-foreground/45",
+          )}
+        >
+          {label}
+        </span>
+        {hint && (
+          <span className="mt-0.5 block text-[11px] leading-snug text-foreground/55">{hint}</span>
         )}
-      >
-        {label}
       </span>
-      {hint && <span className="text-[10.5px] text-foreground/35">{hint}</span>}
     </label>
   );
 }
@@ -473,7 +481,7 @@ export function ChartFrame({
 }
 
 /** Placeholder with the rough shape of a data view while the feed loads. */
-export function ViewSkeleton() {
+export function ViewSkeleton({ t }: { t?: Translate } = {}) {
   return (
     <div
       role="status"
@@ -481,7 +489,7 @@ export function ViewSkeleton() {
       aria-busy="true"
       className="mx-auto max-w-6xl space-y-4 p-4 sm:p-6"
     >
-      <span className="sr-only">Cargando datos…</span>
+      <span className="sr-only">{t ? t("ui.loadingData") : "Cargando datos…"}</span>
       <Skeleton className="h-8 w-48" />
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
@@ -503,11 +511,13 @@ export function ErrorState({
   onRetry,
   loading,
   compact,
+  t,
 }: {
   message: string;
   onRetry: () => void;
   loading?: boolean;
   compact?: boolean;
+  t?: Translate;
 }) {
   return (
     <div
@@ -520,13 +530,13 @@ export function ErrorState({
       <div className={cn("flex items-center gap-2", !compact && "flex-col")}>
         <AlertTriangle className="size-5 text-[var(--state-bad-ink)]" aria-hidden />
         <div>
-          <div className="text-[13px] font-semibold">No pudimos cargar los datos</div>
+          <div className="text-[13px] font-semibold">{t ? t("ui.loadFail") : "No pudimos cargar los datos"}</div>
           <p className="text-[12px] text-foreground/60">{message}</p>
         </div>
       </div>
       <Btn onClick={onRetry} disabled={loading}>
         <RefreshCw className={cn("size-3.5", loading && "animate-spin")} aria-hidden />
-        Reintentar
+        {t ? t("ui.retry") : "Reintentar"}
       </Btn>
     </div>
   );
@@ -539,20 +549,23 @@ export function DataGate({
   error,
   reload,
   children,
+  t,
 }: {
   payload: unknown;
   loading: boolean;
   error: string | null;
   reload: () => void;
   children: ReactNode;
+  t?: Translate;
 }) {
   if (!payload) {
-    if (error) return <ErrorState message={error} onRetry={reload} loading={loading} />;
-    if (loading) return <ViewSkeleton />;
+    if (error) return <ErrorState message={error} onRetry={reload} loading={loading} t={t} />;
+    if (loading) return <ViewSkeleton t={t} />;
     return (
       <ErrorState
-        message="Todavía no hay datos de focos para mostrar."
+        message={t ? t("ui.noFires") : "Todavía no hay datos de focos para mostrar."}
         onRetry={reload}
+        t={t}
       />
     );
   }
@@ -560,7 +573,7 @@ export function DataGate({
     <>
       {error && (
         <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6">
-          <ErrorState compact message={`${error} Mostramos los últimos datos recibidos.`} onRetry={reload} loading={loading} />
+          <ErrorState compact message={t ? t("ui.showingLast", { error }) : `${error} Mostramos los últimos datos recibidos.`} onRetry={reload} loading={loading} t={t} />
         </div>
       )}
       {children}

@@ -34,7 +34,7 @@ export async function fetchFirmsGoes(key: string): Promise<GoesFeed> {
   }
 }
 
-const stamp = (ms: number) => {
+export const stamp = (ms: number) => {
   const d = new Date(ms).toISOString();
   return `${d.slice(0, 4)}${d.slice(5, 7)}${d.slice(8, 10)}_${d.slice(11, 13)}${d.slice(14, 16)}`;
 };

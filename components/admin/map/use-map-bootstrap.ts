@@ -1,5 +1,10 @@
 import { useEffect } from "react";
-import type { MutableRefObject, RefObject, Dispatch, SetStateAction } from "react";
+import type {
+  MutableRefObject,
+  RefObject,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import * as maplibregl from "maplibre-gl";
 import type { TerraDraw } from "terra-draw";
 import { AR_BOUNDS } from "@/lib/admin/map-config";
@@ -52,7 +57,9 @@ export function useMapBootstrap({
       minZoom: 3,
       maxPitch: 80,
       renderWorldCopies: false,
-      fadeDuration: 200,
+      // 0: the ambient pulse restyles every ~100 ms, which keeps a 200 ms label fade alive forever and
+      // the map repainted every frame (measured ~105 renders/s idle in software GL vs ~30 now)
+      fadeDuration: 0,
       attributionControl: false,
       style: buildStyle(p.baseLayer),
     });

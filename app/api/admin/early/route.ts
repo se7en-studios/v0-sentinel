@@ -1,13 +1,19 @@
 import { NextResponse } from "next/server";
 import { mergeEarly, type RawGoes } from "@/lib/admin/early";
 import type { EarlyPayload, SourceStatus } from "@/lib/admin/types";
-import { allowed } from "@/lib/server/admin-guard";
+import { guardAdmin } from "@/lib/server/admin-guard";
+import { createLimiter } from "@/lib/server/rate-limit";
 import { inArgentina } from "@/lib/server/argentina";
 import {
   fetchFirmsGoes,
   fetchInpeGoes,
   type GoesFeed,
 } from "@/lib/server/early-sources";
+
+// Vercel function ceiling: slow upstreams must not be cut at the 10 s default
+export const maxDuration = 30;
+
+const earlyLimiter = createLimiter(30, 60_000);
 
 const status = (
   id: string,
@@ -25,8 +31,8 @@ const status = (
 
 /** GOES-19 early detections (20 min of delay) from two independent feeds, merged per spot. */
 export async function GET(req: Request) {
-  if (!(await allowed(req)))
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  const denied = await guardAdmin(req, earlyLimiter);
+  if (denied) return denied;
   const fetchedAt = Date.now();
   const key = process.env.NASA_FIRMS_KEY;
   const [firms, inpe] = await Promise.all([

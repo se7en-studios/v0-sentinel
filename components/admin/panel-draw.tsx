@@ -18,6 +18,7 @@ import {
   type SensorType,
 } from "@/lib/admin/types";
 import type { Ctx } from "./ctx";
+import { ZoneDetail } from "./zone-detail";
 import { Badge, Btn, Card, Field, KV, Sparkline, Stat, inputCls } from "./ui";
 
 const roleOf = (f: Feat): Role =>
@@ -139,6 +140,7 @@ function SelectedCard({ ctx }: { ctx: Ctx }) {
             <span className="text-foreground/45">{Math.round(ctx.zoneRisk[f.id].wx.temp)}° · {Math.round(ctx.zoneRisk[f.id].wx.rh)}% HR · {Math.round(ctx.zoneRisk[f.id].wx.wind)} km/h</span>
           </div>
         )}
+        {role === "zone" && <ZoneDetail ctx={ctx} f={f} />}
         {(role === "line" || role === "route") && (
           <Stat label="Longitud" value={fmtKm(lengthKm(f))} />
         )}

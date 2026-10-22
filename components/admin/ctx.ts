@@ -33,6 +33,10 @@ export interface SpreadInfo {
   rate: number;
   level: "bajo" | "moderado" | "alto" | "extremo";
   reachKm: number;
+  /** land cover under the incident center, when the terrain lookup answered */
+  fuel?: string;
+  /** slope in degrees, when known */
+  slopeDeg?: number;
 }
 
 export type PanelSeg = "Capas" | "Análisis" | "Alertas" | "Notas";
@@ -134,6 +138,11 @@ export interface Ctx {
   /** acknowledge a firing rule for snoozeMin minutes (24 h by default) */
   ackRule: (ruleId: string, snoozeMin?: number) => void;
   reopenRule: (ruleId: string) => void;
+  /** open early detections nobody has acknowledged or snoozed */
+  earlyPending: EarlyView[];
+  /** acknowledge an early detection for snoozeMin minutes (24 h by default); the badge, strip and toasts skip it */
+  ackEarly: (e: { lat: number; lng: number }, snoozeMin?: number) => void;
+  reopenEarly: (e: { lat: number; lng: number }) => void;
   incidentMeta: IncidentMetaMap;
   /** set the status and/or assignee of a detected incident; the author and time are filled in */
   updateIncident: (id: string, patch: { status?: IncidentStatus; assignee?: string }) => void;

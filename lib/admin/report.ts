@@ -1,4 +1,6 @@
 import { FIRMS_LABEL } from "../firms";
+import type { EarlyView } from "./early";
+import { INCIDENT_STATUS_LABEL, type IncidentChange, type IncidentStatus } from "./incident-meta";
 import type { FirePoint } from "./types";
 
 export const esc = (s: string) =>
@@ -48,6 +50,12 @@ export function downloadFiresCsv(points: FirePoint[], days: string[]) {
     csv,
   );
 }
+
+const REPORT_CSS = `body{font:14px/1.5 Inter,system-ui,sans-serif;color:#1a1812;max-width:760px;margin:32px auto;padding:0 20px}
+h1{font-size:22px;margin:0}h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#0f7a4f;margin:26px 0 8px}
+.k{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.k div{border:1px solid #ddd;border-radius:8px;padding:10px}
+.k b{display:block;font-size:20px}table{width:100%;border-collapse:collapse}td,th{border-bottom:1px solid #e5e0d3;padding:6px 4px;text-align:left}
+small{color:#777}@media print{button{display:none}}`;
 
 export interface ReportData {
   org: string;
@@ -122,11 +130,7 @@ export function printReport(d: ReportData) {
   const evidence = evidenceHtml(d.fires ? summarizeEvidence(d.fires.points, d.fires.days) : null, generatedAt);
   w.document
     .write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Reporte Sentinel</title>
-<style>body{font:14px/1.5 Inter,system-ui,sans-serif;color:#1a1812;max-width:760px;margin:32px auto;padding:0 20px}
-h1{font-size:22px;margin:0}h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#0f7a4f;margin:26px 0 8px}
-.k{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.k div{border:1px solid #ddd;border-radius:8px;padding:10px}
-.k b{display:block;font-size:20px}table{width:100%;border-collapse:collapse}td,th{border-bottom:1px solid #e5e0d3;padding:6px 4px;text-align:left}
-small{color:#777}@media print{button{display:none}}</style></head><body>
+<style>${REPORT_CSS}</style></head><body>
 <button onclick="print()" style="float:right;padding:8px 14px">Imprimir / guardar PDF</button>
 <h1>Reporte de monitoreo · ${esc(d.org)}</h1><small>Generado ${esc(fmtArgentina(generatedAt))} · Sentinel Cloud</small>
 ${d.mapImage && /^data:image\/(jpeg|png);base64,[A-Za-z0-9+/=]+$/.test(d.mapImage) ? `<img src="${d.mapImage}" alt="Mapa" style="width:100%;border-radius:8px;margin-top:14px">` : ""}
@@ -153,3 +157,89 @@ export function alertLinks(text: string, whatsapp: string, email: string) {
 
 export const mapsLink = (lng: number, lat: number) =>
   `https://www.google.com/maps?q=${lat.toFixed(5)},${lng.toFixed(5)}`;
+
+// ---- incident report ----
+
+export interface IncidentReportData {
+  org: string;
+  place: string;
+  lat: number;
+  lng: number;
+  count: number;
+  frp: number;
+  area: string;
+  daysActive: number;
+  status: IncidentStatus | null;
+  assignee: string;
+  /** one-line terrain/fuel summary, null when it could not be read */
+  terrain: string | null;
+  /** early detections near the incident */
+  early: EarlyView[];
+  history: IncidentChange[];
+  generatedAt?: Date;
+}
+
+const KM_LAT = 111.32;
+/** early detections within this distance of the incident centre are treated as the same event */
+export const EARLY_NEAR_KM = 8;
+
+/** Early detections (GOES-19) within `radiusKm` of a point; noise (industrial heat) is left out. */
+export function earlyNearby(early: EarlyView[], lat: number, lng: number, radiusKm = EARLY_NEAR_KM): EarlyView[] {
+  return early.filter((e) => {
+    if (e.status === "noise") return false;
+    const dy = (e.lat - lat) * KM_LAT;
+    const dx = (e.lng - lng) * KM_LAT * Math.cos((lat * Math.PI) / 180);
+    return Math.hypot(dx, dy) <= radiusKm;
+  });
+}
+
+/** Minutes GOES-19 saw it before the polar satellite confirmed it; only when it was confirmed after the first scan. */
+export function leadMinutes(e: Pick<EarlyView, "firstAt" | "confirmedAt">): number | null {
+  if (e.confirmedAt === undefined || e.confirmedAt <= e.firstAt) return null;
+  return Math.round((e.confirmedAt - e.firstAt) / 60_000);
+}
+
+const fmtMin = (m: number) => (m < 120 ? `${m} min` : `${(m / 60).toFixed(1).replace(".", ",")} h`);
+
+/** "Terreno", "Alerta temprana" and "Línea de tiempo" sections; the caller escapes nothing, this does. */
+export function incidentExtrasHtml(d: Pick<IncidentReportData, "terrain" | "early" | "history">): string {
+  const terrain = `<h2>Terreno y combustible</h2><p>${d.terrain ? esc(d.terrain) : "No se pudo consultar el terreno."}</p>`;
+  const rows = d.early
+    .map((e) => {
+      const lead = leadMinutes(e);
+      const state = e.status === "confirmed" ? "confirmada por satélite polar" : "sin confirmar";
+      const gain = lead === null ? "—" : `${esc(fmtMin(lead))} antes`;
+      return `<tr><td>${esc(fmtArgentina(new Date(e.firstAt)))}</td><td>${esc(state)}</td><td>${gain}</td></tr>`;
+    })
+    .join("");
+  const early = d.early.length
+    ? `<h2>Alerta temprana (GOES-19)</h2><table><tr><th>Primer escaneo</th><th>Estado</th><th>Ventaja sobre el satélite polar</th></tr>${rows}</table>`
+    : "";
+  const line = d.history
+    .map(
+      (h) =>
+        `<li>${esc(fmtArgentina(new Date(h.t)))}: ${esc(INCIDENT_STATUS_LABEL[h.status])}${h.assignee ? ` · a cargo: ${esc(h.assignee)}` : ""} (${esc(h.by || "Operador")})</li>`,
+    )
+    .join("");
+  const timeline = `<h2>Línea de tiempo</h2>${line ? `<ul>${line}</ul>` : "<p>Sin cambios de estado registrados.</p>"}`;
+  return terrain + early + timeline;
+}
+
+/** Opens a print-ready page for one incident; the user saves it as PDF. */
+export function printIncidentReport(d: IncidentReportData) {
+  const w = window.open("", "_blank");
+  if (!w) return false;
+  const at = d.generatedAt ?? new Date();
+  w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Informe de incidente</title>
+<style>${REPORT_CSS}</style></head><body>
+<button onclick="print()" style="float:right;padding:8px 14px">Imprimir / guardar PDF</button>
+<h1>Informe de incidente · ${esc(d.place)}</h1><small>${esc(d.org)} · generado ${esc(fmtArgentina(at))} · Sentinel Cloud</small>
+<h2>Resumen</h2>
+<div class="k"><div><b>${esc(d.area)}</b>superficie est.</div><div><b>${esc(String(d.count))}</b>focos</div><div><b>${esc(String(d.frp))} MW</b>potencia</div><div><b>${esc(String(d.daysActive))}</b>días activo</div></div>
+<p>Estado: <b>${d.status ? esc(INCIDENT_STATUS_LABEL[d.status]) : "sin seguimiento"}</b>${d.assignee ? ` · a cargo: ${esc(d.assignee)}` : ""} · <a href="${mapsLink(d.lng, d.lat)}">${d.lat.toFixed(4)}, ${d.lng.toFixed(4)}</a></p>
+${incidentExtrasHtml(d)}
+<p><small>Descargo: estimación satelital (VIIRS, píxel de 375 m) y GOES-19 (píxeles de 2 a 4 km); no reemplaza el parte oficial. Verificar en terreno antes de actuar.</small></p>
+</body></html>`);
+  w.document.close();
+  return true;
+}

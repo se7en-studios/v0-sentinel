@@ -4,6 +4,7 @@ import type { EarlyView } from "@/lib/admin/early";
 import { satLabel } from "@/lib/admin/fire-sources";
 import type { FireInfo } from "@/lib/admin/noise";
 import { terrainLine, type TerrainInfo } from "@/lib/admin/terrain";
+import { coordText, mapsUrl } from "@/lib/admin/map-popup";
 
 export const reducedMotion = () =>
   typeof window !== "undefined" &&
@@ -90,6 +91,86 @@ function addTerrain(
   });
 }
 
+/** What a popup can do for the point it sits on; every member is optional. */
+export interface PopupActions {
+  createZone?: (lat: number, lng: number) => void;
+  /** only offered when the point belongs to a detected incident */
+  openIncident?: () => void;
+}
+
+function actionBtn(label: string, onClick: () => void) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "snt-pop__btn";
+  b.textContent = label;
+  b.addEventListener("click", onClick);
+  return b;
+}
+
+async function copyText(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false; // insecure context or permission denied
+  }
+}
+
+/** Copy, open in Google Maps and the optional zone / incident shortcuts. DOM only. */
+function actionRow(
+  at: maplibregl.LngLatLike,
+  close: () => void,
+  a?: PopupActions,
+) {
+  const { lat, lng } = maplibregl.LngLat.convert(at);
+  const row = document.createElement("div");
+  row.className = "snt-pop__actions";
+  const copy = actionBtn("Copiar coordenadas", () => {
+    void copyText(coordText(lat, lng)).then((ok) => {
+      copy.textContent = ok ? "Copiadas ✓" : "No se pudo copiar";
+      window.setTimeout(() => (copy.textContent = "Copiar coordenadas"), 1800);
+    });
+  });
+  const gmaps = document.createElement("a");
+  gmaps.className = "snt-pop__btn";
+  gmaps.href = mapsUrl(lat, lng);
+  gmaps.target = "_blank";
+  gmaps.rel = "noopener noreferrer";
+  gmaps.textContent = "Abrir en Google Maps";
+  row.append(copy, gmaps);
+  if (a?.createZone)
+    row.append(
+      actionBtn("Crear zona acá", () => {
+        a.createZone?.(lat, lng);
+        close();
+      }),
+    );
+  if (a?.openIncident)
+    row.append(
+      actionBtn("Ver incidente", () => {
+        a.openIncident?.();
+        close();
+      }),
+    );
+  return row;
+}
+
+function openPopup(
+  map: maplibregl.Map,
+  at: maplibregl.LngLatLike,
+  root: HTMLElement,
+  actions?: PopupActions,
+) {
+  const popup = new maplibregl.Popup({
+    closeButton: false,
+    offset: 12,
+    className: "snt-popup",
+    maxWidth: "300px",
+  });
+  root.append(actionRow(at, () => popup.remove(), actions));
+  popup.setLngLat(at).setDOMContent(root).addTo(map);
+}
+
 /** DOM-only popup content: never interpolates data into HTML. */
 export function firePopup(
   map: maplibregl.Map,
@@ -97,6 +178,7 @@ export function firePopup(
   pr: FireProps,
   days: string[],
   terrainAt?: TerrainLookup,
+  actions?: PopupActions,
 ) {
   const hh = String(pr.hhmm).padStart(4, "0");
   const root = document.createElement("div");
@@ -120,14 +202,7 @@ export function firePopup(
     root.append(l4);
   }
   addTerrain(root, at, terrainAt);
-  new maplibregl.Popup({
-    closeButton: false,
-    offset: 12,
-    className: "snt-popup",
-  })
-    .setLngLat(at)
-    .setDOMContent(root)
-    .addTo(map);
+  openPopup(map, at, root, actions);
 }
 
 /** GOES early detections as GeoJSON points; ms timestamps travel as numbers (maplibre keeps primitives). */
@@ -160,7 +235,10 @@ export type EarlyProps = {
   sources: string;
 };
 
-const SOURCE_NAME: Record<string, string> = { FIRMS: "NASA FIRMS", INPE: "INPE" };
+const SOURCE_NAME: Record<string, string> = {
+  FIRMS: "NASA FIRMS",
+  INPE: "INPE",
+};
 const artTime = (ms: number) =>
   new Date(ms).toLocaleTimeString("es-AR", {
     timeZone: "America/Argentina/Buenos_Aires",
@@ -175,6 +253,7 @@ export function earlyPopup(
   at: maplibregl.LngLatLike,
   pr: EarlyProps,
   terrainAt?: TerrainLookup,
+  actions?: PopupActions,
 ) {
   const lines = (...t: string[]) => {
     const root = document.createElement("div");
@@ -196,13 +275,13 @@ export function earlyPopup(
     `Visto desde las ${artTime(pr.firstAt)} hs · último escaneo hace ${ago} min`,
     `${pr.scans} ${pr.scans === 1 ? "escaneo" : "escaneos"}${pr.frp > 0 ? ` · FRP máx. ${Math.round(pr.frp)} MW` : ""}`,
     status,
-    `Fuente: ${pr.sources.split("+").map((s) => SOURCE_NAME[s] ?? s).join(" y ")}. Píxel de 2 a 4 km: la posición es aproximada.`,
+    `Fuente: ${pr.sources
+      .split("+")
+      .map((s) => SOURCE_NAME[s] ?? s)
+      .join(" y ")}. Píxel de 2 a 4 km: la posición es aproximada.`,
   );
   addTerrain(root, at, terrainAt);
-  new maplibregl.Popup({ closeButton: false, offset: 12, className: "snt-popup" })
-    .setLngLat(at)
-    .setDOMContent(root)
-    .addTo(map);
+  openPopup(map, at, root, actions);
 }
 
 export function makeDroneEl(name: string) {

@@ -10,7 +10,8 @@ import {
   type Workspace,
 } from "@/lib/admin/types";
 import type { Ctx, PanelSeg, SensorState, Tab } from "../ctx";
-import { isAcked, ruleKey, zoneKey } from "@/lib/admin/alert-ack";
+import { earlyKey, isAcked, ruleKey, zoneKey } from "@/lib/admin/alert-ack";
+import { logActivity } from "./use-activity";
 import type { MapHandle } from "../map-view";
 
 interface Params {
@@ -28,6 +29,8 @@ interface Params {
   sensors: SensorState[];
   last24: number;
   forecast: DayForecast[] | null;
+  /** incidents that gained area in the latest day of data, for the growth rule */
+  growth: { name: string; ha: number }[];
   sync: string;
   resolveConflict: (keep: "server" | "mine") => void;
   undo: Ctx["undo"];
@@ -58,6 +61,7 @@ export function useNotifications({
   sensors,
   last24,
   forecast,
+  growth,
   sync,
   resolveConflict,
   undo,
@@ -103,8 +107,21 @@ export function useNotifications({
           })),
         last24,
         forecast,
+        earlyOpen: Object.fromEntries(
+          Object.entries(earlyByZone).map(([id, e]) => [id, e.length]),
+        ),
+        growth,
       }),
-    [s.rules, ws.features, ws.meta, zoneHits, last24, forecast],
+    [
+      s.rules,
+      ws.features,
+      ws.meta,
+      zoneHits,
+      last24,
+      forecast,
+      earlyByZone,
+      growth,
+    ],
   );
 
   // simulated sensors crossing their threshold: same "only what is new" rule as zone fires
@@ -118,6 +135,12 @@ export function useNotifications({
     if (!prev || !s.notify.onSensor) return;
     for (const x of sensors) {
       if (!now.has(x.feat.id) || prev.has(x.feat.id)) continue;
+      logActivity(
+        "sensor",
+        x.feat.id,
+        `${x.meta.name} fuera de umbral`,
+        `${x.reading.value} ${x.reading.unit} · dato simulado`,
+      );
       toast.warning(`${x.meta.name} fuera de umbral`, {
         description: `${x.reading.value} ${x.reading.unit} · dato simulado`,
         duration: 10_000,
@@ -134,6 +157,7 @@ export function useNotifications({
     for (const [id, detail] of ruleFirings) {
       if (prev.has(id)) continue;
       if (isAcked(ws.alertAck[ruleKey(id)], 0, Date.now())) continue;
+      logActivity("rule", id, "Regla de alerta activada", detail);
       toast.warning("Regla de alerta activada", {
         description: detail,
         duration: 12_000,
@@ -202,6 +226,12 @@ export function useNotifications({
       const hits = zoneHits[id]?.recent ?? 0;
       if (isAcked(ws.alertAck[zoneKey(id)], hits, Date.now())) continue;
       const zone = ws.features.find((f) => f.id === id);
+      logActivity(
+        "zone",
+        id,
+        `Foco nuevo en ${name}`,
+        `${hits} ${hits === 1 ? "detección" : "detecciones"} satelitales en 48 h`,
+      );
       toast.warning(`Foco nuevo en ${name}`, {
         description: `${hits} ${hits === 1 ? "detección" : "detecciones"} satelitales en 48 h`,
         duration: 12_000,
@@ -248,11 +278,20 @@ export function useNotifications({
     if (!prev || !s.notify.onZoneHit) return;
     const now = new Map<string, { zoneId: string; e: EarlyView }>();
     for (const [zoneId, list] of Object.entries(earlyByZone))
-      for (const e of list) if (!now.has(cell(e))) now.set(cell(e), { zoneId, e });
+      for (const e of list)
+        if (!now.has(cell(e))) now.set(cell(e), { zoneId, e });
     for (const [k, { zoneId, e }] of now) {
       if (prev.has(k)) continue;
+      // handled (acknowledged or snoozed) spots stay quiet
+      if (isAcked(ws.alertAck[earlyKey(e)], 0, Date.now())) continue;
       const name = ws.meta[zoneId]?.name ?? "Zona";
       const min = Math.max(0, Math.round((Date.now() - e.lastAt) / 60_000));
+      logActivity(
+        "early",
+        k,
+        `Posible foco cerca de ${name}`,
+        `GOES-19 vio calor hace ${min} min; ningún satélite polar lo confirmó todavía.`,
+      );
       toast.warning(`Posible foco cerca de ${name}`, {
         description: `GOES-19 vio calor hace ${min} min y ningún satélite polar lo confirmó todavía.`,
         duration: 15_000,
@@ -278,6 +317,7 @@ export function useNotifications({
     s.notify.onZoneHit,
     s.notify.browser,
     ws.meta,
+    ws.alertAck,
     goTab,
     mapRef,
   ]);

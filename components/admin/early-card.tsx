@@ -2,6 +2,8 @@
 
 import { Radar } from "lucide-react";
 import { nearestPlace } from "@/lib/admin/places";
+import { earlyKey, isAcked } from "@/lib/admin/alert-ack";
+import { cn } from "@/lib/utils";
 import type { EarlyView } from "@/lib/admin/early";
 import type { Ctx } from "./ctx";
 import { Badge, Btn, Card, EmptyState } from "./ui";
@@ -16,8 +18,18 @@ const ageLabel = (ms: number, now: number) => {
 
 function Row({ e, zone, ctx }: { e: EarlyView; zone?: string; ctx: Ctx }) {
   const near = nearestPlace(e.lat, e.lng);
+  const ack = ctx.alertAck[earlyKey(e)];
+  const handled = isAcked(ack, 0, ctx.now);
+  const snoozed = handled && ack?.until !== undefined && ack.until - ack.t <= 60 * 60_000;
+  const who = ack?.by || "Operador";
   return (
-    <li className="flex items-start gap-2 rounded-lg border border-[var(--hairline)] p-2 text-[11.5px]">
+    <li
+      className={cn(
+        "rounded-lg border border-[var(--hairline)] p-2 text-[11.5px]",
+        handled && "bg-foreground/[0.03] opacity-80",
+      )}
+    >
+      <div className="flex items-start gap-2">
       <Radar className="mt-0.5 size-3.5 shrink-0 text-[#0e9aa7]" aria-hidden />
       <div className="min-w-0 flex-1">
         <div className="truncate font-semibold">
@@ -40,6 +52,41 @@ function Row({ e, zone, ctx }: { e: EarlyView; zone?: string; ctx: Ctx }) {
       >
         Ver
       </Btn>
+      </div>
+      <div className="mt-1.5 flex flex-wrap items-center gap-1.5 pl-[22px] text-[11px]">
+        {handled ? (
+          <>
+            <span className="text-foreground/65">
+              {ctx.t(snoozed ? "early.snoozed" : "early.acked", { who })}
+            </span>
+            <Btn
+              className="min-h-7"
+              aria-label={ctx.t("early.reopenAria", { place: near.near })}
+              onClick={() => ctx.reopenEarly(e)}
+            >
+              {ctx.t("early.reopen")}
+            </Btn>
+          </>
+        ) : (
+          <>
+            <Btn
+              variant="solid"
+              className="min-h-7"
+              aria-label={ctx.t("early.ackAria", { place: near.near })}
+              onClick={() => ctx.ackEarly(e)}
+            >
+              {ctx.t("early.ack")}
+            </Btn>
+            <Btn
+              className="min-h-7"
+              aria-label={ctx.t("early.snoozeAria", { place: near.near })}
+              onClick={() => ctx.ackEarly(e, 60)}
+            >
+              {ctx.t("early.snooze")}
+            </Btn>
+          </>
+        )}
+      </div>
     </li>
   );
 }
@@ -54,9 +101,12 @@ export function EarlyCard({ ctx }: { ctx: Ctx }) {
       zoneOf.set(`${e.lat},${e.lng}`, ws.meta[id]?.name ?? "una zona");
   const confirmed = early.filter((e) => e.status === "confirmed").length;
   const noise = early.filter((e) => e.status === "noise").length;
+  const handledCount = earlyOpen.length - ctx.earlyPending.length;
   const shown = [...earlyOpen]
     .sort(
       (a, b) =>
+        Number(isAcked(ws.alertAck[earlyKey(a)], 0, ctx.now)) -
+          Number(isAcked(ws.alertAck[earlyKey(b)], 0, ctx.now)) ||
         Number(zoneOf.has(`${b.lat},${b.lng}`)) -
           Number(zoneOf.has(`${a.lat},${a.lng}`)) || b.lastAt - a.lastAt,
     )
@@ -65,7 +115,7 @@ export function EarlyCard({ ctx }: { ctx: Ctx }) {
     <Card
       bare
       title={t("early.title")}
-      right={<Badge tone={earlyOpen.length ? "sim" : "muted"}>GOES-19</Badge>}
+      right={<Badge tone={ctx.earlyPending.length ? "sim" : "muted"}>GOES-19</Badge>}
     >
       <p className="mb-2 text-[11px] leading-snug text-foreground/60">
         {t("early.intro")}
@@ -91,6 +141,11 @@ export function EarlyCard({ ctx }: { ctx: Ctx }) {
       {earlyOpen.length > shown.length && (
         <p className="mt-1.5 text-[11px] text-foreground/55">
           {t("early.more", { n: earlyOpen.length - shown.length })}
+        </p>
+      )}
+      {handledCount > 0 && (
+        <p className="mt-1.5 text-[11px] text-foreground/55">
+          {t("early.handled", { n: handledCount })}
         </p>
       )}
       {early.length > 0 && (

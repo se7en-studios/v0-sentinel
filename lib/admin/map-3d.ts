@@ -50,7 +50,12 @@ export interface Wind {
 }
 
 /** Offsets a point (km east/north) into degrees. */
-const shift = (lat: number, lng: number, east: number, north: number): [number, number] => [
+const shift = (
+  lat: number,
+  lng: number,
+  east: number,
+  north: number,
+): [number, number] => [
   lat + north / 111,
   lng + east / (111 * Math.cos((lat * Math.PI) / 180)),
 ];
@@ -60,7 +65,10 @@ const shift = (lat: number, lng: number, east: number, north: number): [number, 
  * white-hot tip), a faint light beam, and a smoke plume made of stacked,
  * widening, translucent prisms that lean downwind like a real plume.
  */
-export function fireBeacons(fires: FirePoint[], wind: Wind = { dir: 270, speed: 12 }): FC {
+export function fireBeacons(
+  fires: FirePoint[],
+  wind: Wind = { dir: 270, speed: 12 },
+): FC {
   const top = [...fires].sort((a, b) => b[2] - a[2]).slice(0, 1500);
   const features: GeoJSON.Feature[] = [];
   const toward = (((wind.dir + 180) % 360) * Math.PI) / 180;
@@ -73,13 +81,30 @@ export function fireBeacons(fires: FirePoint[], wind: Wind = { dir: 270, speed: 
     const ring = hexRing(lat, lng, r);
     features.push(
       poly(ring, { ...base, b: 0, h: h * 0.45, c: "#a81f0c", k: "fire" }),
-      poly(ring, { ...base, b: h * 0.45, h: h * 0.85, c: "#ff6a1a", k: "fire" }),
-      poly(hexRing(lat, lng, r * 0.55), { ...base, b: h * 0.85, h, c: "#fff0b8", k: "fire" }),
+      poly(ring, {
+        ...base,
+        b: h * 0.45,
+        h: h * 0.85,
+        c: "#ff6a1a",
+        k: "fire",
+      }),
+      poly(hexRing(lat, lng, r * 0.55), {
+        ...base,
+        b: h * 0.85,
+        h,
+        c: "#fff0b8",
+        k: "fire",
+      }),
     );
     if (frp >= 12) {
       // smoke leaning downwind: each stage is higher, wider, paler and displaced
       for (let i = 1; i <= 4; i++) {
-        const [sLat, sLng] = shift(lat, lng, Math.sin(toward) * lean * i, Math.cos(toward) * lean * i);
+        const [sLat, sLng] = shift(
+          lat,
+          lng,
+          Math.sin(toward) * lean * i,
+          Math.cos(toward) * lean * i,
+        );
         features.push(
           poly(hexRing(sLat, sLng, r * (1.4 + i * 0.9)), {
             ...base,
@@ -103,13 +128,29 @@ export function fireBeacons(fires: FirePoint[], wind: Wind = { dir: 270, speed: 
 export function routeRibbons(features: Feat[]): FC {
   const out: GeoJSON.Feature[] = [];
   for (const f of features) {
-    if (MODE_ROLE[String(f.properties.mode)] !== "route" || f.geometry.type !== "LineString") continue;
+    if (
+      MODE_ROLE[String(f.properties.mode)] !== "route" ||
+      f.geometry.type !== "LineString"
+    )
+      continue;
     try {
-      const ribbon = buffer(feature(f.geometry as unknown as GeoJSON.LineString), 0.012, { units: "kilometers" });
+      const ribbon = buffer(
+        feature(f.geometry as unknown as GeoJSON.LineString),
+        0.012,
+        { units: "kilometers" },
+      );
       if (!ribbon || ribbon.geometry.type !== "Polygon") continue;
       out.push(
-        { type: "Feature", properties: { b: 118, h: 142, c: ROLE_COLOR.route, k: "ribbon" }, geometry: ribbon.geometry },
-        { type: "Feature", properties: { b: 0, h: 118, c: ROLE_COLOR.route, k: "curtain" }, geometry: ribbon.geometry },
+        {
+          type: "Feature",
+          properties: { b: 118, h: 142, c: ROLE_COLOR.route, k: "ribbon" },
+          geometry: ribbon.geometry,
+        },
+        {
+          type: "Feature",
+          properties: { b: 0, h: 118, c: ROLE_COLOR.route, k: "curtain" },
+          geometry: ribbon.geometry,
+        },
       );
     } catch {
       /* degenerate route */

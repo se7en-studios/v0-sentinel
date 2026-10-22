@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Flame, Zap, MoveUpRight } from "lucide-react";
+import { FileText, Flame, Zap, MoveUpRight } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -21,6 +21,9 @@ import {
   isOpenStatus,
   type IncidentStatus,
 } from "@/lib/admin/incident-meta";
+import { earlyNearby, printIncidentReport } from "@/lib/admin/report";
+import { terrainLine } from "@/lib/admin/terrain";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { Ctx } from "./ctx";
 import { TerrainCard } from "./terrain-card";
@@ -40,6 +43,36 @@ import {
 const REGION_KM = 300;
 const LIST_MAX = 8;
 type Scope = "region" | "ar";
+
+const when = (t: number) =>
+  new Date(t).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
+const TERRAIN_WAIT_MS = 4000;
+
+/** Opens the printable incident report with terrain, early warnings and the status timeline. */
+async function openReport(ctx: Ctx, inc: Incident) {
+  const meta = ctx.incidentMeta[inc.id];
+  const terrain = await Promise.race([
+    ctx.terrainAt(inc.lat, inc.lng),
+    new Promise<null>((r) => setTimeout(() => r(null), TERRAIN_WAIT_MS)),
+  ]).catch(() => null);
+  const ok = printIncidentReport({
+    org: ctx.ws.settings.org || "Sentinel",
+    place: nearestPlace(inc.lat, inc.lng).near,
+    lat: inc.lat,
+    lng: inc.lng,
+    count: inc.count,
+    frp: inc.frp,
+    area: fmtArea(inc.areaHa, ctx.ws.settings.units),
+    daysActive: inc.perDay.length,
+    status: meta?.status ?? null,
+    assignee: meta?.assignee ?? "",
+    terrain: terrain ? terrainLine(terrain) || null : null,
+    early: earlyNearby(ctx.early, inc.lat, inc.lng),
+    history: meta?.history ?? [],
+  });
+  if (!ok) toast.error("El navegador bloqueó la ventana del informe", { description: "Permití las ventanas emergentes para este sitio." });
+}
 
 const kmFrom = (center: [number, number], i: Incident) => {
   const dy = (i.lat - center[1]) * 111.32;
@@ -293,6 +326,28 @@ export function IncidentsView({ ctx }: { ctx: Ctx }) {
                   ? `Última actualización de ${ctx.incidentMeta[inc.id].by || "Operador"}: ${new Date(ctx.incidentMeta[inc.id].t).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`
                   : "Sin seguimiento todavía. Cada cambio queda con su autor y su hora."}
               </p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <Btn onClick={() => void openReport(ctx, inc)}>
+                  <FileText className="size-3.5" aria-hidden /> Informe del incidente
+                </Btn>
+                <span className="text-[11px] text-foreground/50">
+                  Incluye terreno, alertas tempranas y la línea de tiempo.
+                </span>
+              </div>
+              {(ctx.incidentMeta[inc.id]?.history?.length ?? 0) > 0 && (
+                <ol className="mt-3 space-y-1.5 border-t border-[var(--hairline)] pt-3" aria-label="Historial del incidente">
+                  {[...(ctx.incidentMeta[inc.id]?.history ?? [])].reverse().map((h) => (
+                    <li key={`${h.t}-${h.status}-${h.assignee}`} className="flex items-baseline justify-between gap-2 text-[12px]">
+                      <span className="min-w-0">
+                        <b className="font-semibold">{INCIDENT_STATUS_LABEL[h.status]}</b>
+                        {h.assignee && <span className="text-foreground/65"> · a cargo: {h.assignee}</span>}
+                        <span className="text-foreground/50"> · {h.by || "Operador"}</span>
+                      </span>
+                      <span className="num shrink-0 text-[11px] text-foreground/55">{when(h.t)}</span>
+                    </li>
+                  ))}
+                </ol>
+              )}
             </Card>
 
             <Card title="Superficie por día">

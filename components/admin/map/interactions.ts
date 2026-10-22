@@ -8,13 +8,17 @@ import {
   reducedMotion,
   type EarlyProps,
   type FireProps,
+  type PopupActions,
 } from "./helpers";
+import { zoneCircleAt } from "@/lib/admin/map-popup";
 import type { MapProps } from "./types";
 
-const SELECTABLE = ["sensor-pt", "route-flow", "path-line", "zone-fill"];
+// zones sit under everything else: a detection inside one must stay clickable
+const PRIORITY_SELECTABLE = ["sensor-pt", "route-flow", "path-line"];
 const FIRE_HITS = ["fires3d", "fires-pt", "fires-cluster", "early-pt"];
 const HOVERABLE = [
-  ...SELECTABLE,
+  ...PRIORITY_SELECTABLE,
+  "zone-fill",
   "fires-pt",
   "fires3d",
   "fires-cluster",
@@ -42,6 +46,30 @@ function zoomIntoCluster(map: MLMap, clusterId: number, at: [number, number]) {
     .catch(() => undefined);
 }
 
+/** Popup shortcuts for a point: new zone always, incident link only when the point belongs to one. */
+function popupActions(
+  latest: MutableRefObject<MapProps>,
+  lat: number,
+  lng: number,
+): PopupActions {
+  const p = latest.current;
+  return {
+    // read latest at click time: the popup can outlive the render it was opened in
+    createZone: (la, ln) =>
+      latest.current.onCreate(zoneCircleAt(
+        la,
+        ln,
+        // not available on plain http (a tablet opening the panel by LAN address)
+        globalThis.crypto?.randomUUID?.() ??
+          `z-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`,
+      )),
+    openIncident:
+      p.onOpenIncident && p.incidentAt?.(lat, lng)
+        ? p.onOpenIncident
+        : undefined,
+  };
+}
+
 /** Click selection, fire popup / cluster zoom and hover cursors. */
 export function attachInteractions(
   map: MLMap,
@@ -50,19 +78,18 @@ export function attachInteractions(
   map.on("click", (e) => {
     if (latest.current.tool || latest.current.editing || isMeasuring(map))
       return;
-    const items = map.queryRenderedFeatures(e.point, {
-      layers: present(map, SELECTABLE),
-    })[0];
-    if (items) return latest.current.onSelect(String(items.properties.fid));
-    const fire = map.queryRenderedFeatures(e.point, {
-      layers: present(map, FIRE_HITS),
-    })[0];
+    const at = (ids: string[]) =>
+      map.queryRenderedFeatures(e.point, { layers: present(map, ids) })[0];
+    const item = at(PRIORITY_SELECTABLE);
+    if (item) return latest.current.onSelect(String(item.properties.fid));
+    const fire = at(FIRE_HITS);
     if (fire?.layer.id === "early-pt") {
       earlyPopup(
         map,
         e.lngLat,
         fire.properties as EarlyProps,
         latest.current.terrainAt,
+        popupActions(latest, e.lngLat.lat, e.lngLat.lng),
       );
       return;
     }
@@ -81,10 +108,12 @@ export function attachInteractions(
           pr,
           latest.current.dayLabels,
           latest.current.terrainAt,
+          popupActions(latest, e.lngLat.lat, e.lngLat.lng),
         );
       return;
     }
-    latest.current.onSelect(null);
+    const zone = at(["zone-fill"]);
+    latest.current.onSelect(zone ? String(zone.properties.fid) : null);
   });
   for (const l of HOVERABLE) {
     map.on("mouseenter", l, () => {

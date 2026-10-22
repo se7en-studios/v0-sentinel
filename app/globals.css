@@ -16,14 +16,14 @@
   --secondary: #f1ede3;
   --secondary-foreground: #1a1812;
   --muted: #f1ede3;
-  --muted-foreground: rgba(26, 24, 18, 0.5);
+  --muted-foreground: rgba(26, 24, 18, 0.66); /* AA (>= 4.5:1) on every light surface */
   --accent: #0f7a4f;
   --accent-foreground: #faf7f0;
   --destructive: #b83a3a;
   --destructive-foreground: #faf7f0;
   --border: rgba(26, 24, 18, 0.1);
   --input: rgba(26, 24, 18, 0.1);
-  --ring: rgba(15, 122, 79, 0.4);
+  --ring: rgba(15, 122, 79, 0.75); /* focus indicator: >= 3:1 against the light surfaces */
   --chart-1: #0f7a4f;
   --chart-2: #178f52;
   --chart-3: #2fa868;
@@ -285,15 +285,15 @@ html {
     0 10px 30px -10px rgba(26, 24, 18, 0.22), 0 2px 6px rgba(26, 24, 18, 0.06),
     0 0 0 1px rgba(26, 24, 18, 0.05);
   --glass: rgba(251, 249, 244, 0.82);
-  --chart-axis: rgba(26, 24, 18, 0.5);
+  --chart-axis: rgba(26, 24, 18, 0.66);
   --chart-tip: #faf7f0;
   --radius-panel: 12px;
   /* semantic states: always pair with text or an icon, never hue alone */
   --state-ok: #1f8f5f;
   --state-warn: #c9a300;
-  --state-warn-ink: #8a6f00;
+  --state-warn-ink: #806600;
   --state-watch: #e8710a;
-  --state-watch-ink: #b9560a;
+  --state-watch-ink: #a8500a;
   --state-bad: #c8321e;
   --state-bad-ink: #b83a3a;
   --state-idle: rgba(26, 24, 18, 0.3);
@@ -313,13 +313,13 @@ html.admin-dark {
   --popover-foreground: #e8f1ec;
   --secondary: #17201c;
   --muted: #17201c;
-  --muted-foreground: rgba(232, 241, 236, 0.5);
+  --muted-foreground: rgba(232, 241, 236, 0.62);
   --primary: #2fbf7a;
   --primary-foreground: #04140c;
   --accent: #2fbf7a;
   --border: rgba(232, 241, 236, 0.1);
   --input: rgba(232, 241, 236, 0.12);
-  --ring: rgba(47, 191, 122, 0.45);
+  --ring: rgba(47, 191, 122, 0.75);
   --surface: #0f1512;
   --surface-2: #141c18;
   --hairline: rgba(232, 241, 236, 0.09);
@@ -327,7 +327,7 @@ html.admin-dark {
   --shadow-2:
     0 14px 34px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(232, 241, 236, 0.08);
   --glass: rgba(15, 21, 18, 0.82);
-  --chart-axis: rgba(232, 241, 236, 0.5);
+  --chart-axis: rgba(232, 241, 236, 0.62);
   --chart-tip: #111815;
   --state-ok: #2fbf7a;
   --state-warn: #e0b80f;
@@ -338,6 +338,30 @@ html.admin-dark {
   --state-bad-ink: #ff8a78;
   --state-idle: rgba(232, 241, 236, 0.3);
   color-scheme: dark;
+}
+/*
+ * Contrast floor for muted copy. Utilities such as text-foreground/45 measure 2.8 to 3.9:1 in the
+ * light theme (WCAG AA wants 4.5:1), so inside the panel they are lifted to 65% (5.2:1). Matching
+ * the whole class token (~=) leaves variants like placeholder:text-foreground/35 untouched.
+ */
+.admin-root :is(
+    [class~="text-foreground/30"],
+    [class~="text-foreground/35"],
+    [class~="text-foreground/40"],
+    [class~="text-foreground/45"],
+    [class~="text-foreground/50"],
+    [class~="text-foreground/55"],
+    [class~="text-foreground/60"]
+  ) {
+  color: color-mix(in srgb, var(--foreground) 65%, transparent);
+}
+html.admin-dark .admin-root :is(
+    [class~="text-foreground/30"],
+    [class~="text-foreground/35"],
+    [class~="text-foreground/40"],
+    [class~="text-foreground/45"]
+  ) {
+  color: color-mix(in srgb, var(--foreground) 62%, transparent);
 }
 .num {
   font-variant-numeric: tabular-nums;
@@ -403,6 +427,35 @@ html.admin-dark {
 }
 .snt-pop span {
   color: rgba(26, 24, 18, 0.62);
+}
+.snt-pop__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(26, 24, 18, 0.1);
+}
+.snt-pop__btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 9px;
+  border: 1px solid rgba(26, 24, 18, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  color: #1a1812;
+  font: 600 11px/1 var(--font-sans), Inter, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+}
+.snt-pop__btn:hover {
+  background: rgba(232, 113, 10, 0.12);
+  border-color: rgba(232, 113, 10, 0.5);
+}
+.snt-pop__btn:focus-visible {
+  outline: 2px solid var(--ring, #0f7a4f);
+  outline-offset: 1px;
 }
 
 .maplibregl-ctrl-scale {

@@ -14,14 +14,25 @@ import { ResourcesPanel } from "./panel-resources";
 import { TimelineDock } from "./dock-timeline";
 import { DroneDock, ResourcesDock } from "./docks";
 import { DronePip } from "./drone-pip";
-import { MetricsView } from "./metrics-view";
-import { ForecastView } from "./forecast-view";
-import { IncidentsView } from "./incidents-view";
 import { SettingsView } from "./settings-view";
+import { ShortcutsHelp, useShortcuts } from "./shortcuts";
+import { storeLocale } from "./use-stored-t";
+import { ViewSkeleton } from "./ui";
 import { GuidedTour } from "./tour";
 import { StatusStrip } from "./status-strip";
 
 export type { CloudSession };
+
+// heavy views (recharts, long tables) are never on screen at first load: fetch them on demand
+const MetricsView = dynamic(() => import("./metrics-view").then((m) => m.MetricsView), {
+  loading: () => <ViewSkeleton />,
+});
+const ForecastView = dynamic(() => import("./forecast-view").then((m) => m.ForecastView), {
+  loading: () => <ViewSkeleton />,
+});
+const IncidentsView = dynamic(() => import("./incidents-view").then((m) => m.IncidentsView), {
+  loading: () => <ViewSkeleton />,
+});
 
 const MapView = dynamic(() => import("./map-view").then((m) => m.MapView), {
   ssr: false,
@@ -46,6 +57,15 @@ export function AdminApp({
   const { ctx } = a;
   const [cursor, setCursorPos] = useState<[number, number] | null>(null);
 
+  const { setShortcutsOpen } = a;
+  useShortcuts({
+    goTab: a.goTab,
+    toggleHelp: () => setShortcutsOpen(!a.shortcutsOpen),
+  });
+  const locale = a.s.locale;
+  // the login and shared-link screens have no workspace yet: they read the last language from here
+  useEffect(() => storeLocale(locale), [locale]);
+
   // theme on <html> so portaled menus and dialogs inherit it
   useEffect(() => {
     document.documentElement.classList.toggle("admin-dark", a.dark);
@@ -55,6 +75,12 @@ export function AdminApp({
   return (
     <div className="admin-root fixed inset-0 flex flex-col bg-background text-foreground">
       {/* client-only: Radix menu ids differ between server and client renders */}
+      <a
+        href="#admin-main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-foreground focus:px-3 focus:py-2 focus:text-[12px] focus:font-medium focus:text-background"
+      >
+        {ctx.t("top.skip")}
+      </a>
       {a.mounted ? (
         <Topbar a={a} />
       ) : (
@@ -63,6 +89,9 @@ export function AdminApp({
       {a.mounted && <StatusStrip ctx={ctx} />}
       <Toaster position="bottom-center" />
       {a.tour && <GuidedTour a={a} />}
+      {a.mounted && (
+        <ShortcutsHelp open={a.shortcutsOpen} setOpen={a.setShortcutsOpen} t={ctx.t} />
+      )}
       {a.mounted && (
         <CommandPalette
           open={a.paletteOpen}
@@ -73,7 +102,11 @@ export function AdminApp({
       )}
 
       {a.isMapTab ? (
-        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
+        <main
+          id="admin-main"
+          tabIndex={-1}
+          className="flex min-h-0 flex-1 flex-col overflow-y-auto outline-none lg:flex-row lg:overflow-hidden"
+        >
           <div className="flex min-w-0 flex-1 flex-col lg:min-h-0">
             <div className="relative h-[58vh] min-h-[340px] shrink-0 lg:h-auto lg:min-h-0 lg:flex-1 lg:shrink">
               {a.ready && (
@@ -119,6 +152,8 @@ export function AdminApp({
                   onCenter={a.setCenter}
                   onCursor={setCursorPos}
                   onCamera={a.setCamera}
+                  incidentAt={a.incidentAt}
+                  onOpenIncident={() => ctx.goTab("incidentes")}
                 />
               )}
               <MapOverlays a={a} cursor={cursor} />
@@ -129,7 +164,7 @@ export function AdminApp({
             {ctx.tab === "recursos" && <ResourcesDock ctx={ctx} />}
           </div>
           <aside
-            aria-label="Panel lateral"
+            aria-label={ctx.t("app.sidePanel")}
             className={cn(
               "w-full shrink-0 overflow-y-auto border-t border-[var(--hairline)] bg-card lg:w-[336px] lg:border-l lg:border-t-0",
               !ctx.panelOpen && "lg:hidden",
@@ -142,7 +177,11 @@ export function AdminApp({
           </aside>
         </main>
       ) : (
-        <main className="min-h-0 flex-1 overflow-y-auto bg-[var(--surface)]">
+        <main
+          id="admin-main"
+          tabIndex={-1}
+          className="min-h-0 flex-1 overflow-y-auto bg-[var(--surface)] outline-none"
+        >
           {ctx.tab === "pronostico" && <ForecastView ctx={ctx} />}
           {ctx.tab === "incidentes" && <IncidentsView ctx={ctx} />}
           {ctx.tab === "metricas" && <MetricsView ctx={ctx} />}

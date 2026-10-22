@@ -6,7 +6,7 @@ import { cleanAckMap, type AlertAck } from "./alert-ack";
 import { cleanIncidentMeta, type IncidentMeta } from "./incident-meta";
 import { EMPTY_OPS, cleanOps, type OpsState } from "./resources";
 import type { CloudCopy } from "./cloud";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   DEFAULT_SETTINGS,
   MODE_ROLE,
@@ -208,7 +208,7 @@ export type SyncState =
 export function useWorkspace(uid?: string) {
   const [ws, setWs] = useState<Workspace>(EMPTY);
   const [ready, setReady] = useState(false);
-  const [, bump] = useState(0);
+  const [hist, setHist] = useState({ undo: false, redo: false });
   const [loadTick, setLoadTick] = useState(0);
   const [sync, setSync] = useState<SyncState>(uid ? "loading" : "local");
   const dirty = useRef(false);
@@ -221,9 +221,17 @@ export function useWorkspace(uid?: string) {
   const queued = useRef(false);
   const skip = useRef(true);
   const latest = useRef(ws);
-  latest.current = ws;
   const past = useRef<Snap[]>([]);
   const future = useRef<Snap[]>([]);
+  const pushRef = useRef<(force?: boolean) => Promise<void>>(undefined);
+  // runs before the effects below, so they (and any event handler) always see the committed workspace
+  useLayoutEffect(() => {
+    latest.current = ws;
+  }, [ws]);
+  const syncHist = useCallback(
+    () => setHist({ undo: past.current.length > 0, redo: future.current.length > 0 }),
+    [],
+  );
   const prevUid = useRef<string | undefined>(uid);
 
   useEffect(() => {
@@ -236,6 +244,7 @@ export function useWorkspace(uid?: string) {
       editedAt.current = 0;
       past.current = [];
       future.current = [];
+      syncHist();
       skip.current = true;
       setReady(false);
       setWs(EMPTY);
@@ -244,6 +253,7 @@ export function useWorkspace(uid?: string) {
     conflicted.current = false;
     conflictRemote.current = null;
     if (!uid) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage only exists on the client: reading it in render would break hydration
       setWs(readStored(KEY)?.ws ?? EMPTY);
       setReady(true);
       return;
@@ -318,7 +328,7 @@ export function useWorkspace(uid?: string) {
     return () => {
       cancelled = true;
     };
-  }, [uid, loadTick]);
+  }, [uid, loadTick, syncHist]);
 
   const push = useCallback(
     async (force = false) => {
@@ -355,12 +365,15 @@ export function useWorkspace(uid?: string) {
         inflight.current = false;
         if (queued.current) {
           queued.current = false;
-          void push();
+          void pushRef.current?.();
         }
       }
     },
     [uid],
   );
+  useEffect(() => {
+    pushRef.current = push;
+  }, [push]);
 
   useEffect(() => {
     if (!ready) return;
@@ -439,8 +452,8 @@ export function useWorkspace(uid?: string) {
       { features: w.features, meta: w.meta },
     ].slice(-HISTORY_MAX);
     future.current = [];
-    bump((n) => n + 1);
-  }, []);
+    syncHist();
+  }, [syncHist]);
 
   const setFeatures = useCallback(
     (features: Feat[]) => {
@@ -530,9 +543,9 @@ export function useWorkspace(uid?: string) {
     from.current = from.current.slice(0, -1);
     to.current = [...to.current, { features: w.features, meta: w.meta }];
     setWs({ ...w, features: snap.features, meta: snap.meta });
-    bump((n) => n + 1);
+    syncHist();
     return true;
-  }, []);
+  }, [syncHist]);
   const undo = useCallback(() => travel(past, future), [travel]);
   const redo = useCallback(() => travel(future, past), [travel]);
 
@@ -554,7 +567,7 @@ export function useWorkspace(uid?: string) {
     sync,
     retry,
     resolveConflict,
-    canUndo: past.current.length > 0,
-    canRedo: future.current.length > 0,
+    canUndo: hist.undo,
+    canRedo: hist.redo,
   };
 }

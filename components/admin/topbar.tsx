@@ -27,9 +27,12 @@ import {
   Undo2,
   Download,
   Flame,
+  Keyboard,
 } from "lucide-react";
 import { SentinelLogo } from "@/components/sentinel-logo";
 import { cn } from "@/lib/utils";
+import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
+import type { Locale } from "@/lib/admin/i18n";
 import { REGIONS } from "@/lib/admin/types";
 import { HORIZONS } from "@/lib/admin/spread";
 import {
@@ -49,10 +52,10 @@ type A = ReturnType<typeof useAdmin>;
 const trigger =
   "relative inline-flex h-8 items-center gap-1 rounded-lg px-2 before:absolute before:-inset-1 before:content-[''] text-[12px] font-medium text-foreground/70 transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-foreground/[0.06] data-[state=open]:text-foreground";
 
-function fmtRange(days: string[]) {
+function fmtRange(days: string[], loc: Locale) {
   if (!days.length) return null;
   const f = (d: string) =>
-    new Date(`${d}T12:00:00Z`).toLocaleDateString("es-AR", {
+    new Date(`${d}T12:00:00Z`).toLocaleDateString(NUM_LOCALE[loc], {
       day: "numeric",
       month: "short",
       timeZone: "UTC",
@@ -60,18 +63,10 @@ function fmtRange(days: string[]) {
   return `${f(days[0])} – ${f(days[days.length - 1])}`;
 }
 
-const SYNC_LABEL = {
-  saved: "Guardado",
-  saving: "Guardando…",
-  loading: "Cargando…",
-  local: "Local",
-  error: "Sin conexión",
-  conflict: "Conflicto",
-} as const;
-
 /** Always-visible save state for cloud accounts, with the recovery actions next to it. */
 function SyncBadge({ a }: { a: A }) {
   const s = a.sync;
+  const t = a.ctx.t;
   const bad = s === "error" || s === "conflict";
   const action = "rounded px-1 font-semibold underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
   return (
@@ -86,19 +81,19 @@ function SyncBadge({ a }: { a: A }) {
         )}
         aria-hidden
       />
-      {SYNC_LABEL[s]}
+      {t(`sync.${s}`)}
       {s === "error" && (
         <button type="button" onClick={a.retrySync} className={cn(action, "text-primary")}>
-          Reintentar
+          {t("sync.retry")}
         </button>
       )}
       {s === "conflict" && (
         <>
           <button type="button" onClick={() => a.resolveConflict("server")} className={cn(action, "text-primary")}>
-            Usar la nube
+            {t("sync.useCloud")}
           </button>
           <button type="button" onClick={() => a.resolveConflict("mine")} className={action}>
-            Mantener lo mío
+            {t("sync.keepMine")}
           </button>
         </>
       )}
@@ -122,18 +117,19 @@ export function Topbar({ a }: { a: A }) {
       : id === "drones"
         ? { n: airborne, tone: "ok" as const }
         : null;
-  const range = fmtRange(ctx.payload?.days ?? []);
+  const t = ctx.t;
+  const range = fmtRange(ctx.payload?.days ?? [], ctx.ws.settings.locale);
   const email = a.cloud?.email;
 
   return (
     <header className="relative z-30 flex h-11 shrink-0 items-center gap-1 border-b border-[var(--hairline)] bg-card px-2 sm:px-3">
       <a
         href="/"
-        aria-label="Volver al sitio de Sentinel"
+        aria-label={t("top.back")}
         className="flex shrink-0 items-center gap-2 rounded-md px-1 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <SentinelLogo className="h-[18px] w-auto" />
-        <span className="hidden rounded-md bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-primary lg:inline">
+        <span className="hidden rounded-md bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-primary 2xl:inline">
           Cloud
         </span>
       </a>
@@ -142,7 +138,7 @@ export function Topbar({ a }: { a: A }) {
       <DropdownMenu>
         <DropdownMenuTrigger
           className={cn(trigger, "hidden text-foreground md:inline-flex")}
-          aria-label="Cambiar región"
+          aria-label={t("top.changeRegion")}
         >
           <span className="max-w-[200px] truncate font-semibold">
             {region.name.split("(")[0].trim()}
@@ -154,7 +150,7 @@ export function Topbar({ a }: { a: A }) {
           className="w-64 rounded-xl border-[var(--hairline)] p-1.5 shadow-[var(--shadow-2)]"
         >
           <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-foreground/45">
-            Región
+            {t("top.region")}
           </DropdownMenuLabel>
           {REGIONS.map((r) => (
             <DropdownMenuItem
@@ -174,7 +170,7 @@ export function Topbar({ a }: { a: A }) {
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
-      <span className="hidden items-center gap-1.5 whitespace-nowrap px-2 text-[11.5px] text-foreground/50 xl:flex">
+      <span className="hidden items-center gap-1.5 whitespace-nowrap px-2 text-[11.5px] text-foreground/50 2xl:flex">
         Argentina
       </span>
       {range && (
@@ -186,7 +182,7 @@ export function Topbar({ a }: { a: A }) {
       <nav
         ref={nav}
         className="no-scrollbar mx-1 flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [&>*:first-child]:ml-auto [&>*:last-child]:mr-auto"
-        aria-label="Modos"
+        aria-label={t("top.modes")}
       >
         {TABS.map((t) => {
           const b = badge(t.id);
@@ -209,8 +205,8 @@ export function Topbar({ a }: { a: A }) {
               {b && b.n > 0 && (
                 <span
                   className={cn(
-                    "num grid min-w-4 place-items-center rounded-full px-1 text-[9.5px] font-bold leading-4 text-white",
-                    b.tone === "fire" ? "bg-[#d8402f]" : "bg-primary",
+                    "num grid min-w-4 place-items-center rounded-full px-1 text-[9.5px] font-bold leading-4",
+                    b.tone === "fire" ? "bg-[#c8321e] text-white" : "bg-primary text-primary-foreground",
                   )}
                 >
                   {b.n}
@@ -223,22 +219,24 @@ export function Topbar({ a }: { a: A }) {
 
       <div className="hidden items-center md:flex">
         <DropdownMenu>
-          <DropdownMenuTrigger className={trigger}>
-            Vista <ChevronDown className="size-3 opacity-50" aria-hidden />
+          <DropdownMenuTrigger className={trigger} aria-label={t("top.view")}>
+            <Layers className="size-4 2xl:hidden" aria-hidden />
+            <span className="hidden 2xl:inline">{t("top.view")}</span>
+            <ChevronDown className="size-3 opacity-50" aria-hidden />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
             className="w-60 rounded-xl border-[var(--hairline)] p-1.5 shadow-[var(--shadow-2)]"
           >
             <DropdownMenuItem onSelect={() => a.setTour(true)}>
-              <Play className="size-4" /> Recorrido guiado
+              <Play className="size-4" /> {t("top.tour")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => ctx.setView("2d")}>
-              <MapIcon className="size-4" /> Mapa 2D
+              <MapIcon className="size-4" /> {t("top.map2d")}
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => ctx.setView("3d")}>
-              <Box className="size-4" /> Mapa 3D con relieve
+              <Box className="size-4" /> {t("top.map3d")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onSelect={() => {
@@ -247,14 +245,12 @@ export function Topbar({ a }: { a: A }) {
               }}
             >
               <Rotate3d className="size-4" />{" "}
-              {ctx.orbit ? "Detener órbita" : "Órbita automática"}
+              {ctx.orbit ? t("top.orbitStop") : t("top.orbitStart")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => ctx.setPanelOpen(!ctx.panelOpen)}>
               <PanelRight className="size-4" />{" "}
-              {ctx.panelOpen
-                ? "Ocultar panel lateral"
-                : "Mostrar panel lateral"}
+              {ctx.panelOpen ? t("top.panelHide") : t("top.panelShow")}
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={a.toggleTheme}>
               {a.dark ? (
@@ -262,21 +258,23 @@ export function Topbar({ a }: { a: A }) {
               ) : (
                 <Moon className="size-4" />
               )}{" "}
-              {a.dark ? "Modo claro" : "Modo oscuro"}
+              {a.dark ? t("top.themeLight") : t("top.themeDark")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
         <DropdownMenu>
-          <DropdownMenuTrigger className={trigger}>
-            Análisis <ChevronDown className="size-3 opacity-50" aria-hidden />
+          <DropdownMenuTrigger className={trigger} aria-label={t("top.analysis")}>
+            <Flame className="size-4 2xl:hidden" aria-hidden />
+            <span className="hidden 2xl:inline">{t("top.analysis")}</span>
+            <ChevronDown className="size-3 opacity-50" aria-hidden />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
             className="w-60 rounded-xl border-[var(--hairline)] p-1.5 shadow-[var(--shadow-2)]"
           >
             <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-foreground/45">
-              Propagación prevista
+              {t("top.spread")}
             </DropdownMenuLabel>
             {[0, ...HORIZONS].map((h) => (
               <DropdownMenuItem
@@ -288,42 +286,44 @@ export function Topbar({ a }: { a: A }) {
                 className={cn(ctx.predH === h && "font-medium text-primary")}
               >
                 <Flame className="size-4" />{" "}
-                {h === 0 ? "Desactivada" : `Proyección a +${h} h`}
+                {h === 0 ? t("top.spreadOff") : t("top.spreadTo", { h })}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
 
         <DropdownMenu>
-          <DropdownMenuTrigger className={trigger}>
-            Compartir <ChevronDown className="size-3 opacity-50" aria-hidden />
+          <DropdownMenuTrigger className={trigger} aria-label={t("top.share")}>
+            <Link2 className="size-4 2xl:hidden" aria-hidden />
+            <span className="hidden 2xl:inline">{t("top.share")}</span>
+            <ChevronDown className="size-3 opacity-50" aria-hidden />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
             className="w-60 rounded-xl border-[var(--hairline)] p-1.5 shadow-[var(--shadow-2)]"
           >
             <DropdownMenuItem onSelect={ctx.shareView}>
-              <Link2 className="size-4" /> Copiar enlace de esta vista
+              <Link2 className="size-4" /> {t("top.copyLink")}
             </DropdownMenuItem>
             {a.canShare && (
               <>
                 <DropdownMenuItem onSelect={a.shareReadOnly}>
-                  <Eye className="size-4" /> Enlace de solo lectura (7 días)
+                  <Eye className="size-4" /> {t("top.shareRO")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={a.revokeLinks}>
-                  <EyeOff className="size-4" /> Revocar enlaces compartidos
+                  <EyeOff className="size-4" /> {t("top.revoke")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
               </>
             )}
             <DropdownMenuItem onSelect={ctx.exportPng}>
-              <ImageIcon className="size-4" /> Exportar mapa como imagen
+              <ImageIcon className="size-4" /> {t("top.exportPng")}
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={ctx.exportReport}>
-              <FileText className="size-4" /> Reporte PDF
+              <FileText className="size-4" /> {t("top.pdf")}
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={ctx.exportCsv}>
-              <Download className="size-4" /> Focos en CSV
+              <Download className="size-4" /> {t("top.csv")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -359,11 +359,12 @@ export function Topbar({ a }: { a: A }) {
       <button
         type="button"
         onClick={() => a.setPaletteOpen(true)}
-        aria-label="Abrir paleta de comandos"
-        className="hidden h-8 items-center gap-1.5 rounded-lg border border-[var(--hairline)] bg-foreground/[0.03] pl-2 pr-1.5 text-[11.5px] text-foreground/50 transition-colors hover:bg-foreground/[0.06] lg:flex"
+        aria-label={t("top.openPalette")}
+        className="hidden h-8 items-center gap-1.5 rounded-lg border border-[var(--hairline)] bg-foreground/[0.03] px-2 text-[11.5px] text-foreground/50 transition-colors hover:bg-foreground/[0.06] lg:flex 2xl:pl-2 2xl:pr-1.5"
       >
-        <Command className="size-3" aria-hidden /> Buscar
-        <kbd className="mono rounded border border-[var(--hairline)] bg-card px-1 text-[9.5px]">
+        <Command className="size-3" aria-hidden />
+        <span className="hidden 2xl:inline">{t("top.search")}</span>
+        <kbd className="mono hidden rounded border border-[var(--hairline)] bg-card px-1 text-[9.5px] 2xl:inline">
           Ctrl K
         </kbd>
       </button>
@@ -381,17 +382,17 @@ export function Topbar({ a }: { a: A }) {
           className="max-h-[75dvh] w-64 overflow-y-auto rounded-xl border-[var(--hairline)] p-1.5 shadow-[var(--shadow-2)]"
         >
           <DropdownMenuItem onSelect={() => a.setPaletteOpen(true)}>
-            <Command className="size-4" /> Buscar y comandos
+            <Command className="size-4" /> {t("top.searchCmd")}
           </DropdownMenuItem>
           <DropdownMenuItem disabled={!ctx.canUndo} onSelect={() => ctx.undo()}>
-            <Undo2 className="size-4" /> Deshacer
+            <Undo2 className="size-4" /> {t("top.undo")}
           </DropdownMenuItem>
           <DropdownMenuItem disabled={!ctx.canRedo} onSelect={() => ctx.redo()}>
-            <Redo2 className="size-4" /> Rehacer
+            <Redo2 className="size-4" /> {t("top.redo")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-foreground/45">
-            Región
+            {t("top.region")}
           </DropdownMenuLabel>
           {REGIONS.map((r) => (
             <DropdownMenuItem
@@ -408,24 +409,24 @@ export function Topbar({ a }: { a: A }) {
           ))}
           <DropdownMenuSeparator />
           <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-foreground/45">
-            Vista
+            {t("top.view")}
           </DropdownMenuLabel>
           <DropdownMenuItem
             onSelect={() => ctx.setView(ctx.view === "3d" ? "2d" : "3d")}
           >
             <Box className="size-4" />{" "}
-            {ctx.view === "3d" ? "Mapa 2D" : "Mapa 3D con relieve"}
+            {ctx.view === "3d" ? t("top.map2d") : t("top.map3d")}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => a.setTour(true)}>
-            <Play className="size-4" /> Recorrido guiado
+            <Play className="size-4" /> {t("top.tour")}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={a.toggleTheme}>
             {a.dark ? <Sun className="size-4" /> : <Moon className="size-4" />}{" "}
-            {a.dark ? "Modo claro" : "Modo oscuro"}
+            {a.dark ? t("top.themeLight") : t("top.themeDark")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-foreground/45">
-            Propagación prevista
+            {t("top.spread")}
           </DropdownMenuLabel>
           {[0, ...HORIZONS].map((h) => (
             <DropdownMenuItem
@@ -437,26 +438,26 @@ export function Topbar({ a }: { a: A }) {
               className={cn(ctx.predH === h && "font-medium text-primary")}
             >
               <Flame className="size-4" />{" "}
-              {h === 0 ? "Desactivada" : `Proyección a +${h} h`}
+              {h === 0 ? t("top.spreadOff") : t("top.spreadTo", { h })}
             </DropdownMenuItem>
           ))}
           <DropdownMenuSeparator />
           <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-foreground/45">
-            Compartir y exportar
+            {t("top.shareExport")}
           </DropdownMenuLabel>
           <DropdownMenuItem onSelect={ctx.shareView}>
-            <Link2 className="size-4" /> Copiar enlace de esta vista
+            <Link2 className="size-4" /> {t("top.copyLink")}
           </DropdownMenuItem>
           {a.canShare && (
             <DropdownMenuItem onSelect={a.shareReadOnly}>
-              <Eye className="size-4" /> Enlace de solo lectura (7 días)
+              <Eye className="size-4" /> {t("top.shareRO")}
             </DropdownMenuItem>
           )}
           <DropdownMenuItem onSelect={ctx.exportReport}>
-            <FileText className="size-4" /> Reporte PDF
+            <FileText className="size-4" /> {t("top.pdf")}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={ctx.exportCsv}>
-            <Download className="size-4" /> Focos en CSV
+            <Download className="size-4" /> {t("top.csv")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -464,7 +465,7 @@ export function Topbar({ a }: { a: A }) {
       <DropdownMenu>
         <DropdownMenuTrigger
           className="ml-1 grid size-8 shrink-0 place-items-center rounded-full bg-primary/12 text-[12px] font-bold text-primary ring-offset-2 transition-shadow hover:ring-2 hover:ring-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:ring-2 data-[state=open]:ring-primary/30"
-          aria-label="Cuenta"
+          aria-label={t("top.account")}
         >
           {(email ?? s.org ?? "S").slice(0, 1).toUpperCase()}
         </DropdownMenuTrigger>
@@ -477,7 +478,7 @@ export function Topbar({ a }: { a: A }) {
               {s.org || "Sentinel"}
             </div>
             <div className="truncate text-[11px] text-foreground/50">
-              {email ?? "Modo demo local"}
+              {email ?? t("top.demoLocal")}
             </div>
             {a.cloud && (
               <div className="mt-1.5 flex items-center gap-1.5 text-[10.5px] text-foreground/55">
@@ -492,12 +493,12 @@ export function Topbar({ a }: { a: A }) {
                   )}
                 />
                 {a.sync === "saved"
-                  ? "Guardado en la nube"
+                  ? t("sync.savedCloud")
                   : a.sync === "error"
-                    ? "Sin conexión: guardado local"
+                    ? t("sync.errorLocal")
                     : a.sync === "conflict"
-                      ? "Cambios en conflicto"
-                      : "Sincronizando…"}
+                      ? t("sync.conflictLong")
+                      : t("sync.syncing")}
                 {a.sync === "conflict" && (
                   <>
                     <button
@@ -505,14 +506,14 @@ export function Topbar({ a }: { a: A }) {
                       onClick={() => a.resolveConflict("server")}
                       className="ml-1 rounded px-1 font-semibold text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                      Usar la nube
+                      {t("sync.useCloud")}
                     </button>
                     <button
                       type="button"
                       onClick={() => a.resolveConflict("mine")}
                       className="rounded px-1 font-semibold underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                      Mantener lo mío
+                      {t("sync.keepMine")}
                     </button>
                   </>
                 )}
@@ -522,7 +523,7 @@ export function Topbar({ a }: { a: A }) {
                     onClick={a.retrySync}
                     className="ml-1 rounded px-1 font-semibold text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    Reintentar
+                    {t("sync.retry")}
                   </button>
                 )}
               </div>
@@ -531,13 +532,16 @@ export function Topbar({ a }: { a: A }) {
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={a.toggleTheme}>
             {a.dark ? <Sun className="size-4" /> : <Moon className="size-4" />}{" "}
-            {a.dark ? "Modo claro" : "Modo oscuro"}
+            {a.dark ? t("top.themeLight") : t("top.themeDark")}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => a.goTab("config")}>
-            <Cog className="size-4" /> Configuración
+            <Cog className="size-4" /> {t("top.settings")}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => a.setPaletteOpen(true)}>
-            <Layers className="size-4" /> Atajos y comandos
+            <Layers className="size-4" /> {t("top.shortcutsCmds")}
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => a.setShortcutsOpen(true)}>
+            <Keyboard className="size-4" /> {t("top.shortcutsHelp")}
           </DropdownMenuItem>
           {a.authRequired && (
             <>
@@ -546,7 +550,7 @@ export function Topbar({ a }: { a: A }) {
                 onSelect={a.logout}
                 className="text-[#b83a3a] focus:text-[#b83a3a]"
               >
-                <LogOut className="size-4" /> Cerrar sesión
+                <LogOut className="size-4" /> {t("top.logout")}
               </DropdownMenuItem>
             </>
           )}

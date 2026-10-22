@@ -1,5 +1,7 @@
 import { describe, expect, test } from "vitest";
 import {
+  fuelFactor,
+  slopeFactor,
   spreadLevel,
   spreadPolygon,
   spreadRate,
@@ -45,5 +47,48 @@ describe("spread", () => {
     expect(ring[0][1]).toBeCloseTo(ring[48][1], 9);
     const lngs = ring.map((c) => c[0]);
     expect(Math.max(...lngs) + 71).toBeGreaterThan(-71 - Math.min(...lngs));
+  });
+});
+
+describe("terrain-aware spread", () => {
+  const grass = { landCover: 30, burnable: true, slopeDeg: 0, aspectDeg: null };
+
+  test("without terrain, or with an unknown cover, the rate is the baseline", () => {
+    expect(spreadRate({ ...bad, terrain: null })).toBe(spreadRate(bad));
+    expect(spreadRate({ ...bad, terrain: { landCover: null } })).toBe(
+      spreadRate(bad),
+    );
+    expect(spreadRate({ ...bad, terrain: grass })).toBe(spreadRate(bad));
+  });
+
+  test("fuel: grass > shrub > forest > bare ground", () => {
+    const f = (landCover: number, burnable = true) =>
+      fuelFactor({ landCover, burnable });
+    expect(f(30)).toBeGreaterThan(f(20));
+    expect(f(20)).toBeGreaterThan(f(10));
+    expect(f(10)).toBeGreaterThan(f(60, false));
+    expect(spreadRate({ ...bad, terrain: { landCover: 60, burnable: false } })).toBeLessThan(
+      spreadRate(bad) * 0.2,
+    );
+  });
+
+  test("slope: wind up the hill accelerates, down the hill slows, flat does nothing", () => {
+    // aspect 270: the ground descends to the west, so uphill is east; wind FROM the west blows east, uphill
+    const steep = { slopeDeg: 20, aspectDeg: 270 };
+    expect(slopeFactor(steep, 270)).toBeGreaterThan(3);
+    expect(slopeFactor(steep, 90)).toBe(0.5);
+    expect(slopeFactor(steep, 0)).toBeCloseTo(1, 5); // across the slope
+    expect(slopeFactor({ slopeDeg: 1, aspectDeg: null }, 270)).toBe(1);
+    expect(slopeFactor({ slopeDeg: 89, aspectDeg: 270 }, 270)).toBe(4);
+    expect(slopeFactor(steep, undefined)).toBe(1);
+  });
+
+  test("a steeper uphill slope enlarges the head of the polygon reach", () => {
+    const flat = spreadRingsKm(bad, 6).head;
+    const up = spreadRingsKm(
+      { ...bad, terrain: { ...grass, slopeDeg: 15, aspectDeg: 270 } },
+      6,
+    ).head;
+    expect(up).toBeGreaterThan(flat * 2);
   });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo, useRef } from "react";
+import { memo, useEffect, useMemo, useRef } from "react";
 import {
   Area,
   AreaChart,
@@ -22,6 +22,7 @@ import {
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { HOUR_MS, artTicks, earlyMarks } from "@/lib/admin/timeline-marks";
 import type { Ctx, HourPoint, KeyEvent } from "./ctx";
 import { IconBtn, Segmented } from "./ui";
 
@@ -34,16 +35,35 @@ const TIP = {
   color: "var(--foreground)",
   boxShadow: "var(--shadow-2)",
 };
-const HOUR = 3600_000;
+const HOUR = HOUR_MS;
+const MINOR_STEP_H = 6;
+/** more 6 h ticks than this would sit under ~6 px apart: draw only the day marks */
+const MAX_MINOR_TICKS = 60;
+/** hour labels collide with the day labels past this many ticks (about 3 days) */
+const MAX_LABELLED_TICKS = 12;
 
+// every time on screen is Argentine local time (ART), whatever the browser says
+const TZ = "America/Argentina/Buenos_Aires";
 const fmtDay = (t: number) =>
-  new Date(t).toLocaleDateString("es-AR", { day: "2-digit", month: "short" });
+  new Date(t).toLocaleDateString("es-AR", {
+    day: "2-digit",
+    month: "short",
+    timeZone: TZ,
+  });
 const fmtFull = (t: number) =>
   new Date(t).toLocaleString("es-AR", {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: TZ,
+  });
+const fmtHour = (t: number) =>
+  new Date(t).toLocaleTimeString("es-AR", {
+    hour: "2-digit",
+    hourCycle: "h23",
+    timeZone: TZ,
   });
 
 const EVENT_ICON = {
@@ -66,12 +86,20 @@ function Scrubber({ ctx }: { ctx: Ctx }) {
   const { range, cursor, events } = ctx;
   const track = useRef<HTMLDivElement>(null);
   const span = range.t1 - range.t0;
-  const at = (t: number) => ((t - range.t0) / span) * 100;
-  const days = useMemo(() => {
-    const out: number[] = [];
-    for (let t = range.t0; t <= range.t1; t += 24 * HOUR) out.push(t);
-    return out;
-  }, [range]);
+  // 0.1% steps: the server and the browser render a few seconds apart, and the range ends at the clock
+  const at = (t: number) => Math.round(((t - range.t0) / span) * 1000) / 10;
+  const days = useMemo(() => artTicks(range.t0, range.t1, 24 * HOUR), [range]);
+  const minor = useMemo(() => {
+    const all = artTicks(range.t0, range.t1, MINOR_STEP_H * HOUR);
+    const dayTicks = new Set(days);
+    return all.length > MAX_MINOR_TICKS
+      ? []
+      : all.filter((t) => !dayTicks.has(t));
+  }, [range, days]);
+  const marks = useMemo(
+    () => earlyMarks(ctx.early, range.t0, range.t1),
+    [ctx.early, range],
+  );
 
   const seek = (clientX: number) => {
     const r = track.current?.getBoundingClientRect();
@@ -93,7 +121,7 @@ function Scrubber({ ctx }: { ctx: Ctx }) {
         aria-valuemin={range.t0}
         aria-valuemax={range.t1}
         aria-valuenow={head}
-        aria-valuetext={fmtFull(head)}
+        aria-valuetext={`${fmtFull(head)} hs (hora de Argentina)`}
         onPointerDown={(e) => {
           e.currentTarget.setPointerCapture(e.pointerId);
           seek(e.clientX);
@@ -107,6 +135,8 @@ function Scrubber({ ctx }: { ctx: Ctx }) {
             ctx.setCursor(Math.max(range.t0, head - step));
           if (e.key === "Home") ctx.setCursor(range.t0);
           if (e.key === "End") ctx.setCursor(null);
+          if (e.key.startsWith("Arrow") || e.key === "Home" || e.key === "End")
+            e.preventDefault();
         }}
         className="relative h-6 cursor-ew-resize rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
@@ -115,6 +145,43 @@ function Scrubber({ ctx }: { ctx: Ctx }) {
           className="absolute left-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-[var(--fire)]/70"
           style={{ width: `${at(head)}%` }}
         />
+        {minor.map((t) => (
+          <div
+            key={t}
+            className="absolute top-1/2 -translate-x-1/2"
+            style={{ left: `${at(t)}%` }}
+            aria-hidden
+          >
+            <div className="h-1 w-px -translate-y-1/2 bg-foreground/15" />
+            <span
+              className="num absolute left-1/2 top-2 -translate-x-1/2 text-[8px] text-foreground/30 max-sm:hidden"
+              hidden={minor.length > MAX_LABELLED_TICKS}
+            >
+              {fmtHour(t)}
+            </span>
+          </div>
+        ))}
+        {marks.map((m) => (
+          <button
+            key={m.id}
+            type="button"
+            tabIndex={-1}
+            title={`${m.kind === "first" ? "Alerta temprana detectada" : "Alerta confirmada por satélite polar"} · ${fmtFull(m.t)} hs`}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => {
+              ctx.setPlaying(false);
+              ctx.setCursor(m.t);
+              ctx.map.current?.flyTo(m.at, 11);
+            }}
+            className={cn(
+              "absolute -top-2.5 z-10 size-2 -translate-x-1/2 rotate-45 border transition-transform hover:scale-150 max-sm:size-2.5",
+              m.kind === "first"
+                ? "border-[#0b1f26] bg-[#22d3ee]"
+                : "border-[#22d3ee] bg-[#0b1f26]",
+            )}
+            style={{ left: `${at(m.t)}%` }}
+          />
+        ))}
         {days.map((t) => (
           <div
             key={t}
@@ -144,8 +211,14 @@ function Scrubber({ ctx }: { ctx: Ctx }) {
           style={{ left: `${at(head)}%` }}
         >
           <div className="size-3.5 rounded-full border-2 border-card bg-[var(--fire)] shadow-md" />
-          <div className="num absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-1.5 py-0.5 text-[10px] font-medium text-background">
-            {cursor === null ? "En vivo" : fmtFull(cursor)}
+          <div
+            className="num absolute -top-6 left-1/2 whitespace-nowrap rounded-md bg-foreground px-1.5 py-0.5 text-[10px] font-medium text-background"
+            // keep the bubble inside the track at both ends (390 px screens clipped it)
+            style={{
+              transform: `translateX(${at(head) > 85 ? "-88%" : at(head) < 15 ? "-12%" : "-50%"})`,
+            }}
+          >
+            {cursor === null ? "En vivo" : `${fmtFull(cursor)} hs`}
           </div>
         </div>
       </div>
@@ -293,9 +366,57 @@ function EventsList({ ctx }: { ctx: Ctx }) {
   );
 }
 
+/** True when the key press belongs to something else: a field, a button, a dialog or the map canvas arrows. */
+const isForeignTarget = (el: EventTarget | null, key: string) => {
+  if (!(el instanceof HTMLElement)) return false;
+  if (
+    el.isContentEditable ||
+    el.closest(
+      "input,textarea,select,[role=dialog],[role=menu],[role=listbox],button,a,[role=slider]",
+    )
+  )
+    return true;
+  // arrows pan the focused map; only Space is shared with it
+  return key !== " " && el.tagName === "CANVAS";
+};
+
+/** Space plays / pauses, arrows move the cursor 1 h (Shift: 6 h) while nothing else owns the key. */
+function useTimelineKeys(ctx: Ctx) {
+  const ref = useRef(ctx);
+  useEffect(() => {
+    ref.current = ctx;
+  });
+  useEffect(() => {
+    const on = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key !== " " && e.key !== "ArrowLeft" && e.key !== "ArrowRight")
+        return;
+      if (isForeignTarget(e.target, e.key)) return;
+      const c = ref.current;
+      e.preventDefault();
+      if (e.key === " ") {
+        if (!c.playing && c.cursor === null) c.setCursor(c.range.t0);
+        c.setPlaying(!c.playing);
+        return;
+      }
+      const d = (e.shiftKey ? 6 : 1) * HOUR * (e.key === "ArrowRight" ? 1 : -1);
+      c.setPlaying(false);
+      c.setCursor(
+        Math.min(
+          c.range.t1,
+          Math.max(c.range.t0, (c.cursor ?? c.range.t1) + d),
+        ),
+      );
+    };
+    window.addEventListener("keydown", on);
+    return () => window.removeEventListener("keydown", on);
+  }, []);
+}
+
 export function TimelineDock({ ctx }: { ctx: Ctx }) {
   const { series, cursor, range } = ctx;
   const live = cursor === null;
+  useTimelineKeys(ctx);
   const step = (dir: 1 | -1) =>
     ctx.setCursor(
       Math.min(
@@ -311,6 +432,9 @@ export function TimelineDock({ ctx }: { ctx: Ctx }) {
       <div className="flex flex-wrap items-center gap-1 border-b border-[var(--hairline)] pl-2 pr-1 sm:flex-nowrap">
         <h2 className="mr-2 hidden text-[10px] font-semibold uppercase tracking-[0.1em] text-foreground/50 sm:block">
           Línea de tiempo
+          <span className="ml-1 font-normal normal-case tracking-normal text-foreground/35">
+            (hora ART)
+          </span>
         </h2>
         <IconBtn aria-label="Retroceder 6 horas" onClick={() => step(-1)}>
           <SkipBack className="size-3.5" />
@@ -363,6 +487,9 @@ export function TimelineDock({ ctx }: { ctx: Ctx }) {
           />
           En vivo
         </button>
+        <span className="mr-2 hidden text-[10px] text-foreground/35 xl:inline">
+          Espacio ▶/❚❚ · ←/→ 1 h
+        </span>
       </div>
       <div className="grid h-[132px] grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_270px]">
         <MiniChart

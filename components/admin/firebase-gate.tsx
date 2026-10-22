@@ -12,20 +12,21 @@ import { LoginShell } from "./login-shell";
 import { fb } from "@/lib/admin/firebase";
 import { AdminApp, type CloudSession } from "./admin-app";
 import { Btn, inputCls } from "./ui";
+import { useStoredT } from "./use-stored-t";
+import type { MsgKey, Translate } from "@/lib/admin/i18n";
 
-const MESSAGES: Record<string, string> = {
-  "auth/invalid-credential": "Email o contraseña incorrectos.",
-  "auth/invalid-email": "El email no es válido.",
-  "auth/user-disabled":
-    "Esta cuenta está deshabilitada. Escribinos a sentinelproyecto@gmail.com.",
-  "auth/too-many-requests": "Demasiados intentos. Esperá unos minutos.",
-  "auth/network-request-failed": "Sin conexión. Revisá tu internet.",
+const ERR_KEYS: Record<string, MsgKey> = {
+  "auth/invalid-credential": "auth.invalid-credential",
+  "auth/invalid-email": "auth.invalid-email",
+  "auth/user-disabled": "auth.user-disabled",
+  "auth/too-many-requests": "auth.too-many-requests",
+  "auth/network-request-failed": "auth.network-request-failed",
 };
-const errMsg = (e: unknown) =>
-  MESSAGES[(e as { code?: string })?.code ?? ""] ??
-  "No se pudo iniciar sesión.";
+const errMsg = (e: unknown, t: Translate) =>
+  t(ERR_KEYS[(e as { code?: string })?.code ?? ""] ?? "auth.generic");
 
 function CloudLogin() {
+  const { t } = useStoredT();
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [msg, setMsg] = useState<{ text: string; ok?: boolean } | null>(null);
@@ -38,7 +39,7 @@ function CloudLogin() {
     try {
       await signInWithEmailAndPassword(fb().auth, email.trim(), pw);
     } catch (err) {
-      setMsg({ text: errMsg(err) });
+      setMsg({ text: errMsg(err, t) });
       setBusy(false);
     }
   };
@@ -46,7 +47,7 @@ function CloudLogin() {
   const reset = async () => {
     if (!email.trim())
       return setMsg({
-        text: "Escribí tu email y volvé a tocar “Olvidé mi contraseña”.",
+        text: t("login.needEmail"),
       });
     try {
       await sendPasswordResetEmail(fb().auth, email.trim());
@@ -55,20 +56,21 @@ function CloudLogin() {
     }
     setMsg({
       ok: true,
-      text: "Si el email tiene una cuenta, te enviamos un enlace para restablecer la contraseña.",
+      text: t("login.resetSent"),
     });
   };
 
   return (
     <LoginShell
-      subtitle="Ingresá con la cuenta de tu organización."
+      t={t}
+      subtitle={t("login.subCloud")}
       onSubmit={submit}
     >
         <label
           htmlFor="em"
           className="mb-1 block text-[12px] font-medium text-foreground/70"
         >
-          Email
+          {t("login.email")}
         </label>
         <input
           id="em"
@@ -83,7 +85,7 @@ function CloudLogin() {
           htmlFor="pw"
           className="mb-1 mt-3 block text-[12px] font-medium text-foreground/70"
         >
-          Contraseña
+          {t("login.password")}
         </label>
         <input
           id="pw"
@@ -107,20 +109,21 @@ function CloudLogin() {
           className="mt-4 h-10 w-full"
           disabled={busy || !email || !pw}
         >
-          {busy ? "Ingresando…" : "Ingresar"}
+          {busy ? t("login.busy") : t("login.submit")}
         </Btn>
         <button
           type="button"
           onClick={reset}
           className="mt-3 w-full text-center text-[12px] text-foreground/55 underline-offset-2 hover:underline"
         >
-          Olvidé mi contraseña
+          {t("login.forgot")}
         </button>
     </LoginShell>
   );
 }
 
 export function FirebaseGate() {
+  const { t } = useStoredT();
   const [user, setUser] = useState<User | null | undefined>(undefined);
   useEffect(() => onAuthStateChanged(fb().auth, setUser), []);
 
@@ -140,7 +143,7 @@ export function FirebaseGate() {
   if (user === undefined) {
     return (
       <main className="grid min-h-dvh place-items-center bg-[#faf7f0] text-sm text-black/50">
-        Cargando…
+        {t("login.loading")}
       </main>
     );
   }

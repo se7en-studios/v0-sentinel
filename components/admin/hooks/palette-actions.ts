@@ -1,15 +1,12 @@
 import { REGIONS, type BaseLayer, type Settings } from "@/lib/admin/types";
+import type { Translate } from "@/lib/admin/i18n";
 import type { RefObject } from "react";
 import { TABS } from "../tabs";
 import type { Tab } from "../ctx";
 import type { MapHandle } from "../map-view";
 import type { PaletteAction } from "../command-palette";
 
-const BASES: { id: BaseLayer; label: string }[] = [
-  { id: "esri", label: "Satélite HD" },
-  { id: "s2", label: "Sentinel-2" },
-  { id: "viirs", label: "VIIRS ayer" },
-];
+const BASES = ["esri", "s2", "viirs"] as const satisfies readonly BaseLayer[];
 
 interface Deps {
   goTab: (t: Tab) => void;
@@ -30,34 +27,39 @@ interface Deps {
   exportReport: () => void;
   load: () => void;
   loadDemo: () => void;
+  t: Translate;
+  openShortcuts: () => void;
 }
 
-/** Entries of the Ctrl+K command palette. */
+/** Entries of the Ctrl+K command palette, in the interface language. */
 export function buildPaletteActions(d: Deps): PaletteAction[] {
+  const { t } = d;
+  const g = {
+    goto: t("pal.g.goto"),
+    view: t("pal.g.view"),
+    base: t("pal.g.base"),
+    fly: t("pal.g.fly"),
+    analysis: t("pal.g.analysis"),
+    edit: t("pal.g.edit"),
+    share: t("pal.g.share"),
+    reports: t("pal.g.reports"),
+    data: t("pal.g.data"),
+    help: t("pal.g.help"),
+  };
   return [
-    ...TABS.map((t) => ({
-      id: `tab-${t.id}`,
-      group: "Ir a",
-      label: t.label,
-      run: () => d.goTab(t.id),
+    ...TABS.map((tab) => ({
+      id: `tab-${tab.id}`,
+      group: g.goto,
+      label: t(`tab.${tab.id}`),
+      run: () => d.goTab(tab.id),
     })),
-    {
-      id: "tour",
-      group: "Vista",
-      label: "Recorrido guiado",
-      run: () => d.setTour(true),
-    },
-    { id: "v2", group: "Vista", label: "Mapa 2D", run: () => d.setView("2d") },
-    {
-      id: "v3",
-      group: "Vista",
-      label: "Mapa 3D con relieve",
-      run: () => d.setView("3d"),
-    },
+    { id: "tour", group: g.view, label: t("top.tour"), run: () => d.setTour(true) },
+    { id: "v2", group: g.view, label: t("top.map2d"), run: () => d.setView("2d") },
+    { id: "v3", group: g.view, label: t("top.map3d"), run: () => d.setView("3d") },
     {
       id: "orbit",
-      group: "Vista",
-      label: "Órbita automática",
+      group: g.view,
+      label: t("top.orbitStart"),
       run: () => {
         d.setView("3d");
         d.setOrbit((o) => !o);
@@ -65,25 +67,25 @@ export function buildPaletteActions(d: Deps): PaletteAction[] {
     },
     {
       id: "panel",
-      group: "Vista",
-      label: "Mostrar u ocultar panel lateral",
+      group: g.view,
+      label: t("pal.panelToggle"),
       run: () => d.setPanelOpen((o) => !o),
     },
     {
       id: "theme",
-      group: "Vista",
-      label: d.dark ? "Modo claro" : "Modo oscuro",
+      group: g.view,
+      label: d.dark ? t("top.themeLight") : t("top.themeDark"),
       run: d.toggleTheme,
     },
     ...BASES.map((b) => ({
-      id: `b-${b.id}`,
-      group: "Capa base",
-      label: b.label,
-      run: () => d.setSettings({ baseLayer: b.id }),
+      id: `b-${b}`,
+      group: g.base,
+      label: t(`pal.base.${b}`),
+      run: () => d.setSettings({ baseLayer: b }),
     })),
     ...REGIONS.map((r) => ({
       id: `r-${r.id}`,
-      group: "Volar a",
+      group: g.fly,
       label: r.name,
       run: () => {
         d.goTab("general");
@@ -93,68 +95,28 @@ export function buildPaletteActions(d: Deps): PaletteAction[] {
     })),
     {
       id: "p12",
-      group: "Análisis",
-      label: "Predicción de propagación +12 h",
+      group: g.analysis,
+      label: t("pal.spread12"),
       run: () => {
         d.goTab("general");
         d.setPredH(12);
       },
     },
+    { id: "p0", group: g.analysis, label: t("pal.spreadOff"), run: () => d.setPredH(0) },
+    { id: "undo", group: g.edit, label: t("top.undo"), hint: "Ctrl Z", run: () => d.undo() },
+    { id: "redo", group: g.edit, label: t("top.redo"), hint: "Ctrl Shift Z", run: () => d.redo() },
+    { id: "share", group: g.share, label: t("top.copyLink"), run: d.shareView },
+    { id: "png", group: g.reports, label: t("top.exportPng"), run: d.exportPng },
+    { id: "csv", group: g.reports, label: t("pal.csv"), run: d.exportCsv },
+    { id: "pdf", group: g.reports, label: t("pal.pdf"), run: d.exportReport },
+    { id: "reload", group: g.data, label: t("pal.reload"), run: d.load },
+    { id: "demo", group: g.data, label: t("pal.demo"), run: d.loadDemo },
     {
-      id: "p0",
-      group: "Análisis",
-      label: "Apagar predicción",
-      run: () => d.setPredH(0),
-    },
-    {
-      id: "undo",
-      group: "Edición",
-      label: "Deshacer",
-      hint: "Ctrl Z",
-      run: () => d.undo(),
-    },
-    {
-      id: "redo",
-      group: "Edición",
-      label: "Rehacer",
-      hint: "Ctrl Shift Z",
-      run: () => d.redo(),
-    },
-    {
-      id: "share",
-      group: "Compartir",
-      label: "Copiar enlace de esta vista",
-      run: d.shareView,
-    },
-    {
-      id: "png",
-      group: "Reportes",
-      label: "Exportar mapa como imagen",
-      run: d.exportPng,
-    },
-    {
-      id: "csv",
-      group: "Reportes",
-      label: "Descargar focos (CSV)",
-      run: d.exportCsv,
-    },
-    {
-      id: "pdf",
-      group: "Reportes",
-      label: "Generar reporte PDF",
-      run: d.exportReport,
-    },
-    {
-      id: "reload",
-      group: "Datos",
-      label: "Actualizar datos satelitales",
-      run: d.load,
-    },
-    {
-      id: "demo",
-      group: "Datos",
-      label: "Cargar zonas, rutas y sensores demo",
-      run: d.loadDemo,
+      id: "keys",
+      group: g.help,
+      label: t("keys.title"),
+      hint: "?",
+      run: d.openShortcuts,
     },
   ];
 }

@@ -22,6 +22,8 @@ import {
 } from "./ui";
 
 const MAX_ZONES = 8;
+/** FWI from which the day is flagged as dangerous (Muy alto) */
+const FWI_HIGH = 20;
 const REGION_ROW = "__region";
 
 interface Row {
@@ -141,7 +143,7 @@ export function ForecastView({ ctx }: { ctx: Ctx }) {
               <Stat
                 label="Hoy"
                 value={region[0].label}
-                sub={`índice ${region[0].score}/100`}
+                sub={`índice ${region[0].score}/100${region[0].fwi === undefined ? "" : ` · FWI ${Math.round(region[0].fwi)} ${region[0].fwiLabel?.toLowerCase()}`}`}
                 tone={region[0].score >= 55 ? "fire" : "ok"}
               />
             </Card>
@@ -261,7 +263,8 @@ export function ForecastView({ ctx }: { ctx: Ctx }) {
                 </span>
               ))}
               <span className="ml-auto">
-                Indicador de referencia, no es el FWI oficial.
+                El índice 0-100 es un indicador propio. El FWI sigue el método
+                canadiense con datos de Open-Meteo: aproximado, no oficial.
               </span>
             </div>
           </Card>
@@ -295,6 +298,20 @@ export function ForecastView({ ctx }: { ctx: Ctx }) {
                   </KV>
                 </div>
               </dl>
+              {day.fwi !== undefined && (
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-[var(--hairline)] pt-2 text-[12.5px]">
+                  <span className="text-foreground/65">
+                    Índice canadiense (FWI)
+                  </span>
+                  <span className="num font-semibold">{day.fwi.toFixed(1)}</span>
+                  <Badge tone={day.fwi >= FWI_HIGH ? "fire" : "ok"}>
+                    {day.fwiLabel}
+                  </Badge>
+                  <span className="text-[11px] text-foreground/50">
+                    Bajo &lt; 5 · Moderado &lt; 10 · Alto &lt; 20 · Muy alto &lt; 30 · Extremo
+                  </span>
+                </div>
+              )}
             </Card>
           )}
         </>

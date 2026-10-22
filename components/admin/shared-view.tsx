@@ -8,6 +8,9 @@ import { loadShare, type LoadedShare } from "@/lib/admin/share";
 import { areaHa } from "@/lib/admin/geo";
 import { DEFAULT_SETTINGS, MODE_ROLE } from "@/lib/admin/types";
 import type { ShowLayers } from "./map-view";
+import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
+import type { Locale } from "@/lib/admin/i18n";
+import { useStoredT } from "./use-stored-t";
 
 const MapView = dynamic(() => import("./map-view").then((m) => m.MapView), {
   ssr: false,
@@ -33,9 +36,9 @@ const SHOW: ShowLayers = {
   buildings: true,
 };
 const NOOP = () => {};
-const fmt = (n: number) => n.toLocaleString("es-AR");
-const day = (t: number) =>
-  new Date(t).toLocaleDateString("es-AR", { day: "numeric", month: "long" });
+const fmt = (n: number, loc: Locale) => n.toLocaleString(NUM_LOCALE[loc]);
+const day = (ms: number, loc: Locale) =>
+  new Date(ms).toLocaleDateString(NUM_LOCALE[loc], { day: "numeric", month: "long" });
 
 type State = { s: "loading" } | { s: "gone" } | { s: "ok"; share: LoadedShare };
 
@@ -52,6 +55,7 @@ function Notice({ title, text }: { title: string; text: string }) {
 
 /** Public, read-only page for a share link. Shows a frozen snapshot, never live data. */
 export function SharedView({ token }: { token: string }) {
+  const { t, locale } = useStoredT();
   const [st, setSt] = useState<State>({ s: "loading" });
   const [view, setView] = useState<"2d" | "3d">("2d");
 
@@ -82,25 +86,25 @@ export function SharedView({ token }: { token: string }) {
     return {
       zones: zones.map((z) => ({
         id: z.id as string,
-        name: share.meta[z.id as string]?.name ?? "Zona",
+        name: share.meta[z.id as string]?.name ?? t("share.zoneDefault"),
         ha: areaHa(z),
       })),
       frp,
       totalHa: zones.reduce((a, z) => a + areaHa(z), 0),
     };
-  }, [share]);
+  }, [share, t]);
 
   if (st.s === "loading")
     return (
       <main className="grid min-h-dvh place-items-center bg-[#faf7f0] text-[13px] text-[#1a1812]/60">
-        Cargando vista compartida…
+        {t("share.loading")}
       </main>
     );
   if (!share || !stats)
     return (
       <Notice
-        title="Enlace no disponible"
-        text="Este enlace venció, fue revocado o no existe. Pedile uno nuevo a quien te lo compartió."
+        title={t("share.goneTitle")}
+        text={t("share.goneText")}
       />
     );
 
@@ -112,10 +116,10 @@ export function SharedView({ token }: { token: string }) {
         </span>
         <span className="truncate text-[12.5px] font-medium">{share.org}</span>
         <span className="rounded-md bg-foreground/[0.07] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-foreground/60">
-          Solo lectura
+          {t("share.readOnly")}
         </span>
         <span className="ml-auto hidden text-[11px] text-foreground/50 sm:block">
-          Foto del {day(share.createdAt)} · vence el {day(share.expiresAt)}
+          {t("share.snapshot", { from: day(share.createdAt, locale), to: day(share.expiresAt, locale) })}
         </span>
       </header>
       <main className="flex min-h-0 flex-1 flex-col lg:flex-row">
@@ -151,7 +155,7 @@ export function SharedView({ token }: { token: string }) {
           <div
             className="glass absolute left-3 top-3 z-10 flex rounded-xl border border-[var(--hairline)] p-0.5 text-[12px] font-medium shadow-[var(--shadow-1)]"
             role="group"
-            aria-label="Vista del mapa"
+            aria-label={t("share.mapView")}
           >
             {(["2d", "3d"] as const).map((v) => (
               <button
@@ -172,14 +176,14 @@ export function SharedView({ token }: { token: string }) {
           </div>
         </div>
         <aside
-          aria-label="Resumen"
+          aria-label={t("share.summary")}
           className="w-full shrink-0 overflow-y-auto border-t border-[var(--hairline)] bg-card p-4 lg:w-80 lg:border-l lg:border-t-0"
         >
           <dl className="grid grid-cols-3 gap-3">
             {[
-              ["Focos", fmt(share.fires.length)],
-              ["FRP medio", `${stats.frp} MW`],
-              ["Zonas", fmt(stats.zones.length)],
+              [t("share.fires"), fmt(share.fires.length, locale)],
+              [t("share.frp"), `${stats.frp} MW`],
+              [t("share.zones"), fmt(stats.zones.length, locale)],
             ].map(([k, v]) => (
               <div key={k}>
                 <dt className="text-[10px] font-semibold uppercase tracking-[0.1em] text-foreground/45">
@@ -190,7 +194,7 @@ export function SharedView({ token }: { token: string }) {
             ))}
           </dl>
           <h2 className="mb-1 mt-5 text-[10px] font-semibold uppercase tracking-[0.1em] text-foreground/45">
-            Zonas vigiladas · {fmt(Math.round(stats.totalHa))} ha
+            {t("share.zonesWatched", { ha: fmt(Math.round(stats.totalHa), locale) })}
           </h2>
           <ul>
             {stats.zones.map((z) => (
@@ -200,19 +204,18 @@ export function SharedView({ token }: { token: string }) {
               >
                 <span className="truncate">{z.name}</span>
                 <span className="num shrink-0 text-foreground/55">
-                  {fmt(Math.round(z.ha))} ha
+                  {fmt(Math.round(z.ha), locale)} ha
                 </span>
               </li>
             ))}
             {stats.zones.length === 0 && (
               <li className="py-2 text-[12px] text-foreground/45">
-                Sin zonas en esta vista.
+                {t("share.noZones")}
               </li>
             )}
           </ul>
           <p className="mt-5 text-[10.5px] leading-snug text-foreground/45">
-            Imagen fija del momento en que se compartió: no se actualiza.
-            Detecciones térmicas: NASA FIRMS (VIIRS). Sentinel Cloud.
+            {t("share.note")}
           </p>
         </aside>
       </main>

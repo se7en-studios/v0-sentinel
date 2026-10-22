@@ -197,7 +197,8 @@ test("cambiar el idioma traduce las pestañas y la franja de estado", async ({
   await page.goto("/admin");
   await tab(page, "Configuración").click();
   await page.getByLabel("Idioma").selectOption("en");
-  const nav = page.getByRole("navigation", { name: "Modos" });
+  // the landmark label is translated too (Modos / Modes)
+  const nav = page.getByRole("navigation", { name: /^(Modos|Modes)$/ });
   await expect(nav.getByRole("button", { name: "Settings" })).toBeVisible();
   await expect(nav.getByRole("button", { name: "Zones" })).toBeVisible();
   await expect(page.getByText("Risk today")).toBeVisible();

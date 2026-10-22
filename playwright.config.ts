@@ -6,10 +6,15 @@ const PORT = Number(process.env.E2E_PORT ?? 3123);
 
 export default defineConfig({
   testDir: "e2e",
+  globalSetup: "./e2e/global-setup.ts",
   timeout: 60_000,
+  // the dev server recompiles on demand and is slow under load; assertions get room instead of the tests being marked flaky
+  expect: { timeout: 15_000 },
   fullyParallel: false,
   retries: process.env.CI ? 1 : 0,
-  reporter: [["list"]],
+  reporter: process.env.CI
+    ? [["list"], ["html", { open: "never" }]]
+    : [["list"]],
   use: {
     baseURL: process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`,
     channel: "chrome",

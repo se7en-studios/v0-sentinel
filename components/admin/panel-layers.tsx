@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { OpacityKey } from "@/lib/admin/types";
 import type { ShowLayers } from "./map-view";
@@ -105,14 +106,26 @@ const T = {
   names: "linear-gradient(135deg,#f3efe4,#d9d3c3)",
 };
 
+type Row = Omit<RowProps, "slider"> & {
+  slider?: RowProps["slider"];
+  key: string;
+};
+type Section = { title?: string; rows: Row[] };
+
+const norm = (t: string) =>
+  t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
 export function LayersPanel({ ctx }: { ctx: Ctx }) {
   const { ws, show, setShow, setSettings } = ctx;
   const o = ws.settings.opacity;
+  const [q, setQ] = useState("");
   const lastOpacity = useRef<Partial<Record<OpacityKey, number>>>({});
   // off remembers the current value; on brings it back instead of the default
   const toggleOpacity = (k: OpacityKey, dflt: number) => (v: boolean) => {
     if (!v && o[k] > 0) lastOpacity.current[k] = o[k];
-    setSettings({ opacity: { ...o, [k]: v ? (lastOpacity.current[k] ?? dflt) : 0 } });
+    setSettings({
+      opacity: { ...o, [k]: v ? (lastOpacity.current[k] ?? dflt) : 0 },
+    });
   };
   const op = (k: OpacityKey) => ({
     value: o[k],
@@ -121,140 +134,176 @@ export function LayersPanel({ ctx }: { ctx: Ctx }) {
   const tog = (k: keyof ShowLayers) => (v: boolean) =>
     setShow({ ...show, [k]: v });
   const d3 = ctx.view === "3d";
+  const r = (
+    key: string,
+    label: string,
+    thumb: string,
+    checked: boolean,
+    onCheck: (v: boolean) => void,
+    extra: Partial<Row> = {},
+  ): Row => ({ key, label, thumb, checked, onCheck, ...extra });
 
-  return (
-    <div>
-      <div className="px-4 pb-1 pt-3.5">
-        <ul>
-          {/* Relieve y base */}
-          <LayerRow
-            label="Terreno 3D"
-            thumb={T.terrain}
-            checked={d3}
-            onCheck={(v) => ctx.setView(v ? "3d" : "2d")}
-            slider={{
+  const sections: Section[] = [
+    {
+      rows: [
+        r(
+          "t3d",
+          "Terreno 3D",
+          T.terrain,
+          d3,
+          (v) => ctx.setView(v ? "3d" : "2d"),
+          {
+            slider: {
               value: ws.settings.exaggeration,
               onChange: (v) => setSettings({ exaggeration: v }),
               min: 1,
               max: 3.5,
               step: 0.1,
               format: (v) => `${v.toFixed(1)}×`,
-            }}
+            },
+          },
+        ),
+        r(
+          "img",
+          "Imagen satelital",
+          T.imagery,
+          o.imagery > 0,
+          toggleOpacity("imagery", 1),
+          { slider: op("imagery") },
+        ),
+        r(
+          "rel",
+          "Relieve sombreado",
+          T.hill,
+          o.relief > 0,
+          toggleOpacity("relief", 0.6),
+          { slider: op("relief") },
+        ),
+        r(
+          "tint",
+          "Hipsometría",
+          T.tint,
+          o.tint > 0,
+          toggleOpacity("tint", 0.3),
+          { slider: { ...op("tint"), max: 0.8 } },
+        ),
+        r("forest", "Bosque en volumen", T.forest, show.forest, tog("forest"), {
+          disabled: !d3,
+        }),
+        r("bld", "Edificios 3D", T.buildings, show.buildings, tog("buildings")),
+      ],
+    },
+    {
+      title: "Detección",
+      rows: [
+        r("fires", "Anomalías térmicas", T.fires, show.fires, tog("fires"), {
+          slider: op("fires"),
+          badge: "NASA",
+        }),
+        r("early", "Alerta temprana", T.early, show.early, tog("early"), {
+          badge: "GOES",
+        }),
+        r("heat", "Mapa de calor", T.heat, show.heat, tog("heat")),
+        r(
+          "spread",
+          "Propagación prevista",
+          T.spread,
+          show.spread,
+          tog("spread"),
+          { slider: op("spread"), badge: "demo" },
+        ),
+      ],
+    },
+    {
+      title: "Operación",
+      rows: [
+        r("zones", "Zonas monitoreadas", T.zones, show.zones, tog("zones"), {
+          slider: op("zones"),
+        }),
+        r("lines", "Líneas y cortafuegos", T.lines, show.lines, tog("lines")),
+        r("routes", "Rutas de drones", T.routes, show.routes, tog("routes"), {
+          slider: op("routes"),
+        }),
+        r("drones", "Drones", T.drones, show.drones, tog("drones"), {
+          badge: "sim",
+        }),
+        r("sensors", "Sensores", T.sensors, show.sensors, tog("sensors"), {
+          badge: "sim",
+        }),
+      ],
+    },
+    {
+      title: "Mapa",
+      rows: [
+        r("names", "Nombres y cotas", T.names, show.names, tog("names"), {
+          slider: op("labels"),
+        }),
+      ],
+    },
+  ];
+  const needle = norm(q.trim());
+  const visible = sections
+    .map((sec) => ({
+      ...sec,
+      rows: sec.rows.filter((x) => !needle || norm(x.label).includes(needle)),
+    }))
+    .filter((sec) => sec.rows.length > 0);
+
+  return (
+    <div>
+      <div className="px-4 pb-1 pt-3.5">
+        <label className="relative mb-2 block">
+          <span className="sr-only">Buscar capa</span>
+          <Search
+            className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-foreground/40"
+            aria-hidden
           />
-          <LayerRow
-            label="Imagen satelital"
-            thumb={T.imagery}
-            checked={o.imagery > 0}
-            onCheck={toggleOpacity("imagery", 1)}
-            slider={op("imagery")}
+          <input
+            type="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => e.key === "Escape" && setQ("")}
+            placeholder="Buscar capa…"
+            className="h-8 w-full rounded-lg border border-[var(--hairline)] bg-transparent pl-7 pr-7 text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
-          <LayerRow
-            label="Relieve sombreado"
-            thumb={T.hill}
-            checked={o.relief > 0}
-            onCheck={toggleOpacity("relief", 0.6)}
-            slider={op("relief")}
-          />
-          <LayerRow
-            label="Hipsometría"
-            thumb={T.tint}
-            checked={o.tint > 0}
-            onCheck={toggleOpacity("tint", 0.3)}
-            slider={{ ...op("tint"), max: 0.8 }}
-          />
-          <LayerRow
-            label="Bosque en volumen"
-            thumb={T.forest}
-            checked={show.forest}
-            onCheck={tog("forest")}
-            disabled={!d3}
-          />
-          <LayerRow
-            label="Edificios 3D"
-            thumb={T.buildings}
-            checked={show.buildings}
-            onCheck={tog("buildings")}
-          />
-        </ul>
-        <h4 className="mb-0.5 mt-3 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-foreground/40">Detección</h4>
-        <ul>
-          <LayerRow
-            label="Anomalías térmicas"
-            thumb={T.fires}
-            checked={show.fires}
-            onCheck={tog("fires")}
-            slider={op("fires")}
-            badge="NASA"
-          />
-          <LayerRow
-            label="Alerta temprana"
-            thumb={T.early}
-            checked={show.early}
-            onCheck={tog("early")}
-            badge="GOES"
-          />
-          <LayerRow
-            label="Mapa de calor"
-            thumb={T.heat}
-            checked={show.heat}
-            onCheck={tog("heat")}
-          />
-          <LayerRow
-            label="Propagación prevista"
-            thumb={T.spread}
-            checked={show.spread}
-            onCheck={tog("spread")}
-            slider={op("spread")}
-            badge="demo"
-          />
-        </ul>
-        <h4 className="mb-0.5 mt-3 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-foreground/40">Operación</h4>
-        <ul>
-          <LayerRow
-            label="Zonas monitoreadas"
-            thumb={T.zones}
-            checked={show.zones}
-            onCheck={tog("zones")}
-            slider={op("zones")}
-          />
-          <LayerRow
-            label="Líneas y cortafuegos"
-            thumb={T.lines}
-            checked={show.lines}
-            onCheck={tog("lines")}
-          />
-          <LayerRow
-            label="Rutas de drones"
-            thumb={T.routes}
-            checked={show.routes}
-            onCheck={tog("routes")}
-            slider={op("routes")}
-          />
-          <LayerRow
-            label="Drones"
-            thumb={T.drones}
-            checked={show.drones}
-            onCheck={tog("drones")}
-            badge="sim"
-          />
-          <LayerRow
-            label="Sensores"
-            thumb={T.sensors}
-            checked={show.sensors}
-            onCheck={tog("sensors")}
-            badge="sim"
-          />
-        </ul>
-        <h4 className="mb-0.5 mt-3 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-foreground/40">Mapa</h4>
-        <ul>
-          <LayerRow
-            label="Nombres y cotas"
-            thumb={T.names}
-            checked={show.names}
-            onCheck={tog("names")}
-            slider={op("labels")}
-          />
-        </ul>
+          {q && (
+            <button
+              type="button"
+              aria-label="Borrar búsqueda"
+              onClick={() => setQ("")}
+              className="absolute right-1.5 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded text-foreground/50 hover:text-foreground"
+            >
+              <X className="size-3" />
+            </button>
+          )}
+        </label>
+        {visible.length === 0 && (
+          <p
+            className="py-3 text-center text-[11.5px] text-foreground/50"
+            role="status"
+          >
+            Ninguna capa coincide con “{q.trim()}”.
+          </p>
+        )}
+        {visible.map((sec, idx) => (
+          <section key={sec.title ?? "base"}>
+            {sec.title && (
+              <h4
+                className={cn(
+                  "mb-0.5 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-foreground/40",
+                  idx > 0 && "mt-3",
+                )}
+              >
+                {sec.title}
+              </h4>
+            )}
+            <ul>
+              {sec.rows.map(({ key, ...row }) => (
+                <LayerRow key={key} {...row} />
+              ))}
+            </ul>
+          </section>
+        ))}
       </div>
     </div>
   );

@@ -35,6 +35,9 @@ export type AlertRule = { id: string; enabled: boolean } & (
   | { kind: "zone_fire"; zoneId: string; min: number } // zoneId "" = any zone
   | { kind: "risk"; score: number; days: number }
   | { kind: "activity"; focos: number }
+  | { kind: "early_open"; zoneId: string } // GOES alert with no polar confirmation yet; zoneId "" = any zone
+  | { kind: "fwi"; fwi: number; days: number } // Canadian FWI >= fwi in the next `days`
+  | { kind: "growth"; ha: number } // an incident grew >= ha in its latest day of data
 );
 
 export interface Settings {
@@ -146,6 +149,8 @@ export interface FiresPayload {
   newestDetectionAt?: number;
   /** per-feed status of the polar satellites */
   sources?: SourceStatus[];
+  /** set when FIRMS failed and the points come from this backup instead (e.g. "INPE") */
+  fallback?: string;
   error?: string;
 }
 

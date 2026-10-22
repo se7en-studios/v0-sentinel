@@ -195,3 +195,32 @@ export function fwiStep(
   const b = bui(state.dmc, state.dc);
   return { state, isi: i, bui: b, fwi: fwi(i, b) };
 }
+
+export interface FwiDayInput {
+  /** ISO date YYYY-MM-DD; only the month is used (day length and seasonal drying) */
+  date: string;
+  weather: FwiWeather;
+}
+
+/**
+ * Runs the daily FWI over consecutive days, oldest first, and returns one result per day.
+ * ponytail: callers only have a short history (a few weeks of Open-Meteo), so the moisture
+ * codes start from the standard FWI_START instead of a real season-long run. DC and DMC
+ * react slowly: after a long drought they read low for the first weeks. Fetch more past days
+ * (or store the state) if that bias matters.
+ */
+export function fwiSeries(
+  days: FwiDayInput[],
+  lat: number,
+  start: FwiState = FWI_START,
+): FwiResult[] {
+  const out: FwiResult[] = [];
+  let state = start;
+  for (const d of days) {
+    const month = Number(d.date.slice(5, 7)) || 1;
+    const r = fwiStep(state, d.weather, month, lat);
+    out.push(r);
+    state = r.state;
+  }
+  return out;
+}

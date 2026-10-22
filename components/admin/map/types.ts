@@ -98,4 +98,7 @@ export interface MapProps {
   onCenter: (c: [number, number]) => void;
   onCursor?: (c: [number, number] | null) => void;
   onCamera?: (c: { bearing: number; pitch: number; zoom: number }) => void;
+  /** popup "Ver incidente": true when the point belongs to a detected incident */
+  incidentAt?: (lat: number, lng: number) => boolean;
+  onOpenIncident?: () => void;
 }

@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { centerOf } from "@/lib/admin/geo";
 import { riskScore } from "@/lib/admin/sim";
-import { fetchWeather, type Weather, type WeatherStatus } from "@/lib/admin/weather";
+import {
+  fetchWeather,
+  type Weather,
+  type WeatherStatus,
+} from "@/lib/admin/weather";
 import { fetchForecast, type DayForecast } from "@/lib/admin/forecast";
 import {
   HORIZONS,
@@ -11,7 +15,12 @@ import {
   spreadRingsKm,
 } from "@/lib/admin/spread";
 import { MODE_ROLE, type FireCluster, type Feat } from "@/lib/admin/types";
+import type { TerrainInfo } from "@/lib/admin/terrain";
 import type { Ctx, SpreadInfo } from "../ctx";
+
+type TerrainLookup = (lat: number, lng: number) => Promise<TerrainInfo | null>;
+/** the lookup takes 1-4 s; past this the prediction is drawn without terrain instead of waiting */
+const TERRAIN_WAIT_MS = 6000;
 
 interface SpreadResult {
   h: number;
@@ -25,8 +34,15 @@ export function useWeatherRisk(
   features: Feat[],
   clusters: FireCluster[],
   predH: number,
+  terrainAt?: TerrainLookup,
 ) {
   const windCache = useRef(new Map<string, Weather>());
+  // terrain per ~1 km cell; only incident centers are looked up, never every point
+  const terrainCache = useRef(new Map<string, TerrainInfo | null>());
+  const terrainRef = useRef(terrainAt);
+  useEffect(() => {
+    terrainRef.current = terrainAt;
+  }, [terrainAt]);
   const [weather, setWeather] = useState<Weather | null>(null);
   // null weather alone cannot tell "still loading" from "the request failed"
   const [weatherStatus, setWeatherStatus] = useState<WeatherStatus>("loading");
@@ -87,7 +103,25 @@ export function useWeatherRisk(
     [zoneRisk],
   );
 
-  // ---- AI-style spread prediction (wind-driven, demonstrative) ----
+  // null when the lookup is missing, fails or is slow: the model then behaves as it did without terrain
+  const terrainFor = useCallback(
+    async (lat: number, lng: number): Promise<TerrainInfo | null> => {
+      const lookup = terrainRef.current;
+      if (!lookup) return null;
+      const key = `${lat.toFixed(2)},${lng.toFixed(2)}`;
+      const hit = terrainCache.current.get(key);
+      if (hit !== undefined) return hit;
+      const t = await Promise.race([
+        lookup(lat, lng).catch(() => null),
+        new Promise<null>((r) => setTimeout(() => r(null), TERRAIN_WAIT_MS)),
+      ]);
+      if (t) terrainCache.current.set(key, t);
+      return t;
+    },
+    [],
+  );
+
+  // ---- AI-style spread prediction (wind-driven, terrain-aware when the terrain lookup answers; an estimate) ----
   const hot = useMemo(
     () => clusters.filter((c) => c.count >= 3).slice(0, 6),
     [clusters],
@@ -103,7 +137,8 @@ export function useWeatherRisk(
           const got = await fetchWeather(c.lat, c.lng);
           if (got) windCache.current.set(key, (w = got));
         }
-        return { c, w };
+        const terrain = await terrainFor(c.lat, c.lng);
+        return { c, w: w ? { ...w, terrain } : undefined };
       }),
     ).then((rows) => {
       if (cancelled) return;
@@ -138,6 +173,8 @@ export function useWeatherRisk(
               rate,
               level: spreadLevel(rate),
               reachKm: spreadRingsKm(w, predH).head,
+              fuel: w.terrain?.landCoverLabel ?? undefined,
+              slopeDeg: w.terrain?.slopeDeg ?? undefined,
             },
           ];
         }),
@@ -146,7 +183,7 @@ export function useWeatherRisk(
     return () => {
       cancelled = true;
     };
-  }, [predH, hot]);
+  }, [predH, hot, terrainFor]);
   // derived instead of cleared from the effect: off or without hot clusters means nothing to draw
   const shown =
     predH && hot.length > 0 && spreadResult?.h === predH ? spreadResult : null;

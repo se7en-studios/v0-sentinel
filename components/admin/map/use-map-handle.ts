@@ -53,9 +53,7 @@ export function useMapHandle(
     },
     getBounds: () => {
       const b = mapRef.current?.getBounds();
-      return b
-        ? [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]
-        : null;
+      return b ? [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()] : null;
     },
     project: (lng, lat) => {
       const p = mapRef.current?.project([lng, lat]);

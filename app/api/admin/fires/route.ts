@@ -7,6 +7,7 @@ import {
   parseFireRows,
   type FireRow,
 } from "@/lib/admin/fires-parse";
+import { inpeStatuses } from "@/lib/admin/inpe-fires";
 import type { FiresPayload, SourceStatus } from "@/lib/admin/types";
 import {
   FIRMS_LABEL,
@@ -14,8 +15,16 @@ import {
   fetchFirmsCsv,
   fetchFirmsSource,
 } from "@/lib/firms";
-import { allowed } from "@/lib/server/admin-guard";
+import { guardAdmin } from "@/lib/server/admin-guard";
+import { createLimiter } from "@/lib/server/rate-limit";
 import { AR_BBOX, inArgentina } from "@/lib/server/argentina";
+import { fetchInpePolar } from "@/lib/server/inpe-fires";
+
+// Vercel function ceiling: slow upstreams must not be cut at the 10 s default
+// FIRMS (12 s) plus the INPE backup (15 s) must fit inside this, or the backup never answers
+export const maxDuration = 40;
+
+const firesLimiter = createLimiter(30, 60_000);
 
 const MAX_CLUSTERS = 8;
 const MS_DAY = 86_400_000;
@@ -43,36 +52,85 @@ function sourceStatuses(
   });
 }
 
+const FIRMS_TIMEOUT_MS = 12_000;
+const CACHE = { "Cache-Control": "private, max-age=300" };
+
+/** Rows to the panel payload: packed points plus single-link clusters (<= 3 km, no low-confidence seeds). */
+function buildPayload(
+  rows: FireRow[],
+  fetchedAt: number,
+  sources: SourceStatus[],
+  fallback?: string,
+): FiresPayload {
+  const { days, points, newestAt } = packPoints(rows);
+  return {
+    updated: new Date(fetchedAt).toISOString(),
+    days,
+    points,
+    clusters: clusterDetections(
+      points.filter((p) => p[3] > 0),
+      { limit: MAX_CLUSTERS },
+    ),
+    // latency instrumentation: when the server pulled the feed and how fresh the newest detection was
+    fetchedAt,
+    ...(newestAt > 0 && { newestDetectionAt: newestAt }),
+    sources,
+    ...(fallback && { fallback }),
+  };
+}
+
+/** FIRMS is down: polar detections from INPE, with the outage and the backup spelled out in `sources`. */
+async function inpeBackup(fetchedAt: number): Promise<Response | null> {
+  const all = await fetchInpePolar(fetchedAt);
+  if (all === null) return null;
+  const rows = all.filter((r) => inArgentina(r.lat, r.lng));
+  const firmsDown: SourceStatus = {
+    id: "firms-polar",
+    label: `${FIRMS_LABEL} · NASA FIRMS`,
+    ok: false,
+    count: 0,
+    error: "NASA FIRMS no respondió: se muestran focos de respaldo de INPE",
+  };
+  return NextResponse.json(
+    buildPayload(
+      rows,
+      fetchedAt,
+      [firmsDown, ...inpeStatuses(rows, true)],
+      "INPE",
+    ),
+    { headers: CACHE },
+  );
+}
+
 export async function GET(req: Request) {
-  if (!(await allowed(req)))
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  const denied = await guardAdmin(req, firesLimiter);
+  if (denied) return denied;
   const key = process.env.NASA_FIRMS_KEY;
-  if (!key) {
-    return NextResponse.json(
-      { error: "Falta NASA_FIRMS_KEY en el servidor" },
-      { status: 503 },
-    );
-  }
+  const fetchedAt = Date.now();
+  const backup = async (error: string, status: number) =>
+    (await inpeBackup(fetchedAt)) ?? NextResponse.json({ error }, { status });
+  if (!key) return backup("Falta NASA_FIRMS_KEY en el servidor", 503);
   try {
-    const fetchedAt = Date.now();
     // FIRMS caps a request at 5 days: fetch today-4..today and today-9..today-5.
     const older = new Date(fetchedAt - 9 * MS_DAY).toISOString().slice(0, 10);
     const windows = ["", `/${older}`];
     const url = (date: string) => (source: string) =>
       `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${key}/${source}/${AR_BBOX}/5${date}`;
-    const init = { next: { revalidate: 1800 } };
+    const init = {
+      next: { revalidate: 1800 },
+      signal: AbortSignal.timeout(FIRMS_TIMEOUT_MS),
+    };
     const [[recent, prior], [modisRecent, modisPrior]] = await Promise.all([
       Promise.all(windows.map((d) => fetchFirmsCsv(url(d), init))),
       Promise.all(
         windows.map((d) => fetchFirmsSource(FIRMS_MODIS, url(d), init)),
       ),
     ]);
-    if (recent === null) {
-      return NextResponse.json(
-        { error: `${FIRMS_LABEL}: NASA FIRMS no respondió datos válidos` },
-        { status: 502 },
+    if (recent === null)
+      return backup(
+        `${FIRMS_LABEL}: NASA FIRMS no respondió datos válidos`,
+        502,
       );
-    }
     const inAr = (r: FireRow) => inArgentina(r.lat, r.lng);
     const viirs = parseFireRows(joinWindows(recent, prior), "viirs").filter(
       inAr,
@@ -87,28 +145,15 @@ export async function GET(req: Request) {
         )
       : [];
     const rows = [...viirs, ...modis];
-    const { days, points, newestAt } = packPoints(rows);
-    const body: FiresPayload = {
-      updated: new Date(fetchedAt).toISOString(),
-      days,
-      points,
-      // single-link clusters (<= 3 km); low-confidence detections do not seed fires
-      clusters: clusterDetections(
-        points.filter((p) => p[3] > 0),
-        { limit: MAX_CLUSTERS },
-      ),
-      // latency instrumentation: when the server pulled FIRMS and how fresh the newest detection was
-      fetchedAt,
-      ...(newestAt > 0 && { newestDetectionAt: newestAt }),
-      sources: sourceStatuses(rows, true, modisRecent !== null),
-    };
-    return NextResponse.json(body, {
-      headers: { "Cache-Control": "private, max-age=300" },
-    });
-  } catch {
     return NextResponse.json(
-      { error: "No se pudo contactar a NASA FIRMS" },
-      { status: 502 },
+      buildPayload(
+        rows,
+        fetchedAt,
+        sourceStatuses(rows, true, modisRecent !== null),
+      ),
+      { headers: CACHE },
     );
+  } catch {
+    return backup("No se pudo contactar a NASA FIRMS", 502);
   }
 }

@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isModis } from "@/lib/admin/fire-sources";
 import type { PolarRef } from "@/lib/admin/early";
 import { classifyPoints, fireInfoMap } from "@/lib/admin/noise";
-import { HA_PER_DETECTION } from "@/lib/admin/history";
+import { buildIncidents, recentGrowth } from "@/lib/admin/incident";
+import { nearestPlace } from "@/lib/admin/places";
+import { detectionHectares } from "@/lib/admin/history";
 import type { FireCluster, FiresPayload, Settings } from "@/lib/admin/types";
 import type { FireStats, HourPoint } from "../ctx";
 import type { CloudSession } from "../use-admin";
@@ -148,13 +150,7 @@ export function useFiresData(
       total: allFires.length,
       last24,
       frp: Math.round(frp),
-      hectares: Math.round(
-        new Set(
-          allFires.map(
-            (p) => `${Math.round(p[0] / 0.004)}:${Math.round(p[1] / 0.004)}`,
-          ),
-        ).size * HA_PER_DETECTION,
-      ),
+      hectares: Math.round(detectionHectares(allFires)),
       perDay: artPerDay(byDay, days[0]),
       perHour,
       byConf: [
@@ -211,6 +207,20 @@ export function useFiresData(
     [payload],
   );
   const clusters = payload?.clusters ?? EMPTY_CLUSTERS;
+  // incidents that gained area in the newest day of data, named after the nearest town, for the growth alert rule
+  const growth = useMemo(
+    () =>
+      payload
+        ? recentGrowth(
+            buildIncidents(allFires, 20),
+            payload.days.length - 1,
+          ).map((g) => ({
+            name: `cerca de ${nearestPlace(g.lat, g.lng).near}`,
+            ha: g.ha,
+          }))
+        : [],
+    [payload, allFires],
+  );
 
   return {
     payload,
@@ -226,5 +236,6 @@ export function useFiresData(
     series,
     lastDetection,
     clusters,
+    growth,
   };
 }

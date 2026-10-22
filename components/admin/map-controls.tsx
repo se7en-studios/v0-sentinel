@@ -18,6 +18,7 @@ import { BASES } from "@/lib/admin/map-config";
 import type { BaseLayer } from "@/lib/admin/types";
 import type { useAdmin } from "./use-admin";
 import { Toolbar } from "./toolbar";
+import { MapLegend } from "./map/legend";
 import { SearchBox } from "./map/search-box";
 import { MeasureTool, MeasureToggle } from "./map/measure-tool";
 
@@ -68,7 +69,9 @@ function BasePicker({ a }: { a: A }) {
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open}
+        aria-label={`Mapa base: ${BASES[cur].label}`}
         onClick={() => setOpen((o) => !o)}
+        onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
         className={cn(
           glass,
           "flex h-10 items-center gap-2 pl-1.5 pr-2.5 text-[11.5px] font-medium transition-transform active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -89,6 +92,7 @@ function BasePicker({ a }: { a: A }) {
         <ul
           role="listbox"
           aria-label="Mapa base"
+          onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
           className={cn(glass, "absolute right-0 top-12 z-30 w-52 p-1")}
         >
           {(Object.keys(BASES) as BaseLayer[]).map((id) => (
@@ -192,6 +196,7 @@ function ViewCluster({ a }: { a: A }) {
           key={v}
           type="button"
           aria-pressed={ctx.view === v}
+          aria-label={`Vista ${v.toUpperCase()}`}
           onClick={() => ctx.setView(v)}
           className={cn(
             "flex h-7 items-center gap-1 rounded-lg px-2.5 text-[11.5px] font-bold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -212,7 +217,7 @@ function ViewCluster({ a }: { a: A }) {
           title="Órbita automática"
           onClick={() => ctx.setOrbit(!ctx.orbit)}
           className={cn(
-            "grid size-7 place-items-center rounded-lg transition-colors",
+            "grid size-7 place-items-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             ctx.orbit
               ? "bg-primary text-primary-foreground"
               : "text-foreground/55 hover:bg-foreground/[0.06]",
@@ -226,7 +231,7 @@ function ViewCluster({ a }: { a: A }) {
         type="button"
         aria-label="Alejar"
         onClick={() => a.mapRef.current?.zoomBy(-0.8)}
-        className="grid size-7 place-items-center rounded-lg text-foreground/55 hover:bg-foreground/[0.06]"
+        className="grid size-7 place-items-center rounded-lg text-foreground/55 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Minus className="size-3.5" />
       </button>
@@ -237,7 +242,7 @@ function ViewCluster({ a }: { a: A }) {
         type="button"
         aria-label="Acercar"
         onClick={() => a.mapRef.current?.zoomBy(0.8)}
-        className="grid size-7 place-items-center rounded-lg text-foreground/55 hover:bg-foreground/[0.06]"
+        className="grid size-7 place-items-center rounded-lg text-foreground/55 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Plus className="size-3.5" />
       </button>
@@ -252,7 +257,7 @@ function ViewCluster({ a }: { a: A }) {
                 .requestFullscreen()
                 .catch(() => undefined)
         }
-        className="grid size-7 place-items-center rounded-lg text-foreground/55 hover:bg-foreground/[0.06]"
+        className="grid size-7 place-items-center rounded-lg text-foreground/55 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {full ? (
           <Minimize2 className="size-3.5" />
@@ -260,79 +265,6 @@ function ViewCluster({ a }: { a: A }) {
           <Maximize2 className="size-3.5" />
         )}
       </button>
-    </div>
-  );
-}
-
-function Legend({ a }: { a: A }) {
-  const d3 = a.ctx.view === "3d";
-  const [open, setOpen] = useState(false);
-  if (!open)
-    return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className={cn(
-          glass,
-          "hidden h-7 items-center gap-1.5 px-2.5 text-[10.5px] font-medium text-foreground/60 hover:text-foreground md:flex",
-        )}
-      >
-        <span
-          className="h-1.5 w-6 rounded-full"
-          style={{
-            background: "linear-gradient(90deg,#f5a524,#ff6a1a,#c8321e)",
-          }}
-          aria-hidden
-        />
-        Leyenda
-      </button>
-    );
-  return (
-    <div
-      className={cn(
-        glass,
-        "hidden w-44 p-2.5 text-[10.5px] text-foreground/70 md:block",
-      )}
-      role="group"
-      aria-label="Leyenda"
-    >
-      <div className="mb-1 flex items-center justify-between font-medium text-foreground/85">
-        Intensidad del foco (FRP)
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          aria-label="Ocultar leyenda"
-          className="rounded text-foreground/55 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <X className="size-3" />
-        </button>
-      </div>
-      <div
-        className="h-1.5 rounded-full"
-        style={{ background: "linear-gradient(90deg,#f5a524,#ff6a1a,#c8321e)" }}
-      />
-      <div className="mt-0.5 flex justify-between text-foreground/50">
-        <span>baja</span>
-        <span>alta</span>
-      </div>
-      <div className="mt-2 flex flex-wrap gap-x-2.5 gap-y-1">
-        {[
-          ["Riesgo bajo", "#0f7a4f"],
-          ["Moderado", "#c9a300"],
-          ["Alto", "#e8710a"],
-          ["Extremo", "#b83a3a"],
-        ].map(([l, c]) => (
-          <span key={l} className="flex items-center gap-1">
-            <span className="size-2 rounded-full" style={{ background: c }} />
-            {l}
-          </span>
-        ))}
-      </div>
-      {d3 && (
-        <div className="mt-1.5 text-foreground/50">
-          Altura de columna = intensidad · humo a favor del viento
-        </div>
-      )}
     </div>
   );
 }
@@ -467,7 +399,7 @@ export function MapOverlays({
       )}
 
       <div className="pointer-events-none absolute bottom-9 left-3 z-10 flex flex-col items-start gap-2 [&>*]:pointer-events-auto">
-        {ctx.tab === "general" && <Legend a={a} />}
+        {ctx.tab === "general" && <MapLegend ctx={ctx} />}
         <div
           className="mono rounded-md bg-card/80 px-2 py-1 text-[10px] text-foreground/60 backdrop-blur"
           aria-live="off"

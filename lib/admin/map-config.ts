@@ -59,7 +59,8 @@ export const BASES: Record<BaseLayer, BaseDef> = {
   light: {
     label: "Claro",
     hint: "Cartografía limpia",
-    tiles: "https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png",
+    tiles:
+      "https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png",
     maxzoom: 19,
     attribution: "© OpenStreetMap · © CARTO",
     thumb: "https://basemaps.cartocdn.com/rastertiles/voyager/4/5/9@2x.png",
@@ -67,10 +68,12 @@ export const BASES: Record<BaseLayer, BaseDef> = {
   topo: {
     label: "Topográfico",
     hint: "Relieve y curvas",
-    tiles: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+    tiles:
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
     maxzoom: 19,
     attribution: "Esri, HERE, Garmin, USGS, NGA",
-    thumb: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/4/9/5",
+    thumb:
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/4/9/5",
   },
   // One satellite per mosaic: mixing NOAA-20 and NOAA-21 tiles in one source
   // would patch together passes ~50 min apart with different clouds.

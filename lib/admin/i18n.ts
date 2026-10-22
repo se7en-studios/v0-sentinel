@@ -1,3 +1,6 @@
+import { enShell, esShell, ptShell } from "./i18n-shell";
+import { enViews, esViews, ptViews } from "./i18n-views";
+
 export type Locale = "es" | "en" | "pt";
 
 export const LOCALES: { id: Locale; label: string }[] = [
@@ -37,6 +40,8 @@ const es = {
   "status.industrial": "Calor industrial oculto",
   "status.alerts": "Alertas",
   "status.none": "ninguna",
+  "status.backup": "Fuente de respaldo",
+  "status.backupValue": "INPE (sin confianza ni día/noche)",
   "age.min": "hace {n} min",
   "age.hour": "hace {n} h",
   "age.day": "hace {n} d",
@@ -52,7 +57,7 @@ const es = {
   "top.search": "Buscar",
   "settings.language": "Idioma",
   "settings.languageHint":
-    "Cambia los textos principales del panel (pestañas, franja de estado, alertas tempranas). El resto de las pantallas sigue en español por ahora.",
+    "Cambia el idioma del panel. Las pantallas que todavía no están traducidas siguen en español.",
   "early.title": "Alertas tempranas",
   "early.intro":
     "GOES-19 mira Argentina cada 10 minutos, mucho antes de que pase un satélite polar, pero con píxeles de 2 a 4 km. Acá ves lo que todavía no confirmó ningún otro satélite.",
@@ -62,11 +67,27 @@ const es = {
   "early.more": "y {n} más en el mapa",
   "early.summary":
     "{c} confirmadas por un satélite polar · {d} descartadas por calor industrial",
+  "early.ack": "Reconocer",
+  "early.snooze": "Posponer 1 h",
+  "early.reopen": "Reabrir",
+  "early.acked": "Reconocida por {who}",
+  "early.snoozed": "Pospuesta por {who}",
+  "early.handled": "{n} reconocidas o pospuestas",
+  "early.ackAria": "Reconocer la alerta temprana de {place}",
+  "early.snoozeAria": "Posponer 1 hora la alerta temprana de {place}",
+  "early.reopenAria": "Reabrir la alerta temprana de {place}",
+  "status.goAlerts": "Ver alertas",
+  "status.goEarly": "Ver alertas tempranas",
+  "status.goDelay": "Ver fuentes y demoras",
+  ...esShell,
+  ...esViews,
 } as const;
 
 export type MsgKey = keyof typeof es;
 
 const en: Record<MsgKey, string> = {
+  ...enShell,
+  ...enViews,
   "tab.general": "Overview",
   "tab.zonas": "Zones",
   "tab.drones": "Drones & sensors",
@@ -96,6 +117,8 @@ const en: Record<MsgKey, string> = {
   "status.industrial": "Industrial heat hidden",
   "status.alerts": "Alerts",
   "status.none": "none",
+  "status.backup": "Backup source",
+  "status.backupValue": "INPE (no confidence or day/night)",
   "age.min": "{n} min ago",
   "age.hour": "{n} h ago",
   "age.day": "{n} d ago",
@@ -111,7 +134,7 @@ const en: Record<MsgKey, string> = {
   "top.search": "Search",
   "settings.language": "Language",
   "settings.languageHint":
-    "Changes the main texts of the panel (tabs, status strip, early warnings). The rest of the screens are still in Spanish for now.",
+    "Changes the language of the panel. Screens that are not translated yet stay in Spanish.",
   "early.title": "Early warnings",
   "early.intro":
     "GOES-19 watches Argentina every 10 minutes, long before a polar satellite passes, but with 2 to 4 km pixels. Here is what no other satellite has confirmed yet.",
@@ -121,9 +144,23 @@ const en: Record<MsgKey, string> = {
   "early.more": "and {n} more on the map",
   "early.summary":
     "{c} confirmed by a polar satellite · {d} dismissed as industrial heat",
+  "early.ack": "Acknowledge",
+  "early.snooze": "Snooze 1 h",
+  "early.reopen": "Reopen",
+  "early.acked": "Acknowledged by {who}",
+  "early.snoozed": "Snoozed by {who}",
+  "early.handled": "{n} acknowledged or snoozed",
+  "early.ackAria": "Acknowledge the early warning near {place}",
+  "early.snoozeAria": "Snooze the early warning near {place} for 1 hour",
+  "early.reopenAria": "Reopen the early warning near {place}",
+  "status.goAlerts": "View alerts",
+  "status.goEarly": "View early warnings",
+  "status.goDelay": "View sources and delays",
 };
 
 const pt: Record<MsgKey, string> = {
+  ...ptShell,
+  ...ptViews,
   "tab.general": "Visão geral",
   "tab.zonas": "Zonas",
   "tab.drones": "Drones e sensores",
@@ -153,6 +190,8 @@ const pt: Record<MsgKey, string> = {
   "status.industrial": "Calor industrial oculto",
   "status.alerts": "Alertas",
   "status.none": "nenhum",
+  "status.backup": "Fonte de reserva",
+  "status.backupValue": "INPE (sem confiança nem dia/noite)",
   "age.min": "há {n} min",
   "age.hour": "há {n} h",
   "age.day": "há {n} d",
@@ -168,7 +207,7 @@ const pt: Record<MsgKey, string> = {
   "top.search": "Buscar",
   "settings.language": "Idioma",
   "settings.languageHint":
-    "Muda os textos principais do painel (abas, faixa de estado, alertas precoces). As demais telas continuam em espanhol por enquanto.",
+    "Muda o idioma do painel. As telas que ainda não foram traduzidas continuam em espanhol.",
   "early.title": "Alertas precoces",
   "early.intro":
     "O GOES-19 observa a Argentina a cada 10 minutos, muito antes de passar um satélite polar, mas com pixels de 2 a 4 km. Aqui está o que nenhum outro satélite confirmou ainda.",
@@ -178,6 +217,18 @@ const pt: Record<MsgKey, string> = {
   "early.more": "e mais {n} no mapa",
   "early.summary":
     "{c} confirmadas por um satélite polar · {d} descartadas como calor industrial",
+  "early.ack": "Reconhecer",
+  "early.snooze": "Adiar 1 h",
+  "early.reopen": "Reabrir",
+  "early.acked": "Reconhecida por {who}",
+  "early.snoozed": "Adiada por {who}",
+  "early.handled": "{n} reconhecidas ou adiadas",
+  "early.ackAria": "Reconhecer o alerta precoce perto de {place}",
+  "early.snoozeAria": "Adiar 1 hora o alerta precoce perto de {place}",
+  "early.reopenAria": "Reabrir o alerta precoce perto de {place}",
+  "status.goAlerts": "Ver alertas",
+  "status.goEarly": "Ver alertas precoces",
+  "status.goDelay": "Ver fontes e atrasos",
 };
 
 export const MESSAGES: Record<Locale, Record<MsgKey, string>> = { es, en, pt };

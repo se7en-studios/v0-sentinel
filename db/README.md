@@ -6,7 +6,7 @@
 
 - **Organizaciones y roles:** `orgs`, `memberships` (`owner`, `admin`, `operator`, `viewer`).
 - **Territorio:** `sites` y `features` (zonas, líneas, rutas y sensores como geometrías PostGIS).
-- **Detección:** `observations` (con fuente, hora de adquisición y de recepción, potencia, confianza, puntaje y motivo de ruido).
+- **Detección:** `observations` (con fuente, satélite, hora de adquisición y de recepción, potencia, confianza, puntaje, motivo de ruido y marca `is_backup` para filas del respaldo de INPE) y `source_health` (historial de las sondas de `GET /api/admin/health`: latencia y frescura por fuente).
 - **Respuesta:** `alerts` (con `dedupe_key`), `incidents`, `incident_notes`, `tasks`.
 - **Entrega:** `contacts`, `escalation_policies` y `deliveries`, con clave única por alerta, canal y destinatario para que reintentar nunca duplique un mensaje.
 - **Auditoría:** `audit_log`, solo para agregar.
@@ -17,11 +17,13 @@
 2. Escribir pruebas de las políticas de seguridad por fila: un miembro de otra organización no debe leer nada, y un `viewer` no debe poder escribir.
 3. Resolver el pendiente que figura al final del SQL: hoy un `viewer` ve todos los sitios de su organización. Falta filtrar por `memberships.site_ids`.
 4. Decidir cómo se vinculan las cuentas existentes de Firebase con `memberships.user_id` durante la migración.
-5. Registrar las bases ante la AAIP (los contactos incluyen teléfonos y correos, datos personales según la Ley 25.326) y documentar la región del alojamiento.
+5. Las alertas tempranas (GOES-19, hoy calculadas al vuelo en `/api/admin/early`) no tienen tabla propia: se derivan de `observations` con fuente GOES; decidir si se materializan.
+6. Los avisos del servidor (`POST /api/admin/notify`) hoy no escriben en `deliveries`: al migrar, cada envío debe registrarse ahí con su clave única para no duplicar.
+7. Registrar las bases ante la AAIP (los contactos incluyen teléfonos y correos, datos personales según la Ley 25.326) y documentar la región del alojamiento.
 
 ## Plan de migración por fases
 
-1. Cron de ingesta que copia FIRMS a `observations`; la ruta actual queda como respaldo.
+1. Cron de ingesta que copia FIRMS a `observations` (con INPE de respaldo, `is_backup = true`) y guarda las sondas de salud en `source_health`; la ruta actual queda como respaldo.
 2. Organización personal por usuario con escritura doble: se sigue escribiendo el documento original y también las tablas.
 3. Reglas y alertas del servidor en modo sombra durante dos semanas, y recién entonces activas.
 4. Zonas y rutas pasan a `features`; el documento queda como respaldo de solo lectura durante 30 días.

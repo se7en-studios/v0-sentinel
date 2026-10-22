@@ -97,3 +97,36 @@ describe("report", () => {
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:x");
   });
 });
+
+describe("incident report helpers", () => {
+  const base = { lat: -41.1, lng: -71.3, frp: 3, scans: 4, sources: ["INPE" as const] };
+
+  test("lead time only exists when confirmed after the first scan", async () => {
+    const { leadMinutes } = await import("./report");
+    expect(leadMinutes({ firstAt: 0, confirmedAt: 90 * 60_000 })).toBe(90);
+    expect(leadMinutes({ firstAt: 0 })).toBeNull();
+    expect(leadMinutes({ firstAt: 100, confirmedAt: 50 })).toBeNull();
+  });
+
+  test("keeps early spots near the incident and drops industrial heat", async () => {
+    const { earlyNearby } = await import("./report");
+    const near = { ...base, firstAt: 0, lastAt: 1, status: "open" as const };
+    const far = { ...near, lat: -35 };
+    const noise = { ...near, status: "noise" as const };
+    expect(earlyNearby([near, far, noise], -41.1, -71.3)).toEqual([near]);
+  });
+
+  test("renders terrain, time gained and the status timeline, escaped", async () => {
+    const { incidentExtrasHtml } = await import("./report");
+    const html = incidentExtrasHtml({
+      terrain: "Bosque <b>",
+      early: [{ ...base, firstAt: 0, lastAt: 1, status: "confirmed", confirmedAt: 45 * 60_000 }],
+      history: [{ t: 0, by: "<ana>", status: "verified", assignee: "" }],
+    });
+    expect(html).toContain("Bosque &lt;b&gt;");
+    expect(html).toContain("45 min antes");
+    expect(html).toContain("Verificado");
+    expect(html).not.toContain("<ana>");
+    expect(incidentExtrasHtml({ terrain: null, early: [], history: [] })).toContain("Sin cambios de estado");
+  });
+});

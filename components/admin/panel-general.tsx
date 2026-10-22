@@ -21,6 +21,7 @@ import { alertLinks, mapsLink } from "@/lib/admin/report";
 import { centerOf } from "@/lib/admin/geo";
 import type { Confidence } from "@/lib/admin/types";
 import type { Ctx } from "./ctx";
+import { ActivityCard } from "./activity-card";
 import { EarlyCard } from "./early-card";
 import { LayersPanel } from "./panel-layers";
 import { OverviewCard, WeatherCard } from "./panel-overview";
@@ -383,6 +384,8 @@ function AlertsTab({ ctx }: { ctx: Ctx }) {
       </Card>
 
       <RulesCard ctx={ctx} />
+
+      <ActivityCard />
 
       <Card
         bare

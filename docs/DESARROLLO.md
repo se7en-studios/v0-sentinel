@@ -68,7 +68,10 @@ La sincronización (`lib/admin/store.ts` y `cloud.ts`) usa un número de revisi�
 
 ## Pendientes conocidos
 
-- Reglas de Firestore que validen la revisión: hace falta el emulador para probarlas antes de desplegar.
+- **Reglas de Firestore que validen `rev`**: hay una propuesta lista en `docs/firestore-rules-propuesta.md`, sin desplegar y sin probar porque falta Java para el emulador. Instalar Java, correr los casos de esa página y recién ahí desplegar.
 - Alertas por correo y WhatsApp, y todo lo que corre sin el panel abierto: necesita servidor propio (ver `db/README.md`).
-- Aplicación instalable: faltan íconos de 192 y 512 px.
 - Proveedor de mapas base con licencia comercial.
+- Aplicación instalable: el manifiesto (`app/manifest.ts`) y los íconos de 192/512 px ya están. No hay service worker a propósito: nada de datos de focos se guarda sin conexión. Falta probar la instalación en un teléfono real (Chrome Android / Safari iOS).
+- Advertencias de lint que quedan (nivel warn, fuera de `lib/admin`): `react-hooks/refs` en `admin-app.tsx` y `panel-layers.tsx`/`tour.tsx`, `set-state-in-effect` en varios componentes de interfaz, y los `<a href="/">` y `<img>` de la landing.
+- Límite de tamaño del espacio de trabajo en la nube: se mide en caracteres, no en bytes (ver la propuesta de reglas).
+- Las pruebas e2e dependen de un servidor `next dev` por puerto: dos corridas a la vez sobre el mismo puerto se pisan. En CI corren como paso obligatorio (`.github/workflows/ci.yml`) y suben el reporte y las trazas si fallan.

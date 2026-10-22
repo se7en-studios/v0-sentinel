@@ -12,6 +12,7 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { MODE_ROLE } from "@/lib/admin/types";
+import type { MsgKey } from "@/lib/admin/i18n";
 import type { Ctx } from "./ctx";
 
 export interface PaletteAction {
@@ -26,12 +27,14 @@ const RECENT_KEY = "sentinel-admin-palette-recent";
 const RECENT_MAX = 5;
 const FEATURE_MAX = 60;
 
-const ROLE_LABEL: Record<string, string> = {
-  zone: "Zona",
-  line: "Línea",
-  route: "Ruta",
-  sensor: "Sensor",
-};
+const ROLE_KEYS = {
+  zone: "pal.role.zone",
+  line: "pal.role.line",
+  route: "pal.role.route",
+  sensor: "pal.role.sensor",
+} as const;
+const roleKey = (role: string | undefined): MsgKey =>
+  ROLE_KEYS[role as keyof typeof ROLE_KEYS] ?? "pal.role.other";
 
 function readRecent(): string[] {
   try {
@@ -66,6 +69,7 @@ export function CommandPalette({
   ctx: Ctx;
 }) {
   // lazy init: the palette is only mounted client-side (see admin-app)
+  const { t } = ctx;
   const [recent, setRecent] = useState<string[]>(readRecent);
   const groups = [...new Set(actions.map((a) => a.group))];
   const recentActions = recent
@@ -95,18 +99,18 @@ export function CommandPalette({
     <CommandDialog
       open={open}
       onOpenChange={setOpen}
-      title="Paleta de comandos"
-      description="Buscá una acción, región, zona o panel"
+      title={t("pal.title")}
+      description={t("pal.desc")}
     >
-      <CommandInput placeholder="Ir a… cambiar vista… exportar… zona…" />
+      <CommandInput placeholder={t("pal.placeholder")} />
       <CommandList>
-        <CommandEmpty>Sin resultados.</CommandEmpty>
+        <CommandEmpty>{t("pal.empty")}</CommandEmpty>
         {recentActions.length > 0 && (
-          <CommandGroup heading="Recientes">
+          <CommandGroup heading={t("pal.recent")}>
             {recentActions.map((a) => (
               <CommandItem
                 key={`recent-${a.id}`}
-                value={`Recientes ${a.group} ${a.label}`}
+                value={`${t("pal.recent")} ${a.group} ${a.label}`}
                 onSelect={() => runAction(a)}
               >
                 <CommandIcon className="size-4 opacity-40" aria-hidden />
@@ -134,11 +138,11 @@ export function CommandPalette({
           </CommandGroup>
         ))}
         {places.length > 0 && (
-          <CommandGroup heading="Zonas y elementos">
+          <CommandGroup heading={t("pal.places")}>
             {places.map(({ f, name }) => (
               <CommandItem
                 key={f.id}
-                value={`Zonas y elementos ${name} ${f.id}`}
+                value={`${t("pal.places")} ${name} ${f.id}`}
                 onSelect={() => {
                   setOpen(false);
                   ctx.select(f.id);
@@ -148,7 +152,7 @@ export function CommandPalette({
                 <MapPin className="size-4 opacity-40" aria-hidden />
                 {name}
                 <CommandShortcut>
-                  {ROLE_LABEL[MODE_ROLE[String(f.properties.mode)] ?? ""] ?? "Elemento"}
+                  {t(roleKey(MODE_ROLE[String(f.properties.mode)]))}
                 </CommandShortcut>
               </CommandItem>
             ))}
