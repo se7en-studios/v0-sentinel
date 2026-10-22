@@ -1,5 +1,6 @@
 import type { OpsState } from "./resources";
 import type { EarlyDetection } from "./early";
+import type { Locale } from "./i18n";
 import type { AckMap } from "./alert-ack";
 import type { IncidentMetaMap } from "./incident-meta";
 export type Role = "zone" | "line" | "route" | "sensor";
@@ -38,6 +39,8 @@ export type AlertRule = { id: string; enabled: boolean } & (
 
 export interface Settings {
   org: string;
+  /** interface language */
+  locale: Locale;
   regionId: string;
   baseLayer: BaseLayer;
   minConfidence: Confidence;
@@ -221,6 +224,7 @@ export const REGIONS: Region[] = [
 
 export const DEFAULT_SETTINGS: Settings = {
   org: "Sentinel Technologies",
+  locale: "es",
   regionId: "patagonia-andina",
   baseLayer: "esri",
   minConfidence: "n",

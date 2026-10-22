@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { riskLabel, type Translate } from "@/lib/admin/i18n";
 import type { Ctx } from "./ctx";
 
 type Tone = "ok" | "warn" | "bad" | "idle";
@@ -21,11 +22,11 @@ const LATENCY_WARN_MIN = 240;
 const fmtMinutes = (min: number) =>
   min < 120 ? `${min} min` : `${(min / 60).toFixed(1).replace(".", ",")} h`;
 
-function ago(ms: number) {
+function ago(ms: number, t: Translate) {
   const min = Math.max(0, Math.round((Date.now() - ms) / 60_000));
-  if (min < 60) return `hace ${min} min`;
+  if (min < 60) return t("age.min", { n: min });
   const h = Math.floor(min / 60);
-  return h < 48 ? `hace ${h} h` : `hace ${Math.floor(h / 24)} d`;
+  return h < 48 ? t("age.hour", { n: h }) : t("age.day", { n: Math.floor(h / 24) });
 }
 
 function Item({
@@ -60,6 +61,7 @@ export function StatusStrip({ ctx }: { ctx: Ctx }) {
     earlyFetchedAt,
     sources,
     now,
+    t,
   } = ctx;
   const today = forecast?.[0];
   const stale =
@@ -80,7 +82,7 @@ export function StatusStrip({ ctx }: { ctx: Ctx }) {
 
   return (
     <ul
-      aria-label="Estado general"
+      aria-label={t("status.aria")}
       className="no-scrollbar flex shrink-0 items-center gap-x-5 overflow-x-auto border-b border-[var(--hairline)] bg-card px-4 py-1.5 text-[11.5px]"
     >
       <Item
@@ -93,50 +95,50 @@ export function StatusStrip({ ctx }: { ctx: Ctx }) {
                 ? "warn"
                 : "ok"
         }
-        label="Riesgo hoy"
-        value={today ? `${today.label} · ${today.score}` : "—"}
+        label={t("status.risk")}
+        value={today ? `${riskLabel(t, today.label)} · ${today.score}` : "—"}
       />
       <Item
         tone={!payload ? "idle" : stale ? "warn" : "ok"}
-        label="Última detección"
-        value={lastDetection > 0 ? ago(lastDetection) : "sin datos"}
+        label={t("status.lastDetection")}
+        value={lastDetection > 0 ? ago(lastDetection, t) : t("status.noData")}
       />
       {latencyMin !== null && (
         <Item
           tone={latencyMin > LATENCY_WARN_MIN ? "warn" : "ok"}
-          label="Demora del satélite"
+          label={t("status.delay")}
           value={fmtMinutes(latencyMin)}
         />
       )}
       {earlyFetchedAt > 0 && (
         <Item
           tone={earlyOpen.length > 0 ? "warn" : "ok"}
-          label="Alerta temprana"
+          label={t("status.early")}
           value={
             earlyOpen.length > 0
-              ? `${earlyOpen.length} sin confirmar${goesMin !== null ? ` · GOES hace ${fmtMinutes(goesMin)}` : ""}`
+              ? `${t("status.earlyOpen", { n: earlyOpen.length })}${goesMin !== null ? ` · ${t("status.goesAgo", { t: fmtMinutes(goesMin) })}` : ""}`
               : goesMin !== null
-                ? `sin novedades · GOES hace ${fmtMinutes(goesMin)}`
-                : "sin novedades"
+                ? `${t("status.quiet")} · ${t("status.goesAgo", { t: fmtMinutes(goesMin) })}`
+                : t("status.quiet")
           }
         />
       )}
       <Item
         tone={stats.last24 > 0 ? "warn" : "ok"}
-        label="Focos 24 h"
+        label={t("status.fires24")}
         value={stats.last24.toLocaleString("es-AR")}
       />
       {noiseCount > 0 && (
         <Item
           tone="idle"
-          label="Calor industrial oculto"
+          label={t("status.industrial")}
           value={noiseCount.toLocaleString("es-AR")}
         />
       )}
       <Item
         tone={attention > 0 ? "bad" : "ok"}
-        label="Alertas"
-        value={attention > 0 ? String(attention) : "ninguna"}
+        label={t("status.alerts")}
+        value={attention > 0 ? String(attention) : t("status.none")}
       />
     </ul>
   );

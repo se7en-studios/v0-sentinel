@@ -1,5 +1,6 @@
 "use client";
 
+import { parseLocale } from "./i18n";
 import { cleanRules } from "./rules";
 import { cleanAckMap, type AlertAck } from "./alert-ack";
 import { cleanIncidentMeta, type IncidentMeta } from "./incident-meta";
@@ -156,6 +157,7 @@ export function parseWorkspace(input: unknown): Workspace {
           ? st.minConfidence!
           : DEFAULT_SETTINGS.minConfidence,
         hideNoise: st.hideNoise !== false,
+        locale: parseLocale(st.locale),
         useModis: st.useModis !== false,
         earlyAlerts: st.earlyAlerts !== false,
         minScore: Number.isFinite(Number(st.minScore))

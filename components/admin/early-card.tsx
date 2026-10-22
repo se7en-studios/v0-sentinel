@@ -46,7 +46,7 @@ function Row({ e, zone, ctx }: { e: EarlyView; zone?: string; ctx: Ctx }) {
 
 /** GOES-19 sees Argentina every 10 minutes; these are the spots no polar satellite has confirmed yet. */
 export function EarlyCard({ ctx }: { ctx: Ctx }) {
-  const { ws, early, earlyOpen, earlyByZone, earlyError, earlyFetchedAt } = ctx;
+  const { ws, early, earlyOpen, earlyByZone, earlyError, earlyFetchedAt, t } = ctx;
   if (!ws.settings.earlyAlerts) return null;
   const zoneOf = new Map<string, string>();
   for (const [id, list] of Object.entries(earlyByZone))
@@ -64,23 +64,21 @@ export function EarlyCard({ ctx }: { ctx: Ctx }) {
   return (
     <Card
       bare
-      title="Alertas tempranas"
+      title={t("early.title")}
       right={<Badge tone={earlyOpen.length ? "sim" : "muted"}>GOES-19</Badge>}
     >
       <p className="mb-2 text-[11px] leading-snug text-foreground/60">
-        GOES-19 mira Argentina cada 10 minutos, mucho antes de que pase un
-        satélite polar, pero con píxeles de 2 a 4 km. Acá ves lo que todavía no
-        confirmó ningún otro satélite.
+        {t("early.intro")}
       </p>
       {earlyFetchedAt === 0 && !earlyError && (
-        <p className="text-[11.5px] text-foreground/55">Consultando GOES-19…</p>
+        <p className="text-[11.5px] text-foreground/55">{t("early.loading")}</p>
       )}
       {earlyError && earlyFetchedAt === 0 && (
         <p className="text-[11.5px] text-[var(--state-bad-ink)]">{earlyError}</p>
       )}
       {earlyFetchedAt > 0 && shown.length === 0 && (
-        <EmptyState icon={<Radar className="size-4" />} title="Sin alertas tempranas abiertas">
-          GOES-19 no ve calor nuevo sin confirmar.
+        <EmptyState icon={<Radar className="size-4" />} title={t("early.none")}>
+          {t("early.noneSub")}
         </EmptyState>
       )}
       {shown.length > 0 && (
@@ -92,13 +90,12 @@ export function EarlyCard({ ctx }: { ctx: Ctx }) {
       )}
       {earlyOpen.length > shown.length && (
         <p className="mt-1.5 text-[11px] text-foreground/55">
-          y {earlyOpen.length - shown.length} más en el mapa
+          {t("early.more", { n: earlyOpen.length - shown.length })}
         </p>
       )}
       {early.length > 0 && (
         <p className="mt-2 text-[11px] text-foreground/55">
-          {confirmed} confirmadas por un satélite polar · {noise} descartadas por
-          calor industrial
+          {t("early.summary", { c: confirmed, d: noise })}
         </p>
       )}
     </Card>

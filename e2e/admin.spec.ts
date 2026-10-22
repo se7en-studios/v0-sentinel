@@ -179,9 +179,7 @@ test("GOES-19: la alerta temprana aparece en Alertas y las fuentes en Métricas"
   ).toBeVisible();
 });
 
-test("GOES y MODIS se pueden apagar en Configuración", async ({
-  page,
-}) => {
+test("GOES y MODIS se pueden apagar en Configuración", async ({ page }) => {
   await page.goto("/admin");
   await tab(page, "Configuración").click();
   const toggle = page.getByRole("checkbox", { name: /Alertas tempranas/ });
@@ -191,6 +189,21 @@ test("GOES y MODIS se pueden apagar en Configuración", async ({
   await expect(
     page.getByRole("checkbox", { name: /Incluir MODIS/ }),
   ).toBeChecked();
+});
+
+test("cambiar el idioma traduce las pestañas y la franja de estado", async ({
+  page,
+}) => {
+  await page.goto("/admin");
+  await tab(page, "Configuración").click();
+  await page.getByLabel("Idioma").selectOption("en");
+  const nav = page.getByRole("navigation", { name: "Modos" });
+  await expect(nav.getByRole("button", { name: "Settings" })).toBeVisible();
+  await expect(nav.getByRole("button", { name: "Zones" })).toBeVisible();
+  await expect(page.getByText("Risk today")).toBeVisible();
+  await page.getByLabel("Language").selectOption("pt");
+  await expect(nav.getByRole("button", { name: "Zonas" })).toBeVisible();
+  await expect(page.getByText("Risco hoje")).toBeVisible();
 });
 
 test.describe("en un teléfono", () => {

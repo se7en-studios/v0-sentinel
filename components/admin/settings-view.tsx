@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { toast } from "sonner";
+import { LOCALES, parseLocale } from "@/lib/admin/i18n";
 import { parseWorkspace } from "@/lib/admin/store";
 import { MAX_IMPORT_BYTES, parseGeoJson } from "@/lib/admin/geojson-io";
 import { parseKml, toKml } from "@/lib/admin/kml";
@@ -168,6 +169,21 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
                 <option value="l">Baja (todos los focos)</option>
                 <option value="n">Nominal (recomendado)</option>
                 <option value="h">Alta</option>
+              </select>
+            </Field>
+            <Field label={ctx.t("settings.language")} hint={ctx.t("settings.languageHint")}>
+              <select
+                className={inputCls}
+                value={s.locale}
+                onChange={(e) =>
+                  setSettings({ locale: parseLocale(e.target.value) })
+                }
+              >
+                {LOCALES.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.label}
+                  </option>
+                ))}
               </select>
             </Field>
             <Toggle

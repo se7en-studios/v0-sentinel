@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { translate, type Translate } from "@/lib/admin/i18n";
 import { useWorkspace } from "@/lib/admin/store";
 import { REGIONS } from "@/lib/admin/types";
 import type { Camera, Ctx, PanelSeg, Tab } from "./ctx";
@@ -52,6 +53,10 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   } = useWorkspace(cloud?.uid);
   const s = ws.settings;
   const { dark, toggleTheme } = useTheme();
+  const t = useCallback<Translate>(
+    (key, vars) => translate(s.locale, key, vars),
+    [s.locale],
+  );
   const mapRef = useRef<MapHandle>(null);
 
   const [tab, setTab] = useState<Tab>("general");
@@ -218,6 +223,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     setFeatures,
     replaceWorkspace: replace,
     setNotes,
+    t,
     noteLog: ws.noteLog,
     addNote: (text: string, featId?: string) =>
       addNote(text, cloud?.email ?? ws.settings.org ?? "Operador", featId),

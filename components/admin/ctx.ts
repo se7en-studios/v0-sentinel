@@ -14,6 +14,7 @@ import type {
 } from "@/lib/admin/types";
 import type { EarlyView } from "@/lib/admin/early";
 import type { TerrainInfo } from "@/lib/admin/terrain";
+import type { Translate } from "@/lib/admin/i18n";
 import type { DroneSpec } from "@/lib/admin/sim";
 import type { AckMap } from "@/lib/admin/alert-ack";
 import type { IncidentMetaMap, IncidentStatus } from "@/lib/admin/incident-meta";
@@ -119,6 +120,8 @@ export interface Ctx {
   setFeatures: (f: Feat[]) => void;
   replaceWorkspace: (w: Workspace) => void;
   setNotes: (t: string) => void;
+  /** text in the interface language (Spanish when a key is missing) */
+  t: Translate;
   noteLog: NoteEntry[];
   addNote: (text: string, featId?: string) => void;
   removeNote: (id: string) => void;

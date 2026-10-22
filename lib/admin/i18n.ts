@@ -1,0 +1,208 @@
+export type Locale = "es" | "en" | "pt";
+
+export const LOCALES: { id: Locale; label: string }[] = [
+  { id: "es", label: "Español" },
+  { id: "en", label: "English" },
+  { id: "pt", label: "Português" },
+];
+
+/** Spanish is the source: every other language must have exactly these keys (the type enforces it). */
+const es = {
+  "tab.general": "Vista general",
+  "tab.zonas": "Zonas",
+  "tab.drones": "Drones y sensores",
+  "tab.recursos": "Recursos",
+  "tab.pronostico": "Pronóstico",
+  "tab.incidentes": "Incidentes",
+  "tab.metricas": "Métricas",
+  "tab.config": "Configuración",
+  "tab.general.short": "General",
+  "tab.zonas.short": "Zonas",
+  "tab.drones.short": "Drones",
+  "tab.recursos.short": "Recursos",
+  "tab.pronostico.short": "Riesgo",
+  "tab.incidentes.short": "Incidentes",
+  "tab.metricas.short": "Métricas",
+  "tab.config.short": "Config",
+  "status.aria": "Estado general",
+  "status.risk": "Riesgo hoy",
+  "status.lastDetection": "Última detección",
+  "status.noData": "sin datos",
+  "status.delay": "Demora del satélite",
+  "status.early": "Alerta temprana",
+  "status.earlyOpen": "{n} sin confirmar",
+  "status.quiet": "sin novedades",
+  "status.goesAgo": "GOES hace {t}",
+  "status.fires24": "Focos 24 h",
+  "status.industrial": "Calor industrial oculto",
+  "status.alerts": "Alertas",
+  "status.none": "ninguna",
+  "age.min": "hace {n} min",
+  "age.hour": "hace {n} h",
+  "age.day": "hace {n} d",
+  "risk.bajo": "Bajo",
+  "risk.moderado": "Moderado",
+  "risk.alto": "Alto",
+  "risk.muy alto": "Muy alto",
+  "risk.extremo": "Extremo",
+  "top.undo": "Deshacer",
+  "top.redo": "Rehacer",
+  "top.refresh": "Actualizar datos",
+  "top.more": "Más opciones",
+  "top.search": "Buscar",
+  "settings.language": "Idioma",
+  "settings.languageHint":
+    "Cambia los textos principales del panel (pestañas, franja de estado, alertas tempranas). El resto de las pantallas sigue en español por ahora.",
+  "early.title": "Alertas tempranas",
+  "early.intro":
+    "GOES-19 mira Argentina cada 10 minutos, mucho antes de que pase un satélite polar, pero con píxeles de 2 a 4 km. Acá ves lo que todavía no confirmó ningún otro satélite.",
+  "early.loading": "Consultando GOES-19…",
+  "early.none": "Sin alertas tempranas abiertas",
+  "early.noneSub": "GOES-19 no ve calor nuevo sin confirmar.",
+  "early.more": "y {n} más en el mapa",
+  "early.summary":
+    "{c} confirmadas por un satélite polar · {d} descartadas por calor industrial",
+} as const;
+
+export type MsgKey = keyof typeof es;
+
+const en: Record<MsgKey, string> = {
+  "tab.general": "Overview",
+  "tab.zonas": "Zones",
+  "tab.drones": "Drones & sensors",
+  "tab.recursos": "Resources",
+  "tab.pronostico": "Forecast",
+  "tab.incidentes": "Incidents",
+  "tab.metricas": "Metrics",
+  "tab.config": "Settings",
+  "tab.general.short": "Overview",
+  "tab.zonas.short": "Zones",
+  "tab.drones.short": "Drones",
+  "tab.recursos.short": "Resources",
+  "tab.pronostico.short": "Risk",
+  "tab.incidentes.short": "Incidents",
+  "tab.metricas.short": "Metrics",
+  "tab.config.short": "Settings",
+  "status.aria": "General status",
+  "status.risk": "Risk today",
+  "status.lastDetection": "Last detection",
+  "status.noData": "no data",
+  "status.delay": "Satellite delay",
+  "status.early": "Early warning",
+  "status.earlyOpen": "{n} unconfirmed",
+  "status.quiet": "all quiet",
+  "status.goesAgo": "GOES {t} ago",
+  "status.fires24": "Fires 24 h",
+  "status.industrial": "Industrial heat hidden",
+  "status.alerts": "Alerts",
+  "status.none": "none",
+  "age.min": "{n} min ago",
+  "age.hour": "{n} h ago",
+  "age.day": "{n} d ago",
+  "risk.bajo": "Low",
+  "risk.moderado": "Moderate",
+  "risk.alto": "High",
+  "risk.muy alto": "Very high",
+  "risk.extremo": "Extreme",
+  "top.undo": "Undo",
+  "top.redo": "Redo",
+  "top.refresh": "Refresh data",
+  "top.more": "More options",
+  "top.search": "Search",
+  "settings.language": "Language",
+  "settings.languageHint":
+    "Changes the main texts of the panel (tabs, status strip, early warnings). The rest of the screens are still in Spanish for now.",
+  "early.title": "Early warnings",
+  "early.intro":
+    "GOES-19 watches Argentina every 10 minutes, long before a polar satellite passes, but with 2 to 4 km pixels. Here is what no other satellite has confirmed yet.",
+  "early.loading": "Checking GOES-19…",
+  "early.none": "No open early warnings",
+  "early.noneSub": "GOES-19 sees no new unconfirmed heat.",
+  "early.more": "and {n} more on the map",
+  "early.summary":
+    "{c} confirmed by a polar satellite · {d} dismissed as industrial heat",
+};
+
+const pt: Record<MsgKey, string> = {
+  "tab.general": "Visão geral",
+  "tab.zonas": "Zonas",
+  "tab.drones": "Drones e sensores",
+  "tab.recursos": "Recursos",
+  "tab.pronostico": "Previsão",
+  "tab.incidentes": "Incidentes",
+  "tab.metricas": "Métricas",
+  "tab.config": "Configurações",
+  "tab.general.short": "Geral",
+  "tab.zonas.short": "Zonas",
+  "tab.drones.short": "Drones",
+  "tab.recursos.short": "Recursos",
+  "tab.pronostico.short": "Risco",
+  "tab.incidentes.short": "Incidentes",
+  "tab.metricas.short": "Métricas",
+  "tab.config.short": "Config.",
+  "status.aria": "Estado geral",
+  "status.risk": "Risco hoje",
+  "status.lastDetection": "Última detecção",
+  "status.noData": "sem dados",
+  "status.delay": "Atraso do satélite",
+  "status.early": "Alerta precoce",
+  "status.earlyOpen": "{n} sem confirmar",
+  "status.quiet": "sem novidades",
+  "status.goesAgo": "GOES há {t}",
+  "status.fires24": "Focos 24 h",
+  "status.industrial": "Calor industrial oculto",
+  "status.alerts": "Alertas",
+  "status.none": "nenhum",
+  "age.min": "há {n} min",
+  "age.hour": "há {n} h",
+  "age.day": "há {n} d",
+  "risk.bajo": "Baixo",
+  "risk.moderado": "Moderado",
+  "risk.alto": "Alto",
+  "risk.muy alto": "Muito alto",
+  "risk.extremo": "Extremo",
+  "top.undo": "Desfazer",
+  "top.redo": "Refazer",
+  "top.refresh": "Atualizar dados",
+  "top.more": "Mais opções",
+  "top.search": "Buscar",
+  "settings.language": "Idioma",
+  "settings.languageHint":
+    "Muda os textos principais do painel (abas, faixa de estado, alertas precoces). As demais telas continuam em espanhol por enquanto.",
+  "early.title": "Alertas precoces",
+  "early.intro":
+    "O GOES-19 observa a Argentina a cada 10 minutos, muito antes de passar um satélite polar, mas com pixels de 2 a 4 km. Aqui está o que nenhum outro satélite confirmou ainda.",
+  "early.loading": "Consultando o GOES-19…",
+  "early.none": "Sem alertas precoces abertos",
+  "early.noneSub": "O GOES-19 não vê calor novo sem confirmação.",
+  "early.more": "e mais {n} no mapa",
+  "early.summary":
+    "{c} confirmadas por um satélite polar · {d} descartadas como calor industrial",
+};
+
+export const MESSAGES: Record<Locale, Record<MsgKey, string>> = { es, en, pt };
+
+export const parseLocale = (v: unknown): Locale =>
+  v === "en" || v === "pt" ? v : "es";
+
+export type Translate = (
+  key: MsgKey,
+  vars?: Record<string, string | number>,
+) => string;
+
+export function translate(
+  locale: Locale,
+  key: MsgKey,
+  vars?: Record<string, string | number>,
+): string {
+  const text = MESSAGES[locale][key] ?? es[key];
+  return vars
+    ? text.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ""))
+    : text;
+}
+
+/** "Bajo", "Moderado"... as the forecast names them, in the user's language (unknown names pass through). */
+export const riskLabel = (t: Translate, label: string) => {
+  const key = `risk.${label.toLowerCase()}` as MsgKey;
+  return key in es ? t(key) : label;
+};

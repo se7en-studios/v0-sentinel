@@ -204,8 +204,8 @@ export function Topbar({ a }: { a: A }) {
                   : "text-foreground/60 hover:bg-foreground/[0.06] hover:text-foreground",
               )}
             >
-              <span className="hidden lg:inline">{t.label}</span>
-              <span className="lg:hidden">{t.short}</span>
+              <span className="hidden lg:inline">{ctx.t(`tab.${t.id}`)}</span>
+              <span className="lg:hidden">{ctx.t(`tab.${t.id}.short`)}</span>
               {b && b.n > 0 && (
                 <span
                   className={cn(
@@ -332,16 +332,16 @@ export function Topbar({ a }: { a: A }) {
       <span className="mx-1 hidden h-5 w-px bg-[var(--hairline)] md:block" />
       <div className="hidden items-center md:flex">
         <IconBtn
-          aria-label="Deshacer"
-          title="Deshacer (Ctrl Z)"
+          aria-label={ctx.t("top.undo")}
+          title={`${ctx.t("top.undo")} (Ctrl Z)`}
           disabled={!ctx.canUndo}
           onClick={() => ctx.undo()}
         >
           <Undo2 className="size-3.5" />
         </IconBtn>
         <IconBtn
-          aria-label="Rehacer"
-          title="Rehacer (Ctrl Shift Z)"
+          aria-label={ctx.t("top.redo")}
+          title={`${ctx.t("top.redo")} (Ctrl Shift Z)`}
           disabled={!ctx.canRedo}
           onClick={() => ctx.redo()}
         >
@@ -349,8 +349,8 @@ export function Topbar({ a }: { a: A }) {
         </IconBtn>
       </div>
       <IconBtn
-        aria-label="Actualizar datos"
-        title="Actualizar datos"
+        aria-label={ctx.t("top.refresh")}
+        title={ctx.t("top.refresh")}
         onClick={ctx.reload}
       >
         <RefreshCw className={cn("size-3.5", ctx.loading && "animate-spin")} />
@@ -372,7 +372,7 @@ export function Topbar({ a }: { a: A }) {
       <DropdownMenu>
         <DropdownMenuTrigger
           className="grid size-8 shrink-0 place-items-center rounded-lg text-foreground/70 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-foreground/[0.06] md:hidden"
-          aria-label="Más opciones"
+          aria-label={ctx.t("top.more")}
         >
           <MoreHorizontal className="size-4" aria-hidden />
         </DropdownMenuTrigger>
