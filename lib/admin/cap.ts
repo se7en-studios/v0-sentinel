@@ -14,8 +14,9 @@ export interface CapAlert {
   polygon?: [number, number][];
 }
 
+const stripCtl = (s: string) => s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, "");
 const esc = (s: string) =>
-  s.replace(
+  stripCtl(s).replace(
     /[&<>"']/g,
     (c) =>
       ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
@@ -24,7 +25,10 @@ const esc = (s: string) =>
   );
 
 /** CAP wants "YYYY-MM-DDThh:mm:ss+hh:mm"; UTC is expressed as +00:00. */
-const capDate = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, "+00:00");
+const capDate = (d: Date) => {
+  if (Number.isNaN(d.getTime())) throw new Error("CAP: fecha de emisión inválida");
+  return d.toISOString().replace(/\.\d{3}Z$/, "+00:00");
+};
 
 /** OASIS CAP 1.2 `<alert>` document. Every interpolated value is escaped. */
 export function toCap(a: CapAlert): string {

@@ -7,8 +7,9 @@ const MODE_FOR: Record<string, string> = {
   Point: "sensor",
 };
 
+const stripCtl = (s: string) => s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, "");
 const esc = (s: string) =>
-  s.replace(
+  stripCtl(s).replace(
     /[&<>"']/g,
     (c) =>
       ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[

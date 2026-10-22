@@ -93,7 +93,7 @@ export function summarizeEvidence(points: FirePoint[], days: string[]): Evidence
 
 /** "21/10/2026, 12:04 (hora de Argentina)" */
 export const fmtArgentina = (d: Date): string =>
-  `${new Intl.DateTimeFormat("es-AR", { timeZone: "America/Argentina/Buenos_Aires", dateStyle: "short", timeStyle: "short", hour12: false }).format(d)} (hora de Argentina)`;
+  `${new Intl.DateTimeFormat("es-AR", { timeZone: "America/Argentina/Buenos_Aires", dateStyle: "short", timeStyle: "short", hourCycle: "h23" }).format(d)} (hora de Argentina)`;
 
 export function evidenceHtml(ev: Evidence | null, generatedAt: Date): string {
   const when = (d: Date | null) => (d ? esc(fmtArgentina(d)) : "sin detecciones");

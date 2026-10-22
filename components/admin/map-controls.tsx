@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Layers,
@@ -409,6 +409,15 @@ export function MapOverlays({
 }) {
   const { ctx } = a;
   const [measuring, setMeasuring] = useState(false);
+  const getMap = useCallback(
+    () => a.mapRef.current?.getMap?.() ?? null,
+    [a.mapRef],
+  );
+  const closeMeasure = useCallback(() => setMeasuring(false), []);
+  // a drawing tool and the measure tool would both capture the same clicks
+  useEffect(() => {
+    if (ctx.tool) setMeasuring(false);
+  }, [ctx.tool]);
   return (
     <>
       <Ruler a={a} />
@@ -428,9 +437,9 @@ export function MapOverlays({
       </div>
       {measuring && (
         <MeasureTool
-          getMap={() => a.mapRef.current?.getMap?.() ?? null}
+          getMap={getMap}
           units={ctx.ws.settings.units}
-          onClose={() => setMeasuring(false)}
+          onClose={closeMeasure}
         />
       )}
 

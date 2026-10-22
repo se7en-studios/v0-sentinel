@@ -163,8 +163,8 @@ revoke update, delete on audit_log from public, anon, authenticated;
 -- ─────────────────────────────── seguridad por fila ───────────────────────────────
 -- Auxiliar: rol del usuario actual en una organización (null si no es miembro).
 create or replace function org_role(p_org uuid) returns text
-language sql stable security definer set search_path = public as $$
-  select role from memberships where org_id = p_org and user_id = auth.uid()
+language sql stable security definer set search_path = '' as $$
+  select role from public.memberships where org_id = p_org and user_id = auth.uid()
 $$;
 
 alter table orgs                enable row level security;
@@ -179,7 +179,35 @@ alter table contacts            enable row level security;
 alter table escalation_policies enable row level security;
 alter table deliveries          enable row level security;
 alter table audit_log           enable row level security;
--- observations son públicas por naturaleza (datos satelitales abiertos): sin RLS, solo lectura para el rol authenticated.
+-- observations: datos satelitales abiertos, legibles por cualquier usuario autenticado; solo el servicio escribe.
+alter table observations enable row level security;
+create policy observations_read on observations for select to authenticated using (true);
+revoke insert, update, delete on observations from anon, authenticated;
+revoke all on deliveries, audit_log from anon, authenticated;
+grant select on audit_log to authenticated;  -- la política audit_read decide quién la ve
+
+-- org_id y site_id no se cambian después de crear la fila (evita mover datos entre organizaciones).
+create or replace function forbid_scope_change() returns trigger
+language plpgsql as $$
+begin
+  if new.org_id is distinct from old.org_id then
+    raise exception 'org_id es inmutable';
+  end if;
+  return new;
+end $$;
+create trigger features_scope before update on features for each row execute function forbid_scope_change();
+create trigger incidents_scope before update on incidents for each row execute function forbid_scope_change();
+create trigger alerts_scope before update on alerts for each row execute function forbid_scope_change();
+create trigger tasks_scope before update on tasks for each row execute function forbid_scope_change();
+create trigger contacts_scope before update on contacts for each row execute function forbid_scope_change();
+create trigger policies_scope before update on escalation_policies for each row execute function forbid_scope_change();
+
+create index if not exists incident_notes_org_idx on incident_notes (org_id);
+create index if not exists tasks_org_idx on tasks (org_id);
+create index if not exists contacts_org_idx on contacts (org_id);
+create index if not exists policies_org_idx on escalation_policies (org_id);
+create index if not exists features_org_idx on features (org_id);
+create index if not exists incidents_site_idx on incidents (site_id);
 
 create policy orgs_read on orgs for select using (org_role(id) is not null);
 
