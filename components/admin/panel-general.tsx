@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HORIZONS } from "@/lib/admin/spread";
+import { isAcked, zoneKey } from "@/lib/admin/alert-ack";
 import { alertLinks, mapsLink } from "@/lib/admin/report";
 import { centerOf } from "@/lib/admin/geo";
 import type { Confidence } from "@/lib/admin/types";
@@ -268,7 +269,7 @@ function AlertsTab({ ctx }: { ctx: Ctx }) {
           ) : undefined
         }
       >
-        {ctx.alertCount + ctx.ruleFirings.size === 0 && (
+        {zoneAlerts.length + sensorAlerts.length + ctx.ruleFirings.size === 0 && (
           <EmptyState
             icon={<BellRing className="size-4" />}
             title="Todo en orden"
@@ -278,10 +279,19 @@ function AlertsTab({ ctx }: { ctx: Ctx }) {
           </EmptyState>
         )}
         <div className="space-y-2">
-          {zoneAlerts.map((z) => (
+          {zoneAlerts.map((z) => {
+            const hits = zoneHits[z.id].recent;
+            const ack = ctx.alertAck[zoneKey(z.id)];
+            const handled = isAcked(ack, hits, ctx.now);
+            return (
             <div
               key={z.id}
-              className="rounded-lg border border-[#b83a3a]/25 bg-[#b83a3a]/[0.06] p-2.5"
+              className={cn(
+                "rounded-lg border p-2.5",
+                handled
+                  ? "border-[var(--hairline)] bg-foreground/[0.03]"
+                  : "border-[#b83a3a]/25 bg-[#b83a3a]/[0.06]",
+              )}
             >
               <button
                 type="button"
@@ -309,8 +319,34 @@ function AlertsTab({ ctx }: { ctx: Ctx }) {
                 ws={ws}
                 text={`Sentinel: ${ws.meta[z.id]?.name ?? "Zona"} tiene ${zoneHits[z.id].recent} focos en las últimas 48 h. Ubicación: ${mapsLink(...centerOf(z))}`}
               />
+              <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px]">
+                {handled ? (
+                  <>
+                    <span className="text-foreground/65">
+                      {ack?.until && ack.until > ctx.now ? "Pospuesta" : "Reconocida"} por{" "}
+                      <b>{ack?.by || "Operador"}</b> · <span className="num">{when(ack?.t ?? 0)}</span>
+                    </span>
+                    <Btn onClick={() => ctx.reopenZoneAlert(z.id)} className="min-h-7">
+                      Reabrir
+                    </Btn>
+                  </>
+                ) : (
+                  <>
+                    <Btn variant="solid" onClick={() => ctx.ackZoneAlert(z.id, hits)} className="min-h-7">
+                      Reconocer
+                    </Btn>
+                    <Btn onClick={() => ctx.ackZoneAlert(z.id, hits, 60)} className="min-h-7">
+                      Posponer 1 h
+                    </Btn>
+                    {ack && (
+                      <span className="text-foreground/55">Se reabrió: hay focos nuevos</span>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
-          ))}
+            );
+          })}
           {sensorAlerts.map((x) => (
             <div
               key={x.feat.id}

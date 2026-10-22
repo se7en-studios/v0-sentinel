@@ -8,6 +8,7 @@ import type { MapHandle } from "./map-view";
 import { useClock } from "./hooks/use-clock";
 import { useFeatures } from "./hooks/use-features";
 import { useFeedExports } from "./hooks/use-feed-exports";
+import { isAcked, zoneKey } from "@/lib/admin/alert-ack";
 import { useFiresData } from "./hooks/use-fires-data";
 import { useNotifications } from "./hooks/use-notifications";
 import { buildPaletteActions } from "./hooks/palette-actions";
@@ -35,6 +36,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     setNotes,
     addNote,
     removeNote,
+    setAck,
     setOps,
     undo,
     redo,
@@ -267,8 +269,23 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     panelOpen,
     setPanelOpen,
     camera,
+    // handled (acknowledged or snoozed) zone alerts stop counting until something new happens
     alertCount:
-      alertIds.size + sim.sensors.filter((x) => x.reading.alert).length,
+      [...alertIds].filter(
+        (id) =>
+          !isAcked(ws.alertAck[zoneKey(id)], zoneHits[id]?.recent ?? 0, now),
+      ).length + sim.sensors.filter((x) => x.reading.alert).length,
+    alertAck: ws.alertAck,
+    ackZoneAlert: (featId: string, detections: number, snoozeMin?: number) => {
+      const t = Date.now();
+      setAck(zoneKey(featId), {
+        t,
+        by: cloud?.email ?? ws.settings.org ?? "Operador",
+        n: detections,
+        ...(snoozeMin ? { until: t + snoozeMin * 60_000 } : {}),
+      });
+    },
+    reopenZoneAlert: (featId: string) => setAck(zoneKey(featId), null),
     ruleFirings,
     forecast: wr.forecast,
     lastDetection: fd.lastDetection,

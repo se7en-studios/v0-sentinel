@@ -1,4 +1,5 @@
 import type { OpsState } from "./resources";
+import type { AckMap } from "./alert-ack";
 export type Role = "zone" | "line" | "route" | "sensor";
 export type SensorType = "temp" | "humidity" | "smoke" | "wind";
 export type BaseLayer = "esri" | "s2" | "viirs" | "light" | "topo";
@@ -75,6 +76,8 @@ export interface Workspace {
   ops: OpsState;
   /** dated, attributed notes, newest first; `notes` stays as the free-text scratchpad */
   noteLog: NoteEntry[];
+  /** alerts the team has acknowledged or snoozed, keyed like "zone:<featureId>" */
+  alertAck: AckMap;
 }
 
 // [lat, lng, frp, confidence 0|1|2, dayIdx, hhmm, isNight 0|1]

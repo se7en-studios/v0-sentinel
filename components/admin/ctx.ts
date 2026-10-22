@@ -12,6 +12,7 @@ import type {
   Workspace,
 } from "@/lib/admin/types";
 import type { DroneSpec } from "@/lib/admin/sim";
+import type { AckMap } from "@/lib/admin/alert-ack";
 import type { Weather } from "@/lib/admin/weather";
 import type { DayForecast } from "@/lib/admin/forecast";
 import type { OpsEntry, UnitState } from "@/lib/admin/resources";
@@ -117,6 +118,10 @@ export interface Ctx {
   noteLog: NoteEntry[];
   addNote: (text: string, featId?: string) => void;
   removeNote: (id: string) => void;
+  alertAck: AckMap;
+  /** acknowledge a zone alert; with snoozeMin it also stays quiet that long (new detections re-open it) */
+  ackZoneAlert: (featId: string, detections: number, snoozeMin?: number) => void;
+  reopenZoneAlert: (featId: string) => void;
   payload: FiresPayload | null;
   firesError: string | null;
   loading: boolean;

@@ -1,6 +1,7 @@
 "use client";
 
 import { cleanRules } from "./rules";
+import { cleanAckMap, type AlertAck } from "./alert-ack";
 import { EMPTY_OPS, cleanOps, type OpsState } from "./resources";
 import type { CloudCopy } from "./cloud";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -24,6 +25,7 @@ const EMPTY: Workspace = {
   notes: "",
   ops: EMPTY_OPS,
   noteLog: [],
+  alertAck: {},
 };
 
 const BASE_LAYERS = ["esri", "s2", "viirs", "light", "topo"];
@@ -139,6 +141,7 @@ export function parseWorkspace(input: unknown): Workspace {
       notes: typeof p.notes === "string" ? p.notes.slice(0, 20_000) : "",
       ops: cleanOps(p.ops),
       noteLog: cleanNoteLog(p.noteLog),
+      alertAck: cleanAckMap(p.alertAck),
       settings: {
         ...DEFAULT_SETTINGS,
         ...st,
@@ -481,6 +484,16 @@ export function useWorkspace(uid?: string) {
       setWs((w) => ({ ...w, noteLog: w.noteLog.filter((n) => n.id !== id) })),
     [],
   );
+  const setAck = useCallback(
+    (key: string, entry: AlertAck | null) =>
+      setWs((w) => {
+        const next = { ...w.alertAck };
+        if (entry) next[key] = entry;
+        else delete next[key];
+        return { ...w, alertAck: next };
+      }),
+    [],
+  );
   const setOps = useCallback(
     (update: (o: OpsState) => OpsState) =>
       setWs((w) => ({ ...w, ops: update(w.ops) })),
@@ -517,6 +530,7 @@ export function useWorkspace(uid?: string) {
     setNotes,
     addNote,
     removeNote,
+    setAck,
     setOps,
     undo,
     redo,
