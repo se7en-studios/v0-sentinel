@@ -4,9 +4,10 @@ import { useState } from "react";
 import { toast } from "sonner";
 import buffer from "@turf/buffer";
 import circle from "@turf/circle";
-import { Crosshair, Pencil, Trash2, Video, Wand2 } from "lucide-react";
+import { Crosshair, Download, Pencil, Trash2, Video, Wand2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { areaHa, centerOf, fmtArea, fmtKm, lengthKm, patrolRing, sweepPath } from "@/lib/admin/geo";
+import { toKml } from "@/lib/admin/kml";
 import { FLEET, sensorReading } from "@/lib/admin/sim";
 import {
   MODE_ROLE,
@@ -32,6 +33,14 @@ function SelectedCard({ ctx }: { ctx: Ctx }) {
   const meta = ws.meta[f.id] ?? { name: "" };
   const units = ws.settings.units;
   const hits = zoneHits[f.id];
+
+  const exportKml = () => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([toKml([f], ws.meta)], { type: "application/vnd.google-earth.kml+xml" }));
+    a.download = `${(meta.name || f.id).replace(/[^\w-]+/g, "-").slice(0, 40)}.kml`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+  };
 
   const makeRoute = (kind: "ring" | "sweep") => {
     const coords = kind === "ring" ? patrolRing(f, 150) : sweepPath(f, 250);
@@ -232,6 +241,9 @@ function SelectedCard({ ctx }: { ctx: Ctx }) {
           >
             <Pencil className="size-3.5" />{" "}
             {ctx.editing ? "Terminar edición" : "Editar vértices"}
+          </Btn>
+          <Btn onClick={exportKml}>
+            <Download className="size-3.5" /> Exportar KML
           </Btn>
           <Btn variant="danger" onClick={() => ctx.removeFeature(f.id)}>
             <Trash2 className="size-3.5" /> Eliminar

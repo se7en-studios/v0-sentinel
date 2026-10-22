@@ -2,7 +2,9 @@
 
 import { useRef } from "react";
 import { toast } from "sonner";
-import { isFeat, parseWorkspace } from "@/lib/admin/store";
+import { parseWorkspace } from "@/lib/admin/store";
+import { MAX_IMPORT_BYTES, parseGeoJson } from "@/lib/admin/geojson-io";
+import { parseKml, toKml } from "@/lib/admin/kml";
 import { Download, Trash2, Upload } from "lucide-react";
 import {
   DEFAULT_SETTINGS,
@@ -20,67 +22,57 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
   const file = useRef<HTMLInputElement>(null);
   const th = s.thresholds;
 
-  const exportJson = () => {
-    const blob = new Blob(
-      [
-        JSON.stringify(
-          {
-            type: "FeatureCollection",
-            features: ws.features,
-            meta: ws.meta,
-            settings: s,
-          },
-          null,
-          2,
-        ),
-      ],
-      { type: "application/geo+json" },
-    );
+  const saveFile = (body: string, mime: string, ext: string) => {
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `sentinel-workspace-${new Date().toISOString().slice(0, 10)}.geojson`;
+    a.href = URL.createObjectURL(new Blob([body], { type: mime }));
+    a.download = `sentinel-workspace-${new Date().toISOString().slice(0, 10)}.${ext}`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1500);
   };
 
-  const importJson = async (f: File | undefined) => {
+  const exportJson = () =>
+    saveFile(
+      JSON.stringify({ type: "FeatureCollection", features: ws.features, meta: ws.meta, settings: s }, null, 2),
+      "application/geo+json",
+      "geojson",
+    );
+
+  const exportKml = () => saveFile(toKml(ws.features, ws.meta), "application/vnd.google-earth.kml+xml", "kml");
+
+  const importFile = async (f: File | undefined) => {
     if (!f) return;
-    const bad = (msg = "Archivo inválido. Usá un .geojson exportado desde Sentinel (máx. 2 MB).") => toast.error(msg);
-    if (f.size > 2_000_000) return bad();
+    if (f.size > MAX_IMPORT_BYTES) return toast.error("El archivo supera los 2 MB.");
     try {
-      const j = JSON.parse(await f.text()) as {
-        features?: unknown;
-        meta?: unknown;
-        settings?: unknown;
-      };
-      if (!Array.isArray(j.features)) return bad();
-      const features = j.features
-        .map((x: Workspace["features"][number], i: number) => ({
-          type: "Feature" as const,
-          id: String(x?.id ?? `imp-${Date.now()}-${i}`),
-          geometry: x?.geometry,
-          properties: { mode: String(x?.properties?.mode) },
-        }))
-        .filter(isFeat)
-        .filter((x, i, all) => all.findIndex((y) => y.id === x.id) === i);
-      if (features.length === 0) return bad("No hay elementos compatibles. Solo se importan zonas, líneas, rutas y sensores creados en Sentinel (MultiPolígonos no soportados).");
+      const text = await f.text();
+      const isKml = /\.kml$/i.test(f.name) || /^\s*(<\?xml|<kml)/i.test(text);
+      let features: Workspace["features"];
+      let names: Record<string, string>;
+      let rawMeta: Record<string, unknown> = {};
+      let settings: unknown = ws.settings;
+      if (isKml) {
+        features = parseKml(text);
+        names = Object.fromEntries(features.map((x) => [x.id, String(x.properties.name || x.id)]));
+      } else {
+        const r = parseGeoJson(text);
+        ({ features, names, meta: rawMeta } = r);
+        if (r.settings && typeof r.settings === "object") settings = r.settings;
+      }
+      features = features.map(({ properties: { mode }, ...x }) => ({ ...x, properties: { mode } }));
+      if (features.length === 0)
+        return toast.error("No hay elementos compatibles. Se importan polígonos, líneas y puntos (los MultiPolígonos se separan solos).");
       if (!window.confirm(`Esto reemplaza tu espacio actual (${ws.features.length} elementos) por ${features.length} importados. ¿Continuar? Podés deshacer con Ctrl Z.`)) return;
-      const rawMeta = (j.meta ?? {}) as Workspace["meta"];
       const meta = Object.fromEntries(
-        features.map((x) => [x.id, { ...rawMeta[x.id], name: typeof rawMeta[x.id]?.name === "string" ? rawMeta[x.id].name.slice(0, 80) : x.id }]),
+        features.map((x) => {
+          const old = rawMeta[x.id];
+          const base = old && typeof old === "object" ? (old as Record<string, unknown>) : {};
+          return [x.id, { ...base, name: names[x.id] ?? x.id }];
+        }),
       );
       // settings travel with the export; parseWorkspace validates them like any stored data
-      const next = parseWorkspace({
-        features,
-        meta,
-        settings:
-          j.settings && typeof j.settings === "object" ? j.settings : ws.settings,
-        notes: ws.notes,
-      });
-      ctx.replaceWorkspace(next);
+      ctx.replaceWorkspace(parseWorkspace({ features, meta, settings, notes: ws.notes }));
       toast.success(`${features.length} elementos importados`);
-    } catch {
-      bad();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo leer el archivo.");
     }
   };
 
@@ -303,16 +295,19 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
           <Btn onClick={exportJson}>
             <Download className="size-3.5" /> Exportar GeoJSON
           </Btn>
+          <Btn onClick={exportKml}>
+            <Download className="size-3.5" /> Exportar KML
+          </Btn>
           <Btn onClick={() => file.current?.click()}>
-            <Upload className="size-3.5" /> Importar
+            <Upload className="size-3.5" /> Importar (GeoJSON / KML)
           </Btn>
           <input
             ref={file}
             type="file"
-            accept=".geojson,.json,application/json"
+            accept=".geojson,.json,.kml,application/json,application/vnd.google-earth.kml+xml"
             hidden
             onChange={(e) => {
-              importJson(e.target.files?.[0]);
+              importFile(e.target.files?.[0]);
               e.target.value = "";
             }}
           />
