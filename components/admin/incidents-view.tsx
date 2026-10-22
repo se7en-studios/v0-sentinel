@@ -274,7 +274,7 @@ export function IncidentsView({ ctx }: { ctx: Ctx }) {
                 </Field>
                 <Field label="Responsable">
                   <input
-                    key={inc.id + (ctx.incidentMeta[inc.id]?.t ?? 0)}
+                    key={inc.id}
                     className={inputCls}
                     defaultValue={ctx.incidentMeta[inc.id]?.assignee ?? ""}
                     maxLength={ASSIGNEE_MAX}

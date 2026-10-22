@@ -96,8 +96,9 @@ function writeStored(key: string, v: Stored) {
   }
 }
 
-export const NOTE_LOG_MAX = 500;
-export const NOTE_TEXT_MAX = 2000;
+// sized so the log stays near 200 kB: the whole workspace is one Firestore document capped at 900 kB
+export const NOTE_LOG_MAX = 200;
+export const NOTE_TEXT_MAX = 1000;
 
 /** Untrusted stored notes to a safe list; drops anything malformed, never throws. */
 export function cleanNoteLog(input: unknown): NoteEntry[] {

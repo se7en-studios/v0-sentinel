@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { NOTE_LOG_MAX, cleanNoteLog, isFeat, parseWorkspace } from "./store";
+import { NOTE_LOG_MAX, NOTE_TEXT_MAX, cleanNoteLog, isFeat, parseWorkspace } from "./store";
 
 const zone = {
   id: "z1",
@@ -45,7 +45,7 @@ test("cleanNoteLog caps text length and list size, and tolerates non-arrays", ()
   const many = Array.from({ length: NOTE_LOG_MAX + 20 }, (_, i) => ({ id: `n${i}`, t: i, text: "x".repeat(5000) }));
   const out = cleanNoteLog(many);
   expect(out).toHaveLength(NOTE_LOG_MAX);
-  expect(out[0].text).toHaveLength(2000);
+  expect(out[0].text).toHaveLength(NOTE_TEXT_MAX);
   expect(cleanNoteLog(undefined)).toEqual([]);
   expect(cleanNoteLog("x")).toEqual([]);
 });

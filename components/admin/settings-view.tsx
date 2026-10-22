@@ -69,7 +69,7 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
         }),
       );
       // settings travel with the export; parseWorkspace validates them like any stored data
-      ctx.replaceWorkspace(parseWorkspace({ features, meta, settings, notes: ws.notes }));
+      ctx.replaceWorkspace(parseWorkspace({ ...ws, features, meta, settings }));
       toast.success(`${features.length} elementos importados`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "No se pudo leer el archivo.");

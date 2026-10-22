@@ -22,6 +22,8 @@ export interface CloudCopy {
 
 export class ConflictError extends Error {}
 
+const MAX_JSON = 850_000;
+
 export async function loadCloud(uid: string): Promise<CloudCopy | null> {
   const snap = await getDoc(doc(fb().db, "workspaces", uid));
   const d = snap.data();
@@ -48,9 +50,12 @@ export async function saveCloud(
     const current = Number(snap.data()?.rev) || 0;
     if (!force && snap.exists() && current !== baseRev)
       throw new ConflictError();
+    const json = JSON.stringify(ws);
+    // firestore.rules reject json over 900000 bytes: fail loudly here instead of retrying a write that can never land
+    if (json.length > MAX_JSON) throw new Error("El espacio de trabajo es demasiado grande para guardarse en la nube");
     const rev = current + 1;
     tx.set(ref, {
-      json: JSON.stringify(ws),
+      json,
       rev,
       clientAt,
       updatedAt: serverTimestamp(),

@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { HORIZONS } from "@/lib/admin/spread";
 import { isAcked, zoneKey } from "@/lib/admin/alert-ack";
+import { NOTE_TEXT_MAX } from "@/lib/admin/store";
 import { alertLinks, mapsLink } from "@/lib/admin/report";
 import { centerOf } from "@/lib/admin/geo";
 import type { Confidence } from "@/lib/admin/types";
@@ -486,7 +487,7 @@ function NotesTab({ ctx }: { ctx: Ctx }) {
           }}
           placeholder="Qué pasó, qué se decidió, a quién se avisó…"
           rows={3}
-          maxLength={2000}
+          maxLength={NOTE_TEXT_MAX}
           className="w-full resize-y rounded-lg border border-[var(--hairline)] bg-card p-2.5 text-[12.5px] leading-relaxed outline-none transition-[border-color,box-shadow] placeholder:text-foreground/35 focus:border-primary focus:ring-2 focus:ring-ring"
         />
         <div className="mt-2 flex items-center justify-between gap-2">
