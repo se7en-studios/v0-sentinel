@@ -18,6 +18,8 @@ import { BASES } from "@/lib/admin/map-config";
 import type { BaseLayer } from "@/lib/admin/types";
 import type { useAdmin } from "./use-admin";
 import { Toolbar } from "./toolbar";
+import { SearchBox } from "./map/search-box";
+import { MeasureTool, MeasureToggle } from "./map/measure-tool";
 
 type A = ReturnType<typeof useAdmin>;
 
@@ -54,141 +56,6 @@ function Compass({ a }: { a: A }) {
         <span className="sr-only">Inclinación {Math.round(pitch)}°</span>
       )}
     </button>
-  );
-}
-
-type Hit = { label: string; lat: number; lng: number };
-
-/** Place / coordinate search with suggestions (Nominatim, Argentina only). */
-function SearchBox({ a }: { a: A }) {
-  const [q, setQ] = useState("");
-  const [hits, setHits] = useState<Hit[]>([]);
-  const [open, setOpen] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
-  const abort = useRef<AbortController | null>(null);
-
-  const go = (h: Hit) => {
-    a.mapRef.current?.flyTo([h.lng, h.lat], 11.5);
-    setOpen(false);
-    setQ(h.label.split(",")[0]);
-  };
-
-  useEffect(() => {
-    const text = q.trim();
-    setMsg(null);
-    const m = text.match(/^(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)$/);
-    if (m) {
-      setHits([
-        {
-          label: `Coordenadas ${m[1]}, ${m[2]}`,
-          lat: Number(m[1]),
-          lng: Number(m[2]),
-        },
-      ]);
-      return;
-    }
-    setHits([]);
-    return () => abort.current?.abort();
-  }, [q]);
-
-  // Nominatim's policy forbids autocomplete, so place names are only searched on submit
-  const searchPlace = async (text: string) => {
-    if (text.length < 3) return;
-    abort.current?.abort();
-    abort.current = new AbortController();
-    setMsg("Buscando…");
-    try {
-      const r = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(text)}&countrycodes=ar&format=json&limit=5&accept-language=es`,
-        { signal: abort.current.signal },
-      );
-      const j = (await r.json()) as {
-        display_name: string;
-        lat: string;
-        lon: string;
-      }[];
-      setMsg(j.length ? null : "Sin resultados en Argentina");
-      const found = j.map((x) => ({
-        label: x.display_name,
-        lat: Number(x.lat),
-        lng: Number(x.lon),
-      }));
-      setHits(found);
-      setOpen(true);
-      if (found[0]) go(found[0]);
-    } catch (err) {
-      if ((err as Error).name !== "AbortError") setMsg("No se pudo buscar");
-    }
-  };
-
-  return (
-    <div className="relative w-[min(22rem,calc(100vw-9.5rem))]">
-      <form
-        role="search"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (hits[0]) go(hits[0]);
-          else void searchPlace(q.trim());
-        }}
-        className={cn(
-          glass,
-          "flex h-10 items-center gap-2 px-3 focus-within:ring-2 focus-within:ring-ring",
-        )}
-      >
-        <Search className="size-3.5 shrink-0 text-foreground/45" aria-hidden />
-        <input
-          value={q}
-          onChange={(e) => {
-            setQ(e.target.value);
-            setOpen(true);
-          }}
-          onFocus={() => setOpen(true)}
-          onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
-          onBlur={() => setTimeout(() => setOpen(false), 140)}
-          aria-label="Buscar ciudad o coordenadas"
-          placeholder="Buscar ciudad (Enter) o lat, lng…"
-          className="min-w-0 flex-1 bg-transparent text-[12.5px] outline-none placeholder:text-foreground/40"
-        />
-        {q && (
-          <button
-            type="button"
-            aria-label="Borrar búsqueda"
-            onClick={() => setQ("")}
-            className="text-foreground/40 hover:text-foreground"
-          >
-            <X className="size-3.5" />
-          </button>
-        )}
-      </form>
-      {open && (hits.length > 0 || msg) && (
-        <ul
-          className={cn(
-            glass,
-            "absolute inset-x-0 top-12 z-30 overflow-hidden p-1",
-          )}
-          role="listbox"
-        >
-          {msg && (
-            <li className="px-2.5 py-2 text-[11.5px] text-foreground/50">
-              {msg}
-            </li>
-          )}
-          {hits.map((h) => (
-            <li key={`${h.lat},${h.lng}`}>
-              <button
-                type="button"
-                role="option"
-                aria-selected="false"
-                onMouseDown={() => go(h)}
-                className="w-full truncate rounded-lg px-2.5 py-1.5 text-left text-[12px] hover:bg-foreground/[0.06]"
-              >
-                {h.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
   );
 }
 
@@ -282,16 +149,26 @@ function Chips({ a }: { a: A }) {
   ];
   return (
     <div
-      className={cn(glass, "num hidden items-center gap-2.5 rounded-lg px-2.5 py-1 text-[11px] sm:flex")}
+      className={cn(
+        glass,
+        "num hidden items-center gap-2.5 rounded-lg px-2.5 py-1 text-[11px] sm:flex",
+      )}
       aria-live="polite"
     >
       {items.map((c, i) => (
         <span key={c.k} className="flex items-baseline gap-1" title={c.k}>
-          {i > 0 && <span className="mr-1.5 h-3 w-px self-center bg-[var(--hairline)]" aria-hidden />}
+          {i > 0 && (
+            <span
+              className="mr-1.5 h-3 w-px self-center bg-[var(--hairline)]"
+              aria-hidden
+            />
+          )}
           <b className="font-semibold" style={{ color: c.c }}>
             {c.v}
           </b>
-          <span className="text-foreground/50">{["focos", "FRP", "alta conf."][i]}</span>
+          <span className="text-foreground/50">
+            {["focos", "FRP", "alta conf."][i]}
+          </span>
         </span>
       ))}
     </div>
@@ -395,9 +272,18 @@ function Legend({ a }: { a: A }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={cn(glass, "hidden h-7 items-center gap-1.5 px-2.5 text-[10.5px] font-medium text-foreground/60 hover:text-foreground md:flex")}
+        className={cn(
+          glass,
+          "hidden h-7 items-center gap-1.5 px-2.5 text-[10.5px] font-medium text-foreground/60 hover:text-foreground md:flex",
+        )}
       >
-        <span className="h-1.5 w-6 rounded-full" style={{ background: "linear-gradient(90deg,#f5a524,#ff6a1a,#c8321e)" }} aria-hidden />
+        <span
+          className="h-1.5 w-6 rounded-full"
+          style={{
+            background: "linear-gradient(90deg,#f5a524,#ff6a1a,#c8321e)",
+          }}
+          aria-hidden
+        />
         Leyenda
       </button>
     );
@@ -412,7 +298,12 @@ function Legend({ a }: { a: A }) {
     >
       <div className="mb-1 flex items-center justify-between font-medium text-foreground/85">
         Intensidad del foco (FRP)
-        <button type="button" onClick={() => setOpen(false)} aria-label="Ocultar leyenda" className="rounded text-foreground/55 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          aria-label="Ocultar leyenda"
+          className="rounded text-foreground/55 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
           <X className="size-3" />
         </button>
       </div>
@@ -517,17 +408,31 @@ export function MapOverlays({
   cursor: [number, number] | null;
 }) {
   const { ctx } = a;
+  const [measuring, setMeasuring] = useState(false);
   return (
     <>
       <Ruler a={a} />
       <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex items-start justify-between gap-2 [&>*]:pointer-events-auto">
-        <Compass a={a} />
+        <div className="flex flex-col items-start gap-1.5">
+          <Compass a={a} />
+          <MeasureToggle
+            active={measuring}
+            onToggle={() => setMeasuring((m) => !m)}
+          />
+        </div>
         <SearchBox a={a} />
         <div className="flex flex-col items-end gap-1.5">
           <BasePicker a={a} />
           {ctx.tab === "general" && <Chips a={a} />}
         </div>
       </div>
+      {measuring && (
+        <MeasureTool
+          getMap={() => a.mapRef.current?.getMap?.() ?? null}
+          units={ctx.ws.settings.units}
+          onClose={() => setMeasuring(false)}
+        />
+      )}
 
       {(ctx.tab === "zonas" || ctx.tab === "drones") && (
         <Toolbar

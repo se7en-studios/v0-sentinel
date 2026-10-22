@@ -5,6 +5,13 @@ import type {
 } from "maplibre-gl";
 import { ROLE_COLOR } from "@/lib/admin/types";
 import {
+  CLUSTER_COLOR_EXPR,
+  CLUSTER_LABEL_EXPR,
+  CLUSTER_MAX_ZOOM,
+  CLUSTER_RADIUS_EXPR,
+  CLUSTER_SOURCE,
+} from "@/lib/admin/map-cluster";
+import {
   BASES,
   DEM_TILES,
   FONT,
@@ -93,6 +100,8 @@ export function addDataLayers(map: MLMap) {
   ]) {
     map.addSource(id, { type: "geojson", data: E });
   }
+  // grouped detections for low zoom; the per-point layers take over at CLUSTER_MAX_ZOOM
+  map.addSource("fires-cl", { ...CLUSTER_SOURCE, data: E });
 
   // --- context: roads, buildings (OpenFreeMap) ---
   map.addLayer({
@@ -245,7 +254,7 @@ export function addDataLayers(map: MLMap) {
     id: "fires-glow",
     type: "circle",
     source: "fires",
-    minzoom: 5,
+    minzoom: CLUSTER_MAX_ZOOM,
     paint: {
       "circle-radius": [
         "interpolate",
@@ -267,7 +276,7 @@ export function addDataLayers(map: MLMap) {
     id: "fires-pt",
     type: "circle",
     source: "fires",
-    minzoom: 6,
+    minzoom: CLUSTER_MAX_ZOOM,
     paint: {
       "circle-radius": [
         "interpolate",
@@ -293,6 +302,34 @@ export function addDataLayers(map: MLMap) {
       "circle-stroke-color": "#fff7e6",
       "circle-stroke-width": 1.2,
     },
+  });
+
+  map.addLayer({
+    id: "fires-cluster",
+    type: "circle",
+    source: "fires-cl",
+    maxzoom: CLUSTER_MAX_ZOOM,
+    paint: {
+      "circle-radius": CLUSTER_RADIUS_EXPR,
+      "circle-color": CLUSTER_COLOR_EXPR,
+      "circle-opacity": 0.92,
+      "circle-stroke-color": "#fff7e6",
+      "circle-stroke-width": 1.5,
+    },
+  });
+  map.addLayer({
+    id: "fires-cluster-count",
+    type: "symbol",
+    source: "fires-cl",
+    maxzoom: CLUSTER_MAX_ZOOM,
+    filter: ["has", "point_count"],
+    layout: {
+      "text-field": CLUSTER_LABEL_EXPR,
+      "text-font": FONT_BOLD,
+      "text-size": 12,
+      "text-allow-overlap": true,
+    },
+    paint: { "text-color": "#ffffff", "text-halo-color": "rgba(80,20,8,0.7)", "text-halo-width": 1.2 },
   });
 
   // --- 3D volumes ---
