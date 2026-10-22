@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { MAX_RULES, describeRule } from "@/lib/admin/rules";
 import { MODE_ROLE, type AlertRule } from "@/lib/admin/types";
@@ -15,6 +15,139 @@ const KINDS: { value: Kind; label: string }[] = [
   { value: "activity", label: "Actividad en Argentina" },
 ];
 
+/** Editable numbers of a rule; the ones a kind does not use keep their defaults. */
+interface Values {
+  zoneId: string;
+  min: number;
+  score: number;
+  days: number;
+  focos: number;
+}
+const DEFAULTS: Values = { zoneId: "", min: 1, score: 55, days: 3, focos: 100 };
+
+const valuesOf = (r: AlertRule): Values => ({
+  ...DEFAULTS,
+  ...(r.kind === "zone_fire"
+    ? { zoneId: r.zoneId, min: r.min }
+    : r.kind === "risk"
+      ? { score: r.score, days: r.days }
+      : { focos: r.focos }),
+});
+
+const inRange = (n: number, lo: number, hi: number) =>
+  Number.isFinite(n) && n >= lo && n <= hi;
+
+/** One validation for creating and editing. Returns the message to show, or null when valid. */
+function problem(kind: Kind, v: Values): string | null {
+  if (kind === "zone_fire")
+    return inRange(v.min, 1, 99) ? null : "Mínimo de focos entre 1 y 99.";
+  if (kind === "risk")
+    return inRange(v.score, 10, 100) && inRange(v.days, 1, 7)
+      ? null
+      : "Índice entre 10 y 100, y días entre 1 y 7.";
+  return inRange(v.focos, 1, 99_999)
+    ? null
+    : "Focos en 24 h: un número mayor a 0.";
+}
+
+const withValues = (
+  base: { id: string; enabled: boolean },
+  kind: Kind,
+  v: Values,
+): AlertRule =>
+  kind === "zone_fire"
+    ? { ...base, kind, zoneId: v.zoneId, min: v.min }
+    : kind === "risk"
+      ? { ...base, kind, score: v.score, days: v.days }
+      : { ...base, kind, focos: v.focos };
+
+const rejected = (msg: string) =>
+  toast.error("Revisá los valores de la regla", { description: msg });
+
+function ValueFields({
+  kind,
+  v,
+  onChange,
+  zones,
+  zoneName,
+}: {
+  kind: Kind;
+  v: Values;
+  onChange: (p: Partial<Values>) => void;
+  zones: Ctx["ws"]["features"];
+  zoneName: (id: string) => string;
+}) {
+  const num =
+    (k: "min" | "score" | "days" | "focos") =>
+    (e: { target: { value: string } }) =>
+      onChange({ [k]: Number(e.target.value) });
+  if (kind === "zone_fire")
+    return (
+      <div className="grid grid-cols-[1fr_84px] gap-2">
+        <Field label="Zona">
+          <select
+            className={inputCls}
+            value={v.zoneId}
+            onChange={(e) => onChange({ zoneId: e.target.value })}
+          >
+            <option value="">Cualquiera</option>
+            {zones.map((z) => (
+              <option key={z.id} value={z.id}>
+                {zoneName(z.id)}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Mín. focos">
+          <input
+            className={inputCls}
+            type="number"
+            min={1}
+            max={99}
+            value={v.min}
+            onChange={num("min")}
+          />
+        </Field>
+      </div>
+    );
+  if (kind === "risk")
+    return (
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Índice ≥ (10–100)">
+          <input
+            className={inputCls}
+            type="number"
+            min={10}
+            max={100}
+            value={v.score}
+            onChange={num("score")}
+          />
+        </Field>
+        <Field label="En los próximos (días)">
+          <input
+            className={inputCls}
+            type="number"
+            min={1}
+            max={7}
+            value={v.days}
+            onChange={num("days")}
+          />
+        </Field>
+      </div>
+    );
+  return (
+    <Field label="Focos en 24 h ≥">
+      <input
+        className={inputCls}
+        type="number"
+        min={1}
+        value={v.focos}
+        onChange={num("focos")}
+      />
+    </Field>
+  );
+}
+
 /** User-defined alert rules: evaluated live in use-admin, which raises the toast. */
 export function RulesCard({ ctx }: { ctx: Ctx }) {
   const { ws, ruleFirings, setSettings } = ctx;
@@ -25,41 +158,21 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
   const zoneName = (id: string) => ws.meta[id]?.name ?? "Zona";
 
   const [kind, setKind] = useState<Kind>("zone_fire");
-  const [zoneId, setZoneId] = useState("");
-  const [min, setMin] = useState(1);
-  const [score, setScore] = useState(55);
-  const [days, setDays] = useState(3);
-  const [focos, setFocos] = useState(100);
+  const [draft, setDraft] = useState<Values>(DEFAULTS);
+  // the rule open for editing and its pending values; null when none is
+  const [editing, setEditing] = useState<{ id: string; v: Values } | null>(
+    null,
+  );
 
   const add = () => {
-    const inRange = (n: number, lo: number, hi: number) =>
-      Number.isFinite(n) && n >= lo && n <= hi;
-    const ok =
-      kind === "zone_fire"
-        ? inRange(min, 1, 99)
-        : kind === "risk"
-          ? inRange(score, 10, 100) && inRange(days, 1, 7)
-          : inRange(focos, 1, 99_999);
-    if (!ok)
-      return toast.error("Revisá los valores de la regla", {
-        description:
-          kind === "zone_fire"
-            ? "Mínimo de focos entre 1 y 99."
-            : kind === "risk"
-              ? "Índice entre 10 y 100, y días entre 1 y 7."
-              : "Focos en 24 h: un número mayor a 0.",
-      });
+    const msg = problem(kind, draft);
+    if (msg) return rejected(msg);
     const id = (
       globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)
     ).slice(0, 8);
-    const base = { id, enabled: true };
-    const rule: AlertRule =
-      kind === "zone_fire"
-        ? { ...base, kind, zoneId, min }
-        : kind === "risk"
-          ? { ...base, kind, score, days }
-          : { ...base, kind, focos };
-    setSettings({ rules: [...rules, rule] });
+    setSettings({
+      rules: [...rules, withValues({ id, enabled: true }, kind, draft)],
+    });
   };
   const patch = (id: string, p: Partial<AlertRule>) =>
     setSettings({
@@ -67,9 +180,17 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
         r.id === id ? ({ ...r, ...p } as AlertRule) : r,
       ),
     });
-  const num =
-    (set: (n: number) => void) => (e: { target: { value: string } }) =>
-      set(Number(e.target.value));
+  const saveEdit = (r: AlertRule) => {
+    if (!editing) return;
+    const msg = problem(r.kind, editing.v);
+    if (msg) return rejected(msg);
+    setSettings({
+      rules: rules.map((x) =>
+        x.id === r.id ? withValues(x, r.kind, editing.v) : x,
+      ),
+    });
+    setEditing(null);
+  };
 
   return (
     <Card
@@ -90,12 +211,13 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
       <ul className="space-y-2">
         {rules.map((r) => {
           const detail = ruleFirings.get(r.id);
+          const isEditing = editing?.id === r.id;
           return (
             <li
               key={r.id}
               className={
                 detail
-                  ? "rounded-lg border border-[#b83a3a]/25 bg-[#b83a3a]/[0.06] p-2.5"
+                  ? "rounded-lg border border-[var(--state-bad-ink)]/25 bg-[var(--state-bad-ink)]/[0.06] p-2.5"
                   : "rounded-lg border border-[var(--hairline)] p-2.5"
               }
             >
@@ -105,22 +227,57 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
                     {describeRule(r, zoneName)}
                   </div>
                   {detail && (
-                    <div className="mt-0.5 text-[11.5px] text-[#b83a3a]">
+                    <div className="mt-0.5 text-[11.5px] text-[var(--state-bad-ink)]">
                       {detail}
                     </div>
                   )}
                 </div>
                 <button
                   type="button"
-                  aria-label="Eliminar regla"
+                  aria-label="Editar regla"
+                  aria-pressed={isEditing}
                   onClick={() =>
-                    setSettings({ rules: rules.filter((x) => x.id !== r.id) })
+                    setEditing(isEditing ? null : { id: r.id, v: valuesOf(r) })
                   }
+                  className="grid size-8 shrink-0 place-items-center rounded-md text-foreground/45 hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring aria-pressed:bg-primary/10 aria-pressed:text-primary"
+                >
+                  <Pencil className="size-3.5" aria-hidden />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Eliminar regla"
+                  onClick={() => {
+                    if (isEditing) setEditing(null);
+                    setSettings({ rules: rules.filter((x) => x.id !== r.id) });
+                  }}
                   className="grid size-8 shrink-0 place-items-center rounded-md text-foreground/45 hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <Trash2 className="size-3.5" aria-hidden />
                 </button>
               </div>
+              {isEditing && editing && (
+                <div className="mt-2 space-y-2 rounded-lg bg-foreground/[0.04] p-2.5">
+                  <ValueFields
+                    kind={r.kind}
+                    v={editing.v}
+                    onChange={(p) =>
+                      setEditing({ id: r.id, v: { ...editing.v, ...p } })
+                    }
+                    zones={zones}
+                    zoneName={zoneName}
+                  />
+                  <div className="flex gap-2">
+                    <Btn
+                      variant="solid"
+                      className="flex-1"
+                      onClick={() => saveEdit(r)}
+                    >
+                      Guardar cambios
+                    </Btn>
+                    <Btn onClick={() => setEditing(null)}>Cancelar</Btn>
+                  </div>
+                </div>
+              )}
               <Toggle
                 checked={r.enabled}
                 onChange={(v) => patch(r.id, { enabled: v })}
@@ -146,69 +303,13 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
               ))}
             </select>
           </Field>
-          {kind === "zone_fire" && (
-            <div className="grid grid-cols-[1fr_84px] gap-2">
-              <Field label="Zona">
-                <select
-                  className={inputCls}
-                  value={zoneId}
-                  onChange={(e) => setZoneId(e.target.value)}
-                >
-                  <option value="">Cualquiera</option>
-                  {zones.map((z) => (
-                    <option key={z.id} value={z.id}>
-                      {zoneName(z.id)}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Mín. focos">
-                <input
-                  className={inputCls}
-                  type="number"
-                  min={1}
-                  max={99}
-                  value={min}
-                  onChange={num(setMin)}
-                />
-              </Field>
-            </div>
-          )}
-          {kind === "risk" && (
-            <div className="grid grid-cols-2 gap-2">
-              <Field label="Índice ≥ (10–100)">
-                <input
-                  className={inputCls}
-                  type="number"
-                  min={10}
-                  max={100}
-                  value={score}
-                  onChange={num(setScore)}
-                />
-              </Field>
-              <Field label="En los próximos (días)">
-                <input
-                  className={inputCls}
-                  type="number"
-                  min={1}
-                  max={7}
-                  value={days}
-                  onChange={num(setDays)}
-                />
-              </Field>
-            </div>
-          )}
-          {kind === "activity" && (
-            <Field label="Focos en 24 h ≥">
-              <input
-                className={inputCls}
-                type="number"
-                min={1}
-                value={focos}
-                onChange={num(setFocos)}
-              />
-            </Field>
-          )}
+          <ValueFields
+            kind={kind}
+            v={draft}
+            onChange={(p) => setDraft({ ...draft, ...p })}
+            zones={zones}
+            zoneName={zoneName}
+          />
           <Btn variant="solid" className="w-full" onClick={add}>
             <Plus className="size-3.5" aria-hidden /> Agregar regla
           </Btn>

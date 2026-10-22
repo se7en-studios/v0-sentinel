@@ -16,7 +16,16 @@ import { nearestPlace } from "@/lib/admin/places";
 import { fmtArea } from "@/lib/admin/geo";
 import { cn } from "@/lib/utils";
 import type { Ctx } from "./ctx";
-import { Badge, Btn, Card, EmptyState, Segmented, Stat } from "./ui";
+import {
+  Badge,
+  Btn,
+  Card,
+  ChartFrame,
+  DataGate,
+  EmptyState,
+  Segmented,
+  Stat,
+} from "./ui";
 
 const REGION_KM = 300;
 const LIST_MAX = 8;
@@ -58,7 +67,7 @@ function Silhouette({ inc }: { inc: Incident }) {
     <svg
       viewBox="0 0 100 100"
       role="img"
-      aria-label={`Silueta del avance del incendio en ${n} días`}
+      aria-label={`Silueta del avance del incendio en ${n} días, hasta ${Math.round(inc.areaHa).toLocaleString("es-AR")} hectáreas`}
       className="size-full"
     >
       {[...inc.hulls].reverse().map((h, k) => {
@@ -109,6 +118,12 @@ export function IncidentsView({ ctx }: { ctx: Ctx }) {
   const units = ws.settings.units;
 
   return (
+    <DataGate
+      payload={payload}
+      loading={ctx.loading}
+      error={ctx.firesError}
+      reload={ctx.reload}
+    >
     <div className="view-in mx-auto max-w-6xl space-y-4 p-4 sm:p-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -181,7 +196,7 @@ export function IncidentsView({ ctx }: { ctx: Ctx }) {
           </ul>
 
           <div className="space-y-4">
-            <div className="grid overflow-hidden rounded-xl bg-[#0f3d2c] text-white shadow-[var(--shadow-1)] sm:grid-cols-[1fr_200px]">
+            <div className="grid overflow-hidden rounded-xl bg-[var(--brand-deep)] text-white shadow-[var(--shadow-1)] sm:grid-cols-[1fr_200px]">
               <div className="p-4 sm:p-5">
                 <Badge tone="sim">Estimación satelital</Badge>
                 <h2 className="mt-2 font-heading text-[22px] font-bold leading-tight">
@@ -229,7 +244,16 @@ export function IncidentsView({ ctx }: { ctx: Ctx }) {
                   segundo día de actividad.
                 </p>
               ) : (
-              <div className="h-52">
+              <ChartFrame
+                className="h-52"
+                label={`Gráfico de área: superficie acumulada por día del incendio cerca de ${nearestPlace(inc.lat, inc.lng).near}, de ${fmtArea(inc.perDay[0].areaHa, units)} a ${fmtArea(inc.areaHa, units)}`}
+                caption="Superficie acumulada por día"
+                columns={["Día", "Superficie (ha)"]}
+                rows={inc.perDay.map((d) => [
+                  dayLabel(days[d.day]),
+                  d.areaHa.toLocaleString("es-AR"),
+                ])}
+              >
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
                     data={inc.perDay.map((d) => ({
@@ -262,15 +286,15 @@ export function IncidentsView({ ctx }: { ctx: Ctx }) {
                     <Area
                       type="monotone"
                       dataKey="ha"
-                      stroke="#c8321e"
+                      stroke="var(--state-bad)"
                       strokeWidth={1.8}
-                      fill="#c8321e"
+                      fill="var(--state-bad)"
                       fillOpacity={0.15}
                       isAnimationActive={false}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
-              </div>
+              </ChartFrame>
               )}
             </Card>
 
@@ -287,10 +311,11 @@ export function IncidentsView({ ctx }: { ctx: Ctx }) {
                         className={cn(
                           "mt-0.5 grid size-7 shrink-0 place-items-center rounded-full",
                           e.kind === "ignition" &&
-                            "bg-[#e8710a]/15 text-[#b9560a]",
+                            "bg-[var(--state-watch)]/15 text-[var(--state-watch-ink)]",
                           e.kind === "explosive" &&
-                            "bg-[#b83a3a]/15 text-[#b83a3a]",
-                          e.kind === "jump" && "bg-[#c9a300]/20 text-[#8a6f00]",
+                            "bg-[var(--state-bad)]/15 text-[var(--state-bad-ink)]",
+                          e.kind === "jump" &&
+                            "bg-[var(--state-warn)]/20 text-[var(--state-warn-ink)]",
                         )}
                       >
                         <Icon className="size-3.5" aria-hidden />
@@ -323,5 +348,6 @@ export function IncidentsView({ ctx }: { ctx: Ctx }) {
         </div>
       )}
     </div>
+    </DataGate>
   );
 }

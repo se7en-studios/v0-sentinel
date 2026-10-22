@@ -68,6 +68,7 @@ export function AdminApp({
           open={a.paletteOpen}
           setOpen={a.setPaletteOpen}
           actions={a.actions}
+          ctx={ctx}
         />
       )}
 

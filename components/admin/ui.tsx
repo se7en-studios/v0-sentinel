@@ -1,6 +1,7 @@
 "use client";
 
 import type { ComponentProps, ReactNode } from "react";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /** Section header used across panels: micro label + optional action. */
@@ -174,7 +175,7 @@ export function Btn({ variant = "ghost", className, ...p }: BtnProps) {
         variant === "ghost" &&
           "border-[var(--hairline)] bg-card text-foreground/80 hover:bg-foreground/[0.04]",
         variant === "danger" &&
-          "border-[#b83a3a]/30 bg-[#b83a3a]/[0.06] text-[#b83a3a] hover:bg-[#b83a3a]/12",
+          "border-[var(--state-bad-ink)]/30 bg-[var(--state-bad-ink)]/[0.06] text-[var(--state-bad-ink)] hover:bg-[var(--state-bad-ink)]/12",
         className,
       )}
     />
@@ -413,5 +414,156 @@ export function Sparkline({
         vectorEffect="non-scaling-stroke"
       />
     </svg>
+  );
+}
+
+/**
+ * A chart announced as one image with a text summary, plus the same data as a
+ * visually hidden table (a sibling, because role="img" hides its children).
+ */
+export function ChartFrame({
+  label,
+  caption,
+  columns,
+  rows,
+  className,
+  children,
+}: {
+  label: string;
+  caption: string;
+  columns: string[];
+  rows: (string | number)[][];
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <>
+      <div role="img" aria-label={label} className={className}>
+        {children}
+      </div>
+      <table className="sr-only">
+        <caption>{caption}</caption>
+        <thead>
+          <tr>
+            {columns.map((c) => (
+              <th key={c} scope="col">
+                {c}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i}>
+              {r.map((v, j) =>
+                j === 0 ? (
+                  <th key={j} scope="row">
+                    {v}
+                  </th>
+                ) : (
+                  <td key={j}>{v}</td>
+                ),
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
+  );
+}
+
+/** Placeholder with the rough shape of a data view while the feed loads. */
+export function ViewSkeleton() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      className="mx-auto max-w-6xl space-y-4 p-4 sm:p-6"
+    >
+      <span className="sr-only">Cargando datos…</span>
+      <Skeleton className="h-8 w-48" />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        {[0, 1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-20" />
+        ))}
+      </div>
+      <Skeleton className="h-60" />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Skeleton className="h-52" />
+        <Skeleton className="h-52" />
+      </div>
+    </div>
+  );
+}
+
+/** Failure state with a way out. */
+export function ErrorState({
+  message,
+  onRetry,
+  loading,
+  compact,
+}: {
+  message: string;
+  onRetry: () => void;
+  loading?: boolean;
+  compact?: boolean;
+}) {
+  return (
+    <div
+      role="alert"
+      className={cn(
+        "flex flex-wrap items-center justify-center gap-3 rounded-xl border border-[var(--state-bad)]/30 bg-[var(--state-bad)]/[0.06] text-center",
+        compact ? "justify-between px-3 py-2 text-left" : "mx-auto my-10 max-w-md flex-col px-6 py-8",
+      )}
+    >
+      <div className={cn("flex items-center gap-2", !compact && "flex-col")}>
+        <AlertTriangle className="size-5 text-[var(--state-bad-ink)]" aria-hidden />
+        <div>
+          <div className="text-[13px] font-semibold">No pudimos cargar los datos</div>
+          <p className="text-[12px] text-foreground/60">{message}</p>
+        </div>
+      </div>
+      <Btn onClick={onRetry} disabled={loading}>
+        <RefreshCw className={cn("size-3.5", loading && "animate-spin")} aria-hidden />
+        Reintentar
+      </Btn>
+    </div>
+  );
+}
+
+/** Skeleton while loading, error with retry on failure, never a blank panel. */
+export function DataGate({
+  payload,
+  loading,
+  error,
+  reload,
+  children,
+}: {
+  payload: unknown;
+  loading: boolean;
+  error: string | null;
+  reload: () => void;
+  children: ReactNode;
+}) {
+  if (!payload) {
+    if (error) return <ErrorState message={error} onRetry={reload} loading={loading} />;
+    if (loading) return <ViewSkeleton />;
+    return (
+      <ErrorState
+        message="Todavía no hay datos de focos para mostrar."
+        onRetry={reload}
+      />
+    );
+  }
+  return (
+    <>
+      {error && (
+        <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6">
+          <ErrorState compact message={`${error} Mostramos los últimos datos recibidos.`} onRetry={reload} loading={loading} />
+        </div>
+      )}
+      {children}
+    </>
   );
 }

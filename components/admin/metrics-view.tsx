@@ -17,7 +17,7 @@ import { areaHa, fmtArea, fmtKm, lengthKm } from "@/lib/admin/geo";
 import { BURNED_HISTORY } from "@/lib/admin/history";
 import { MODE_ROLE } from "@/lib/admin/types";
 import type { Ctx } from "./ctx";
-import { Badge, Card, Stat } from "./ui";
+import { Badge, Card, ChartFrame, DataGate, Stat } from "./ui";
 
 const AXIS = { fontSize: 11, fill: "var(--chart-axis)" };
 const TIP = {
@@ -44,6 +44,12 @@ export function MetricsView({ ctx }: { ctx: Ctx }) {
     : 0;
 
   return (
+    <DataGate
+      payload={ctx.payload}
+      loading={ctx.loading}
+      error={ctx.firesError}
+      reload={ctx.reload}
+    >
     <div className="view-in mx-auto max-w-6xl space-y-4 p-4 sm:p-6">
       <div>
         <h1 className="font-heading text-2xl font-bold">Métricas</h1>
@@ -95,7 +101,13 @@ export function MetricsView({ ctx }: { ctx: Ctx }) {
           className="lg:col-span-2"
           right={<Badge tone="ok">NASA FIRMS</Badge>}
         >
-          <div className="h-60">
+          <ChartFrame
+            className="h-60"
+            label={`Gráfico de barras: focos por día en los últimos ${stats.perDay.length} días, ${stats.total.toLocaleString("es-AR")} en total`}
+            caption="Focos y potencia radiativa por día"
+            columns={["Día", "Focos", "Potencia (MW)"]}
+            rows={stats.perDay.map((d) => [d.label, d.count, Math.round(d.frp)])}
+          >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={stats.perDay}
@@ -116,10 +128,16 @@ export function MetricsView({ ctx }: { ctx: Ctx }) {
                 <Bar dataKey="count" fill="#e8710a" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </div>
+          </ChartFrame>
         </Card>
         <Card title="Confianza de detección">
-          <div className="h-60">
+          <ChartFrame
+            className="h-60"
+            label={`Gráfico circular: detecciones por confianza, ${stats.byConf.map((c) => `${c.name} ${c.value}`).join(", ")}`}
+            caption="Detecciones por nivel de confianza"
+            columns={["Confianza", "Focos"]}
+            rows={stats.byConf.map((c) => [c.name, c.value])}
+          >
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -138,7 +156,7 @@ export function MetricsView({ ctx }: { ctx: Ctx }) {
                 <Legend wrapperStyle={{ fontSize: 12 }} />
               </PieChart>
             </ResponsiveContainer>
-          </div>
+          </ChartFrame>
         </Card>
       </div>
 
@@ -147,7 +165,13 @@ export function MetricsView({ ctx }: { ctx: Ctx }) {
           title="Superficie quemada en Argentina (ha por año)"
           right={<Badge>Fuentes públicas</Badge>}
         >
-          <div className="h-52">
+          <ChartFrame
+            className="h-52"
+            label={`Gráfico de barras: superficie quemada por año en Argentina, ${hist.map((h) => `${h.year} ${h.ha.toLocaleString("es-AR")} hectáreas`).join(", ")}`}
+            caption="Superficie quemada por año (ha)"
+            columns={["Año", "Hectáreas"]}
+            rows={hist.map((h) => [h.year, h.ha.toLocaleString("es-AR")])}
+          >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={hist}
@@ -176,7 +200,7 @@ export function MetricsView({ ctx }: { ctx: Ctx }) {
                 <Bar dataKey="ha" fill="#b83a3a" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </div>
+          </ChartFrame>
           <p className="mt-2 text-[11px] text-foreground/60">
             Solo figuran los años con una cifra oficial que se pudo rastrear: faltan 2021,
             2022 y 2025, y las barras no son una tendencia continua. La de 2023 sale de
@@ -234,7 +258,7 @@ export function MetricsView({ ctx }: { ctx: Ctx }) {
                       {ctx.zoneRisk[z.id] ? `${ctx.zoneRisk[z.id].label} (${ctx.zoneRisk[z.id].score})` : "…"}
                     </td>
                     <td
-                      className={`py-1.5 text-right tabular-nums ${zoneHits[z.id]?.recent ? "font-semibold text-[#b83a3a]" : ""}`}
+                      className={`py-1.5 text-right tabular-nums ${zoneHits[z.id]?.recent ? "font-semibold text-[var(--state-bad-ink)]" : ""}`}
                     >
                       {zoneHits[z.id]?.recent ?? 0}
                     </td>
@@ -283,6 +307,7 @@ export function MetricsView({ ctx }: { ctx: Ctx }) {
         )}
       </Card>
     </div>
+    </DataGate>
   );
 }
 
@@ -324,7 +349,7 @@ function TrendCard({ perDay: all }: { perDay: Ctx["stats"]["perDay"] }) {
                 r.pct === null
                   ? "num text-[13px] font-semibold text-foreground/45"
                   : r.pct > 0
-                    ? "num text-[15px] font-bold text-[#c8321e]"
+                    ? "num text-[15px] font-bold text-[var(--state-bad)]"
                     : "num text-[15px] font-bold text-primary"
               }
               aria-label={

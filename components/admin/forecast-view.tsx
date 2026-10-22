@@ -9,7 +9,17 @@ import { MODE_ROLE } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
 import type { Ctx } from "./ctx";
 import { BriefingCard } from "./briefing-card";
-import { Badge, Btn, Card, EmptyState, KV, Skeleton, Stat } from "./ui";
+import {
+  Badge,
+  Btn,
+  Card,
+  EmptyState,
+  ErrorState,
+  KV,
+  Skeleton,
+  Stat,
+  ViewSkeleton,
+} from "./ui";
 
 const MAX_ZONES = 8;
 const REGION_ROW = "__region";
@@ -72,8 +82,27 @@ export function ForecastView({ ctx }: { ctx: Ctx }) {
   const worst = region?.reduce((a, d) => (d.score > a.score ? d : a));
   const best = region?.reduce((a, d) => (d.score < a.score ? d : a));
 
+  // the briefing and the zone counts need the detection feed: never leave this blank
+  if (!ctx.payload && ctx.firesError)
+    return (
+      <ErrorState
+        message={ctx.firesError}
+        onRetry={ctx.reload}
+        loading={ctx.loading}
+      />
+    );
+  if (!ctx.payload && ctx.loading) return <ViewSkeleton />;
+
   return (
     <div className="view-in mx-auto max-w-6xl space-y-4 p-4 sm:p-6">
+      {ctx.firesError && (
+        <ErrorState
+          compact
+          message={`${ctx.firesError} Mostramos los últimos datos recibidos.`}
+          onRetry={ctx.reload}
+          loading={ctx.loading}
+        />
+      )}
       <div>
         <h1 className="font-heading text-2xl font-bold">
           Pronóstico de riesgo
@@ -182,7 +211,7 @@ export function ForecastView({ ctx }: { ctx: Ctx }) {
                               aria-pressed={on}
                               aria-label={`${r.name}, ${weekday(d.date)}: ${r.days ? `${d.label}, índice ${d.score}` : "sin datos"}`}
                               className={cn(
-                                "num h-10 w-full rounded-md text-[12px] font-semibold transition-[transform,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-30",
+                                "num h-11 w-full rounded-md text-[12px] font-semibold transition-[transform,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-30",
                                 on && "scale-[1.04] ring-2 ring-foreground/70",
                               )}
                               style={{
@@ -190,7 +219,16 @@ export function ForecastView({ ctx }: { ctx: Ctx }) {
                                 color: d.color,
                               }}
                             >
-                              {r.days ? d.score : "—"}
+                              {r.days ? (
+                                <>
+                                  {d.score}
+                                  <span className="block text-[9px] font-medium leading-none">
+                                    {d.label}
+                                  </span>
+                                </>
+                              ) : (
+                                "—"
+                              )}
                             </button>
                           </td>
                         );
@@ -208,18 +246,18 @@ export function ForecastView({ ctx }: { ctx: Ctx }) {
             )}
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-foreground/60">
               {[
-                ["Bajo", "#0f7a4f"],
-                ["Moderado", "#c9a300"],
-                ["Alto", "#e8710a"],
-                ["Extremo", "#b83a3a"],
-              ].map(([l, c]) => (
+                ["Bajo", "var(--state-ok)", "0-34"],
+                ["Moderado", "var(--state-warn)", "35-54"],
+                ["Alto", "var(--state-watch)", "55-74"],
+                ["Extremo", "var(--state-bad)", "75-100"],
+              ].map(([l, c, range]) => (
                 <span key={l} className="flex items-center gap-1.5">
                   <span
                     className="size-2.5 rounded-sm"
                     style={{ background: c }}
                     aria-hidden
                   />
-                  {l}
+                  {l} <span className="num text-foreground/45">{range}</span>
                 </span>
               ))}
               <span className="ml-auto">

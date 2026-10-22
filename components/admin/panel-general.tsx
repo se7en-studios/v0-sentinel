@@ -444,8 +444,29 @@ const POINTS = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"];
 const compass = (deg: number) =>
   POINTS[Math.round((((deg % 360) + 360) % 360) / 45) % 8];
 
+const tabId = (x: string) => `panel-tab-${x}`;
+const panelId = (x: string) => `panel-tabpanel-${x}`;
+
 export function GeneralPanel({ ctx }: { ctx: Ctx }) {
   const { panelSeg: seg, setPanelSeg: setSeg } = ctx;
+  // roving tabindex: arrows/Home/End move focus and selection together
+  const onTabKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const i = SEGS.indexOf(seg);
+    const next =
+      e.key === "ArrowRight"
+        ? (i + 1) % SEGS.length
+        : e.key === "ArrowLeft"
+          ? (i - 1 + SEGS.length) % SEGS.length
+          : e.key === "Home"
+            ? 0
+            : e.key === "End"
+              ? SEGS.length - 1
+              : -1;
+    if (next < 0) return;
+    e.preventDefault();
+    setSeg(SEGS[next]);
+    document.getElementById(tabId(SEGS[next]))?.focus();
+  };
   return (
     <div>
       <div className="px-3 pt-3 empty:hidden">
@@ -454,14 +475,18 @@ export function GeneralPanel({ ctx }: { ctx: Ctx }) {
       <div
         role="tablist"
         aria-label="Secciones del panel"
+        onKeyDown={onTabKey}
         className="sticky top-0 z-10 flex border-b border-[var(--hairline)] bg-card/95 px-2 backdrop-blur"
       >
         {SEGS.map((x) => (
           <button
             key={x}
+            id={tabId(x)}
             role="tab"
             type="button"
             aria-selected={seg === x}
+            aria-controls={panelId(x)}
+            tabIndex={seg === x ? 0 : -1}
             onClick={() => setSeg(x)}
             className={cn(
               "relative flex-1 px-1 py-2.5 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -477,12 +502,15 @@ export function GeneralPanel({ ctx }: { ctx: Ctx }) {
               </span>
             )}
             {seg === x && (
-              <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-[var(--fire)]" />
+              <span
+                aria-hidden
+                className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-[var(--fire)]"
+              />
             )}
           </button>
         ))}
       </div>
-      <div role="tabpanel">
+      <div role="tabpanel" id={panelId(seg)} aria-labelledby={tabId(seg)}>
         {seg === "Capas" && <LayersPanel ctx={ctx} />}
         {seg === "Análisis" && <AnalysisTab ctx={ctx} />}
         {seg === "Alertas" && <AlertsTab ctx={ctx} />}
