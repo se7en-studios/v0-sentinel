@@ -1,5 +1,6 @@
 import * as maplibregl from "maplibre-gl";
 import type { FirePoint } from "@/lib/admin/types";
+import type { FireInfo } from "@/lib/admin/noise";
 
 export const reducedMotion = () =>
   typeof window !== "undefined" &&
@@ -19,16 +20,44 @@ export const setVis = (map: maplibregl.Map, ids: string[], on: boolean) =>
   );
 
 /** Fire detections as GeoJSON points, shared by the plain and the clustered source. */
-export const fireCollection = (fires: FirePoint[]): GeoJSON.FeatureCollection => ({
+export const fireCollection = (
+  fires: FirePoint[],
+  info?: Map<FirePoint, FireInfo>,
+): GeoJSON.FeatureCollection => ({
   type: "FeatureCollection",
-  features: fires.map((q) => ({
-    type: "Feature",
-    properties: { frp: q[2], conf: q[3], day: q[4], hhmm: q[5] },
-    geometry: { type: "Point", coordinates: [q[1], q[0]] },
-  })),
+  features: fires.map((q) => {
+    const i = info?.get(q);
+    return {
+      type: "Feature",
+      properties: {
+        frp: q[2],
+        conf: q[3],
+        day: q[4],
+        hhmm: q[5],
+        // -1 = unknown; maplibre properties must be primitives
+        score: i ? i.score : -1,
+        fresh: i ? (i.fresh ? 1 : 0) : -1,
+        reason: i?.reason ?? "",
+      },
+      geometry: { type: "Point", coordinates: [q[1], q[0]] },
+    };
+  }),
 });
 
-export type FireProps = { frp: number; day: number; hhmm: number; conf: number };
+export type FireProps = {
+  frp: number;
+  day: number;
+  hhmm: number;
+  conf: number;
+  score?: number;
+  fresh?: number;
+  reason?: string;
+};
+
+const REASON_TEXT: Record<string, string> = {
+  static: "Posible fuente fija (más de 5 días en el mismo punto)",
+  industrial: "Cerca de una planta o yacimiento conocido",
+};
 
 /** DOM-only popup content: never interpolates data into HTML. */
 export function firePopup(
@@ -47,6 +76,16 @@ export function firePopup(
   const l2 = document.createElement("span");
   l2.textContent = `FRP ${pr.frp} MW · confianza ${["baja", "nominal", "alta"][pr.conf] ?? "—"}`;
   root.append(title, l1, l2);
+  if (typeof pr.score === "number" && pr.score >= 0) {
+    const l3 = document.createElement("span");
+    l3.textContent = `Puntaje de confianza ${pr.score}/100${pr.fresh === 1 ? " · nuevo" : pr.fresh === 0 ? " · ya visto" : ""}`;
+    root.append(l3);
+  }
+  if (pr.reason && REASON_TEXT[pr.reason]) {
+    const l4 = document.createElement("span");
+    l4.textContent = REASON_TEXT[pr.reason];
+    root.append(l4);
+  }
   new maplibregl.Popup({
     closeButton: false,
     offset: 12,

@@ -70,6 +70,26 @@ const pixel = (p: FirePoint) =>
  * Scores every detection and flags those that look like industrial heat.
  * Pure and order-preserving: result arrays line up with `points`.
  */
+export interface FireInfo {
+  /** 0-100 likelihood of a real vegetation fire */
+  score: number;
+  reason: NoiseReason;
+  /** first sighting of this pixel in the last 24 h of data */
+  fresh: boolean;
+}
+
+/** Detection object -> classifier verdict, so the map can explain any point without re-classifying. */
+export function fireInfoMap(
+  points: FirePoint[],
+  c: Classified,
+): Map<FirePoint, FireInfo> {
+  const m = new Map<FirePoint, FireInfo>();
+  points.forEach((p, i) =>
+    m.set(p, { score: c.score[i], reason: c.reason[i], fresh: c.fresh[i] }),
+  );
+  return m;
+}
+
 export function classifyPoints(points: FirePoint[]): Classified {
   const byPixel = new Set<string>();
   type Cell = { days: Set<number>; maxFrp: number; positions: Set<string> };

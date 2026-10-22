@@ -174,10 +174,10 @@ function useDataSources(props: MapProps, mapRef: MapRef, ready: boolean) {
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready) return;
-    const fc = fireCollection(props.fires);
+    const fc = fireCollection(props.fires, props.fireInfo);
     setSource(map, "fires", fc);
     setSource(map, "fires-cl", fc);
-  }, [props.fires, ready, mapRef]);
+  }, [props.fires, props.fireInfo, ready, mapRef]);
 
   useEffect(() => {
     const map = mapRef.current;

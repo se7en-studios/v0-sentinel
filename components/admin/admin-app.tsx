@@ -87,6 +87,7 @@ export function AdminApp({
                   meta={a.ws.meta}
                   alertIds={a.alertIds}
                   fires={a.fires}
+                  fireInfo={a.fireInfo}
                   dayLabels={a.dayLabels}
                   show={ctx.show}
                   spread={ctx.predH ? a.spread : null}

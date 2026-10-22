@@ -356,6 +356,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     ws,
     alertIds,
     fires,
+    fireInfo: fd.fireInfo,
     dayLabels,
     show,
     setShow,

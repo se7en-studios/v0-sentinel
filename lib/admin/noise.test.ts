@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { classifyPoints } from "./noise";
+import { classifyPoints, fireInfoMap } from "./noise";
 import type { FirePoint } from "./types";
 
 // [lat, lng, frp, confidence 0|1|2, dayIdx, hhmm, isNight]
@@ -81,5 +81,17 @@ describe("classifyPoints fresh", () => {
 
   test("empty input gives empty arrays", () => {
     expect(classifyPoints([]).fresh).toEqual([]);
+  });
+});
+
+describe("fireInfoMap", () => {
+  test("looks up the verdict by detection object", () => {
+    const a: FirePoint = [-34.905, -57.915, 5, 1, 0, 1200, 0]; // inside a known refinery
+    const b: FirePoint = [-41.1, -71.3, 30, 2, 0, 1200, 0];
+    const info = fireInfoMap([a, b], classifyPoints([a, b]));
+    expect(info.get(a)?.reason).toBe("industrial");
+    expect(info.get(b)?.reason).toBeNull();
+    expect(info.get(b)?.score).toBeGreaterThanOrEqual(80);
+    expect(info.get([...b] as FirePoint)).toBeUndefined(); // identity, not value
   });
 });

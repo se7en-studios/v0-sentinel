@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { classifyPoints } from "@/lib/admin/noise";
+import { classifyPoints, fireInfoMap } from "@/lib/admin/noise";
 import { HA_PER_DETECTION } from "@/lib/admin/history";
 import type { FireCluster, FiresPayload, Settings } from "@/lib/admin/types";
 import type { FireStats, HourPoint } from "../ctx";
@@ -66,6 +66,10 @@ export function useFiresData(
   const classified = useMemo(
     () => classifyPoints(payload?.points ?? []),
     [payload],
+  );
+  const fireInfo = useMemo(
+    () => fireInfoMap(payload?.points ?? [], classified),
+    [payload, classified],
   );
   const noiseCount = useMemo(
     () =>
@@ -190,6 +194,7 @@ export function useFiresData(
     loading,
     load,
     noiseCount,
+    fireInfo,
     allFires,
     stats,
     range,

@@ -1,5 +1,6 @@
 import type { Map as MLMap } from "maplibre-gl";
 import type { Wind } from "@/lib/admin/map-3d";
+import type { FireInfo } from "@/lib/admin/noise";
 import type {
   BaseLayer,
   Feat,
@@ -66,6 +67,8 @@ export interface MapProps {
   meta: Record<string, Meta>;
   alertIds: Set<string>;
   fires: FirePoint[];
+  /** classifier verdict per detection (score, industrial/static reason, fresh) for the popup */
+  fireInfo?: Map<FirePoint, FireInfo>;
   spread: GeoJSON.FeatureCollection | null;
   orbit: boolean;
   follow: { pos: [number, number]; heading: number } | null;
