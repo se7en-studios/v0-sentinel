@@ -15,6 +15,12 @@ const DOT: Record<Tone, string> = {
 /** A day-old feed looks identical to a quiet day unless the age is on screen. */
 const STALE_MIN = 6 * 60;
 
+/** Above this the satellite pass itself is the bottleneck, not our pipeline (VIIRS NRT is usually ~3 h). */
+const LATENCY_WARN_MIN = 240;
+
+const fmtMinutes = (min: number) =>
+  min < 120 ? `${min} min` : `${(min / 60).toFixed(1).replace(".", ",")} h`;
+
 function ago(ms: number) {
   const min = Math.max(0, Math.round((Date.now() - ms) / 60_000));
   if (min < 60) return `hace ${min} min`;
@@ -42,12 +48,24 @@ function Item({
 
 /** Always-visible summary under the top bar: risk today, how fresh the satellite data is, and what needs attention. */
 export function StatusStrip({ ctx }: { ctx: Ctx }) {
-  const { forecast, lastDetection, stats, alertCount, ruleFirings, payload, noiseCount } =
-    ctx;
+  const {
+    forecast,
+    lastDetection,
+    stats,
+    alertCount,
+    ruleFirings,
+    payload,
+    noiseCount,
+  } = ctx;
   const today = forecast?.[0];
   const stale =
     lastDetection > 0 && Date.now() - lastDetection > STALE_MIN * 60_000;
   const attention = alertCount + ruleFirings.size;
+  // gap between the newest detection the satellite made and the moment the server pulled it
+  const latencyMin =
+    payload?.fetchedAt && payload.newestDetectionAt
+      ? Math.max(0, Math.round((payload.fetchedAt - payload.newestDetectionAt) / 60_000))
+      : null;
 
   return (
     <ul
@@ -72,6 +90,13 @@ export function StatusStrip({ ctx }: { ctx: Ctx }) {
         label="Última detección"
         value={lastDetection > 0 ? ago(lastDetection) : "sin datos"}
       />
+      {latencyMin !== null && (
+        <Item
+          tone={latencyMin > LATENCY_WARN_MIN ? "warn" : "ok"}
+          label="Demora del satélite"
+          value={fmtMinutes(latencyMin)}
+        />
+      )}
       <Item
         tone={stats.last24 > 0 ? "warn" : "ok"}
         label="Focos 24 h"
