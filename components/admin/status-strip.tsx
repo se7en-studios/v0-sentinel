@@ -7,9 +7,9 @@ type Tone = "ok" | "warn" | "bad" | "idle";
 
 const DOT: Record<Tone, string> = {
   ok: "bg-primary",
-  warn: "bg-[#c9a300]",
-  bad: "bg-[#d8402f]",
-  idle: "bg-foreground/30",
+  warn: "bg-[var(--state-warn)]",
+  bad: "bg-[var(--state-bad)]",
+  idle: "bg-[var(--state-idle)]",
 };
 
 /** A day-old feed looks identical to a quiet day unless the age is on screen. */

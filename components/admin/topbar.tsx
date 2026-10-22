@@ -60,6 +60,52 @@ function fmtRange(days: string[]) {
   return `${f(days[0])} – ${f(days[days.length - 1])}`;
 }
 
+const SYNC_LABEL = {
+  saved: "Guardado",
+  saving: "Guardando…",
+  loading: "Cargando…",
+  local: "Local",
+  error: "Sin conexión",
+  conflict: "Conflicto",
+} as const;
+
+/** Always-visible save state for cloud accounts, with the recovery actions next to it. */
+function SyncBadge({ a }: { a: A }) {
+  const s = a.sync;
+  const bad = s === "error" || s === "conflict";
+  const action = "rounded px-1 font-semibold underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  return (
+    <div
+      role="status"
+      className="ml-1 hidden items-center gap-1.5 whitespace-nowrap text-[11px] text-foreground/60 md:flex"
+    >
+      <span
+        className={cn(
+          "size-1.5 rounded-full",
+          bad ? "bg-[var(--state-bad)]" : s === "saved" ? "bg-primary" : "animate-pulse bg-[var(--state-warn)]",
+        )}
+        aria-hidden
+      />
+      {SYNC_LABEL[s]}
+      {s === "error" && (
+        <button type="button" onClick={a.retrySync} className={cn(action, "text-primary")}>
+          Reintentar
+        </button>
+      )}
+      {s === "conflict" && (
+        <>
+          <button type="button" onClick={() => a.resolveConflict("server")} className={cn(action, "text-primary")}>
+            Usar la nube
+          </button>
+          <button type="button" onClick={() => a.resolveConflict("mine")} className={action}>
+            Mantener lo mío
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 export function Topbar({ a }: { a: A }) {
   const { ctx, s, region } = a;
   const nav = useRef<HTMLElement>(null);
@@ -309,6 +355,7 @@ export function Topbar({ a }: { a: A }) {
       >
         <RefreshCw className={cn("size-3.5", ctx.loading && "animate-spin")} />
       </IconBtn>
+      {a.cloud && <SyncBadge a={a} />}
       <button
         type="button"
         onClick={() => a.setPaletteOpen(true)}
@@ -363,8 +410,11 @@ export function Topbar({ a }: { a: A }) {
           <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-foreground/45">
             Vista
           </DropdownMenuLabel>
-          <DropdownMenuItem onSelect={() => ctx.setView(ctx.view === "3d" ? "2d" : "3d")}>
-            <Box className="size-4" /> {ctx.view === "3d" ? "Mapa 2D" : "Mapa 3D con relieve"}
+          <DropdownMenuItem
+            onSelect={() => ctx.setView(ctx.view === "3d" ? "2d" : "3d")}
+          >
+            <Box className="size-4" />{" "}
+            {ctx.view === "3d" ? "Mapa 2D" : "Mapa 3D con relieve"}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => a.setTour(true)}>
             <Play className="size-4" /> Recorrido guiado
