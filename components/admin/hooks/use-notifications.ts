@@ -9,6 +9,7 @@ import {
   type Workspace,
 } from "@/lib/admin/types";
 import type { Ctx, PanelSeg, SensorState, Tab } from "../ctx";
+import { isAcked, ruleKey, zoneKey } from "@/lib/admin/alert-ack";
 import type { MapHandle } from "../map-view";
 
 interface Params {
@@ -120,6 +121,8 @@ export function useNotifications({
     if (!prev) return;
     for (const [id, detail] of ruleFirings) {
       if (prev.has(id)) continue;
+      // eslint-disable-next-line react-hooks/purity -- evaluated inside an effect, at event time
+      if (isAcked(ws.alertAck[ruleKey(id)], 0, Date.now())) continue;
       toast.warning("Regla de alerta activada", {
         description: detail,
         duration: 12_000,
@@ -137,7 +140,7 @@ export function useNotifications({
           tag: `rule-${id}`,
         });
     }
-  }, [ruleFirings, payload, s.notify.browser, goTab, setPanelSeg]);
+  }, [ruleFirings, payload, s.notify.browser, ws.alertAck, goTab, setPanelSeg]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -186,6 +189,8 @@ export function useNotifications({
       if (prev.has(id)) continue;
       const name = ws.meta[id]?.name ?? "Zona";
       const hits = zoneHits[id]?.recent ?? 0;
+      // eslint-disable-next-line react-hooks/purity -- evaluated inside an effect, at event time
+      if (isAcked(ws.alertAck[zoneKey(id)], hits, Date.now())) continue;
       const zone = ws.features.find((f) => f.id === id);
       toast.warning(`Foco nuevo en ${name}`, {
         description: `${hits} ${hits === 1 ? "detección" : "detecciones"} satelitales en 48 h`,
@@ -213,6 +218,7 @@ export function useNotifications({
     s.notify.onZoneHit,
     ws.meta,
     ws.features,
+    ws.alertAck,
     zoneHits,
     goTab,
     mapRef,

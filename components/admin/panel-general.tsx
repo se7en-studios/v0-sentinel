@@ -648,9 +648,9 @@ export function GeneralPanel({ ctx }: { ctx: Ctx }) {
             )}
           >
             {x}
-            {x === "Alertas" && ctx.alertCount + ctx.ruleFirings.size > 0 && (
+            {x === "Alertas" && ctx.alertCount + ctx.unackedRules > 0 && (
               <span className="num ml-1 inline-grid min-w-4 place-items-center rounded-full bg-[#b83a3a] px-1 text-[9.5px] font-bold text-white">
-                {ctx.alertCount + ctx.ruleFirings.size}
+                {ctx.alertCount + ctx.unackedRules}
               </span>
             )}
             {seg === x && (

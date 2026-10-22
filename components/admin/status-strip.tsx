@@ -53,14 +53,14 @@ export function StatusStrip({ ctx }: { ctx: Ctx }) {
     lastDetection,
     stats,
     alertCount,
-    ruleFirings,
+    unackedRules,
     payload,
     noiseCount,
   } = ctx;
   const today = forecast?.[0];
   const stale =
     lastDetection > 0 && Date.now() - lastDetection > STALE_MIN * 60_000;
-  const attention = alertCount + ruleFirings.size;
+  const attention = alertCount + unackedRules;
   // gap between the newest detection the satellite made and the moment the server pulled it
   const latencyMin =
     payload?.fetchedAt && payload.newestDetectionAt

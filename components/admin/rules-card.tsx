@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { MAX_RULES, describeRule } from "@/lib/admin/rules";
+import { isAcked, ruleKey } from "@/lib/admin/alert-ack";
 import { MODE_ROLE, type AlertRule } from "@/lib/admin/types";
 import type { Ctx } from "./ctx";
 import { Badge, Btn, Card, Field, Toggle, inputCls } from "./ui";
@@ -211,6 +212,8 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
       <ul className="space-y-2">
         {rules.map((r) => {
           const detail = ruleFirings.get(r.id);
+          const ack = ctx.alertAck[ruleKey(r.id)];
+          const handled = Boolean(detail) && isAcked(ack, 0, ctx.now);
           const isEditing = editing?.id === r.id;
           return (
             <li
@@ -229,6 +232,29 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
                   {detail && (
                     <div className="mt-0.5 text-[11.5px] text-[var(--state-bad-ink)]">
                       {detail}
+                    </div>
+                  )}
+                  {detail && (
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
+                      {handled ? (
+                        <>
+                          <span className="text-foreground/65">
+                            Pospuesta por <b>{ack?.by || "Operador"}</b>
+                          </span>
+                          <Btn onClick={() => ctx.reopenRule(r.id)} className="min-h-7">
+                            Reabrir
+                          </Btn>
+                        </>
+                      ) : (
+                        <>
+                          <Btn variant="solid" onClick={() => ctx.ackRule(r.id)} className="min-h-7">
+                            Reconocer
+                          </Btn>
+                          <Btn onClick={() => ctx.ackRule(r.id, 60)} className="min-h-7">
+                            Posponer 1 h
+                          </Btn>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>

@@ -123,6 +123,11 @@ export interface Ctx {
   /** acknowledge a zone alert; with snoozeMin it also stays quiet that long (new detections re-open it) */
   ackZoneAlert: (featId: string, detections: number, snoozeMin?: number) => void;
   reopenZoneAlert: (featId: string) => void;
+  /** rule firings nobody has acknowledged or snoozed */
+  unackedRules: number;
+  /** acknowledge a firing rule for snoozeMin minutes (24 h by default) */
+  ackRule: (ruleId: string, snoozeMin?: number) => void;
+  reopenRule: (ruleId: string) => void;
   incidentMeta: IncidentMetaMap;
   /** set the status and/or assignee of a detected incident; the author and time are filled in */
   updateIncident: (id: string, patch: { status?: IncidentStatus; assignee?: string }) => void;

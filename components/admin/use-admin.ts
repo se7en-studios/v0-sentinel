@@ -8,7 +8,7 @@ import type { MapHandle } from "./map-view";
 import { useClock } from "./hooks/use-clock";
 import { useFeatures } from "./hooks/use-features";
 import { useFeedExports } from "./hooks/use-feed-exports";
-import { isAcked, zoneKey } from "@/lib/admin/alert-ack";
+import { RULE_ACK_DEFAULT_MIN, isAcked, ruleKey, zoneKey } from "@/lib/admin/alert-ack";
 import { ASSIGNEE_MAX, type IncidentStatus } from "@/lib/admin/incident-meta";
 import { useFiresData } from "./hooks/use-fires-data";
 import { useNotifications } from "./hooks/use-notifications";
@@ -290,6 +290,19 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
       });
     },
     reopenZoneAlert: (featId: string) => setAck(zoneKey(featId), null),
+    unackedRules: [...ruleFirings.keys()].filter(
+      (id) => !isAcked(ws.alertAck[ruleKey(id)], 0, now),
+    ).length,
+    ackRule: (ruleId: string, snoozeMin = RULE_ACK_DEFAULT_MIN) => {
+      const t = Date.now();
+      setAck(ruleKey(ruleId), {
+        t,
+        by: cloud?.email ?? ws.settings.org ?? "Operador",
+        n: 0,
+        until: t + snoozeMin * 60_000,
+      });
+    },
+    reopenRule: (ruleId: string) => setAck(ruleKey(ruleId), null),
     incidentMeta: ws.incidentMeta,
     updateIncident: (id: string, patch: { status?: IncidentStatus; assignee?: string }) => {
       const cur = ws.incidentMeta[id];

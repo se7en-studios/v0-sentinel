@@ -13,6 +13,9 @@ export type AckMap = Record<string, AlertAck>;
 
 export const ACK_MAX = 200;
 export const zoneKey = (featId: string) => `zone:${featId}`;
+export const ruleKey = (ruleId: string) => `rule:${ruleId}`;
+/** a rule has no detection count to grow, so acknowledging it always carries a deadline */
+export const RULE_ACK_DEFAULT_MIN = 24 * 60;
 
 /**
  * An alert counts as handled only while nothing new has happened: more detections than
