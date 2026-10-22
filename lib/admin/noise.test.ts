@@ -51,3 +51,35 @@ describe("classifyPoints", () => {
     expect(out.reason).toHaveLength(3);
   });
 });
+
+describe("classifyPoints fresh", () => {
+  const at = (
+    lat: number,
+    lng: number,
+    day: number,
+    hhmm: number,
+  ): FirePoint => [lat, lng, 5, 1, day, hhmm, 0];
+
+  test("a new pixel in the last 24 h is fresh; a pixel seen on an earlier day is not", () => {
+    const pts = [
+      at(-41, -71, 0, 1200), // seen again on day 1 -> persistent
+      at(-41, -71, 1, 1300),
+      at(-40, -70, 1, 1300), // first time, newest day -> fresh
+    ];
+    expect(classifyPoints(pts).fresh).toEqual([false, false, true]);
+  });
+
+  test("a first-time pixel older than 24 h before the newest detection is not fresh", () => {
+    const pts = [at(-41, -71, 0, 900), at(-40, -70, 2, 1200)];
+    expect(classifyPoints(pts).fresh).toEqual([false, true]);
+  });
+
+  test("same-day repeat passes over a new pixel are both fresh", () => {
+    const pts = [at(-41, -71, 3, 500), at(-41, -71, 3, 1500)];
+    expect(classifyPoints(pts).fresh).toEqual([true, true]);
+  });
+
+  test("empty input gives empty arrays", () => {
+    expect(classifyPoints([]).fresh).toEqual([]);
+  });
+});

@@ -7,6 +7,8 @@ export interface Classified {
   score: number[];
   /** why a detection looks like industrial heat, null when it does not */
   reason: NoiseReason[];
+  /** true when the ~440 m pixel was not seen on an earlier day and is within 24 h of the newest detection */
+  fresh: boolean[];
 }
 
 // A fixed hot pixel that keeps showing up day after day with modest power is
@@ -20,6 +22,10 @@ const STATIC_MAX_FRP = 40; // MW: above this a persistent source is probably a r
 const COARSE = 0.01;
 const STATIC_MAX_POSITIONS = 16;
 const KM_LAT = 111.32;
+const FRESH_MIN = 24 * 60;
+// minutes since day 0 (day index + hhmm UTC), comparable across days
+const minutes = (p: FirePoint) =>
+  p[4] * 1440 + Math.floor(p[5] / 100) * 60 + (p[5] % 100);
 
 /**
  * Large industrial heat sources. ponytail: approximate coordinates written from
@@ -114,9 +120,21 @@ export function classifyPoints(points: FirePoint[]): Classified {
     return n;
   };
 
+  const firstDay = new Map<string, number>();
+  let newest = -Infinity;
+  for (const p of points) {
+    const k = pixel(p);
+    firstDay.set(k, Math.min(firstDay.get(k) ?? Infinity, p[4]));
+    newest = Math.max(newest, minutes(p));
+  }
+
   const score: number[] = [];
   const reason: NoiseReason[] = [];
+  const fresh: boolean[] = [];
   for (const p of points) {
+    fresh.push(
+      firstDay.get(pixel(p)) === p[4] && newest - minutes(p) <= FRESH_MIN,
+    );
     const h = hood(p);
     const near = neighbours(p);
     let why: NoiseReason = null;
@@ -139,5 +157,5 @@ export function classifyPoints(points: FirePoint[]): Classified {
     );
     reason.push(why);
   }
-  return { score, reason };
+  return { score, reason, fresh };
 }

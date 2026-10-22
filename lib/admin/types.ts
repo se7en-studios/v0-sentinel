@@ -2,7 +2,15 @@ import type { OpsState } from "./resources";
 export type Role = "zone" | "line" | "route" | "sensor";
 export type SensorType = "temp" | "humidity" | "smoke" | "wind";
 export type BaseLayer = "esri" | "s2" | "viirs" | "light" | "topo";
-export type OpacityKey = "imagery" | "relief" | "tint" | "fires" | "zones" | "spread" | "routes" | "labels";
+export type OpacityKey =
+  | "imagery"
+  | "relief"
+  | "tint"
+  | "fires"
+  | "zones"
+  | "spread"
+  | "routes"
+  | "labels";
 export type Confidence = "l" | "n" | "h";
 
 export interface Feat {
@@ -82,6 +90,10 @@ export interface FiresPayload {
   days: string[];
   points: FirePoint[];
   clusters: FireCluster[];
+  /** ms epoch when the server pulled FIRMS (latency = now - newestDetectionAt) */
+  fetchedAt?: number;
+  /** ms epoch (UTC) of the newest detection in `points` */
+  newestDetectionAt?: number;
   error?: string;
 }
 
@@ -169,8 +181,23 @@ export const DEFAULT_SETTINGS: Settings = {
   exaggeration: 2,
   refreshMin: 30,
   valuePerHa: 0,
-  opacity: { imagery: 1, relief: 0.6, tint: 0.3, fires: 1, zones: 1, spread: 1, routes: 1, labels: 1 },
+  opacity: {
+    imagery: 1,
+    relief: 0.6,
+    tint: 0.3,
+    fires: 1,
+    zones: 1,
+    spread: 1,
+    routes: 1,
+    labels: 1,
+  },
   thresholds: { temp: 45, humidity: 20, smoke: 150, wind: 50 },
   rules: [],
-  notify: { email: "", whatsapp: "", onZoneHit: true, onSensor: true, browser: false },
+  notify: {
+    email: "",
+    whatsapp: "",
+    onZoneHit: true,
+    onSensor: true,
+    browser: false,
+  },
 };
