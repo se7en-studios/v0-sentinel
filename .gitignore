@@ -12,3 +12,7 @@ next-env.d.ts
 *.tsbuildinfo
 pnpm-workspace.yaml
 .claude/
+
+# Playwright
+/test-results/
+/playwright-report/
