@@ -13,6 +13,7 @@ import type {
 } from "@/lib/admin/types";
 import type { DroneSpec } from "@/lib/admin/sim";
 import type { AckMap } from "@/lib/admin/alert-ack";
+import type { IncidentMetaMap, IncidentStatus } from "@/lib/admin/incident-meta";
 import type { Weather } from "@/lib/admin/weather";
 import type { DayForecast } from "@/lib/admin/forecast";
 import type { OpsEntry, UnitState } from "@/lib/admin/resources";
@@ -122,6 +123,9 @@ export interface Ctx {
   /** acknowledge a zone alert; with snoozeMin it also stays quiet that long (new detections re-open it) */
   ackZoneAlert: (featId: string, detections: number, snoozeMin?: number) => void;
   reopenZoneAlert: (featId: string) => void;
+  incidentMeta: IncidentMetaMap;
+  /** set the status and/or assignee of a detected incident; the author and time are filled in */
+  updateIncident: (id: string, patch: { status?: IncidentStatus; assignee?: string }) => void;
   payload: FiresPayload | null;
   firesError: string | null;
   loading: boolean;

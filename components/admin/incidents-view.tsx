@@ -14,6 +14,13 @@ import {
 import { buildIncidents, type Incident } from "@/lib/admin/incident";
 import { nearestPlace } from "@/lib/admin/places";
 import { fmtArea } from "@/lib/admin/geo";
+import {
+  ASSIGNEE_MAX,
+  INCIDENT_STATUSES,
+  INCIDENT_STATUS_LABEL,
+  isOpenStatus,
+  type IncidentStatus,
+} from "@/lib/admin/incident-meta";
 import { cn } from "@/lib/utils";
 import type { Ctx } from "./ctx";
 import {
@@ -23,8 +30,10 @@ import {
   ChartFrame,
   DataGate,
   EmptyState,
+  Field,
   Segmented,
   Stat,
+  inputCls,
 } from "./ui";
 
 const REGION_KM = 300;
@@ -189,6 +198,15 @@ export function IncidentsView({ ctx }: { ctx: Ctx }) {
                     <div className="num mt-1 font-heading text-[17px] font-bold">
                       {fmtArea(i.areaHa, units)}
                     </div>
+                    {ctx.incidentMeta[i.id] && (
+                      <div className="mt-1.5">
+                        <Badge
+                          tone={isOpenStatus(ctx.incidentMeta[i.id].status) ? "fire" : "muted"}
+                        >
+                          {INCIDENT_STATUS_LABEL[ctx.incidentMeta[i.id].status]}
+                        </Badge>
+                      </div>
+                    )}
                   </button>
                 </li>
               );
@@ -236,6 +254,44 @@ export function IncidentsView({ ctx }: { ctx: Ctx }) {
                 </Card>
               ))}
             </div>
+
+            <Card title="Seguimiento del incidente">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Estado">
+                  <select
+                    className={inputCls}
+                    value={ctx.incidentMeta[inc.id]?.status ?? "detected"}
+                    onChange={(e) =>
+                      ctx.updateIncident(inc.id, { status: e.target.value as IncidentStatus })
+                    }
+                  >
+                    {INCIDENT_STATUSES.map((s) => (
+                      <option key={s} value={s}>
+                        {INCIDENT_STATUS_LABEL[s]}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Responsable">
+                  <input
+                    key={inc.id + (ctx.incidentMeta[inc.id]?.t ?? 0)}
+                    className={inputCls}
+                    defaultValue={ctx.incidentMeta[inc.id]?.assignee ?? ""}
+                    maxLength={ASSIGNEE_MAX}
+                    placeholder="Quién está a cargo"
+                    onBlur={(e) => {
+                      if (e.target.value.trim() !== (ctx.incidentMeta[inc.id]?.assignee ?? ""))
+                        ctx.updateIncident(inc.id, { assignee: e.target.value });
+                    }}
+                  />
+                </Field>
+              </div>
+              <p className="mt-2 text-[11.5px] text-foreground/60">
+                {ctx.incidentMeta[inc.id]
+                  ? `Última actualización de ${ctx.incidentMeta[inc.id].by || "Operador"}: ${new Date(ctx.incidentMeta[inc.id].t).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`
+                  : "Sin seguimiento todavía. Cada cambio queda con su autor y su hora."}
+              </p>
+            </Card>
 
             <Card title="Superficie por día">
               {inc.perDay.length < 2 ? (

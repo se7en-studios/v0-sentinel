@@ -1,5 +1,6 @@
 import type { OpsState } from "./resources";
 import type { AckMap } from "./alert-ack";
+import type { IncidentMetaMap } from "./incident-meta";
 export type Role = "zone" | "line" | "route" | "sensor";
 export type SensorType = "temp" | "humidity" | "smoke" | "wind";
 export type BaseLayer = "esri" | "s2" | "viirs" | "light" | "topo";
@@ -78,6 +79,8 @@ export interface Workspace {
   noteLog: NoteEntry[];
   /** alerts the team has acknowledged or snoozed, keyed like "zone:<featureId>" */
   alertAck: AckMap;
+  /** status and assignee the team set on each detected incident, keyed by its stable id */
+  incidentMeta: IncidentMetaMap;
 }
 
 // [lat, lng, frp, confidence 0|1|2, dayIdx, hhmm, isNight 0|1]

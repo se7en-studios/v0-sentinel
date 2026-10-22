@@ -2,6 +2,7 @@
 
 import { cleanRules } from "./rules";
 import { cleanAckMap, type AlertAck } from "./alert-ack";
+import { cleanIncidentMeta, type IncidentMeta } from "./incident-meta";
 import { EMPTY_OPS, cleanOps, type OpsState } from "./resources";
 import type { CloudCopy } from "./cloud";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -26,6 +27,7 @@ const EMPTY: Workspace = {
   ops: EMPTY_OPS,
   noteLog: [],
   alertAck: {},
+  incidentMeta: {},
 };
 
 const BASE_LAYERS = ["esri", "s2", "viirs", "light", "topo"];
@@ -142,6 +144,7 @@ export function parseWorkspace(input: unknown): Workspace {
       ops: cleanOps(p.ops),
       noteLog: cleanNoteLog(p.noteLog),
       alertAck: cleanAckMap(p.alertAck),
+      incidentMeta: cleanIncidentMeta(p.incidentMeta),
       settings: {
         ...DEFAULT_SETTINGS,
         ...st,
@@ -494,6 +497,11 @@ export function useWorkspace(uid?: string) {
       }),
     [],
   );
+  const setIncidentMeta = useCallback(
+    (id: string, entry: IncidentMeta) =>
+      setWs((w) => ({ ...w, incidentMeta: { ...w.incidentMeta, [id]: entry } })),
+    [],
+  );
   const setOps = useCallback(
     (update: (o: OpsState) => OpsState) =>
       setWs((w) => ({ ...w, ops: update(w.ops) })),
@@ -531,6 +539,7 @@ export function useWorkspace(uid?: string) {
     addNote,
     removeNote,
     setAck,
+    setIncidentMeta,
     setOps,
     undo,
     redo,

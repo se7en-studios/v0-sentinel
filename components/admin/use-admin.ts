@@ -9,6 +9,7 @@ import { useClock } from "./hooks/use-clock";
 import { useFeatures } from "./hooks/use-features";
 import { useFeedExports } from "./hooks/use-feed-exports";
 import { isAcked, zoneKey } from "@/lib/admin/alert-ack";
+import { ASSIGNEE_MAX, type IncidentStatus } from "@/lib/admin/incident-meta";
 import { useFiresData } from "./hooks/use-fires-data";
 import { useNotifications } from "./hooks/use-notifications";
 import { buildPaletteActions } from "./hooks/palette-actions";
@@ -37,6 +38,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     addNote,
     removeNote,
     setAck,
+    setIncidentMeta,
     setOps,
     undo,
     redo,
@@ -286,6 +288,16 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
       });
     },
     reopenZoneAlert: (featId: string) => setAck(zoneKey(featId), null),
+    incidentMeta: ws.incidentMeta,
+    updateIncident: (id: string, patch: { status?: IncidentStatus; assignee?: string }) => {
+      const cur = ws.incidentMeta[id];
+      setIncidentMeta(id, {
+        status: patch.status ?? cur?.status ?? "detected",
+        assignee: (patch.assignee ?? cur?.assignee ?? "").trim().slice(0, ASSIGNEE_MAX),
+        by: cloud?.email ?? ws.settings.org ?? "Operador",
+        t: Date.now(),
+      });
+    },
     ruleFirings,
     forecast: wr.forecast,
     lastDetection: fd.lastDetection,
