@@ -187,6 +187,10 @@ export interface Ctx {
   alertCount: number;
   ruleFirings: Map<string, string>;
   forecast: DayForecast[] | null;
+  /** every detection that passes the confidence and noise filters, regardless of the timeline */
+  allFires: FirePoint[];
+  /** detections held back as likely industrial heat (0 when the filter is off) */
+  noiseCount: number;
   /** ms epoch of the newest detection received, 0 when none */
   lastDetection: number;
   panelSeg: PanelSeg;

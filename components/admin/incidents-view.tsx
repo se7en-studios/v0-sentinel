@@ -92,8 +92,8 @@ export function IncidentsView({ ctx }: { ctx: Ctx }) {
   const { payload, ws } = ctx;
   const days = payload?.days ?? [];
   const all = useMemo(
-    () => (payload ? buildIncidents(payload.points, 60) : []),
-    [payload],
+    () => (payload ? buildIncidents(ctx.allFires, 60) : []),
+    [payload, ctx.allFires],
   );
   const [scope, setScope] = useState<Scope>("region");
   const incidents = useMemo(

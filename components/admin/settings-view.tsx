@@ -178,6 +178,12 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
                 <option value="h">Alta</option>
               </select>
             </Field>
+            <Toggle
+              checked={s.hideNoise}
+              onChange={(v) => setSettings({ hideNoise: v })}
+              label="Ocultar calor industrial"
+              hint="Descarta píxeles fijos de baja potencia (más de 5 días seguidos) y los de plantas y yacimientos conocidos. Los sitios están marcados con coordenadas aproximadas."
+            />
             <Field
               label={`Radio de alerta alrededor de cada zona: ${s.bufferKm} km`}
             >

@@ -42,7 +42,7 @@ function Item({
 
 /** Always-visible summary under the top bar: risk today, how fresh the satellite data is, and what needs attention. */
 export function StatusStrip({ ctx }: { ctx: Ctx }) {
-  const { forecast, lastDetection, stats, alertCount, ruleFirings, payload } =
+  const { forecast, lastDetection, stats, alertCount, ruleFirings, payload, noiseCount } =
     ctx;
   const today = forecast?.[0];
   const stale =
@@ -77,6 +77,13 @@ export function StatusStrip({ ctx }: { ctx: Ctx }) {
         label="Focos 24 h"
         value={stats.last24.toLocaleString("es-AR")}
       />
+      {noiseCount > 0 && (
+        <Item
+          tone="idle"
+          label="Calor industrial oculto"
+          value={noiseCount.toLocaleString("es-AR")}
+        />
+      )}
       <Item
         tone={attention > 0 ? "bad" : "ok"}
         label="Alertas"

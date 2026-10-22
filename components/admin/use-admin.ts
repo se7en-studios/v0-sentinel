@@ -20,6 +20,7 @@ import { useWorkspace } from "@/lib/admin/store";
 import { fetchWeather, type Weather } from "@/lib/admin/weather";
 import { fetchForecast, type DayForecast } from "@/lib/admin/forecast";
 import { evaluateRules } from "@/lib/admin/rules";
+import { classifyPoints } from "@/lib/admin/noise";
 import { HA_PER_DETECTION } from "@/lib/admin/history";
 import { nearestPlace } from "@/lib/admin/places";
 import {
@@ -289,9 +290,25 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
 
   // ---- derived fire data ----
   const minConf = CONF_MIN[s.minConfidence];
+  // industrial heat (fixed pixels, known sites) is scored apart so the user can see what was left out
+  const classified = useMemo(
+    () => classifyPoints(payload?.points ?? []),
+    [payload],
+  );
+  const noiseCount = useMemo(
+    () =>
+      (payload?.points ?? []).filter(
+        (p, i) => p[3] >= minConf && classified.reason[i],
+      ).length,
+    [payload, classified, minConf],
+  );
   const allFires = useMemo(
-    () => (payload?.points ?? []).filter((p) => p[3] >= minConf),
-    [payload, minConf],
+    () =>
+      (payload?.points ?? []).filter(
+        (p, i) =>
+          p[3] >= minConf && !(s.hideNoise && classified.reason[i]),
+      ),
+    [payload, minConf, classified, s.hideNoise],
   );
   const fires = useMemo(() => {
     const days = payload?.days ?? [];
@@ -1131,6 +1148,8 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     ruleFirings,
     forecast,
     lastDetection,
+    allFires,
+    noiseCount,
     panelSeg,
     setPanelSeg,
     units,

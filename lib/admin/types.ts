@@ -30,6 +30,8 @@ export interface Settings {
   regionId: string;
   baseLayer: BaseLayer;
   minConfidence: Confidence;
+  /** drop detections that look like industrial heat (fixed pixels, known sites) */
+  hideNoise: boolean;
   bufferKm: number;
   units: "ha" | "km2";
   exaggeration: number;
@@ -161,6 +163,7 @@ export const DEFAULT_SETTINGS: Settings = {
   regionId: "patagonia-andina",
   baseLayer: "esri",
   minConfidence: "n",
+  hideNoise: true,
   bufferKm: 5,
   units: "ha",
   exaggeration: 2,

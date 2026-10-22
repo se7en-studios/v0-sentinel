@@ -119,6 +119,7 @@ export function parseWorkspace(input: unknown): Workspace {
         minConfidence: CONFS.includes(st.minConfidence as string)
           ? st.minConfidence!
           : DEFAULT_SETTINGS.minConfidence,
+        hideNoise: st.hideNoise !== false,
         units: st.units === "km2" ? "km2" : "ha",
         refreshMin: [10, 30, 60].includes(Number(st.refreshMin))
           ? Number(st.refreshMin)
