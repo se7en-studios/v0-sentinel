@@ -57,12 +57,24 @@ export interface Settings {
   };
 }
 
+export interface NoteEntry {
+  id: string;
+  /** ms epoch */
+  t: number;
+  by: string;
+  text: string;
+  /** zone, route or sensor the note is about */
+  featId?: string;
+}
+
 export interface Workspace {
   features: Feat[];
   meta: Record<string, Meta>;
   settings: Settings;
   notes: string;
   ops: OpsState;
+  /** dated, attributed notes, newest first; `notes` stays as the free-text scratchpad */
+  noteLog: NoteEntry[];
 }
 
 // [lat, lng, frp, confidence 0|1|2, dayIdx, hhmm, isNight 0|1]

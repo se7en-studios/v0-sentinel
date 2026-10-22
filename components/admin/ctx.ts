@@ -5,6 +5,7 @@ import type {
   FirePoint,
   FiresPayload,
   Meta,
+  NoteEntry,
   Role,
   SensorType,
   Settings,
@@ -113,6 +114,9 @@ export interface Ctx {
   setFeatures: (f: Feat[]) => void;
   replaceWorkspace: (w: Workspace) => void;
   setNotes: (t: string) => void;
+  noteLog: NoteEntry[];
+  addNote: (text: string, featId?: string) => void;
+  removeNote: (id: string) => void;
   payload: FiresPayload | null;
   firesError: string | null;
   loading: boolean;

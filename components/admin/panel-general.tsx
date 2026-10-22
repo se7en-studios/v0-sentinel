@@ -11,6 +11,7 @@ import {
   NotebookPen,
   Plane,
   Radio,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HORIZONS } from "@/lib/admin/spread";
@@ -410,33 +411,147 @@ function AlertsTab({ ctx }: { ctx: Ctx }) {
   );
 }
 
+const when = (t: number) =>
+  new Date(t).toLocaleString("es-AR", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+/** Dated, attributed log (who wrote what and when) plus the old free-text scratchpad. */
 function NotesTab({ ctx }: { ctx: Ctx }) {
+  const [draft, setDraft] = useState("");
+  const [link, setLink] = useState(false);
+  const sel = ctx.selectedId
+    ? ctx.ws.features.find((f) => f.id === ctx.selectedId)
+    : undefined;
+  const selName = sel ? (ctx.ws.meta[sel.id]?.name ?? "elemento") : "";
+  const add = () => {
+    if (!draft.trim()) return;
+    ctx.addNote(draft, link && sel ? sel.id : undefined);
+    setDraft("");
+  };
   return (
-    <Card
-      bare
-      title="Notas del operador"
-      right={
-        <span className="num text-[10px] text-foreground/40">
-          {ctx.ws.notes.length.toLocaleString("es-AR")} / 20.000
-        </span>
-      }
-    >
-      <label htmlFor="notes" className="sr-only">
-        Notas
-      </label>
-      <textarea
-        id="notes"
-        value={ctx.ws.notes}
-        onChange={(e) => ctx.setNotes(e.target.value)}
-        placeholder="Bitácora de guardia, pendientes, contactos, observaciones del terreno…"
-        rows={14}
-        className="w-full resize-y rounded-lg border border-[var(--hairline)] bg-card p-2.5 text-[12.5px] leading-relaxed outline-none transition-[border-color,box-shadow] placeholder:text-foreground/35 focus:border-primary focus:ring-2 focus:ring-ring"
-      />
-      <p className="mt-1.5 flex items-center gap-1.5 text-[10.5px] text-foreground/45">
-        <NotebookPen className="size-3" aria-hidden /> Se guarda con tu espacio
-        de trabajo.
-      </p>
-    </Card>
+    <>
+      <Card bare title="Bitácora" right={<Badge>{ctx.noteLog.length}</Badge>}>
+        <label htmlFor="note-draft" className="sr-only">
+          Nueva entrada de la bitácora
+        </label>
+        <textarea
+          id="note-draft"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+              e.preventDefault();
+              add();
+            }
+          }}
+          placeholder="Qué pasó, qué se decidió, a quién se avisó…"
+          rows={3}
+          maxLength={2000}
+          className="w-full resize-y rounded-lg border border-[var(--hairline)] bg-card p-2.5 text-[12.5px] leading-relaxed outline-none transition-[border-color,box-shadow] placeholder:text-foreground/35 focus:border-primary focus:ring-2 focus:ring-ring"
+        />
+        <div className="mt-2 flex items-center justify-between gap-2">
+          {sel ? (
+            <label className="flex items-center gap-1.5 text-[11.5px] text-foreground/65">
+              <input
+                type="checkbox"
+                checked={link}
+                onChange={(e) => setLink(e.target.checked)}
+              />
+              Vincular a {selName}
+            </label>
+          ) : (
+            <span className="text-[11px] text-foreground/45">
+              Ctrl + Enter para agregar
+            </span>
+          )}
+          <Btn variant="solid" onClick={add} disabled={!draft.trim()}>
+            Agregar
+          </Btn>
+        </div>
+        {ctx.noteLog.length === 0 ? (
+          <p className="mt-3 text-[12px] leading-snug text-foreground/60">
+            Todavía no hay entradas. Cada una queda con su autor y su hora, y se
+            puede vincular a una zona.
+          </p>
+        ) : (
+          <ol className="mt-3 space-y-2" aria-label="Entradas de la bitácora">
+            {ctx.noteLog.map((n) => {
+              const f = n.featId
+                ? ctx.ws.features.find((x) => x.id === n.featId)
+                : undefined;
+              return (
+                <li
+                  key={n.id}
+                  className="rounded-lg border border-[var(--hairline)] p-2.5"
+                >
+                  <div className="flex items-start justify-between gap-2 text-[11px] text-foreground/55">
+                    <span className="min-w-0 truncate">
+                      <b className="font-semibold text-foreground/75">
+                        {n.by || "Operador"}
+                      </b>{" "}
+                      · <span className="num">{when(n.t)}</span>
+                    </span>
+                    <button
+                      type="button"
+                      aria-label="Eliminar entrada"
+                      onClick={() => ctx.removeNote(n.id)}
+                      className="grid size-6 shrink-0 place-items-center rounded text-foreground/40 hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <Trash2 className="size-3" aria-hidden />
+                    </button>
+                  </div>
+                  <p className="mt-1 whitespace-pre-wrap text-[12.5px] leading-snug">
+                    {n.text}
+                  </p>
+                  {f && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        ctx.select(f.id);
+                        ctx.map.current?.fitFeature(f);
+                      }}
+                      className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-foreground/[0.06] px-1.5 py-0.5 text-[10.5px] font-medium text-foreground/70 hover:bg-foreground/[0.1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <MapPin className="size-3" aria-hidden />
+                      {ctx.ws.meta[f.id]?.name ?? "Elemento"}
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        )}
+      </Card>
+      <Card
+        bare
+        title="Notas generales"
+        right={
+          <span className="num text-[10px] text-foreground/40">
+            {ctx.ws.notes.length.toLocaleString("es-AR")} / 20.000
+          </span>
+        }
+      >
+        <label htmlFor="notes" className="sr-only">
+          Notas generales
+        </label>
+        <textarea
+          id="notes"
+          value={ctx.ws.notes}
+          onChange={(e) => ctx.setNotes(e.target.value)}
+          placeholder="Texto libre: pendientes, contactos, observaciones del terreno…"
+          rows={8}
+          className="w-full resize-y rounded-lg border border-[var(--hairline)] bg-card p-2.5 text-[12.5px] leading-relaxed outline-none transition-[border-color,box-shadow] placeholder:text-foreground/35 focus:border-primary focus:ring-2 focus:ring-ring"
+        />
+        <p className="mt-1.5 flex items-center gap-1.5 text-[10.5px] text-foreground/45">
+          <NotebookPen className="size-3" aria-hidden /> Se guarda con tu espacio
+          de trabajo.
+        </p>
+      </Card>
+    </>
   );
 }
 

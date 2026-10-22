@@ -9,6 +9,7 @@ import {
   MODE_ROLE,
   type Feat,
   type Meta,
+  type NoteEntry,
   type Workspace,
 } from "./types";
 
@@ -22,6 +23,7 @@ const EMPTY: Workspace = {
   settings: DEFAULT_SETTINGS,
   notes: "",
   ops: EMPTY_OPS,
+  noteLog: [],
 };
 
 const BASE_LAYERS = ["esri", "s2", "viirs", "light", "topo"];
@@ -90,6 +92,32 @@ function writeStored(key: string, v: Stored) {
   }
 }
 
+export const NOTE_LOG_MAX = 500;
+export const NOTE_TEXT_MAX = 2000;
+
+/** Untrusted stored notes to a safe list; drops anything malformed, never throws. */
+export function cleanNoteLog(input: unknown): NoteEntry[] {
+  if (!Array.isArray(input)) return [];
+  const out: NoteEntry[] = [];
+  for (const n of input) {
+    if (!n || typeof n !== "object") continue;
+    const { id, t, by, text, featId } = n as Record<string, unknown>;
+    if (typeof id !== "string" || typeof text !== "string" || !Number.isFinite(t))
+      continue;
+    const body = text.trim().slice(0, NOTE_TEXT_MAX);
+    if (!body) continue;
+    out.push({
+      id: id.slice(0, 40),
+      t: Number(t),
+      by: typeof by === "string" ? by.slice(0, 120) : "",
+      text: body,
+      ...(typeof featId === "string" && featId ? { featId: featId.slice(0, 60) } : {}),
+    });
+    if (out.length >= NOTE_LOG_MAX) break;
+  }
+  return out;
+}
+
 /** Turns untrusted stored data (localStorage or cloud) into a safe Workspace. */
 export function parseWorkspace(input: unknown): Workspace {
   try {
@@ -110,6 +138,7 @@ export function parseWorkspace(input: unknown): Workspace {
       meta,
       notes: typeof p.notes === "string" ? p.notes.slice(0, 20_000) : "",
       ops: cleanOps(p.ops),
+      noteLog: cleanNoteLog(p.noteLog),
       settings: {
         ...DEFAULT_SETTINGS,
         ...st,
@@ -432,6 +461,26 @@ export function useWorkspace(uid?: string) {
     (notes: string) => setWs((w) => ({ ...w, notes: notes.slice(0, 20_000) })),
     [],
   );
+  const addNote = useCallback((text: string, by: string, featId?: string) => {
+    const body = text.trim().slice(0, NOTE_TEXT_MAX);
+    if (!body) return;
+    const id = (
+      globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)
+    ).slice(0, 12);
+    const entry: NoteEntry = {
+      id,
+      t: Date.now(),
+      by: by.slice(0, 120),
+      text: body,
+      ...(featId ? { featId } : {}),
+    };
+    setWs((w) => ({ ...w, noteLog: [entry, ...w.noteLog].slice(0, NOTE_LOG_MAX) }));
+  }, []);
+  const removeNote = useCallback(
+    (id: string) =>
+      setWs((w) => ({ ...w, noteLog: w.noteLog.filter((n) => n.id !== id) })),
+    [],
+  );
   const setOps = useCallback(
     (update: (o: OpsState) => OpsState) =>
       setWs((w) => ({ ...w, ops: update(w.ops) })),
@@ -466,6 +515,8 @@ export function useWorkspace(uid?: string) {
     setSettings,
     replace,
     setNotes,
+    addNote,
+    removeNote,
     setOps,
     undo,
     redo,
