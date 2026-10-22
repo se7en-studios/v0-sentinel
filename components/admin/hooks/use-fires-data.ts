@@ -23,7 +23,7 @@ const EMPTY_STATS: FireStats = {
 /** Satellite payload: polling load, confidence/noise filters, stats and the hourly series. */
 export function useFiresData(
   cloud: CloudSession | undefined,
-  s: Pick<Settings, "refreshMin" | "minConfidence" | "hideNoise">,
+  s: Pick<Settings, "refreshMin" | "minConfidence" | "hideNoise" | "minScore">,
 ) {
   const [payload, setPayload] = useState<FiresPayload | null>(null);
   const [firesError, setFiresError] = useState<string | null>(null);
@@ -81,9 +81,12 @@ export function useFiresData(
   const allFires = useMemo(
     () =>
       (payload?.points ?? []).filter(
-        (p, i) => p[3] >= minConf && !(s.hideNoise && classified.reason[i]),
+        (p, i) =>
+          p[3] >= minConf &&
+          classified.score[i] >= s.minScore &&
+          !(s.hideNoise && classified.reason[i]),
       ),
-    [payload, minConf, classified, s.hideNoise],
+    [payload, minConf, classified, s.hideNoise, s.minScore],
   );
 
   const stats = useMemo<FireStats>(() => {

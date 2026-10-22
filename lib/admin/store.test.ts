@@ -54,3 +54,11 @@ test("parseWorkspace carries the note log and defaults it to empty", () => {
   expect(parseWorkspace({ noteLog: [{ id: "a", t: 1, text: "hola" }] }).noteLog).toHaveLength(1);
   expect(parseWorkspace({}).noteLog).toEqual([]);
 });
+
+test("parseWorkspace keeps minScore inside 0-90 and defaults it to no filter", () => {
+  expect(parseWorkspace({}).settings.minScore).toBe(0);
+  expect(parseWorkspace({ settings: { minScore: 55.4 } }).settings.minScore).toBe(55);
+  expect(parseWorkspace({ settings: { minScore: 500 } }).settings.minScore).toBe(90);
+  expect(parseWorkspace({ settings: { minScore: -3 } }).settings.minScore).toBe(0);
+  expect(parseWorkspace({ settings: { minScore: "x" } }).settings.minScore).toBe(0);
+});

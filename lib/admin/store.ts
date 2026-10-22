@@ -156,6 +156,9 @@ export function parseWorkspace(input: unknown): Workspace {
           ? st.minConfidence!
           : DEFAULT_SETTINGS.minConfidence,
         hideNoise: st.hideNoise !== false,
+        minScore: Number.isFinite(Number(st.minScore))
+          ? Math.min(90, Math.max(0, Math.round(Number(st.minScore))))
+          : 0,
         units: st.units === "km2" ? "km2" : "ha",
         refreshMin: [10, 30, 60].includes(Number(st.refreshMin))
           ? Number(st.refreshMin)

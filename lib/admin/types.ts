@@ -42,6 +42,8 @@ export interface Settings {
   minConfidence: Confidence;
   /** drop detections that look like industrial heat (fixed pixels, known sites) */
   hideNoise: boolean;
+  /** detections scored below this (0-90) are left out; 0 keeps everything */
+  minScore: number;
   bufferKm: number;
   units: "ha" | "km2";
   exaggeration: number;
@@ -194,6 +196,7 @@ export const DEFAULT_SETTINGS: Settings = {
   baseLayer: "esri",
   minConfidence: "n",
   hideNoise: true,
+  minScore: 0,
   bufferKm: 5,
   units: "ha",
   exaggeration: 2,

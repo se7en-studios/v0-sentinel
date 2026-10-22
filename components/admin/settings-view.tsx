@@ -177,6 +177,20 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
               hint="Descarta píxeles fijos de baja potencia (más de 5 días seguidos) y los de plantas y yacimientos conocidos. Los sitios están marcados con coordenadas aproximadas."
             />
             <Field
+              label={`Puntaje mínimo de confianza: ${s.minScore === 0 ? "sin filtro" : s.minScore}`}
+              hint="Cada detección recibe un puntaje de 0 a 100 según su confianza, potencia y compañía. Subirlo deja solo las más probables, pero puede demorar un aviso temprano."
+            >
+              <input
+                type="range"
+                min={0}
+                max={90}
+                step={5}
+                value={s.minScore}
+                onChange={(e) => setSettings({ minScore: Number(e.target.value) })}
+                className="w-full accent-primary"
+              />
+            </Field>
+            <Field
               label={`Radio de alerta alrededor de cada zona: ${s.bufferKm} km`}
             >
               <input
