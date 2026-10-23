@@ -4,6 +4,8 @@ import { enPanels, esPanels, ptPanels } from "./i18n-panels";
 import { enOps, esOps, ptOps } from "./i18n-ops";
 import { enIncidents, esIncidents, ptIncidents } from "./i18n-incidents";
 import { enResilience, esResilience, ptResilience } from "./i18n-resilience";
+import { enHistory, esHistory, ptHistory } from "./i18n-history";
+import { enGuide, esGuide, ptGuide } from "./i18n-guide";
 
 export type Locale = "es" | "en" | "pt";
 
@@ -89,6 +91,8 @@ const es = {
   ...esOps,
   ...esIncidents,
   ...esResilience,
+  ...esHistory,
+  ...esGuide,
 } as const;
 
 export type MsgKey = keyof typeof es;
@@ -100,6 +104,8 @@ const en: Record<MsgKey, string> = {
   ...enOps,
   ...enIncidents,
   ...enResilience,
+  ...enHistory,
+  ...enGuide,
   "tab.general": "Overview",
   "tab.zonas": "Zones",
   "tab.drones": "Drones & sensors",
@@ -177,6 +183,8 @@ const pt: Record<MsgKey, string> = {
   ...ptOps,
   ...ptIncidents,
   ...ptResilience,
+  ...ptHistory,
+  ...ptGuide,
   "tab.general": "Visão geral",
   "tab.zonas": "Zonas",
   "tab.drones": "Drones e sensores",

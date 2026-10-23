@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { MODE_ROLE } from "@/lib/admin/types";
 import type { Ctx, Tab } from "./ctx";
 import { Btn } from "./ui";
+import { guideSeen, openGuide } from "./guide-state";
 
 const KEY = "sentinel-admin-onboarding-dismissed";
 
@@ -114,6 +115,16 @@ export function Onboarding({
           </li>
         ))}
       </ul>
+      <button
+        type="button"
+        onClick={openGuide}
+        className={cn(
+          "mt-2 rounded px-1 py-1.5 text-[12.5px] font-medium underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          guideSeen() ? "text-foreground/70" : "text-primary",
+        )}
+      >
+        {ctx.t("guide.link")}
+      </button>
       {ctx.ws.features.length === 0 && (
         <Btn className="mt-2.5 w-full" onClick={ctx.loadDemo}>
           {ctx.t("onb.demo")}

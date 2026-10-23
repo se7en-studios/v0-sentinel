@@ -5,6 +5,7 @@ import { TABS } from "../tabs";
 import type { Tab } from "../ctx";
 import type { MapHandle } from "../map-view";
 import type { PaletteAction } from "../command-palette";
+import { openGuide } from "../guide-state";
 
 const BASES = ["esri", "s2", "viirs"] as const satisfies readonly BaseLayer[];
 
@@ -118,5 +119,6 @@ export function buildPaletteActions(d: Deps): PaletteAction[] {
       hint: "?",
       run: d.openShortcuts,
     },
+    { id: "guide", group: g.help, label: t("guide.title"), run: openGuide },
   ];
 }

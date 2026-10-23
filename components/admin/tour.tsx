@@ -7,6 +7,7 @@ import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
 import type { MsgKey, Translate } from "@/lib/admin/i18n";
 import { MODE_ROLE } from "@/lib/admin/types";
 import type { useAdmin } from "./use-admin";
+import { openGuide } from "./guide-state";
 
 type A = ReturnType<typeof useAdmin>;
 
@@ -222,8 +223,18 @@ export function GuidedTour({ a }: { a: A }) {
         </button>
         <button
           type="button"
+          onClick={() => {
+            close();
+            openGuide();
+          }}
+          className="ml-auto flex h-10 items-center rounded-lg px-2.5 text-[12px] font-medium text-primary hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-8"
+        >
+          {t("guide.link")}
+        </button>
+        <button
+          type="button"
           onClick={close}
-          className="ml-auto flex h-10 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium text-foreground/60 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-8"
+          className="flex flex h-10 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium text-foreground/60 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-8"
         >
           <X className="size-3.5" aria-hidden /> {i === last ? t("tour.finish") : t("tour.exit")}
         </button>

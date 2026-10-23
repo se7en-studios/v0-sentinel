@@ -23,6 +23,7 @@ import { MODE_ROLE } from "@/lib/admin/types";
 import type { Ctx } from "./ctx";
 import { pointTs } from "./hooks/fire-time";
 import { SourcesCard } from "./sources-card";
+import { SeasonCard } from "./season-card";
 import { Badge, Card, ChartFrame, DataGate, Stat } from "./ui";
 
 const AXIS = { fontSize: 11, fill: "var(--chart-axis)" };
@@ -126,6 +127,8 @@ export function MetricsView({ ctx }: { ctx: Ctx }) {
       </div>
 
       <TrendCard perDay={stats.perDay} t={t} loc={loc} />
+
+      <SeasonCard ctx={ctx} loc={loc} />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <LeadCard ctx={ctx} loc={loc} />

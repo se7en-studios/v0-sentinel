@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import type { Translate } from "@/lib/admin/i18n";
 import type { Tab } from "./ctx";
+import { openGuide } from "./guide-state";
 
 /** "g" then one of these letters jumps to a screen (the same order as the top bar). */
 export const GO_KEYS: Record<string, Tab> = {
@@ -93,15 +94,8 @@ function Keys({ keys, then }: { keys: string[]; then: string }) {
   );
 }
 
-export function ShortcutsHelp({
-  open,
-  setOpen,
-  t,
-}: {
-  open: boolean;
-  setOpen: (v: boolean) => void;
-  t: Translate;
-}) {
+/** The three shortcut lists (shared by the help dialog and the quick guide). */
+export function ShortcutsList({ t }: { t: Translate }) {
   const general: [string[], string][] = [
     [["Ctrl", "K"], t("keys.palette")],
     [["?"], t("keys.help")],
@@ -121,49 +115,75 @@ export function ShortcutsHelp({
   ];
   const h3 = "mb-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-foreground/60";
   return (
+    <>
+      <section>
+        <h3 className={h3}>{t("keys.general")}</h3>
+        <ul className="space-y-1.5">
+          {general.map(([keys, label]) => (
+            <li key={label} className="flex items-center justify-between gap-3 text-[12.5px]">
+              <span>{label}</span>
+              <Keys keys={keys} then="+" />
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section>
+        <h3 className={h3}>{t("keys.goto")}</h3>
+        <ul className="grid grid-cols-1 gap-1.5 min-[420px]:grid-cols-2">
+          {go.map(([k, label]) => (
+            <li key={k} className="flex items-center justify-between gap-3 text-[12.5px]">
+              <span>{label}</span>
+              <Keys keys={["g", k]} then={t("keys.then")} />
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section>
+        <h3 className={h3}>{t("keys.draw")}</h3>
+        <p className="text-[12.5px] text-foreground/80">{t("keys.drawHint")}</p>
+      </section>
+    </>
+  );
+}
+
+export function ShortcutsHelp({
+  open,
+  setOpen,
+  t,
+}: {
+  open: boolean;
+  setOpen: (v: boolean) => void;
+  t: Translate;
+}) {
+  return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent showCloseButton={false} className="max-h-[85dvh] overflow-y-auto sm:max-w-md">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <DialogTitle className="font-heading text-lg">{t("keys.title")}</DialogTitle>
-            <DialogDescription className="mt-1 text-[12.5px]">{t("keys.desc")}</DialogDescription>
+        <DialogContent showCloseButton={false} className="max-h-[85dvh] overflow-y-auto sm:max-w-md">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <DialogTitle className="font-heading text-lg">{t("keys.title")}</DialogTitle>
+              <DialogDescription className="mt-1 text-[12.5px]">{t("keys.desc")}</DialogDescription>
+            </div>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label={t("keys.close")}
+              className="grid size-9 shrink-0 place-items-center rounded-lg text-foreground/70 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <X className="size-4" aria-hidden />
+            </button>
           </div>
+          <ShortcutsList t={t} />
           <button
             type="button"
-            onClick={() => setOpen(false)}
-            aria-label={t("keys.close")}
-            className="grid size-9 shrink-0 place-items-center rounded-lg text-foreground/70 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            onClick={() => {
+              setOpen(false);
+              openGuide();
+            }}
+            className="self-start rounded-lg px-1 py-1.5 text-[12.5px] font-medium text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <X className="size-4" aria-hidden />
+            {t("guide.openFromKeys")}
           </button>
-        </div>
-        <section>
-          <h3 className={h3}>{t("keys.general")}</h3>
-          <ul className="space-y-1.5">
-            {general.map(([keys, label]) => (
-              <li key={label} className="flex items-center justify-between gap-3 text-[12.5px]">
-                <span>{label}</span>
-                <Keys keys={keys} then="+" />
-              </li>
-            ))}
-          </ul>
-        </section>
-        <section>
-          <h3 className={h3}>{t("keys.goto")}</h3>
-          <ul className="grid grid-cols-1 gap-1.5 min-[420px]:grid-cols-2">
-            {go.map(([k, label]) => (
-              <li key={k} className="flex items-center justify-between gap-3 text-[12.5px]">
-                <span>{label}</span>
-                <Keys keys={["g", k]} then={t("keys.then")} />
-              </li>
-            ))}
-          </ul>
-        </section>
-        <section>
-          <h3 className={h3}>{t("keys.draw")}</h3>
-          <p className="text-[12.5px] text-foreground/80">{t("keys.drawHint")}</p>
-        </section>
-      </DialogContent>
+        </DialogContent>
     </Dialog>
   );
 }

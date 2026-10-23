@@ -14,6 +14,7 @@ import {
 import { MODE_ROLE } from "@/lib/admin/types";
 import type { MsgKey } from "@/lib/admin/i18n";
 import type { Ctx } from "./ctx";
+import { QuickGuide } from "./guide";
 
 export interface PaletteAction {
   id: string;
@@ -96,7 +97,9 @@ export function CommandPalette({
   };
 
   return (
-    <CommandDialog
+    <>
+      <QuickGuide t={t} />
+      <CommandDialog
       open={open}
       onOpenChange={setOpen}
       title={t("pal.title")}
@@ -160,5 +163,6 @@ export function CommandPalette({
         )}
       </CommandList>
     </CommandDialog>
+    </>
   );
 }

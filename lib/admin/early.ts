@@ -36,12 +36,14 @@ export type EarlyTier = "low" | "mid" | "high";
 
 /**
  * Share of GOES spots in each persistence band that a polar satellite then confirmed within 24 h and
- * 4.5 km. Backtest over 28 days (25/9 to 23/10/2026, 1,305 daily spots, FIRMS GOES-19 vs VIIRS):
- * under 5 scans 165 of 318, 5 to 11 scans 319 of 463, 12 or more 482 of 524. A historical rate, not a promise.
+ * 4.5 km (FIRMS GOES-19 vs VIIRS, 31/7 to 23/10/2026, 5,313 daily spots). Bands were set on the last
+ * 28 days (52 / 69 / 92 %) and held on the 56 days before (59 / 73 / 92 %); these are the pooled rates:
+ * under 5 scans 879 of 1,529, 5 to 11 scans 1,439 of 1,998, 12 or more 1,643 of 1,786. A historical
+ * rate, not a promise.
  */
 export const EARLY_TIER_RATE: Record<EarlyTier, number> = {
-  low: 0.52,
-  mid: 0.69,
+  low: 0.57,
+  mid: 0.72,
   high: 0.92,
 };
 

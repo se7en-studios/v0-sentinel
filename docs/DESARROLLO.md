@@ -82,9 +82,29 @@ Se midió con 28 días reales de FIRMS para Argentina: 62.364 filas de GOES-19 c
 | ≥ 20 | 330 | 97 % | 81 % | 131 min |
 
 - Por banda (lo que usa el panel como "confianza", `earlyTier` en `lib/admin/early.ts`): menos de 5 escaneos **52 %**, de 5 a 11 **69 %**, 12 o más **92 %**.
+
+**Validación en otro período (31/7 al 25/9/2026, 4.008 manchas, sin haber definido nada con ellas):**
+
+| Banda | Primer período | Validación | Combinado (lo que muestra el panel) |
+|---|---|---|---|
+| Menos de 5 escaneos | 52 % | 59 % | **57 %** (879 de 1.529) |
+| De 5 a 11 | 69 % | 73 % | **72 %** (1.439 de 1.998) |
+| 12 o más | 92 % | 92 % | **92 %** (1.643 de 1.786) |
+
+El orden de las bandas se sostiene y la alta da lo mismo en los dos períodos. **La ventaja de tiempo no se sostiene igual:** en la validación GOES avisó primero en 61 % de los casos (52 / 58 / 70 % por banda) y la mediana fue 51 min (5 / 32 / 110 min), contra 68 % y 103 min del primer período. Por eso el panel no promete una ventaja en minutos: solo la tasa de confirmación. Para una cifra de ventaja citable hace falta separar por hora del día y por pasadas disponibles.
 - La potencia también cuenta: de 20 a 50 MW se confirma 58 %, de 50 a 100 MW 71 %, desde 100 MW 85 %.
 - Límites: la ventaja de la tabla supone alertar al tercer escaneo; con un umbral más alto el aviso llega 10 min más tarde por cada escaneo extra. "Sin confirmar" mezcla falsas alarmas, fuegos chicos que VIIRS no vio y nubes: con estos datos no se separan. No cubre INPE (que ya viene filtrado), ni distingue quema agrícola de incendio forestal. Son tasas históricas, no una promesa.
 - El script fue una prueba temporal de Vitest con `parseFirmsGoes`, `mergeEarly` y `parseFireRows`; FIRMS acepta solo 1 o 2 días por pedido de GOES, así que se pidió en ventanas.
+
+## Temporada: ¿es normal para esta época?
+
+La tarjeta "Temporada" de Métricas (`components/admin/season-card.tsx`) compara los focos de los últimos 10 días con las mismas fechas de los 3 años anteriores.
+
+- **Datos:** `GET /api/admin/history` (`lib/server/history.ts`) pide a NASA FIRMS el CSV por área de Argentina, de a 5 días por pedido. Este año usa `VIIRS_NOAA20_NRT`; los años anteriores, el archivo estándar `VIIRS_NOAA20_SP`. Cuenta por día los focos de confianza nominal o alta dentro del polígono de Argentina.
+- **Satélite único (NOAA-20):** es el único que vuela en todos los años comparados (NOAA-21 solo desde 2023). Sumarlo haría que este año parezca "por encima" solo por tener más pasadas. Por eso las cifras son menores que las de la pestaña de focos, que usa NOAA-20 + NOAA-21 + MODIS.
+- **Límites:** el tiempo casi real (este año) puede ajustarse al pasar al archivo estándar; los cambios de cobertura o de algoritmo entre años no se corrigen. Un año con algún pedido fallido se devuelve como `null` (no como cero) y se informa con cuántos años se comparó. Si el promedio de los años anteriores es menor a 30 focos en 10 días no se da cociente.
+- **Veredicto** (`lib/admin/history-compare.ts`): cociente entre el total de este año y el promedio de los anteriores; menos de 0,7 es "por debajo", más de 1,4 "por encima", en el medio "normal". Los umbrales son una convención del panel, no un estándar.
+- **Costo:** 8 pedidos a FIRMS por actualización (2 por año, 4 en paralelo, 15 s cada uno y 30 s en total). El resultado completo queda en memoria 30 minutos por instancia y los pedidos de años pasados se cachean 24 h con `next.revalidate`. No se calculó contra la cuota de FIRMS (5.000 transacciones cada 10 min por clave): a este ritmo queda muy lejos.
 
 ## Pendientes conocidos
 
