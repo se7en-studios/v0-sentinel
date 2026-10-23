@@ -66,3 +66,12 @@ describe("describeTerrain / terrainLine", () => {
     );
   });
 });
+
+describe("terrainLine language", () => {
+  it("writes the same line in English and Portuguese", () => {
+    const t = describeTerrain(30, 840.4, { slopeDeg: 12.3, aspectDeg: 225 });
+    expect(terrainLine(t, "en")).toBe("Grassland · 840 m · 12° slope facing SW");
+    expect(terrainLine(t, "pt")).toBe("Pastagem · 840 m · declive de 12° para SO");
+    expect(terrainLine(describeTerrain(80, 5, null), "en")).toBe("Water · 5 m");
+  });
+});

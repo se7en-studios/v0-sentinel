@@ -130,3 +130,28 @@ describe("incident report helpers", () => {
     expect(incidentExtrasHtml({ terrain: null, early: [], history: [] })).toContain("Sin cambios de estado");
   });
 });
+
+describe("report language", () => {
+  const written = (d: ReportData) => {
+    const w = { document: { write: vi.fn(), close: vi.fn() } };
+    vi.spyOn(window, "open").mockReturnValue(w as unknown as Window);
+    printReport(d);
+    return String(w.document.write.mock.calls[0][0]);
+  };
+  test("the printed report is in English or Portuguese when asked, Spanish otherwise", () => {
+    const en = written({ ...data, locale: "en" });
+    expect(en).toContain('<html lang="en">');
+    expect(en).toContain("Monitoring report");
+    expect(en).toContain("Print / save as PDF");
+    expect(en).not.toMatch(/Reporte|Imprimir|Evidencia|Descargo/);
+    expect(written({ ...data, locale: "pt" })).toContain("Relatório de monitoramento");
+    expect(written(data)).toContain("Reporte de monitoreo");
+  });
+  test("incident sections and the alert e-mail subject follow the language", async () => {
+    const { incidentExtrasHtml } = await import("./report");
+    const html = incidentExtrasHtml({ terrain: null, early: [], history: [] }, "en");
+    expect(html).toContain("The terrain could not be checked.");
+    expect(html).toContain("No status changes recorded.");
+    expect(alertLinks("x", "1", "a@b.c", "Sentinel alert").email).toContain("subject=Sentinel%20alert");
+  });
+});

@@ -7,13 +7,14 @@ import { buildBriefing, delayedSources } from "@/lib/admin/briefing";
 import type { DayForecast } from "@/lib/admin/forecast";
 import { MODE_ROLE } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
+import type { MsgKey } from "@/lib/admin/i18n";
 import type { Ctx } from "./ctx";
 import { Badge, Card } from "./ui";
 
 const TONE = {
-  alert: { dot: "bg-[#b83a3a]", badge: "fire" as const, label: "Atención" },
-  watch: { dot: "bg-[#e8710a]", badge: "muted" as const, label: "Vigilancia" },
-  calm: { dot: "bg-primary", badge: "ok" as const, label: "Tranquilo" },
+  alert: { dot: "bg-[#b83a3a]", badge: "fire" as const, label: "brf.tone.alert" as MsgKey },
+  watch: { dot: "bg-[#e8710a]", badge: "muted" as const, label: "brf.tone.watch" as MsgKey },
+  calm: { dot: "bg-primary", badge: "ok" as const, label: "brf.tone.calm" as MsgKey },
 };
 
 const btn =
@@ -27,15 +28,17 @@ export function BriefingCard({
   ctx: Ctx;
   forecast?: DayForecast[] | null;
 }) {
-  const { ws, stats, zoneHits, clusters, earlyOpen, sources, now } = ctx;
+  const { ws, stats, zoneHits, clusters, earlyOpen, sources, now, t } = ctx;
+  const locale = ws.settings.locale;
   const b = useMemo(() => {
     const zones = ws.features
       .filter((f) => MODE_ROLE[String(f.properties.mode)] === "zone")
       .map((z) => ({
-        name: ws.meta[z.id]?.name ?? "Zona",
+        name: ws.meta[z.id]?.name ?? t("res.zone"),
         recent: zoneHits[z.id]?.recent ?? 0,
       }));
-    return buildBriefing({
+    return buildBriefing(
+      {
       org: ws.settings.org,
       now: new Date(),
       last24: stats.last24,
@@ -52,24 +55,26 @@ export function BriefingCard({
       best: forecast?.length
         ? forecast.reduce((a, d) => (d.score < a.score ? d : a))
         : undefined,
-    });
-  }, [ws, stats, zoneHits, clusters, forecast, earlyOpen, sources, now]);
-  const t = TONE[b.tone];
+      },
+      locale,
+    );
+  }, [ws, stats, zoneHits, clusters, forecast, earlyOpen, sources, now, t, locale]);
+  const tone = TONE[b.tone];
 
   const copy = () =>
     navigator.clipboard.writeText(b.text).then(
-      () => toast.success("Briefing copiado"),
-      () => toast.error("No se pudo copiar el briefing"),
+      () => toast.success(t("brf.copied")),
+      () => toast.error(t("brf.copyFail")),
     );
 
   return (
     <Card
-      title="Briefing del día"
-      right={<Badge tone={t.badge}>{t.label}</Badge>}
+      title={t("brf.title")}
+      right={<Badge tone={tone.badge}>{t(tone.label)}</Badge>}
     >
       <div className="flex items-start gap-2.5">
         <span
-          className={cn("mt-1.5 size-2 shrink-0 rounded-full", t.dot)}
+          className={cn("mt-1.5 size-2 shrink-0 rounded-full", tone.dot)}
           aria-hidden
         />
         <h2 className="font-heading text-[17px] font-semibold leading-snug">
@@ -86,7 +91,7 @@ export function BriefingCard({
       </ul>
       <div className="mt-3 rounded-lg bg-foreground/[0.04] p-3">
         <div className="mb-1 text-[10.5px] font-semibold uppercase tracking-[0.1em] text-foreground/55">
-          Acciones sugeridas
+          {t("brf.actionsTitle")}
         </div>
         <ul className="space-y-1 text-[13px]">
           {b.actions.map((a) => (
@@ -96,7 +101,7 @@ export function BriefingCard({
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
         <button type="button" onClick={copy} className={btn}>
-          <Copy className="size-3.5" aria-hidden /> Copiar texto
+          <Copy className="size-3.5" aria-hidden /> {t("brf.copy")}
         </button>
         <a
           href={`https://wa.me/?text=${encodeURIComponent(b.text)}`}
@@ -104,7 +109,7 @@ export function BriefingCard({
           rel="noopener noreferrer"
           className={btn}
         >
-          <Send className="size-3.5" aria-hidden /> Enviar por WhatsApp
+          <Send className="size-3.5" aria-hidden /> {t("brf.whatsapp")}
         </a>
       </div>
     </Card>

@@ -50,7 +50,15 @@ function noise(x: number, y: number, seed: number) {
 }
 
 /** Procedural thermal feed. SIMULATED: there is no real camera behind it. */
-export function ThermalCam({ seed, hot }: { seed: string; hot: boolean }) {
+export function ThermalCam({
+  seed,
+  hot,
+  label = "Cámara térmica simulada",
+}: {
+  seed: string;
+  hot: boolean;
+  label?: string;
+}) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -102,7 +110,7 @@ export function ThermalCam({ seed, hot }: { seed: string; hot: boolean }) {
         width={W}
         height={H}
         className="h-full w-full [image-rendering:auto]"
-        aria-label="Cámara térmica simulada"
+        aria-label={label}
         role="img"
       />
       <div className="pointer-events-none absolute inset-0">

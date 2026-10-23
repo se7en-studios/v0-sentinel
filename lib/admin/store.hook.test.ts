@@ -340,4 +340,55 @@ describe("useWorkspace (editing)", () => {
     expect(result.current.ws.meta).toEqual({});
     expect(result.current.undo()).toBe(true);
   });
+
+  test("undo after a full replace brings back notes, log and settings; redo returns to the import", async () => {
+    const { result } = mount();
+    await waitFor(() => expect(result.current.ready).toBe(true));
+    act(() => result.current.setNotes("originales"));
+    act(() => result.current.addNote("bitacora", "yo"));
+    act(() => result.current.setSettings({ org: "Vieja" }));
+    const before = result.current.ws;
+    act(() =>
+      result.current.replace({
+        ...before,
+        features: [zone],
+        meta: { z1: { name: "Z" } },
+        notes: "importadas",
+        noteLog: [],
+        settings: { ...before.settings, org: "Nueva" },
+      }),
+    );
+    expect(result.current.ws.notes).toBe("importadas");
+    act(() => void result.current.undo());
+    expect(result.current.ws).toEqual(before);
+    expect(result.current.canRedo).toBe(true);
+    act(() => void result.current.redo());
+    expect(result.current.ws.notes).toBe("importadas");
+    expect(result.current.ws.settings.org).toBe("Nueva");
+    act(() => void result.current.undo());
+    expect(result.current.ws).toEqual(before);
+  });
+
+  test("undoing a full replace in a cloud account marks the workspace dirty and uploads it", async () => {
+    loadCloud.mockResolvedValue({ data: wsWith({ notes: "nube" }), rev: 2, clientAt: 1 });
+    const { result } = mount("u1");
+    await waitFor(() => expect(result.current.sync).toBe("saved"), WAIT);
+    act(() => result.current.replace({ ...result.current.ws, notes: "importadas" }));
+    await waitFor(() => expect(saveCloud).toHaveBeenCalledTimes(1), WAIT);
+    await waitFor(() => expect(result.current.sync).toBe("saved"), WAIT);
+    act(() => void result.current.undo());
+    await waitFor(() => expect(saveCloud).toHaveBeenCalledTimes(2), WAIT);
+    expect(saveCloud.mock.calls[1][1].notes).toBe("nube");
+    expect(saveCloud.mock.calls[1][2]).toBe(1); // rev from the first save
+  });
+
+  test("a normal edit after a replace undoes on its own, features only", async () => {
+    const { result } = mount();
+    await waitFor(() => expect(result.current.ready).toBe(true));
+    act(() => result.current.replace({ ...result.current.ws, notes: "importadas" }));
+    act(() => result.current.setFeatures([zone]));
+    act(() => void result.current.undo());
+    expect(result.current.ws.features).toEqual([]);
+    expect(result.current.ws.notes).toBe("importadas");
+  });
 });

@@ -17,7 +17,10 @@ import type { TerrainInfo } from "@/lib/admin/terrain";
 import type { Translate } from "@/lib/admin/i18n";
 import type { DroneSpec } from "@/lib/admin/sim";
 import type { AckMap } from "@/lib/admin/alert-ack";
-import type { IncidentMetaMap, IncidentStatus } from "@/lib/admin/incident-meta";
+import type {
+  IncidentMetaMap,
+  IncidentStatus,
+} from "@/lib/admin/incident-meta";
 import type { Weather, WeatherStatus } from "@/lib/admin/weather";
 import type { DayForecast } from "@/lib/admin/forecast";
 import type { OpsEntry, UnitState } from "@/lib/admin/resources";
@@ -42,7 +45,14 @@ export interface SpreadInfo {
 export type PanelSeg = "Capas" | "Análisis" | "Alertas" | "Notas";
 
 export type Tab =
-  "general" | "zonas" | "drones" | "recursos" | "pronostico" | "incidentes" | "metricas" | "config";
+  | "general"
+  | "zonas"
+  | "drones"
+  | "recursos"
+  | "pronostico"
+  | "incidentes"
+  | "metricas"
+  | "config";
 
 export interface FireStats {
   total: number;
@@ -131,7 +141,11 @@ export interface Ctx {
   removeNote: (id: string) => void;
   alertAck: AckMap;
   /** acknowledge a zone alert; with snoozeMin it also stays quiet that long (new detections re-open it) */
-  ackZoneAlert: (featId: string, detections: number, snoozeMin?: number) => void;
+  ackZoneAlert: (
+    featId: string,
+    detections: number,
+    snoozeMin?: number,
+  ) => void;
   reopenZoneAlert: (featId: string) => void;
   /** rule firings nobody has acknowledged or snoozed */
   unackedRules: number;
@@ -145,7 +159,10 @@ export interface Ctx {
   reopenEarly: (e: { lat: number; lng: number }) => void;
   incidentMeta: IncidentMetaMap;
   /** set the status and/or assignee of a detected incident; the author and time are filled in */
-  updateIncident: (id: string, patch: { status?: IncidentStatus; assignee?: string }) => void;
+  updateIncident: (
+    id: string,
+    patch: { status?: IncidentStatus; assignee?: string },
+  ) => void;
   payload: FiresPayload | null;
   /** GOES-19 early detections resolved against the polar passes (open, confirmed or industrial) */
   early: EarlyView[];
@@ -156,6 +173,11 @@ export interface Ctx {
   earlyError: string | null;
   /** land cover, elevation and slope under a point (null when it cannot be read) */
   terrainAt: (lat: number, lng: number) => Promise<TerrainInfo | null>;
+  /** fetch that adds the session token (when signed in) for the admin API routes */
+  authedFetch: (url: string, init?: RequestInit) => Promise<Response>;
+  /** incident picked in the Incidents view (set by the map popup's "Ver incidente") */
+  incidentSel: string | null;
+  setIncidentSel: (id: string | null) => void;
   /** every data feed, polar and geostationary, with its newest acquisition (for the latency table) */
   sources: SourceStatus[];
   /** ms epoch of the last early-warning pull, 0 before the first */

@@ -57,6 +57,7 @@ async function openReport(ctx: Ctx, inc: Incident) {
     new Promise<null>((r) => setTimeout(() => r(null), TERRAIN_WAIT_MS)),
   ]).catch(() => null);
   const ok = printIncidentReport({
+    locale: ctx.ws.settings.locale,
     org: ctx.ws.settings.org || "Sentinel",
     place: nearestPlace(inc.lat, inc.lng).near,
     lat: inc.lat,
@@ -156,8 +157,18 @@ export function IncidentsView({ ctx }: { ctx: Ctx }) {
       ).slice(0, LIST_MAX),
     [all, scope, ctx.center],
   );
-  const [selId, setSelId] = useState<string | null>(null);
-  const inc = incidents.find((i) => i.id === selId) ?? incidents[0];
+  const selId = ctx.incidentSel;
+  const setSelId = ctx.setIncidentSel;
+  // an incident opened from the map popup may sit outside the region scope or past the list cut
+  const chosen = selId ? all.find((i) => i.id === selId) : undefined;
+  const shown = useMemo(
+    () =>
+      chosen && !incidents.includes(chosen)
+        ? [chosen, ...incidents.slice(0, LIST_MAX - 1)]
+        : incidents,
+    [chosen, incidents],
+  );
+  const inc = chosen ?? incidents[0];
   const units = ws.settings.units;
 
   return (
@@ -206,7 +217,7 @@ export function IncidentsView({ ctx }: { ctx: Ctx }) {
       ) : (
         <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
           <ul className="space-y-2" aria-label="Incidentes">
-            {incidents.map((i) => {
+            {shown.map((i) => {
               const place = nearestPlace(i.lat, i.lng);
               const on = i.id === inc.id;
               return (

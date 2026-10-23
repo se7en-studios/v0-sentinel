@@ -82,3 +82,13 @@ Sonda corta (tope de 6 s por fuente, en paralelo) de FIRMS VIIRS, FIRMS MODIS, F
 En `next.config.mjs`, para todas las rutas: CSP, `X-Frame-Options: DENY` y `frame-ancestors 'none'`, `X-Content-Type-Options`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (cámara, micrófono, geolocalización, pagos y USB apagados) y HSTS en producción.
 
 La CSP enumera los dominios del mapa (Esri, EOX, CARTO, NASA GIBS, OpenFreeMap, AWS S3), Open-Meteo, Nominatim, `*.googleapis.com` (Firebase) y Vercel Analytics. **Si agregás una fuente nueva de teselas o una API consumida desde el navegador, sumá su dominio a `MAP_HOSTS`/`API_HOSTS`**, o el navegador la bloquea (se ve como error `Refused to connect` en la consola). Concesiones: `script-src` permite `'unsafe-inline'` (el arranque de Next y los JSON-LD; un nonce obligaría a renderizar todo dinámico) y `img-src` permite cualquier `https:` (imágenes de prensa y teselas). `'unsafe-eval'` solo se agrega en desarrollo.
+
+## Desde el panel: Configuración > Integraciones
+
+- **Estado de las fuentes** llama a `GET /api/admin/health` al apretar "Revisar ahora" (no hay consulta automática, por la cuota de FIRMS). Cada fuente se muestra como activa, lenta (responde en más de 3 s) o sin respuesta, con latencia y antigüedad del último dato.
+- **Probar avisos** llama a `POST /api/admin/notify`. Por defecto va con `dryRun: true` (casilla "Solo simular, no enviar"); un envío real exige desmarcarla y confirmar en la página. Los destinatarios no se eligen en el panel: salen de `NOTIFY_EMAIL_TO` y `NOTIFY_WHATSAPP_TO` del servidor, y el panel solo muestra el estado por canal (nunca direcciones, teléfonos ni textos de error del proveedor).
+- Las dos llamadas usan `ctx.authedFetch`, que agrega el token de la sesión cuando hay cuenta.
+
+## Deshacer una importación de respaldo
+
+Importar un respaldo (o vaciar zonas) reemplaza todo el espacio de trabajo. "Deshacer" lo restaura completo (zonas, notas, bitácora, acuses, incidentes, operación y ajustes) y "Rehacer" vuelve a la importación. Las ediciones normales siguen deshaciendo solo zonas y metadatos. Deshacer pasa por el mismo camino que cualquier edición, así que la copia local y la nube se actualizan solas (`rev` y `dirty` no se tocan a mano).

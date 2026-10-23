@@ -5,6 +5,7 @@ import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { OpacityKey } from "@/lib/admin/types";
 import type { ShowLayers } from "./map-view";
+import type { MsgKey } from "@/lib/admin/i18n";
 import type { Ctx } from "./ctx";
 import { Slider } from "./ui";
 
@@ -23,6 +24,7 @@ interface RowProps {
   };
   disabled?: boolean;
   badge?: string;
+  opacityLabel: (label: string) => string;
 }
 
 /** One layer row: thumbnail, checkbox, name and an opacity slider, as in the reference layers list. */
@@ -34,6 +36,7 @@ function LayerRow({
   slider,
   disabled,
   badge,
+  opacityLabel,
 }: RowProps) {
   return (
     <li
@@ -71,7 +74,7 @@ function LayerRow({
       </label>
       {slider && (
         <Slider
-          label={`Opacidad: ${label}`}
+          label={opacityLabel(label)}
           value={slider.value}
           onChange={slider.onChange}
           format={slider.format}
@@ -106,17 +109,17 @@ const T = {
   names: "linear-gradient(135deg,#f3efe4,#d9d3c3)",
 };
 
-type Row = Omit<RowProps, "slider"> & {
+type Row = Omit<RowProps, "slider" | "opacityLabel"> & {
   slider?: RowProps["slider"];
   key: string;
 };
-type Section = { title?: string; rows: Row[] };
+type Section = { title?: MsgKey; rows: Row[] };
 
 const norm = (t: string) =>
   t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 export function LayersPanel({ ctx }: { ctx: Ctx }) {
-  const { ws, show, setShow, setSettings } = ctx;
+  const { ws, show, setShow, setSettings, t } = ctx;
   const o = ws.settings.opacity;
   const [q, setQ] = useState("");
   const lastOpacity = useRef<Partial<Record<OpacityKey, number>>>({});
@@ -136,19 +139,19 @@ export function LayersPanel({ ctx }: { ctx: Ctx }) {
   const d3 = ctx.view === "3d";
   const r = (
     key: string,
-    label: string,
+    label: MsgKey,
     thumb: string,
     checked: boolean,
     onCheck: (v: boolean) => void,
     extra: Partial<Row> = {},
-  ): Row => ({ key, label, thumb, checked, onCheck, ...extra });
+  ): Row => ({ key, label: t(label), thumb, checked, onCheck, ...extra });
 
   const sections: Section[] = [
     {
       rows: [
         r(
           "t3d",
-          "Terreno 3D",
+          "lay.t3d",
           T.terrain,
           d3,
           (v) => ctx.setView(v ? "3d" : "2d"),
@@ -165,7 +168,7 @@ export function LayersPanel({ ctx }: { ctx: Ctx }) {
         ),
         r(
           "img",
-          "Imagen satelital",
+          "lay.img",
           T.imagery,
           o.imagery > 0,
           toggleOpacity("imagery", 1),
@@ -173,7 +176,7 @@ export function LayersPanel({ ctx }: { ctx: Ctx }) {
         ),
         r(
           "rel",
-          "Relieve sombreado",
+          "lay.rel",
           T.hill,
           o.relief > 0,
           toggleOpacity("relief", 0.6),
@@ -181,32 +184,32 @@ export function LayersPanel({ ctx }: { ctx: Ctx }) {
         ),
         r(
           "tint",
-          "Hipsometría",
+          "lay.tint",
           T.tint,
           o.tint > 0,
           toggleOpacity("tint", 0.3),
           { slider: { ...op("tint"), max: 0.8 } },
         ),
-        r("forest", "Bosque en volumen", T.forest, show.forest, tog("forest"), {
+        r("forest", "lay.forest", T.forest, show.forest, tog("forest"), {
           disabled: !d3,
         }),
-        r("bld", "Edificios 3D", T.buildings, show.buildings, tog("buildings")),
+        r("bld", "lay.bld", T.buildings, show.buildings, tog("buildings")),
       ],
     },
     {
-      title: "Detección",
+      title: "lay.s.detect",
       rows: [
-        r("fires", "Anomalías térmicas", T.fires, show.fires, tog("fires"), {
+        r("fires", "lay.fires", T.fires, show.fires, tog("fires"), {
           slider: op("fires"),
           badge: "NASA",
         }),
-        r("early", "Alerta temprana", T.early, show.early, tog("early"), {
+        r("early", "lay.early", T.early, show.early, tog("early"), {
           badge: "GOES",
         }),
-        r("heat", "Mapa de calor", T.heat, show.heat, tog("heat")),
+        r("heat", "lay.heat", T.heat, show.heat, tog("heat")),
         r(
           "spread",
-          "Propagación prevista",
+          "lay.spread",
           T.spread,
           show.spread,
           tog("spread"),
@@ -215,27 +218,27 @@ export function LayersPanel({ ctx }: { ctx: Ctx }) {
       ],
     },
     {
-      title: "Operación",
+      title: "lay.s.ops",
       rows: [
-        r("zones", "Zonas monitoreadas", T.zones, show.zones, tog("zones"), {
+        r("zones", "lay.zones", T.zones, show.zones, tog("zones"), {
           slider: op("zones"),
         }),
-        r("lines", "Líneas y cortafuegos", T.lines, show.lines, tog("lines")),
-        r("routes", "Rutas de drones", T.routes, show.routes, tog("routes"), {
+        r("lines", "lay.lines", T.lines, show.lines, tog("lines")),
+        r("routes", "lay.routes", T.routes, show.routes, tog("routes"), {
           slider: op("routes"),
         }),
-        r("drones", "Drones", T.drones, show.drones, tog("drones"), {
-          badge: "sim",
+        r("drones", "lay.drones", T.drones, show.drones, tog("drones"), {
+          badge: t("lay.b.sim"),
         }),
-        r("sensors", "Sensores", T.sensors, show.sensors, tog("sensors"), {
-          badge: "sim",
+        r("sensors", "lay.sensors", T.sensors, show.sensors, tog("sensors"), {
+          badge: t("lay.b.sim"),
         }),
       ],
     },
     {
-      title: "Mapa",
+      title: "lay.s.map",
       rows: [
-        r("names", "Nombres y cotas", T.names, show.names, tog("names"), {
+        r("names", "lay.names", T.names, show.names, tog("names"), {
           slider: op("labels"),
         }),
       ],
@@ -253,7 +256,7 @@ export function LayersPanel({ ctx }: { ctx: Ctx }) {
     <div>
       <div className="px-4 pb-1 pt-3.5">
         <label className="relative mb-2 block">
-          <span className="sr-only">Buscar capa</span>
+          <span className="sr-only">{t("lay.search")}</span>
           <Search
             className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-foreground/40"
             aria-hidden
@@ -263,13 +266,13 @@ export function LayersPanel({ ctx }: { ctx: Ctx }) {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => e.key === "Escape" && setQ("")}
-            placeholder="Buscar capa…"
+            placeholder={t("lay.searchPh")}
             className="h-8 w-full rounded-lg border border-[var(--hairline)] bg-transparent pl-7 pr-7 text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
           {q && (
             <button
               type="button"
-              aria-label="Borrar búsqueda"
+              aria-label={t("lay.clear")}
               onClick={() => setQ("")}
               className="absolute right-1.5 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded text-foreground/50 hover:text-foreground"
             >
@@ -282,7 +285,7 @@ export function LayersPanel({ ctx }: { ctx: Ctx }) {
             className="py-3 text-center text-[11.5px] text-foreground/50"
             role="status"
           >
-            Ninguna capa coincide con “{q.trim()}”.
+            {t("lay.none", { q: q.trim() })}
           </p>
         )}
         {visible.map((sec, idx) => (
@@ -294,12 +297,16 @@ export function LayersPanel({ ctx }: { ctx: Ctx }) {
                   idx > 0 && "mt-3",
                 )}
               >
-                {sec.title}
+                {t(sec.title)}
               </h4>
             )}
             <ul>
               {sec.rows.map(({ key, ...row }) => (
-                <LayerRow key={key} {...row} />
+                <LayerRow
+                  key={key}
+                  {...row}
+                  opacityLabel={(l) => t("lay.opacity", { label: l })}
+                />
               ))}
             </ul>
           </section>

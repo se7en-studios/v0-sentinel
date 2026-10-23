@@ -13,6 +13,7 @@ import { Flame } from "lucide-react";
 import { distKm } from "@/lib/admin/geo";
 import { FLEET, droneTelemetry, hash } from "@/lib/admin/sim";
 import { opsSeries } from "@/lib/admin/resources";
+import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
 import type { Ctx } from "./ctx";
 import { Badge } from "./ui";
 
@@ -39,7 +40,13 @@ function Mini({
   domain,
   step,
   hm,
+  loc,
+  noData,
+  noActivity,
 }: {
+  loc: string;
+  noData: string;
+  noActivity: string;
   title: string;
   unit: string;
   color: string;
@@ -58,7 +65,7 @@ function Mini({
         </h3>
         <span className="num text-[10.5px] font-medium text-foreground/70">
           {data.length
-            ? Math.round(data[data.length - 1].v).toLocaleString("es-AR")
+            ? Math.round(data[data.length - 1].v).toLocaleString(loc)
             : "—"}{" "}
           <span className="text-foreground/60">{unit}</span>
         </span>
@@ -66,11 +73,11 @@ function Mini({
       <div
         className="relative min-h-0 flex-1"
         role="img"
-        aria-label={`${title}: ${data.length ? Math.round(data[data.length - 1].v).toLocaleString("es-AR") : "sin datos"} ${unit}`}
+        aria-label={`${title}: ${data.length ? Math.round(data[data.length - 1].v).toLocaleString(loc) : noData} ${unit}`}
       >
         {empty && (
           <span className="pointer-events-none absolute inset-0 z-10 grid place-items-center text-[11px] text-foreground/60">
-            Sin actividad
+            {noActivity}
           </span>
         )}
         <ResponsiveContainer width="100%" height="100%">
@@ -95,7 +102,7 @@ function Mini({
               tickCount={4}
               minTickGap={36}
               tickFormatter={(t) =>
-                new Date(t).toLocaleTimeString("es-AR", hm ? { hour: "2-digit", minute: "2-digit" } : { minute: "2-digit", second: "2-digit" })
+                new Date(t).toLocaleTimeString(loc, hm ? { hour: "2-digit", minute: "2-digit" } : { minute: "2-digit", second: "2-digit" })
               }
             />
             <YAxis
@@ -109,7 +116,7 @@ function Mini({
             <Tooltip
               contentStyle={TIP}
               labelFormatter={(t) =>
-                new Date(Number(t)).toLocaleTimeString("es-AR")
+                new Date(Number(t)).toLocaleTimeString(loc)
               }
               formatter={(v) => [`${Math.round(Number(v))} ${unit}`, title]}
             />
@@ -130,6 +137,9 @@ function Mini({
 
 /** Drone mode dock: telemetry charts for the active drone plus nearby detections. */
 export function DroneDock({ ctx }: { ctx: Ctx }) {
+  const { t: tr } = ctx;
+  const loc = NUM_LOCALE[ctx.ws.settings.locale];
+  const miniProps = { loc, noData: tr("fc.noData"), noActivity: tr("dck.noActivity") };
   const d =
     ctx.drones.find((x) => x.spec.id === ctx.activeDrone) ??
     ctx.drones.find((x) => x.track) ??
@@ -177,15 +187,15 @@ export function DroneDock({ ctx }: { ctx: Ctx }) {
 
   return (
     <section
-      aria-label="Telemetría del dron"
+      aria-label={tr("dck.droneAria")}
       className="shrink-0 border-t border-[var(--hairline)] bg-card"
     >
       <div className="flex items-center gap-2 border-b border-[var(--hairline)] px-3 py-1.5">
         <h2 className="text-[10px] font-semibold uppercase tracking-[0.1em] text-foreground/65">
-          Telemetría · {d.spec.name}
+          {tr("dck.droneTitle", { name: d.spec.name })}
         </h2>
-        <Badge tone="sim">simulado</Badge>
-        <div className="ml-auto flex gap-1" role="group" aria-label="Dron activo">
+        <Badge tone="sim">{tr("res.sim")}</Badge>
+        <div className="ml-auto flex gap-1" role="group" aria-label={tr("dck.active")}>
           {FLEET.map((f) => (
             <button
               key={f.id}
@@ -200,10 +210,11 @@ export function DroneDock({ ctx }: { ctx: Ctx }) {
         </div>
       </div>
       <div className="grid h-[132px] grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_270px]">
-        <Mini title="Altura (AGL)" unit="m" color="#0f7a4f" data={series.alt} />
+        <Mini {...miniProps} title={tr("dck.alt")} unit="m" color="#0f7a4f" data={series.alt} />
         <div className="hidden h-full min-h-0 border-l border-[var(--hairline)] sm:block">
           <Mini
-            title="Temp. máx. en vista"
+            {...miniProps}
+            title={tr("dck.temp")}
             unit="°C"
             color="#c8321e"
             data={series.temp}
@@ -211,7 +222,8 @@ export function DroneDock({ ctx }: { ctx: Ctx }) {
         </div>
         <div className="hidden h-full min-h-0 border-l border-[var(--hairline)] sm:block">
           <Mini
-            title="Batería"
+            {...miniProps}
+            title={tr("drw.battery")}
             unit="%"
             color="#1b6fb8"
             data={series.bat}
@@ -220,13 +232,11 @@ export function DroneDock({ ctx }: { ctx: Ctx }) {
         </div>
         <div className="hidden h-full min-h-0 overflow-y-auto border-l border-[var(--hairline)] px-3 pb-2 pt-2 sm:block">
           <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.09em] text-foreground/65">
-            Detecciones cerca
+            {tr("dck.near")}
           </h3>
           {detections.length === 0 && (
             <p className="text-[11px] text-foreground/60">
-              {d.track
-                ? "Sin focos a menos de 6 km de la ruta."
-                : "El dron no está en vuelo."}
+              {d.track ? tr("dck.noNear") : tr("dck.grounded")}
             </p>
           )}
           <ul className="space-y-0.5">
@@ -234,7 +244,7 @@ export function DroneDock({ ctx }: { ctx: Ctx }) {
               <li key={x.id} className="flex items-center gap-2 text-[11px]">
                 <Flame className="size-3 shrink-0 text-[#c8321e]" aria-hidden />
                 <span className="num font-medium">
-                  Punto caliente {x.temp} °C
+                  {tr("dck.hotspot", { n: x.temp })}
                 </span>
                 <span className="num ml-auto text-foreground/45">
                   {x.km.toFixed(1)} km
@@ -250,6 +260,9 @@ export function DroneDock({ ctx }: { ctx: Ctx }) {
 
 /** Resources dock: simulated operation charts and the dispatch log. */
 export function ResourcesDock({ ctx }: { ctx: Ctx }) {
+  const { t: tr } = ctx;
+  const loc = NUM_LOCALE[ctx.ws.settings.locale];
+  const miniProps = { loc, noData: tr("fc.noData"), noActivity: tr("dck.noActivity") };
   const minute = Math.floor(ctx.now / 60_000) * 60_000;
   const s = useMemo(() => opsSeries(ctx.units, minute), [ctx.units, minute]);
   const people: Pt[] = s.map((x) => ({ t: x.t, v: x.people }));
@@ -257,26 +270,28 @@ export function ResourcesDock({ ctx }: { ctx: Ctx }) {
   const line: Pt[] = s.map((x) => ({ t: x.t, v: x.lineKm }));
   return (
     <section
-      aria-label="Operaciones de respuesta"
+      aria-label={tr("dck.opsAria")}
       className="shrink-0 border-t border-[var(--hairline)] bg-card"
     >
       <div className="flex items-center gap-2 border-b border-[var(--hairline)] px-3 py-1.5">
         <h2 className="text-[10px] font-semibold uppercase tracking-[0.1em] text-foreground/65">
-          Operaciones · última hora
+          {tr("dck.opsTitle")}
         </h2>
-        <Badge tone="sim">simulado</Badge>
+        <Badge tone="sim">{tr("res.sim")}</Badge>
       </div>
       <div className="grid grid-cols-1 grid-rows-[96px_auto] sm:h-[132px] sm:grid-rows-none sm:grid-cols-[1fr_1fr_1fr_270px]">
         <Mini
-          title="Personal desplegado" hm
-          unit="pers."
+          {...miniProps}
+          title={tr("dck.people")} hm
+          unit={tr("dck.persUnit")}
           color="#0f7a4f"
           data={people}
           step
         />
         <div className="hidden h-full min-h-0 border-l border-[var(--hairline)] sm:block">
           <Mini
-            title="Agua descargada" hm
+            {...miniProps}
+            title={tr("dck.water")} hm
             unit="L"
             color="#1b6fb8"
             data={water}
@@ -285,7 +300,8 @@ export function ResourcesDock({ ctx }: { ctx: Ctx }) {
         </div>
         <div className="hidden h-full min-h-0 border-l border-[var(--hairline)] sm:block">
           <Mini
-            title="Línea de control" hm
+            {...miniProps}
+            title={tr("dck.line")} hm
             unit="km"
             color="#e8710a"
             data={line}
@@ -293,18 +309,18 @@ export function ResourcesDock({ ctx }: { ctx: Ctx }) {
         </div>
         <div className="flex max-h-24 min-h-0 flex-col border-t border-[var(--hairline)] px-3 pb-2 pt-2 sm:max-h-none sm:border-l sm:border-t-0">
           <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.09em] text-foreground/65">
-            Registro de operaciones
+            {tr("dck.log")}
           </h3>
           {ctx.opsLog.length === 0 && (
             <p className="text-[11px] text-foreground/60">
-              Sin operaciones. Despachá unidades desde el panel.
+              {tr("dck.logEmpty")}
             </p>
           )}
           <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto">
             {ctx.opsLog.map((e) => (
               <li key={e.id} className="text-[10.5px] leading-snug">
                 <span className="num mr-1.5 text-foreground/60">
-                  {new Date(e.t).toLocaleTimeString("es-AR", {
+                  {new Date(e.t).toLocaleTimeString(loc, {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}

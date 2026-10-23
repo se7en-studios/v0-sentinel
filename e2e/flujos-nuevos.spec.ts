@@ -36,6 +36,9 @@ test("el terreno bajo un incidente se muestra desde /api/admin/terrain", async (
   await page.route("**/api/admin/fires", (r) => r.fulfill({ json: firesPayload(Date.now()) }));
   const calls: string[] = [];
   await page.route("**/api/admin/terrain**", (r) => {
+    // the batch endpoint (confidence scoring) is a different call: it must fail soft, not count here
+    if (r.request().url().includes("/terrain/batch"))
+      return r.fulfill({ status: 503, json: { error: "simulado" } });
     calls.push(r.request().url());
     return r.fulfill({
       json: {

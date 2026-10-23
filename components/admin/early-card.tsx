@@ -11,9 +11,11 @@ import { Badge, Btn, Card, EmptyState } from "./ui";
 const LIST_MAX = 10;
 const SOURCE_NAME: Record<string, string> = { FIRMS: "NASA", INPE: "INPE" };
 
-const ageLabel = (ms: number, now: number) => {
-  const min = Math.max(0, Math.round((now - ms) / 60_000));
-  return min < 90 ? `hace ${min} min` : `hace ${Math.round(min / 60)} h`;
+const ageLabel = (ctx: Ctx, ms: number) => {
+  const min = Math.max(0, Math.round((ctx.now - ms) / 60_000));
+  return min < 90
+    ? ctx.t("age.min", { n: min })
+    : ctx.t("age.hour", { n: Math.round(min / 60) });
 };
 
 function Row({ e, zone, ctx }: { e: EarlyView; zone?: string; ctx: Ctx }) {
@@ -21,7 +23,7 @@ function Row({ e, zone, ctx }: { e: EarlyView; zone?: string; ctx: Ctx }) {
   const ack = ctx.alertAck[earlyKey(e)];
   const handled = isAcked(ack, 0, ctx.now);
   const snoozed = handled && ack?.until !== undefined && ack.until - ack.t <= 60 * 60_000;
-  const who = ack?.by || "Operador";
+  const who = ack?.by || ctx.t("zd.operator");
   return (
     <li
       className={cn(
@@ -33,24 +35,24 @@ function Row({ e, zone, ctx }: { e: EarlyView; zone?: string; ctx: Ctx }) {
       <Radar className="mt-0.5 size-3.5 shrink-0 text-[#0e9aa7]" aria-hidden />
       <div className="min-w-0 flex-1">
         <div className="truncate font-semibold">
-          {zone ? `Cerca de ${zone}` : `A ${near.km} km de ${near.near}`}
+          {zone ? ctx.t("ec.near", { zone }) : ctx.t("ec.far", { km: near.km, near: near.near })}
         </div>
         <div className="text-foreground/65">
-          Último escaneo {ageLabel(e.lastAt, ctx.now)} · {e.scans}{" "}
-          {e.scans === 1 ? "escaneo" : "escaneos"}
+          {ctx.t("ec.last", { age: ageLabel(ctx, e.lastAt) })} ·{" "}
+          {ctx.t(e.scans === 1 ? "ec.scan1" : "ec.scanN", { n: e.scans })}
           {e.frp > 0 && ` · ${Math.round(e.frp)} MW`} ·{" "}
           {e.sources.map((s) => SOURCE_NAME[s] ?? s).join(" + ")}
         </div>
       </div>
       <Btn
         className="min-h-7 shrink-0"
-        aria-label={`Ver en el mapa la alerta temprana de ${near.near}`}
+        aria-label={ctx.t("ec.viewAria", { place: near.near })}
         onClick={() => {
           ctx.goTab("general");
           ctx.map.current?.flyTo([e.lng, e.lat], 11);
         }}
       >
-        Ver
+        {ctx.t("ec.view")}
       </Btn>
       </div>
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5 pl-[22px] text-[11px]">
@@ -98,7 +100,7 @@ export function EarlyCard({ ctx }: { ctx: Ctx }) {
   const zoneOf = new Map<string, string>();
   for (const [id, list] of Object.entries(earlyByZone))
     for (const e of list)
-      zoneOf.set(`${e.lat},${e.lng}`, ws.meta[id]?.name ?? "una zona");
+      zoneOf.set(`${e.lat},${e.lng}`, ws.meta[id]?.name ?? t("ec.aZone"));
   const confirmed = early.filter((e) => e.status === "confirmed").length;
   const noise = early.filter((e) => e.status === "noise").length;
   const handledCount = earlyOpen.length - ctx.earlyPending.length;
@@ -132,7 +134,7 @@ export function EarlyCard({ ctx }: { ctx: Ctx }) {
         </EmptyState>
       )}
       {shown.length > 0 && (
-        <ul className="space-y-1.5" aria-label="Alertas tempranas abiertas">
+        <ul className="space-y-1.5" aria-label={t("ec.list")}>
           {shown.map((e) => (
             <Row key={`${e.lat},${e.lng}`} e={e} zone={zoneOf.get(`${e.lat},${e.lng}`)} ctx={ctx} />
           ))}

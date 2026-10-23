@@ -10,7 +10,7 @@ import {
   type FireProps,
   type PopupActions,
 } from "./helpers";
-import { zoneCircleAt } from "@/lib/admin/map-popup";
+import { zoneCreator } from "@/lib/admin/map-popup";
 import type { MapProps } from "./types";
 
 // zones sit under everything else: a detection inside one must stay clickable
@@ -46,7 +46,7 @@ function zoomIntoCluster(map: MLMap, clusterId: number, at: [number, number]) {
     .catch(() => undefined);
 }
 
-/** Popup shortcuts for a point: new zone always, incident link only when the point belongs to one. */
+/** Popup shortcuts for a point: new zone only on maps that can create one, incident link only when the point belongs to one. */
 function popupActions(
   latest: MutableRefObject<MapProps>,
   lat: number,
@@ -55,17 +55,18 @@ function popupActions(
   const p = latest.current;
   return {
     // read latest at click time: the popup can outlive the render it was opened in
-    createZone: (la, ln) =>
-      latest.current.onCreate(zoneCircleAt(
-        la,
-        ln,
-        // not available on plain http (a tablet opening the panel by LAN address)
-        globalThis.crypto?.randomUUID?.() ??
-          `z-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`,
-      )),
+    createZone: p.onCreateZone
+      ? zoneCreator(
+          (f) => latest.current.onCreateZone?.(f),
+          // randomUUID is missing on plain http (a tablet opening the panel by LAN address)
+          () =>
+            globalThis.crypto?.randomUUID?.() ??
+            `z-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`,
+        )
+      : undefined,
     openIncident:
       p.onOpenIncident && p.incidentAt?.(lat, lng)
-        ? p.onOpenIncident
+        ? () => latest.current.onOpenIncident?.(lat, lng)
         : undefined,
   };
 }

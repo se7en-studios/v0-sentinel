@@ -1,6 +1,8 @@
-import { useEffect, useMemo, type RefObject } from "react";
+import { useCallback, useEffect, useMemo, type RefObject } from "react";
 import { toast } from "sonner";
 import { areaHa, fmtArea } from "@/lib/admin/geo";
+import { translate, type MsgKey, type Translate } from "@/lib/admin/i18n";
+import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
 import { nearestPlace } from "@/lib/admin/places";
 import {
   downloadDataUrl,
@@ -62,6 +64,11 @@ export function useFeedExports({
   cloud,
   mapRef,
 }: Params) {
+  const t = useCallback<Translate>(
+    (key, vars) => translate(s.locale, key, vars),
+    [s.locale],
+  );
+  const loc = NUM_LOCALE[s.locale];
   // ---- activity feed: real detections + zone/sensor events ----
   const feed = useMemo<FeedItem[]>(() => {
     const items: FeedItem[] = [];
@@ -77,8 +84,12 @@ export function useFeedExports({
           id: `f-${p[0]}-${p[1]}-${p[5]}`,
           t: pointTs(days, p),
           kind: "fire",
-          title: `Foco FRP ${Math.round(p[2])} MW`,
-          sub: `${near.km} km de ${near.near} · confianza ${["baja", "nominal", "alta"][p[3]]}`,
+          title: t("fx.fire", { n: Math.round(p[2]) }),
+          sub: t("fx.fireSub", {
+            km: near.km,
+            near: near.near,
+            conf: t(`pop.conf${p[3]}` as MsgKey),
+          }),
           at: [p[1], p[0]],
         });
       });
@@ -89,8 +100,8 @@ export function useFeedExports({
         id: `z-${z.id}`,
         t: h.last,
         kind: "zone",
-        title: `Foco en ${ws.meta[z.id]?.name ?? "zona"}`,
-        sub: `${h.recent} detecciones en 48 h (radio ${s.bufferKm} km)`,
+        title: t("fx.zone", { name: ws.meta[z.id]?.name ?? t("fx.zoneFallback") }),
+        sub: t("fx.zoneSub", { n: h.recent, km: s.bufferKm }),
         featId: z.id,
       });
     }
@@ -100,7 +111,7 @@ export function useFeedExports({
         id: `s-${sn.feat.id}`,
         t: now,
         kind: "sensor",
-        title: `${sn.meta.name} fuera de umbral`,
+        title: t("fx.sensorOut", { name: sn.meta.name }),
         sub: `${sn.reading.value} ${sn.reading.unit}`,
         featId: sn.feat.id,
         sim: true,
@@ -111,8 +122,8 @@ export function useFeedExports({
         id: `r-${id}`,
         t: now,
         kind: "drone",
-        title: `${FLEET.find((d) => d.id === id)?.name} retornando al dock`,
-        sub: "Orden manual del operador",
+        title: t("fx.rtb", { name: FLEET.find((d) => d.id === id)?.name ?? "" }),
+        sub: t("fx.manual"),
         sim: true,
       });
     }
@@ -127,6 +138,7 @@ export function useFeedExports({
     rtb,
     now,
     s.bufferKm,
+    t,
   ]);
 
   // ---- exposure & exports ----
@@ -153,20 +165,26 @@ export function useFeedExports({
       zones: ws.features
         .filter((f) => MODE_ROLE[String(f.properties.mode)] === "zone")
         .map((z) => ({
-          name: ws.meta[z.id]?.name ?? "Zona",
-          area: fmtArea(areaHa(z), s.units),
+          name: ws.meta[z.id]?.name ?? t("res.zone"),
+          area: fmtArea(areaHa(z), s.units, loc),
           recent: zoneHits[z.id]?.recent ?? 0,
           total: zoneHits[z.id]?.total ?? 0,
         })),
       clusters: clusters.map((c) => ({
-        text: `${c.km} km de ${c.near}`,
+        text: t("gen.clusterWhere", { km: c.km, near: c.near }),
         count: c.count,
         frp: c.frp,
       })),
       exposure:
         s.valuePerHa > 0
-          ? `Valor bajo vigilancia: USD ${Math.round(protectedHa * s.valuePerHa).toLocaleString("es-AR")} (${fmtArea(protectedHa, s.units)} a USD ${s.valuePerHa}/ha). En zonas con focos recientes: USD ${Math.round(atRiskHa * s.valuePerHa).toLocaleString("es-AR")}.`
+          ? t("fx.exposure", {
+              a: Math.round(protectedHa * s.valuePerHa).toLocaleString(loc),
+              area: fmtArea(protectedHa, s.units, loc),
+              v: s.valuePerHa,
+              b: Math.round(atRiskHa * s.valuePerHa).toLocaleString(loc),
+            })
           : null,
+      locale: s.locale,
     });
 
   // restore a shared view (#v=lng,lat,zoom,view)
@@ -176,20 +194,20 @@ export function useFeedExports({
       /^#v=(-?[\d.]+),(-?[\d.]+),([\d.]+),(2d|3d)$/,
     );
     if (!m) return;
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       setView(m[4] as "2d" | "3d");
       mapRef.current?.flyTo([Number(m[1]), Number(m[2])], Number(m[3]));
     }, 1800);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [ready, setView, mapRef]);
 
   function shareView() {
     const v = mapRef.current?.getView();
-    if (!v) return toast("Abrí un panel con mapa para compartir la vista");
+    if (!v) return toast(t("fx.openMap"));
     const url = `${window.location.origin}/admin#v=${v.center[0].toFixed(4)},${v.center[1].toFixed(4)},${v.zoom.toFixed(2)},${view}`;
     navigator.clipboard.writeText(url).then(
-      () => toast.success("Enlace de la vista copiado"),
-      () => toast.error("No se pudo copiar el enlace"),
+      () => toast.success(t("fx.viewCopied")),
+      () => toast.error(t("fx.copyFail")),
     );
   }
   // frozen, tokenised copy for people without an account; contacts and settings stay out
@@ -215,12 +233,15 @@ export function useFeedExports({
       });
       const url = `${window.location.origin}/admin/ver/${token}`;
       await navigator.clipboard.writeText(url);
-      toast.success("Enlace de solo lectura copiado", {
-        description: `Vence en ${SHARE_DAYS} días (${new Date(expiresAt).toLocaleDateString("es-AR", { day: "numeric", month: "long" })}). Muestra una foto de tus zonas y focos, sin contactos.`,
+      toast.success(t("fx.roCopied"), {
+        description: t("fx.roDesc", {
+          n: SHARE_DAYS,
+          date: new Date(expiresAt).toLocaleDateString(loc, { day: "numeric", month: "long" }),
+        }),
         duration: 9000,
       });
     } catch {
-      toast.error("No se pudo crear el enlace");
+      toast.error(t("fx.roFail"));
     }
   }
   async function revokeLinks() {
@@ -229,22 +250,20 @@ export function useFeedExports({
       const { revokeShares } = await import("@/lib/admin/share");
       const n = await revokeShares(cloud.uid);
       toast.success(
-        n
-          ? `${n} ${n === 1 ? "enlace revocado" : "enlaces revocados"}`
-          : "No había enlaces activos",
+        n ? t(n === 1 ? "fx.revoked1" : "fx.revokedN", { n }) : t("fx.noLinks"),
       );
     } catch {
-      toast.error("No se pudieron revocar los enlaces");
+      toast.error(t("fx.revokeFail"));
     }
   }
   async function exportPng() {
     const img = await mapRef.current?.snapshot();
-    if (!img) return toast("Abrí un panel con mapa para exportar la imagen");
+    if (!img) return toast(t("fx.openMapImg"));
     downloadDataUrl(
       `sentinel-mapa-${new Date().toISOString().slice(0, 10)}.jpg`,
       img,
     );
-    toast.success("Mapa exportado");
+    toast.success(t("fx.pngDone"));
   }
 
   return {

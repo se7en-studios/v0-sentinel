@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HOUR_MS, artTicks, earlyMarks } from "@/lib/admin/timeline-marks";
+import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
 import type { Ctx, HourPoint, KeyEvent } from "./ctx";
 import { IconBtn, Segmented } from "./ui";
 
@@ -44,14 +45,14 @@ const MAX_LABELLED_TICKS = 12;
 
 // every time on screen is Argentine local time (ART), whatever the browser says
 const TZ = "America/Argentina/Buenos_Aires";
-const fmtDay = (t: number) =>
-  new Date(t).toLocaleDateString("es-AR", {
+const fmtDay = (t: number, loc: string) =>
+  new Date(t).toLocaleDateString(loc, {
     day: "2-digit",
     month: "short",
     timeZone: TZ,
   });
-const fmtFull = (t: number) =>
-  new Date(t).toLocaleString("es-AR", {
+const fmtFull = (t: number, loc: string) =>
+  new Date(t).toLocaleString(loc, {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
@@ -59,8 +60,8 @@ const fmtFull = (t: number) =>
     hourCycle: "h23",
     timeZone: TZ,
   });
-const fmtHour = (t: number) =>
-  new Date(t).toLocaleTimeString("es-AR", {
+const fmtHour = (t: number, loc: string) =>
+  new Date(t).toLocaleTimeString(loc, {
     hour: "2-digit",
     hourCycle: "h23",
     timeZone: TZ,
@@ -83,7 +84,9 @@ const EVENT_TONE = {
 
 /** Time scrubber: day ticks, event markers and a draggable playhead. */
 function Scrubber({ ctx }: { ctx: Ctx }) {
-  const { range, cursor, events } = ctx;
+  const { range, cursor, events, t: tr } = ctx;
+  const loc = NUM_LOCALE[ctx.ws.settings.locale];
+  const hs = (at: number) => tr("tln.hs", { t: fmtFull(at, loc) });
   const track = useRef<HTMLDivElement>(null);
   const span = range.t1 - range.t0;
   // 0.1% steps: the server and the browser render a few seconds apart, and the range ends at the clock
@@ -117,11 +120,11 @@ function Scrubber({ ctx }: { ctx: Ctx }) {
         role="slider"
         suppressHydrationWarning // range ends at Date.now(), differs between server and client
         tabIndex={0}
-        aria-label="Línea de tiempo de detecciones"
+        aria-label={tr("tln.slider")}
         aria-valuemin={range.t0}
         aria-valuemax={range.t1}
         aria-valuenow={head}
-        aria-valuetext={`${fmtFull(head)} hs (hora de Argentina)`}
+        aria-valuetext={tr("tln.valueText", { t: fmtFull(head, loc) })}
         onPointerDown={(e) => {
           e.currentTarget.setPointerCapture(e.pointerId);
           seek(e.clientX);
@@ -157,7 +160,7 @@ function Scrubber({ ctx }: { ctx: Ctx }) {
               className="num absolute left-1/2 top-2 -translate-x-1/2 text-[8px] text-foreground/30 max-sm:hidden"
               hidden={minor.length > MAX_LABELLED_TICKS}
             >
-              {fmtHour(t)}
+              {fmtHour(t, loc)}
             </span>
           </div>
         ))}
@@ -166,7 +169,10 @@ function Scrubber({ ctx }: { ctx: Ctx }) {
             key={m.id}
             type="button"
             tabIndex={-1}
-            title={`${m.kind === "first" ? "Alerta temprana detectada" : "Alerta confirmada por satélite polar"} · ${fmtFull(m.t)} hs`}
+            title={tr("tln.markTitle", {
+              label: tr(m.kind === "first" ? "tln.markFirst" : "tln.markConfirmed"),
+              t: fmtFull(m.t, loc),
+            })}
             onPointerDown={(e) => e.stopPropagation()}
             onClick={() => {
               ctx.setPlaying(false);
@@ -190,7 +196,7 @@ function Scrubber({ ctx }: { ctx: Ctx }) {
           >
             <div className="h-2 w-px -translate-y-1/2 bg-foreground/25" />
             <span className="num absolute left-1/2 top-3 -translate-x-1/2 whitespace-nowrap text-[9.5px] text-foreground/40">
-              {fmtDay(t)}
+              {fmtDay(t, loc)}
             </span>
           </div>
         ))}
@@ -199,7 +205,7 @@ function Scrubber({ ctx }: { ctx: Ctx }) {
             key={ev.id}
             type="button"
             tabIndex={-1}
-            title={`${ev.title} · ${fmtFull(ev.t)}`}
+            title={`${ev.title} · ${fmtFull(ev.t, loc)}`}
             onPointerDown={(e) => e.stopPropagation()}
             onClick={() => ctx.setCursor(ev.t)}
             className="absolute -top-0.5 z-10 size-2.5 -translate-x-1/2 rounded-full border border-card shadow-sm transition-transform hover:scale-150"
@@ -218,7 +224,7 @@ function Scrubber({ ctx }: { ctx: Ctx }) {
               transform: `translateX(${at(head) > 85 ? "-88%" : at(head) < 15 ? "-12%" : "-50%"})`,
             }}
           >
-            {cursor === null ? "En vivo" : `${fmtFull(cursor)} hs`}
+            {cursor === null ? tr("ovw.st.live") : hs(cursor)}
           </div>
         </div>
       </div>
@@ -236,7 +242,9 @@ const MiniChart = memo(function MiniChart({
   range,
   cursor,
   step,
+  loc,
 }: {
+  loc: string;
   title: string;
   data: HourPoint[];
   dataKey: "cum" | "count" | "frp";
@@ -272,7 +280,7 @@ const MiniChart = memo(function MiniChart({
               type="number"
               domain={[range.t0, range.t1]}
               scale="time"
-              tickFormatter={fmtDay}
+              tickFormatter={(v) => fmtDay(Number(v), loc)}
               tick={AXIS}
               tickLine={false}
               axisLine={false}
@@ -289,7 +297,7 @@ const MiniChart = memo(function MiniChart({
             />
             <Tooltip
               contentStyle={TIP}
-              labelFormatter={(t) => fmtFull(Number(t))}
+              labelFormatter={(t) => fmtFull(Number(t), loc)}
               formatter={(v) => [`${v} ${unit}`, title]}
             />
             <Area
@@ -313,14 +321,16 @@ const MiniChart = memo(function MiniChart({
 });
 
 function EventsList({ ctx }: { ctx: Ctx }) {
+  const { t } = ctx;
+  const loc = NUM_LOCALE[ctx.ws.settings.locale];
   return (
     <div className="flex min-h-0 flex-col border-l border-[var(--hairline)] px-3 pb-2 pt-2">
       <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.09em] text-foreground/50">
-        Eventos clave
+        {t("tln.events")}
       </h3>
       {ctx.events.length === 0 && (
         <p className="text-[11px] text-foreground/40">
-          Sin eventos en el período.
+          {t("tln.noEvents")}
         </p>
       )}
       <ul className="-mx-1 min-h-0 flex-1 space-y-px overflow-y-auto">
@@ -355,7 +365,7 @@ function EventsList({ ctx }: { ctx: Ctx }) {
                   {ev.title}
                 </span>
                 <span className="num shrink-0 text-[10px] text-foreground/40">
-                  {fmtFull(ev.t)}
+                  {fmtFull(ev.t, loc)}
                 </span>
               </button>
             </li>
@@ -414,7 +424,8 @@ function useTimelineKeys(ctx: Ctx) {
 }
 
 export function TimelineDock({ ctx }: { ctx: Ctx }) {
-  const { series, cursor, range } = ctx;
+  const { series, cursor, range, t } = ctx;
+  const loc = NUM_LOCALE[ctx.ws.settings.locale];
   const live = cursor === null;
   useTimelineKeys(ctx);
   const step = (dir: 1 | -1) =>
@@ -426,21 +437,21 @@ export function TimelineDock({ ctx }: { ctx: Ctx }) {
     );
   return (
     <section
-      aria-label="Línea de tiempo"
+      aria-label={t("tln.aria")}
       className="shrink-0 border-t border-[var(--hairline)] bg-card"
     >
       <div className="flex flex-wrap items-center gap-1 border-b border-[var(--hairline)] pl-2 pr-1 sm:flex-nowrap">
         <h2 className="mr-2 hidden text-[10px] font-semibold uppercase tracking-[0.1em] text-foreground/50 sm:block">
-          Línea de tiempo
+          {t("tln.title")}
           <span className="ml-1 font-normal normal-case tracking-normal text-foreground/35">
-            (hora ART)
+            {t("tln.art")}
           </span>
         </h2>
-        <IconBtn aria-label="Retroceder 6 horas" onClick={() => step(-1)}>
+        <IconBtn aria-label={t("tln.back")} onClick={() => step(-1)}>
           <SkipBack className="size-3.5" />
         </IconBtn>
         <IconBtn
-          aria-label={ctx.playing ? "Pausar" : "Reproducir"}
+          aria-label={ctx.playing ? t("gen.pause") : t("tln.play")}
           active={ctx.playing}
           className="bg-foreground text-background hover:bg-foreground/85 hover:text-background"
           onClick={() => {
@@ -454,11 +465,11 @@ export function TimelineDock({ ctx }: { ctx: Ctx }) {
             <Play className="size-3.5 translate-x-px" />
           )}
         </IconBtn>
-        <IconBtn aria-label="Avanzar 6 horas" onClick={() => step(1)}>
+        <IconBtn aria-label={t("tln.fwd")} onClick={() => step(1)}>
           <SkipForward className="size-3.5" />
         </IconBtn>
         <Segmented
-          label="Velocidad"
+          label={t("tln.speed")}
           value={ctx.speed}
           onChange={ctx.setSpeed}
           className="ml-1 w-[136px]"
@@ -485,29 +496,31 @@ export function TimelineDock({ ctx }: { ctx: Ctx }) {
               live && "animate-pulse",
             )}
           />
-          En vivo
+          {t("ovw.st.live")}
         </button>
         <span className="mr-2 hidden text-[10px] text-foreground/35 xl:inline">
-          Espacio ▶/❚❚ · ←/→ 1 h
+          {t("tln.keys")}
         </span>
       </div>
       <div className="grid h-[132px] grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_270px]">
         <MiniChart
-          title="Focos acumulados"
+          loc={loc}
+          title={t("tln.cum")}
           data={series}
           dataKey="cum"
           color="#e8710a"
-          unit="focos"
+          unit={t("tln.unitFires")}
           range={range}
           cursor={cursor}
         />
         <div className="hidden h-full min-h-0 border-l border-[var(--hairline)] sm:block">
           <MiniChart
-            title="Detección por hora"
+            loc={loc}
+            title={t("tln.perHour")}
             data={series}
             dataKey="count"
             color="#c9a300"
-            unit="focos/h"
+            unit={t("tln.unitFiresH")}
             range={range}
             cursor={cursor}
             step
@@ -515,7 +528,8 @@ export function TimelineDock({ ctx }: { ctx: Ctx }) {
         </div>
         <div className="hidden h-full min-h-0 border-l border-[var(--hairline)] sm:block">
           <MiniChart
-            title="Potencia radiativa"
+            loc={loc}
+            title={t("tln.frp")}
             data={series}
             dataKey="frp"
             color="#c8321e"

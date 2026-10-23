@@ -1,6 +1,8 @@
 import { FIRMS_LABEL } from "../firms";
 import type { EarlyView } from "./early";
-import { INCIDENT_STATUS_LABEL, type IncidentChange, type IncidentStatus } from "./incident-meta";
+import { translate, type Locale, type MsgKey } from "./i18n";
+import { NUM_LOCALE } from "./i18n-shell";
+import type { IncidentChange, IncidentStatus } from "./incident-meta";
 import type { FirePoint } from "./types";
 
 export const esc = (s: string) =>
@@ -68,6 +70,8 @@ export interface ReportData {
   fires?: { points: FirePoint[]; days: string[] };
   /** Optional override for the generation time (tests). */
   generatedAt?: Date;
+  /** language of the printed page; Spanish when absent */
+  locale?: Locale;
 }
 
 export interface Evidence {
@@ -99,24 +103,33 @@ export function summarizeEvidence(points: FirePoint[], days: string[]): Evidence
   return { first, newest, perDay };
 }
 
-/** "21/10/2026, 12:04 (hora de Argentina)" */
-export const fmtArgentina = (d: Date): string =>
-  `${new Intl.DateTimeFormat("es-AR", { timeZone: "America/Argentina/Buenos_Aires", dateStyle: "short", timeStyle: "short", hourCycle: "h23" }).format(d)} (hora de Argentina)`;
+type Tr = (key: MsgKey, vars?: Record<string, string | number>) => string;
+const trFor =
+  (locale: Locale): Tr =>
+  (key, vars) =>
+    translate(locale, key, vars);
 
-export function evidenceHtml(ev: Evidence | null, generatedAt: Date): string {
-  const when = (d: Date | null) => (d ? esc(fmtArgentina(d)) : "sin detecciones");
+/** "21/10/2026, 12:04 (hora de Argentina)" (Spanish unless `locale` says otherwise) */
+export const fmtArgentina = (d: Date, locale: Locale = "es"): string =>
+  `${new Intl.DateTimeFormat(NUM_LOCALE[locale], { timeZone: "America/Argentina/Buenos_Aires", dateStyle: "short", timeStyle: "short", hourCycle: "h23" }).format(d)} ${trFor(locale)("rep.artSuffix")}`;
+
+export function evidenceHtml(ev: Evidence | null, generatedAt: Date, locale: Locale = "es"): string {
+  const t = trFor(locale);
+  const when = (d: Date | null) => (d ? esc(fmtArgentina(d, locale)) : t("rep.noDetections"));
   const days = ev?.perDay.length
-    ? `<table><tr><th>Día (UTC)</th><th>Detecciones</th></tr>${ev.perDay.map((r) => `<tr><td>${esc(r.day)}</td><td>${r.count}</td></tr>`).join("")}</table>`
+    ? `<table><tr><th>${t("rep.th.dayUtc")}</th><th>${t("rep.th.detections")}</th></tr>${ev.perDay.map((r) => `<tr><td>${esc(r.day)}</td><td>${r.count}</td></tr>`).join("")}</table>`
     : "";
-  return `<h2>Evidencia</h2>
-<ul><li>Primera detección: ${when(ev?.first ?? null)}</li><li>Detección más reciente: ${when(ev?.newest ?? null)}</li><li>Fuente: NASA FIRMS (${esc(FIRMS_LABEL)})</li><li>Informe generado: ${esc(fmtArgentina(generatedAt))}</li></ul>${days}
-<p><small>Descargo: las detecciones satelitales son indicios térmicos, no confirmación de incendio; pueden incluir calor industrial o falsos positivos y tienen demora respecto del paso del satélite. La hora de cada detección es la del paso satelital (UTC), convertida a hora de Argentina. Verificar en terreno antes de actuar.</small></p>`;
+  return `<h2>${t("rep.evidence")}</h2>
+<ul><li>${t("rep.firstDet", { t: when(ev?.first ?? null) })}</li><li>${t("rep.newestDet", { t: when(ev?.newest ?? null) })}</li><li>${t("rep.sourceLine", { label: esc(FIRMS_LABEL) })}</li><li>${t("rep.reportGen", { t: esc(fmtArgentina(generatedAt, locale)) })}</li></ul>${days}
+<p><small>${t("rep.disclaimer")}</small></p>`;
 }
 
 /** Opens a print-ready page; the user saves it as PDF from the print dialog. */
 export function printReport(d: ReportData) {
   const w = window.open("", "_blank");
   if (!w) return false;
+  const locale = d.locale ?? "es";
+  const t = trFor(locale);
   const rows = d.zones
     .map(
       (z) =>
@@ -124,34 +137,34 @@ export function printReport(d: ReportData) {
     )
     .join("");
   const cl = d.clusters
-    .map((c) => `<li>${esc(c.text)} · ${esc(String(c.count))} focos · ${esc(String(c.frp))} MW</li>`)
+    .map((c) => `<li>${esc(t("rep.cluster", { text: c.text, n: String(c.count), mw: String(c.frp) }))}</li>`)
     .join("");
   const generatedAt = d.generatedAt ?? new Date();
-  const evidence = evidenceHtml(d.fires ? summarizeEvidence(d.fires.points, d.fires.days) : null, generatedAt);
+  const evidence = evidenceHtml(d.fires ? summarizeEvidence(d.fires.points, d.fires.days) : null, generatedAt, locale);
   w.document
-    .write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Reporte Sentinel</title>
+    .write(`<!doctype html><html lang="${t("rep.lang")}"><head><meta charset="utf-8"><title>${t("rep.title")}</title>
 <style>${REPORT_CSS}</style></head><body>
-<button onclick="print()" style="float:right;padding:8px 14px">Imprimir / guardar PDF</button>
-<h1>Reporte de monitoreo · ${esc(d.org)}</h1><small>Generado ${esc(fmtArgentina(generatedAt))} · Sentinel Cloud</small>
-${d.mapImage && /^data:image\/(jpeg|png);base64,[A-Za-z0-9+/=]+$/.test(d.mapImage) ? `<img src="${d.mapImage}" alt="Mapa" style="width:100%;border-radius:8px;margin-top:14px">` : ""}
-<h2>Resumen satelital (Argentina, 10 días)</h2>
-<div class="k"><div><b>${esc(String(d.stats.last24))}</b>focos 24 h</div><div><b>${esc(String(d.stats.total))}</b>focos 10 días</div><div><b>${esc(String(d.stats.frp))} MW</b>potencia total</div><div><b>${esc(String(d.stats.hectares))} ha</b>superficie est. (cota sup.)</div></div>
-<h2>Zonas monitoreadas</h2>${rows ? `<table><tr><th>Zona</th><th>Superficie</th><th>Focos 48 h</th><th>Focos 10 d</th></tr>${rows}</table>` : "<p>Sin zonas definidas.</p>"}
-${d.exposure ? `<h2>Exposición</h2><p>${esc(d.exposure)}</p>` : ""}
-<h2>Concentraciones principales</h2><ul>${cl || "<li>Sin concentraciones relevantes.</li>"}</ul>
+<button onclick="print()" style="float:right;padding:8px 14px">${t("rep.print")}</button>
+<h1>${esc(t("rep.h1", { org: d.org }))}</h1><small>${esc(t("rep.generated", { t: fmtArgentina(generatedAt, locale) }))}</small>
+${d.mapImage && /^data:image\/(jpeg|png);base64,[A-Za-z0-9+/=]+$/.test(d.mapImage) ? `<img src="${d.mapImage}" alt="${t("rep.mapAlt")}" style="width:100%;border-radius:8px;margin-top:14px">` : ""}
+<h2>${t("rep.summary")}</h2>
+<div class="k"><div><b>${esc(String(d.stats.last24))}</b>${t("rep.k.24")}</div><div><b>${esc(String(d.stats.total))}</b>${t("rep.k.10")}</div><div><b>${esc(String(d.stats.frp))} MW</b>${t("rep.k.power")}</div><div><b>${esc(String(d.stats.hectares))} ha</b>${t("rep.k.area")}</div></div>
+<h2>${t("rep.zones")}</h2>${rows ? `<table><tr><th>${t("rep.th.zone")}</th><th>${t("rep.th.area")}</th><th>${t("rep.th.f48")}</th><th>${t("rep.th.f10")}</th></tr>${rows}</table>` : `<p>${t("rep.noZones")}</p>`}
+${d.exposure ? `<h2>${t("rep.exposure")}</h2><p>${esc(d.exposure)}</p>` : ""}
+<h2>${t("gen.clusters")}</h2><ul>${cl || `<li>${t("rep.noClusters")}</li>`}</ul>
 ${evidence}
-<p><small>Fuentes: NASA FIRMS (${esc(FIRMS_LABEL)} NRT), Open-Meteo, Esri/Sentinel-2 como base. La superficie estimada es una cota superior (≈14 ha por detección). Las predicciones de propagación son demostrativas.</small></p>
+<p><small>${t("rep.sources", { label: esc(FIRMS_LABEL) })}</small></p>
 </body></html>`);
   w.document.close();
   return true;
 }
 
 /** Pre-filled WhatsApp / email links for an alert (no backend needed). */
-export function alertLinks(text: string, whatsapp: string, email: string) {
+export function alertLinks(text: string, whatsapp: string, email: string, subject = "Alerta Sentinel") {
   const digits = whatsapp.replace(/\D/g, "");
   return {
     whatsapp: `https://wa.me/${digits}?text=${encodeURIComponent(text)}`,
-    email: `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent("Alerta Sentinel")}&body=${encodeURIComponent(text)}`,
+    email: `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`,
   };
 }
 
@@ -177,6 +190,8 @@ export interface IncidentReportData {
   early: EarlyView[];
   history: IncidentChange[];
   generatedAt?: Date;
+  /** language of the printed page; Spanish when absent */
+  locale?: Locale;
 }
 
 const KM_LAT = 111.32;
@@ -199,29 +214,39 @@ export function leadMinutes(e: Pick<EarlyView, "firstAt" | "confirmedAt">): numb
   return Math.round((e.confirmedAt - e.firstAt) / 60_000);
 }
 
-const fmtMin = (m: number) => (m < 120 ? `${m} min` : `${(m / 60).toFixed(1).replace(".", ",")} h`);
+const fmtMin = (m: number, locale: Locale) => {
+  if (m < 120) return `${m} min`;
+  const h = (m / 60).toFixed(1);
+  return `${locale === "en" ? h : h.replace(".", ",")} h`;
+};
+
+const statusLabel = (t: Tr, s: IncidentStatus) => t(`rep.st.${s}` as MsgKey);
 
 /** "Terreno", "Alerta temprana" and "Línea de tiempo" sections; the caller escapes nothing, this does. */
-export function incidentExtrasHtml(d: Pick<IncidentReportData, "terrain" | "early" | "history">): string {
-  const terrain = `<h2>Terreno y combustible</h2><p>${d.terrain ? esc(d.terrain) : "No se pudo consultar el terreno."}</p>`;
+export function incidentExtrasHtml(
+  d: Pick<IncidentReportData, "terrain" | "early" | "history">,
+  locale: Locale = "es",
+): string {
+  const t = trFor(locale);
+  const terrain = `<h2>${t("terr.title")}</h2><p>${d.terrain ? esc(d.terrain) : t("rep.inc.noTerrain")}</p>`;
   const rows = d.early
     .map((e) => {
       const lead = leadMinutes(e);
-      const state = e.status === "confirmed" ? "confirmada por satélite polar" : "sin confirmar";
-      const gain = lead === null ? "—" : `${esc(fmtMin(lead))} antes`;
-      return `<tr><td>${esc(fmtArgentina(new Date(e.firstAt)))}</td><td>${esc(state)}</td><td>${gain}</td></tr>`;
+      const state = e.status === "confirmed" ? t("rep.inc.confirmed") : t("rep.inc.unconfirmed");
+      const gain = lead === null ? "—" : esc(t("rep.inc.before", { t: fmtMin(lead, locale) }));
+      return `<tr><td>${esc(fmtArgentina(new Date(e.firstAt), locale))}</td><td>${esc(state)}</td><td>${gain}</td></tr>`;
     })
     .join("");
   const early = d.early.length
-    ? `<h2>Alerta temprana (GOES-19)</h2><table><tr><th>Primer escaneo</th><th>Estado</th><th>Ventaja sobre el satélite polar</th></tr>${rows}</table>`
+    ? `<h2>${t("pop.early.title")}</h2><table><tr><th>${t("rep.inc.th.scan")}</th><th>${t("rep.inc.th.state")}</th><th>${t("rep.inc.th.lead")}</th></tr>${rows}</table>`
     : "";
   const line = d.history
     .map(
       (h) =>
-        `<li>${esc(fmtArgentina(new Date(h.t)))}: ${esc(INCIDENT_STATUS_LABEL[h.status])}${h.assignee ? ` · a cargo: ${esc(h.assignee)}` : ""} (${esc(h.by || "Operador")})</li>`,
+        `<li>${esc(fmtArgentina(new Date(h.t), locale))}: ${esc(statusLabel(t, h.status))}${h.assignee ? esc(t("rep.inc.assignee", { who: h.assignee })) : ""} (${esc(h.by || t("rep.operator"))})</li>`,
     )
     .join("");
-  const timeline = `<h2>Línea de tiempo</h2>${line ? `<ul>${line}</ul>` : "<p>Sin cambios de estado registrados.</p>"}`;
+  const timeline = `<h2>${t("tln.title")}</h2>${line ? `<ul>${line}</ul>` : `<p>${t("rep.inc.noHistory")}</p>`}`;
   return terrain + early + timeline;
 }
 
@@ -229,16 +254,18 @@ export function incidentExtrasHtml(d: Pick<IncidentReportData, "terrain" | "earl
 export function printIncidentReport(d: IncidentReportData) {
   const w = window.open("", "_blank");
   if (!w) return false;
+  const locale = d.locale ?? "es";
+  const t = trFor(locale);
   const at = d.generatedAt ?? new Date();
-  w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Informe de incidente</title>
+  w.document.write(`<!doctype html><html lang="${t("rep.lang")}"><head><meta charset="utf-8"><title>${t("rep.inc.title")}</title>
 <style>${REPORT_CSS}</style></head><body>
-<button onclick="print()" style="float:right;padding:8px 14px">Imprimir / guardar PDF</button>
-<h1>Informe de incidente · ${esc(d.place)}</h1><small>${esc(d.org)} · generado ${esc(fmtArgentina(at))} · Sentinel Cloud</small>
-<h2>Resumen</h2>
-<div class="k"><div><b>${esc(d.area)}</b>superficie est.</div><div><b>${esc(String(d.count))}</b>focos</div><div><b>${esc(String(d.frp))} MW</b>potencia</div><div><b>${esc(String(d.daysActive))}</b>días activo</div></div>
-<p>Estado: <b>${d.status ? esc(INCIDENT_STATUS_LABEL[d.status]) : "sin seguimiento"}</b>${d.assignee ? ` · a cargo: ${esc(d.assignee)}` : ""} · <a href="${mapsLink(d.lng, d.lat)}">${d.lat.toFixed(4)}, ${d.lng.toFixed(4)}</a></p>
-${incidentExtrasHtml(d)}
-<p><small>Descargo: estimación satelital (VIIRS, píxel de 375 m) y GOES-19 (píxeles de 2 a 4 km); no reemplaza el parte oficial. Verificar en terreno antes de actuar.</small></p>
+<button onclick="print()" style="float:right;padding:8px 14px">${t("rep.print")}</button>
+<h1>${esc(t("rep.inc.h1", { place: d.place }))}</h1><small>${esc(t("rep.inc.gen", { org: d.org, t: fmtArgentina(at, locale) }))}</small>
+<h2>${t("rep.inc.summary")}</h2>
+<div class="k"><div><b>${esc(d.area)}</b>${t("rep.inc.k.area")}</div><div><b>${esc(String(d.count))}</b>${t("rep.inc.k.fires")}</div><div><b>${esc(String(d.frp))} MW</b>${t("rep.inc.k.power")}</div><div><b>${esc(String(d.daysActive))}</b>${t("rep.inc.k.days")}</div></div>
+<p>${t("rep.inc.state")} <b>${d.status ? esc(statusLabel(t, d.status)) : t("rep.inc.noFollow")}</b>${d.assignee ? esc(t("rep.inc.assignee", { who: d.assignee })) : ""} · <a href="${mapsLink(d.lng, d.lat)}">${d.lat.toFixed(4)}, ${d.lng.toFixed(4)}</a></p>
+${incidentExtrasHtml(d, locale)}
+<p><small>${t("rep.inc.disclaimer")}</small></p>
 </body></html>`);
   w.document.close();
   return true;

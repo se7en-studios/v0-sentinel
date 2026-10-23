@@ -16,12 +16,14 @@ import {
   type Workspace,
 } from "@/lib/admin/types";
 import type { Ctx } from "./ctx";
+import { IntegrationsCard } from "./integrations-card";
 import { Badge, Btn, Card, Field, Toggle, inputCls } from "./ui";
 
 const SECTIONS = [
   { id: "set-general", key: "set.g.general" },
   { id: "set-detection", key: "set.g.detection" },
   { id: "set-alerts", key: "set.g.alerts" },
+  { id: "set-integrations", key: "int.title" },
   { id: "set-data", key: "set.g.data" },
   { id: "set-sources", key: "set.g.sources" },
 ] as const;
@@ -373,6 +375,10 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
           </div>
           <p className="mt-1 text-[11px] text-foreground/60">{t("set.notify.note")}</p>
         </Card>
+      </Group>
+
+      <Group id="set-integrations" title={t("int.title")}>
+        <IntegrationsCard ctx={ctx} />
       </Group>
 
       <Group id="set-data" title={t("set.g.data")}>

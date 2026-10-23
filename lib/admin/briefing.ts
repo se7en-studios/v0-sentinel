@@ -1,5 +1,7 @@
 import type { FireCluster, SourceStatus } from "./types";
 import type { DayForecast } from "./forecast";
+import { riskLabel, translate, type Locale, type MsgKey } from "./i18n";
+import { NUM_LOCALE } from "./i18n-shell";
 
 export interface BriefingInput {
   org: string;
@@ -42,15 +44,18 @@ export interface Briefing {
   actions: string[];
 }
 
-const n = (v: number) => v.toLocaleString("es-AR");
-const day = (d: DayForecast) =>
-  new Date(`${d.date}T12:00:00`).toLocaleDateString("es-AR", {
-    weekday: "long",
-    day: "numeric",
-  });
-
-/** Rule-based daily summary from the data the panel already holds. No LLM, so it is instant and offline-safe. */
-export function buildBriefing(i: BriefingInput): Briefing {
+/** Rule-based daily summary from the data the panel already holds. No LLM, so it is instant and offline-safe. Spanish unless another `locale` is given. */
+export function buildBriefing(i: BriefingInput, locale: Locale = "es"): Briefing {
+  const loc = NUM_LOCALE[locale];
+  const t = (key: MsgKey, vars?: Record<string, string | number>) =>
+    translate(locale, key, vars);
+  const n = (v: number) => v.toLocaleString(loc);
+  const day = (d: DayForecast) =>
+    new Date(`${d.date}T12:00:00`).toLocaleDateString(loc, {
+      weekday: "long",
+      day: "numeric",
+    });
+  const label = (d: DayForecast) => riskLabel(t, d.label).toLowerCase();
   const hitZones = i.zones.filter((z) => z.recent > 0);
   const highRisk = (i.today?.score ?? 0) >= 55;
   const early = i.earlyOpen ?? 0;
@@ -63,59 +68,66 @@ export function buildBriefing(i: BriefingInput): Briefing {
 
   const headline =
     tone === "alert"
-      ? `Foco detectado cerca de ${hitZones.length === 1 ? "una zona vigilada" : `${hitZones.length} zonas vigiladas`}`
+      ? hitZones.length === 1
+        ? t("brf.h.alert1")
+        : t("brf.h.alertN", { n: hitZones.length })
       : tone === "watch"
         ? highRisk
-          ? "Peligro de incendio elevado hoy"
-          : "Actividad térmica en el país, sin impacto en tus zonas"
-        : "Sin novedades: actividad térmica baja";
+          ? t("brf.h.high")
+          : t("brf.h.thermal")
+        : t("brf.h.calm");
 
   const points = [
-    `${n(i.last24)} focos en Argentina en las últimas 24 h y ${n(i.total10d)} en 10 días (${n(Math.round(i.frpMw))} MW de potencia radiativa total).`,
+    t("brf.p.national", {
+      a: n(i.last24),
+      b: n(i.total10d),
+      mw: n(Math.round(i.frpMw)),
+    }),
   ];
   for (const z of hitZones)
-    points.push(
-      `${z.name}: ${z.recent} detecciones en 48 h dentro del radio de vigilancia.`,
-    );
+    points.push(t("brf.p.zone", { name: z.name, n: z.recent }));
   const top = [...i.clusters].sort((a, b) => b.count - a.count)[0];
   if (top && top.count >= 3)
-    points.push(
-      `Mayor concentración: ${top.count} focos a ${top.km} km de ${top.near}.`,
-    );
+    points.push(t("brf.p.top", { n: top.count, km: top.km, near: top.near }));
   if (i.today)
     points.push(
-      `Riesgo meteorológico hoy: ${i.today.label.toLowerCase()} (${i.today.score}/100), ${Math.round(i.today.tmax)} °C, ${Math.round(i.today.rhmin)} % de humedad mínima, viento hasta ${Math.round(i.today.wind)} km/h${i.today.fwi === undefined ? "" : `; FWI ${Math.round(i.today.fwi)} (${i.today.fwiLabel?.toLowerCase()})`}.`,
+      t("brf.p.risk", {
+        label: label(i.today),
+        score: i.today.score,
+        tmax: Math.round(i.today.tmax),
+        rh: Math.round(i.today.rhmin),
+        wind: Math.round(i.today.wind),
+        fwi:
+          i.today.fwi === undefined
+            ? ""
+            : t("brf.p.fwi", {
+                v: Math.round(i.today.fwi),
+                label: riskLabel(t, i.today.fwiLabel ?? "").toLowerCase(),
+              }),
+      }),
     );
   if (early > 0)
-    points.push(
-      `${early} ${early === 1 ? "alerta temprana" : "alertas tempranas"} de GOES sin confirmar por un pase polar.`,
-    );
+    points.push(t(early === 1 ? "brf.p.early1" : "brf.p.earlyN", { n: early }));
   if (i.delayed?.length)
-    points.push(`Fuentes con demora: ${i.delayed.join(", ")}.`);
+    points.push(t("brf.p.delayed", { list: i.delayed.join(", ") }));
   if (i.worst && i.worst.score >= 55)
     points.push(
-      `Peor día de la semana: ${day(i.worst)} (${i.worst.label.toLowerCase()}, ${i.worst.score}/100).`,
+      t("brf.p.worst", {
+        day: day(i.worst),
+        label: label(i.worst),
+        score: i.worst.score,
+      }),
     );
 
   const actions: string[] = [];
-  for (const z of hitZones)
-    actions.push(
-      `Verificar ${z.name}: confirmar el foco con un dron o un recorrido.`,
-    );
-  if (early > 0)
-    actions.push("Revisar las alertas tempranas: pueden ser focos nuevos.");
-  if (highRisk)
-    actions.push(
-      "Evitar quemas y trabajos con chispa; reforzar la vigilancia.",
-    );
+  for (const z of hitZones) actions.push(t("brf.a.verify", { name: z.name }));
+  if (early > 0) actions.push(t("brf.a.early"));
+  if (highRisk) actions.push(t("brf.a.avoid"));
   else if (i.best && i.best.score < 35)
-    actions.push(
-      `Mejor ventana para operar o quemas prescriptas: ${day(i.best)}.`,
-    );
-  if (actions.length === 0)
-    actions.push("Sin acciones urgentes. Mantener el monitoreo.");
+    actions.push(t("brf.a.best", { day: day(i.best) }));
+  if (actions.length === 0) actions.push(t("brf.a.none"));
 
-  const date = i.now.toLocaleDateString("es-AR", {
+  const date = i.now.toLocaleDateString(loc, {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -126,7 +138,7 @@ export function buildBriefing(i: BriefingInput): Briefing {
     "",
     ...points.map((p) => `• ${p}`),
     "",
-    "*Acciones*",
+    t("brf.t.actions"),
     ...actions.map((a) => `→ ${a}`),
   ].join("\n");
 

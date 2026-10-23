@@ -100,5 +100,8 @@ export interface MapProps {
   onCamera?: (c: { bearing: number; pitch: number; zoom: number }) => void;
   /** popup "Ver incidente": true when the point belongs to a detected incident */
   incidentAt?: (lat: number, lng: number) => boolean;
-  onOpenIncident?: () => void;
+  /** opens the incident that holds the point (lat, lng) */
+  onOpenIncident?: (lat: number, lng: number) => void;
+  /** when set, popups offer "Crear zona acá"; absent in read-only maps */
+  onCreateZone?: (f: Feat) => void;
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
 import type { Ctx } from "../ctx";
 
 const OPEN_KEY = "sentinel.admin.legend.open";
@@ -49,7 +50,8 @@ const ring = (color: string, width: number, dashed = false) => (
 
 /** Entries only for what is switched on and actually has something to show. */
 function entries(ctx: Ctx): ReactNode[] {
-  const { show, view } = ctx;
+  const { show, view, t } = ctx;
+  const loc = NUM_LOCALE[ctx.ws.settings.locale];
   const zones = ctx.ws.features.filter((f) =>
     f.properties.mode?.toString().startsWith("zone"),
   ).length;
@@ -57,8 +59,8 @@ function entries(ctx: Ctx): ReactNode[] {
   if (show.fires)
     out.push(
       <Row key="f" swatch={dot(11, "#d32f1c")}>
-        <b>Foco satelital</b> ({ctx.fires.length.toLocaleString("es-AR")}): más
-        grande y rojo = más potencia (FRP).
+        <b>{t("leg.fire.b")}</b>{" "}
+        {t("leg.fire.t", { n: ctx.fires.length.toLocaleString(loc) })}
         <span
           className="mt-1 block h-1.5 rounded-full"
           style={{
@@ -70,30 +72,28 @@ function entries(ctx: Ctx): ReactNode[] {
   if (show.early && ctx.early.length > 0)
     out.push(
       <Row key="e" swatch={ring("#22d3ee", 2.2)}>
-        <b>Alerta temprana</b> (GOES-19): anillo cian grueso = abierta, sin
-        confirmar ({ctx.earlyOpen.length}).
+        <b>{t("leg.early.b")}</b> {t("leg.early.t", { n: ctx.earlyOpen.length })}
       </Row>,
       <Row key="e2" swatch={ring("#7aa6b3", 1.2)}>
-        Anillo fino gris = confirmada por un satélite polar.
+        {t("leg.early2")}
       </Row>,
     );
   if (show.zones && zones > 0)
     out.push(
       <Row key="z" swatch={dot(11, "#0f7a4f")}>
-        <b>Zonas</b> ({zones}): el color indica el riesgo; roja si tiene una
-        alerta.
+        <b>{t("leg.zones.b")}</b> {t("leg.zones.t", { n: zones })}
       </Row>,
     );
   if (show.sensors && ctx.sensors.length > 0)
     out.push(
       <Row key="s" swatch={ring("#0e9aa7", 2)}>
-        <b>Sensores</b> ({ctx.sensors.length}, simulados).
+        <b>{t("leg.sensors.b")}</b> {t("leg.sensors.t", { n: ctx.sensors.length })}
       </Row>,
     );
   if (show.drones && ctx.drones.length > 0)
     out.push(
       <Row key="d" swatch={dot(10, "#0f7a4f")}>
-        <b>Drones</b> ({ctx.drones.length}, simulados).
+        <b>{t("leg.drones.b")}</b> {t("leg.drones.t", { n: ctx.drones.length })}
       </Row>,
     );
   if (view === "3d" && show.fires)
@@ -102,8 +102,7 @@ function entries(ctx: Ctx): ReactNode[] {
         key="3"
         swatch={<span className="h-3.5 w-1.5 rounded-sm bg-[#d32f1c]" />}
       >
-        En 3D la altura de la columna sigue a la potencia y el humo va a favor
-        del viento.
+        {t("leg.3d")}
       </Row>,
     );
   return out;
@@ -111,6 +110,7 @@ function entries(ctx: Ctx): ReactNode[] {
 
 /** Collapsible legend: explains only the symbols that are on screen right now. */
 export function MapLegend({ ctx }: { ctx: Ctx }) {
+  const { t } = ctx;
   const [open, setOpen] = useState(false);
   // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage only exists on the client
   useEffect(() => setOpen(readOpen()), []);
@@ -131,7 +131,7 @@ export function MapLegend({ ctx }: { ctx: Ctx }) {
         "hidden max-w-[15rem] text-[10.5px] text-foreground/70 md:block",
       )}
       role="group"
-      aria-label="Leyenda del mapa"
+      aria-label={t("leg.aria")}
     >
       <button
         type="button"
@@ -147,7 +147,7 @@ export function MapLegend({ ctx }: { ctx: Ctx }) {
             }}
             aria-hidden
           />
-          Leyenda
+          {t("leg.title")}
         </span>
         {open ? (
           <ChevronDown className="size-3" aria-hidden />
@@ -157,7 +157,7 @@ export function MapLegend({ ctx }: { ctx: Ctx }) {
       </button>
       {open && (
         <ul className="space-y-1.5 px-2.5 pb-2.5 pt-1">
-          {rows.length ? rows : <li>No hay capas con datos para explicar.</li>}
+          {rows.length ? rows : <li>{t("leg.empty")}</li>}
         </ul>
       )}
     </div>

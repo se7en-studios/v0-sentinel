@@ -19,6 +19,8 @@ import { isAcked, zoneKey } from "@/lib/admin/alert-ack";
 import { NOTE_TEXT_MAX } from "@/lib/admin/store";
 import { alertLinks, mapsLink } from "@/lib/admin/report";
 import { centerOf } from "@/lib/admin/geo";
+import { riskLabel, type MsgKey } from "@/lib/admin/i18n";
+import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
 import type { Confidence } from "@/lib/admin/types";
 import type { Ctx } from "./ctx";
 import { ActivityCard } from "./activity-card";
@@ -30,6 +32,12 @@ import { RulesCard } from "./rules-card";
 import { Badge, Btn, Card, EmptyState, Segmented } from "./ui";
 
 const SEGS = ["Capas", "Análisis", "Alertas", "Notas"] as const;
+const SEG_KEY: Record<(typeof SEGS)[number], MsgKey> = {
+  Capas: "gen.seg.layers",
+  Análisis: "gen.seg.analysis",
+  Alertas: "gen.seg.alerts",
+  Notas: "gen.seg.notes",
+};
 
 const WINDOWS = [
   { value: 24, label: "24 h" },
@@ -37,28 +45,29 @@ const WINDOWS = [
   { value: 168, label: "7 d" },
   { value: 240, label: "10 d" },
 ];
-const CONFS: { value: Confidence; label: string }[] = [
-  { value: "l", label: "Todos" },
-  { value: "n", label: "Nominal+" },
-  { value: "h", label: "Alta" },
+const CONFS: { value: Confidence; label: MsgKey }[] = [
+  { value: "l", label: "gen.conf.l" },
+  { value: "n", label: "gen.conf.n" },
+  { value: "h", label: "gen.conf.h" },
 ];
 
-const timeAgo = (t: number, now: number) => {
-  const m = Math.max(0, Math.round((now - t) / 60000));
+const timeAgo = (ctx: Ctx, at: number) => {
+  const m = Math.max(0, Math.round((ctx.now - at) / 60000));
   return m < 1
-    ? "ahora"
+    ? ctx.t("gen.now")
     : m < 60
-      ? `hace ${m} min`
+      ? ctx.t("age.min", { n: m })
       : m < 1440
-        ? `hace ${Math.round(m / 60)} h`
-        : `hace ${Math.round(m / 1440)} d`;
+        ? ctx.t("age.hour", { n: Math.round(m / 60) })
+        : ctx.t("age.day", { n: Math.round(m / 1440) });
 };
 
-function ShareRow({ text, ws }: { text: string; ws: Ctx["ws"] }) {
+function ShareRow({ text, ws, subject }: { text: string; ws: Ctx["ws"]; subject: string }) {
   const l = alertLinks(
     text,
     ws.settings.notify.whatsapp,
     ws.settings.notify.email,
+    subject,
   );
   const cls =
     "rounded-md border border-[var(--hairline)] bg-card px-2 py-1 text-[10.5px] font-medium text-foreground/70 transition-colors hover:bg-foreground/[0.05]";
@@ -75,39 +84,41 @@ function ShareRow({ text, ws }: { text: string; ws: Ctx["ws"] }) {
 }
 
 function AnalysisTab({ ctx }: { ctx: Ctx }) {
+  const { t } = ctx;
   const s = ctx.ws.settings;
+  const loc = NUM_LOCALE[s.locale];
   return (
     <>
-      <Card bare title="Ventana y confianza">
+      <Card bare title={t("gen.winConf")}>
         <div className="space-y-2.5">
           <Segmented
-            label="Ventana de tiempo"
+            label={t("gen.window")}
             value={ctx.hours}
             onChange={ctx.setHours}
             options={WINDOWS}
           />
           <Segmented
-            label="Confianza mínima"
+            label={t("gen.minConf")}
             value={s.minConfidence}
             onChange={(v) => ctx.setSettings({ minConfidence: v })}
-            options={CONFS}
+            options={CONFS.map((c) => ({ ...c, label: t(c.label) }))}
           />
         </div>
       </Card>
 
       <Card
         bare
-        title="Predicción de propagación"
-        right={<Badge tone="sim">demostrativo</Badge>}
+        title={t("gen.spreadTitle")}
+        right={<Badge tone="sim">{t("gen.demo")}</Badge>}
       >
         <div className="flex items-center justify-between gap-2 text-[12px]">
           <span className="font-medium">
-            {ctx.predH ? `Proyección a +${ctx.predH} h` : "Desactivada"}
+            {ctx.predH ? t("top.spreadTo", { h: ctx.predH }) : t("top.spreadOff")}
           </span>
           <PredPlay ctx={ctx} />
         </div>
         <p className="mt-0.5 text-[10.5px] text-foreground/45">
-          Usa viento y humedad reales.
+          {t("gen.spreadNote1")}
         </p>
         <input
           type="range"
@@ -126,7 +137,7 @@ function AnalysisTab({ ctx }: { ctx: Ctx }) {
                 : HORIZONS[Number(e.target.value) - 1],
             )
           }
-          aria-label="Horizonte de predicción"
+          aria-label={t("gen.horizon")}
           className="mt-2 w-full accent-[var(--fire)]"
         />
         <div className="num flex justify-between text-[9.5px] text-foreground/40">
@@ -138,7 +149,7 @@ function AnalysisTab({ ctx }: { ctx: Ctx }) {
         {ctx.predH > 0 && ctx.spreadInfo.length > 0 && (
           <ul
             className="mt-3 space-y-1.5"
-            aria-label="Condiciones de propagación"
+            aria-label={t("gen.spreadConds")}
           >
             {ctx.spreadInfo.map((c, i) => (
               <li
@@ -156,35 +167,40 @@ function AnalysisTab({ ctx }: { ctx: Ctx }) {
                       c.level === "extremo" && "text-[#b83a3a]",
                     )}
                   >
-                    {c.level}
+                    {riskLabel(t, c.level)}
                   </span>
                 </div>
                 <div className="num mt-0.5 text-foreground/55">
-                  Viento {Math.round(c.wind)} km/h del {compass(c.windDir)} · HR{" "}
-                  {Math.round(c.rh)} % · {Math.round(c.temp)} °C · lluvia 7 d{" "}
-                  {Math.round(c.rain7d)} mm
+                  {t("gen.windLine", {
+                    w: Math.round(c.wind),
+                    dir: t(`dir.${compass(c.windDir)}` as MsgKey),
+                    rh: Math.round(c.rh),
+                    temp: Math.round(c.temp),
+                    rain: Math.round(c.rain7d),
+                  })}
                 </div>
                 <div className="num text-foreground/55">
-                  ≈ {c.rate.toFixed(1)} km/h · avanzaría ~{c.reachKm.toFixed(1)}{" "}
-                  km en {ctx.predH} h
+                  {t("gen.rateLine", {
+                    rate: c.rate.toFixed(1),
+                    km: c.reachKm.toFixed(1),
+                    h: ctx.predH,
+                  })}
                 </div>
               </li>
             ))}
           </ul>
         )}
         <p className="mt-2 text-[10.5px] leading-snug text-foreground/45">
-          Elipse a favor del viento desde las concentraciones principales.
-          Modelo simplificado (viento, humedad, temperatura y lluvia): no
-          considera combustible ni pendiente.
+          {t("gen.spreadNote2")}
         </p>
       </Card>
 
-      <Card bare title="Concentraciones principales">
+      <Card bare title={t("gen.clusters")}>
         {ctx.clusters.length === 0 && (
           <p className="text-[12px] text-foreground/45">
             {ctx.payload
-              ? "Sin concentraciones con esta confianza."
-              : "Sin datos satelitales."}
+              ? t("gen.clustersNone")
+              : t("gen.noSat")}
           </p>
         )}
         <ol className="-mx-1.5 space-y-px">
@@ -200,10 +216,10 @@ function AnalysisTab({ ctx }: { ctx: Ctx }) {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[12px] font-medium">
-                    {c.km} km de {c.near}
+                    {t("gen.clusterWhere", { km: c.km, near: c.near })}
                   </span>
                   <span className="num text-[10.5px] text-foreground/50">
-                    {c.count} focos · {c.frp.toLocaleString("es-AR")} MW
+                    {t("gen.clusterStats", { n: c.count, mw: c.frp.toLocaleString(loc) })}
                   </span>
                 </span>
                 <MapPin className="size-3.5 text-foreground/30" aria-hidden />
@@ -213,13 +229,13 @@ function AnalysisTab({ ctx }: { ctx: Ctx }) {
         </ol>
       </Card>
 
-      <Card bare title="Exportar">
+      <Card bare title={t("gen.export")}>
         <div className="grid grid-cols-2 gap-2">
           <Btn onClick={ctx.exportCsv} disabled={!ctx.payload}>
-            <Download className="size-3.5" /> Focos CSV
+            <Download className="size-3.5" /> {t("gen.csv")}
           </Btn>
           <Btn onClick={ctx.exportReport} disabled={!ctx.payload}>
-            <FileText className="size-3.5" /> Reporte PDF
+            <FileText className="size-3.5" /> {t("gen.pdf")}
           </Btn>
         </div>
       </Card>
@@ -232,7 +248,7 @@ const PRED_STEP_MS = 1400;
 /** Steps the projection through its horizons so the advance of the front reads as motion. */
 function PredPlay({ ctx }: { ctx: Ctx }) {
   const [playing, setPlaying] = useState(false);
-  const { predH, setPredH } = ctx;
+  const { predH, setPredH, t: tr } = ctx;
   useEffect(() => {
     if (!playing) return;
     const t = setTimeout(() => {
@@ -250,13 +266,14 @@ function PredPlay({ ctx }: { ctx: Ctx }) {
       aria-pressed={playing}
       className="min-h-8"
     >
-      {playing ? "Pausar" : "Animar avance"}
+      {playing ? tr("gen.pause") : tr("gen.animate")}
     </Btn>
   );
 }
 
 function AlertsTab({ ctx }: { ctx: Ctx }) {
-  const { ws, zoneHits, sensors } = ctx;
+  const { ws, zoneHits, sensors, t } = ctx;
+  const loc = NUM_LOCALE[ws.settings.locale];
   const zoneAlerts = ws.features.filter(
     (f) => (zoneHits[f.id]?.recent ?? 0) > 0,
   );
@@ -266,7 +283,7 @@ function AlertsTab({ ctx }: { ctx: Ctx }) {
       <EarlyCard ctx={ctx} />
       <Card
         bare
-        title="Alertas activas"
+        title={t("gen.activeAlerts")}
         right={
           ctx.alertCount > 0 ? (
             <Badge tone="fire">{ctx.alertCount}</Badge>
@@ -276,10 +293,9 @@ function AlertsTab({ ctx }: { ctx: Ctx }) {
         {zoneAlerts.length + sensorAlerts.length + ctx.ruleFirings.size === 0 && (
           <EmptyState
             icon={<BellRing className="size-4" />}
-            title="Todo en orden"
+            title={t("gen.allGood")}
           >
-            Sin focos dentro de tus zonas ni sensores fuera de umbral. Radio de
-            alerta: {ws.settings.bufferKm} km.
+            {t("gen.allGoodBody", { km: ws.settings.bufferKm })}
           </EmptyState>
         )}
         <div className="space-y-2">
@@ -311,39 +327,43 @@ function AlertsTab({ ctx }: { ctx: Ctx }) {
                 />
                 <span className="min-w-0">
                   <span className="block truncate text-[12.5px] font-semibold text-[#b83a3a]">
-                    {ws.meta[z.id]?.name ?? "Zona"}
+                    {ws.meta[z.id]?.name ?? t("res.zone")}
                   </span>
                   <span className="text-[11px] text-foreground/65">
-                    {zoneHits[z.id].recent} focos en 48 h dentro del área o a{" "}
-                    {ws.settings.bufferKm} km
+                    {t("gen.zoneHits", { n: zoneHits[z.id].recent, km: ws.settings.bufferKm })}
                   </span>
                 </span>
               </button>
               <ShareRow
                 ws={ws}
-                text={`Sentinel: ${ws.meta[z.id]?.name ?? "Zona"} tiene ${zoneHits[z.id].recent} focos en las últimas 48 h. Ubicación: ${mapsLink(...centerOf(z))}`}
+                subject={t("rep.alertSubject")}
+                text={t("gen.shareText", {
+                  name: ws.meta[z.id]?.name ?? t("res.zone"),
+                  n: zoneHits[z.id].recent,
+                  link: mapsLink(...centerOf(z)),
+                })}
               />
               <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px]">
                 {handled ? (
                   <>
                     <span className="text-foreground/65">
-                      {ack?.until && ack.until > ctx.now ? "Pospuesta" : "Reconocida"} por{" "}
-                      <b>{ack?.by || "Operador"}</b> · <span className="num">{when(ack?.t ?? 0)}</span>
+                      {ack?.until && ack.until > ctx.now ? t("gen.snoozedBy") : t("gen.ackedBy")}{" "}
+                      <b>{ack?.by || t("zd.operator")}</b> · <span className="num">{when(ack?.t ?? 0, loc)}</span>
                     </span>
                     <Btn onClick={() => ctx.reopenZoneAlert(z.id)} className="min-h-7">
-                      Reabrir
+                      {t("early.reopen")}
                     </Btn>
                   </>
                 ) : (
                   <>
                     <Btn variant="solid" onClick={() => ctx.ackZoneAlert(z.id, hits)} className="min-h-7">
-                      Reconocer
+                      {t("early.ack")}
                     </Btn>
                     <Btn onClick={() => ctx.ackZoneAlert(z.id, hits, 60)} className="min-h-7">
-                      Posponer 1 h
+                      {t("early.snooze")}
                     </Btn>
                     {ack && (
-                      <span className="text-foreground/55">Se reabrió: hay focos nuevos</span>
+                      <span className="text-foreground/55">{t("gen.reopened")}</span>
                     )}
                   </>
                 )}
@@ -373,8 +393,8 @@ function AlertsTab({ ctx }: { ctx: Ctx }) {
                     {x.meta.name}
                   </span>
                   <span className="text-[11px] text-foreground/65">
-                    {x.reading.value} {x.reading.unit} fuera de umbral{" "}
-                    <Badge tone="sim">simulado</Badge>
+                    {t("gen.sensorOut", { v: x.reading.value, unit: x.reading.unit })}{" "}
+                    <Badge tone="sim">{t("res.sim")}</Badge>
                   </span>
                 </span>
               </button>
@@ -385,16 +405,16 @@ function AlertsTab({ ctx }: { ctx: Ctx }) {
 
       <RulesCard ctx={ctx} />
 
-      <ActivityCard />
+      <ActivityCard ctx={ctx} />
 
       <Card
         bare
-        title="Actividad reciente"
-        right={<Badge tone="ok">en vivo</Badge>}
+        title={t("gen.recent")}
+        right={<Badge tone="ok">{t("gen.live")}</Badge>}
       >
         {ctx.feed.length === 0 && (
           <p className="text-[12px] text-foreground/45">
-            Sin eventos en las últimas 24 h.
+            {t("gen.noEvents")}
           </p>
         )}
         <ol className="-mx-1.5 space-y-px">
@@ -434,14 +454,14 @@ function AlertsTab({ ctx }: { ctx: Ctx }) {
                   />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[12px] font-medium leading-snug">
-                      {it.title} {it.sim && <Badge tone="sim">sim</Badge>}
+                      {it.title} {it.sim && <Badge tone="sim">{t("lay.b.sim")}</Badge>}
                     </span>
                     <span className="block truncate text-[10.5px] text-foreground/50">
                       {it.sub}
                     </span>
                   </span>
                   <span className="shrink-0 text-[10px] text-foreground/40">
-                    {timeAgo(it.t, ctx.now)}
+                    {timeAgo(ctx, it.t)}
                   </span>
                 </button>
               </li>
@@ -453,8 +473,8 @@ function AlertsTab({ ctx }: { ctx: Ctx }) {
   );
 }
 
-const when = (t: number) =>
-  new Date(t).toLocaleString("es-AR", {
+const when = (at: number, loc: string) =>
+  new Date(at).toLocaleString(loc, {
     day: "numeric",
     month: "short",
     hour: "2-digit",
@@ -463,12 +483,14 @@ const when = (t: number) =>
 
 /** Dated, attributed log (who wrote what and when) plus the old free-text scratchpad. */
 function NotesTab({ ctx }: { ctx: Ctx }) {
+  const { t } = ctx;
+  const loc = NUM_LOCALE[ctx.ws.settings.locale];
   const [draft, setDraft] = useState("");
   const [link, setLink] = useState(false);
   const sel = ctx.selectedId
     ? ctx.ws.features.find((f) => f.id === ctx.selectedId)
     : undefined;
-  const selName = sel ? (ctx.ws.meta[sel.id]?.name ?? "elemento") : "";
+  const selName = sel ? (ctx.ws.meta[sel.id]?.name ?? t("res.element")) : "";
   const add = () => {
     if (!draft.trim()) return;
     ctx.addNote(draft, link && sel ? sel.id : undefined);
@@ -476,9 +498,9 @@ function NotesTab({ ctx }: { ctx: Ctx }) {
   };
   return (
     <>
-      <Card bare title="Bitácora" right={<Badge>{ctx.noteLog.length}</Badge>}>
+      <Card bare title={t("gen.log")} right={<Badge>{ctx.noteLog.length}</Badge>}>
         <label htmlFor="note-draft" className="sr-only">
-          Nueva entrada de la bitácora
+          {t("gen.logNew")}
         </label>
         <textarea
           id="note-draft"
@@ -490,7 +512,7 @@ function NotesTab({ ctx }: { ctx: Ctx }) {
               add();
             }
           }}
-          placeholder="Qué pasó, qué se decidió, a quién se avisó…"
+          placeholder={t("gen.logPh")}
           rows={3}
           maxLength={NOTE_TEXT_MAX}
           className="w-full resize-y rounded-lg border border-[var(--hairline)] bg-card p-2.5 text-[12.5px] leading-relaxed outline-none transition-[border-color,box-shadow] placeholder:text-foreground/35 focus:border-primary focus:ring-2 focus:ring-ring"
@@ -503,24 +525,23 @@ function NotesTab({ ctx }: { ctx: Ctx }) {
                 checked={link}
                 onChange={(e) => setLink(e.target.checked)}
               />
-              Vincular a {selName}
+              {t("gen.link", { name: selName })}
             </label>
           ) : (
             <span className="text-[11px] text-foreground/45">
-              Ctrl + Enter para agregar
+              {t("gen.ctrlEnter")}
             </span>
           )}
           <Btn variant="solid" onClick={add} disabled={!draft.trim()}>
-            Agregar
+            {t("zd.add")}
           </Btn>
         </div>
         {ctx.noteLog.length === 0 ? (
           <p className="mt-3 text-[12px] leading-snug text-foreground/60">
-            Todavía no hay entradas. Cada una queda con su autor y su hora, y se
-            puede vincular a una zona.
+            {t("gen.logEmpty")}
           </p>
         ) : (
-          <ol className="mt-3 space-y-2" aria-label="Entradas de la bitácora">
+          <ol className="mt-3 space-y-2" aria-label={t("gen.logList")}>
             {ctx.noteLog.map((n) => {
               const f = n.featId
                 ? ctx.ws.features.find((x) => x.id === n.featId)
@@ -533,13 +554,13 @@ function NotesTab({ ctx }: { ctx: Ctx }) {
                   <div className="flex items-start justify-between gap-2 text-[11px] text-foreground/55">
                     <span className="min-w-0 truncate">
                       <b className="font-semibold text-foreground/75">
-                        {n.by || "Operador"}
+                        {n.by || t("zd.operator")}
                       </b>{" "}
-                      · <span className="num">{when(n.t)}</span>
+                      · <span className="num">{when(n.t, loc)}</span>
                     </span>
                     <button
                       type="button"
-                      aria-label="Eliminar entrada"
+                      aria-label={t("gen.logDelete")}
                       onClick={() => ctx.removeNote(n.id)}
                       className="grid size-6 shrink-0 place-items-center rounded text-foreground/40 hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
@@ -559,7 +580,7 @@ function NotesTab({ ctx }: { ctx: Ctx }) {
                       className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-foreground/[0.06] px-1.5 py-0.5 text-[10.5px] font-medium text-foreground/70 hover:bg-foreground/[0.1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <MapPin className="size-3" aria-hidden />
-                      {ctx.ws.meta[f.id]?.name ?? "Elemento"}
+                      {ctx.ws.meta[f.id]?.name ?? t("gen.element")}
                     </button>
                   )}
                 </li>
@@ -570,27 +591,26 @@ function NotesTab({ ctx }: { ctx: Ctx }) {
       </Card>
       <Card
         bare
-        title="Notas generales"
+        title={t("gen.notesTitle")}
         right={
           <span className="num text-[10px] text-foreground/40">
-            {ctx.ws.notes.length.toLocaleString("es-AR")} / 20.000
+            {ctx.ws.notes.length.toLocaleString(loc)} / {(20000).toLocaleString(loc)}
           </span>
         }
       >
         <label htmlFor="notes" className="sr-only">
-          Notas generales
+          {t("gen.notesTitle")}
         </label>
         <textarea
           id="notes"
           value={ctx.ws.notes}
           onChange={(e) => ctx.setNotes(e.target.value)}
-          placeholder="Texto libre: pendientes, contactos, observaciones del terreno…"
+          placeholder={t("gen.notesPh")}
           rows={8}
           className="w-full resize-y rounded-lg border border-[var(--hairline)] bg-card p-2.5 text-[12.5px] leading-relaxed outline-none transition-[border-color,box-shadow] placeholder:text-foreground/35 focus:border-primary focus:ring-2 focus:ring-ring"
         />
         <p className="mt-1.5 flex items-center gap-1.5 text-[10.5px] text-foreground/45">
-          <NotebookPen className="size-3" aria-hidden /> Se guarda con tu espacio
-          de trabajo.
+          <NotebookPen className="size-3" aria-hidden /> {t("gen.notesSaved")}
         </p>
       </Card>
     </>
@@ -605,7 +625,7 @@ const tabId = (x: string) => `panel-tab-${x}`;
 const panelId = (x: string) => `panel-tabpanel-${x}`;
 
 export function GeneralPanel({ ctx }: { ctx: Ctx }) {
-  const { panelSeg: seg, setPanelSeg: setSeg } = ctx;
+  const { panelSeg: seg, setPanelSeg: setSeg, t } = ctx;
   // roving tabindex: arrows/Home/End move focus and selection together
   const onTabKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const i = SEGS.indexOf(seg);
@@ -631,7 +651,7 @@ export function GeneralPanel({ ctx }: { ctx: Ctx }) {
       </div>
       <div
         role="tablist"
-        aria-label="Secciones del panel"
+        aria-label={t("gen.tabs")}
         onKeyDown={onTabKey}
         className="sticky top-0 z-10 flex border-b border-[var(--hairline)] bg-card/95 px-2 backdrop-blur"
       >
@@ -652,7 +672,7 @@ export function GeneralPanel({ ctx }: { ctx: Ctx }) {
                 : "text-foreground/45 hover:text-foreground/75",
             )}
           >
-            {x}
+            {t(SEG_KEY[x])}
             {x === "Alertas" && ctx.alertCount + ctx.unackedRules > 0 && (
               <span className="num ml-1 inline-grid min-w-4 place-items-center rounded-full bg-[#b83a3a] px-1 text-[9.5px] font-bold text-white">
                 {ctx.alertCount + ctx.unackedRules}

@@ -194,6 +194,8 @@ export function parseWorkspace(input: unknown): Workspace {
 interface Snap {
   features: Feat[];
   meta: Record<string, Meta>;
+  /** whole workspace, kept only for a full replacement (backup import) so undo brings back notes, acks, log and settings too */
+  full?: Workspace;
 }
 const HISTORY_MAX = 40;
 
@@ -445,11 +447,11 @@ export function useWorkspace(uid?: string) {
     [uid, push],
   );
 
-  const remember = useCallback(() => {
+  const remember = useCallback((whole = false) => {
     const w = latest.current;
     past.current = [
       ...past.current,
-      { features: w.features, meta: w.meta },
+      { features: w.features, meta: w.meta, ...(whole && { full: w }) },
     ].slice(-HISTORY_MAX);
     future.current = [];
     syncHist();
@@ -530,7 +532,7 @@ export function useWorkspace(uid?: string) {
   );
   const replace = useCallback(
     (next: Workspace) => {
-      remember();
+      remember(true);
       setWs(next);
     },
     [remember],
@@ -541,8 +543,12 @@ export function useWorkspace(uid?: string) {
     if (!snap) return false;
     const w = latest.current;
     from.current = from.current.slice(0, -1);
-    to.current = [...to.current, { features: w.features, meta: w.meta }];
-    setWs({ ...w, features: snap.features, meta: snap.meta });
+    to.current = [
+      ...to.current,
+      { features: w.features, meta: w.meta, ...(snap.full && { full: w }) },
+    ];
+    // a full snapshot goes through setWs like any edit, so the cloud push and local copy follow (rev/dirty untouched)
+    setWs(snap.full ?? { ...w, features: snap.features, meta: snap.meta });
     syncHist();
     return true;
   }, [syncHist]);

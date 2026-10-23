@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { translate } from "@/lib/admin/i18n";
 import { alongRoute, distKm } from "@/lib/admin/geo";
 import {
   UNITS,
@@ -131,6 +132,7 @@ export function useSimulation({
     () => UNITS.map((u) => unitState(u, region.center, orders[u.id], now)),
     [region, orders, now],
   );
+  const locale = ws.settings.locale;
   const dispatchUnit = useCallback(
     (id: string, target: [number, number], label: string) => {
       const spec = UNITS.find((u) => u.id === id);
@@ -143,16 +145,16 @@ export function useSimulation({
           {
             id: `${id}-${t}`,
             t,
-            text: `${spec.name} despachada a ${label} · ETA ${eta} min`,
+            text: translate(locale, "op.sent", { name: spec.name, label, eta }),
           },
           ...l,
         ].slice(0, MAX_LOG),
       );
-      toast.success(`${spec.name} despachada`, {
-        description: `${label} · ETA ${eta} min (simulado)`,
+      toast.success(translate(locale, "op.sentToast", { name: spec.name }), {
+        description: translate(locale, "op.sentDesc", { label, eta }),
       });
     },
-    [region, setOrders, setOpsLog],
+    [region, setOrders, setOpsLog, locale],
   );
   const recallUnit = useCallback(
     (id: string) => {
@@ -167,12 +169,12 @@ export function useSimulation({
       if (spec)
         setOpsLog((l) =>
           [
-            { id: `${id}-r-${t}`, t, text: `${spec.name} regresa a base` },
+            { id: `${id}-r-${t}`, t, text: translate(locale, "op.back", { name: spec.name }) },
             ...l,
           ].slice(0, MAX_LOG),
         );
     },
-    [setOrders, setOpsLog],
+    [setOrders, setOpsLog, locale],
   );
   const unitMarkers = useMemo(
     () =>

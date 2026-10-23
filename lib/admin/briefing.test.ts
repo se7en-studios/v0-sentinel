@@ -87,3 +87,25 @@ test("delayedSources flags failed feeds and feeds behind their rhythm", () => {
     ),
   ).toEqual(["NOAA-21", "GOES-19", "MODIS"]);
 });
+
+test("the briefing speaks the chosen language and Spanish stays the default", () => {
+  const input: BriefingInput = {
+    ...base,
+    last24: 5,
+    total10d: 1200,
+    zones: [{ name: "Lote 1", recent: 3 }],
+    earlyOpen: 2,
+  };
+  const es = buildBriefing(input);
+  const en = buildBriefing(input, "en");
+  const pt = buildBriefing(input, "pt");
+  expect(es.headline).toBe("Foco detectado cerca de una zona vigilada");
+  expect(en.headline).toBe("Fire detected near a watched zone");
+  expect(pt.headline).toBe("Foco detectado perto de uma zona vigiada");
+  expect(en.points[0]).toContain("5 fires in Argentina in the last 24 h and 1,200 in 10 days");
+  expect(en.points).toContain("2 GOES early warnings not yet confirmed by a polar pass.");
+  expect(en.actions[0]).toBe("Check Lote 1: confirm the fire with a drone or a patrol.");
+  expect(en.text).toContain("*Actions*");
+  expect(pt.text).toContain("*Ações*");
+  expect(en.text).not.toMatch(/Acciones|focos|zona/);
+});

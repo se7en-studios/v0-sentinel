@@ -1,3 +1,5 @@
+import { translate, type Locale, type MsgKey } from "./i18n";
+
 /** What the ground under a point looks like: fuel (land cover), elevation and slope. */
 export interface TerrainInfo {
   /** ESA WorldCover class code, null when the tile is missing (sea, outside coverage) */
@@ -12,7 +14,7 @@ export interface TerrainInfo {
   aspectLabel: string | null;
 }
 
-/** ESA WorldCover v200 legend, in Spanish. */
+/** ESA WorldCover v200 legend, in Spanish (the language the API answers in). */
 const LAND_COVER: Record<number, { label: string; burnable: boolean }> = {
   10: { label: "Bosque", burnable: true },
   20: { label: "Arbustal", burnable: true },
@@ -95,17 +97,26 @@ export function describeTerrain(
   };
 }
 
-/** One line for a popup or card, e.g. "Pastizal · 840 m · pendiente 12° hacia el SO". */
-export function terrainLine(t: TerrainInfo): string {
+/** One line for a popup or card, e.g. "Pastizal · 840 m · pendiente 12° hacia el SO" (Spanish unless `locale` says otherwise). */
+export function terrainLine(t: TerrainInfo, locale: Locale = "es"): string {
+  const tr = (key: MsgKey, vars?: Record<string, string | number>) =>
+    translate(locale, key, vars);
+  const num = locale === "en" ? "en-US" : locale === "pt" ? "pt-BR" : "es-AR";
   const parts: string[] = [];
-  if (t.landCoverLabel) parts.push(t.landCoverLabel);
-  if (t.elevation !== null)
-    parts.push(`${t.elevation.toLocaleString("es-AR")} m`);
+  const cover =
+    t.landCover !== null && t.landCover in LAND_COVER
+      ? tr(`terr.lc.${t.landCover}` as MsgKey)
+      : t.landCoverLabel;
+  if (cover) parts.push(cover);
+  if (t.elevation !== null) parts.push(`${t.elevation.toLocaleString(num)} m`);
   if (t.slopeDeg !== null)
     parts.push(
       t.aspectLabel
-        ? `pendiente ${Math.round(t.slopeDeg)}° hacia el ${t.aspectLabel}`
-        : "terreno llano",
+        ? tr("terr.slope", {
+            n: Math.round(t.slopeDeg),
+            dir: tr(`dir.${t.aspectLabel}` as MsgKey),
+          })
+        : tr("terr.flat"),
     );
   return parts.join(" · ");
 }

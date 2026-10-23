@@ -1,6 +1,8 @@
 import type { AlertRule } from "./types";
 import type { DayForecast } from "./forecast";
 import { fwiDanger } from "./fwi";
+import { riskLabel, translate, type Locale, type MsgKey } from "./i18n";
+import { NUM_LOCALE } from "./i18n-shell";
 
 export const MAX_RULES = 20;
 
@@ -68,31 +70,50 @@ export function cleanRules(input: unknown): AlertRule[] {
   return out;
 }
 
-const dayName = (d: DayForecast) =>
-  new Date(`${d.date}T12:00:00`).toLocaleDateString("es-AR", {
+const dayName = (d: DayForecast, locale: Locale) =>
+  new Date(`${d.date}T12:00:00`).toLocaleDateString(NUM_LOCALE[locale], {
     weekday: "long",
     day: "numeric",
   });
 
-export function describeRule(r: AlertRule, zoneName: (id: string) => string) {
+/** Spanish unless another `locale` is given. */
+export function describeRule(
+  r: AlertRule,
+  zoneName: (id: string) => string,
+  locale: Locale = "es",
+) {
+  const t = (key: MsgKey, vars?: Record<string, string | number>) =>
+    translate(locale, key, vars);
+  const num = (n: number) => n.toLocaleString(NUM_LOCALE[locale]);
+  const where = (zoneId: string) =>
+    zoneId ? zoneName(zoneId) : t("rul.anyZone");
+  const unit = (days: number) => t(days === 1 ? "rul.day" : "rul.days");
   if (r.kind === "zone_fire")
-    return `${r.min}+ detecciones en 48 h en ${r.zoneId ? zoneName(r.zoneId) : "cualquier zona"}`;
+    return t("rul.d.zone_fire", { n: r.min, where: where(r.zoneId) });
   if (r.kind === "risk")
-    return `Riesgo meteorológico ≥ ${r.score} en los próximos ${r.days} ${r.days === 1 ? "día" : "días"}`;
+    return t("rul.d.risk", { score: r.score, days: r.days, unit: unit(r.days) });
   if (r.kind === "early_open")
-    return `Alerta temprana sin confirmar en ${r.zoneId ? zoneName(r.zoneId) : "cualquier zona"}`;
+    return t("rul.d.early_open", { where: where(r.zoneId) });
   if (r.kind === "fwi")
-    return `FWI ≥ ${r.fwi} (${fwiDanger(r.fwi).toLowerCase()}) en los próximos ${r.days} ${r.days === 1 ? "día" : "días"}`;
-  if (r.kind === "growth")
-    return `Un incidente creció ${r.ha.toLocaleString("es-AR")}+ ha en el último día`;
-  return `${r.focos.toLocaleString("es-AR")}+ focos en 24 h en Argentina`;
+    return t("rul.d.fwi", {
+      fwi: r.fwi,
+      danger: riskLabel(t, fwiDanger(r.fwi)).toLowerCase(),
+      days: r.days,
+      unit: unit(r.days),
+    });
+  if (r.kind === "growth") return t("rul.d.growth", { ha: num(r.ha) });
+  return t("rul.d.activity", { n: num(r.focos) });
 }
 
 /** Rules that are true right now, as rule id → human detail. Pure. */
 export function evaluateRules(
   rules: AlertRule[],
   i: RuleInput,
+  locale: Locale = "es",
 ): Map<string, string> {
+  const t = (key: MsgKey, vars?: Record<string, string | number>) =>
+    translate(locale, key, vars);
+  const num = (n: number) => n.toLocaleString(NUM_LOCALE[locale]);
   const firing = new Map<string, string>();
   for (const r of rules) {
     if (!r.enabled) continue;
@@ -103,11 +124,21 @@ export function evaluateRules(
       if (hits.length)
         firing.set(
           r.id,
-          hits.map((z) => `${z.name}: ${z.recent} detecciones`).join(" · "),
+          hits
+            .map((z) => t("rul.e.zone", { name: z.name, n: z.recent }))
+            .join(" · "),
         );
     } else if (r.kind === "risk") {
       const d = i.forecast?.slice(0, r.days).find((x) => x.score >= r.score);
-      if (d) firing.set(r.id, `${d.label} (${d.score}/100) el ${dayName(d)}`);
+      if (d)
+        firing.set(
+          r.id,
+          t("rul.e.risk", {
+            label: riskLabel(t, d.label),
+            score: d.score,
+            day: dayName(d, locale),
+          }),
+        );
     } else if (r.kind === "early_open") {
       const hits = i.zones.filter(
         (z) =>
@@ -119,7 +150,10 @@ export function evaluateRules(
           hits
             .map((z) => {
               const n = i.earlyOpen?.[z.id] ?? 0;
-              return `${z.name}: ${n} ${n === 1 ? "alerta temprana" : "alertas tempranas"} sin confirmar`;
+              return t(n === 1 ? "rul.e.early1" : "rul.e.earlyN", {
+                name: z.name,
+                n,
+              });
             })
             .join(" · "),
         );
@@ -130,7 +164,11 @@ export function evaluateRules(
       if (d?.fwi !== undefined)
         firing.set(
           r.id,
-          `FWI ${Math.round(d.fwi)} (${fwiDanger(d.fwi)}) el ${dayName(d)}`,
+          t("rul.e.fwi", {
+            v: Math.round(d.fwi),
+            label: riskLabel(t, fwiDanger(d.fwi)),
+            day: dayName(d, locale),
+          }),
         );
     } else if (r.kind === "growth") {
       const hits = (i.growth ?? []).filter((g) => g.ha >= r.ha);
@@ -138,14 +176,13 @@ export function evaluateRules(
         firing.set(
           r.id,
           hits
-            .map(
-              (g) =>
-                `${g.name}: +${Math.round(g.ha).toLocaleString("es-AR")} ha`,
+            .map((g) =>
+              t("rul.e.growth", { name: g.name, ha: num(Math.round(g.ha)) }),
             )
             .join(" · "),
         );
     } else if (i.last24 >= r.focos) {
-      firing.set(r.id, `${i.last24.toLocaleString("es-AR")} focos en 24 h`);
+      firing.set(r.id, t("rul.e.activity", { n: num(i.last24) }));
     }
   }
   return firing;

@@ -5,6 +5,7 @@ import { loadMapPrefs, saveMapPrefs } from "@/lib/admin/map-prefs";
 import { buildIncidents } from "@/lib/admin/incident";
 import { incidentContaining } from "@/lib/admin/map-popup";
 import { translate, type Translate } from "@/lib/admin/i18n";
+import { setUiLocale } from "@/lib/admin/ui-locale";
 import { useWorkspace } from "@/lib/admin/store";
 import { REGIONS } from "@/lib/admin/types";
 import type { Camera, Ctx, PanelSeg, Tab } from "./ctx";
@@ -70,6 +71,8 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     (key, vars) => translate(s.locale, key, vars),
     [s.locale],
   );
+  // map popups and live drawing text live outside React and read the language from here
+  useEffect(() => setUiLocale(s.locale), [s.locale]);
   const mapRef = useRef<MapHandle>(null);
 
   const [tab, setTab] = useState<Tab>("general");
@@ -131,7 +134,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
         : 15_000;
   const { now, nowStep } = useClock(tickMs);
 
-  const fd = useFiresData(cloud, s);
+  const fd = useFiresData(cloud, s, ws.features);
   const { payload, firesError, loading, load, allFires, stats, clusters } = fd;
   const ea = useEarly(
     cloud,
@@ -142,6 +145,19 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     nowStep,
   );
   const terrainAt = useTerrain(cloud);
+  /** fetch with the session token when there is one (same rule as the terrain lookup) */
+  const authedFetch = useCallback(
+    async (url: string, init: RequestInit = {}) => {
+      // the token only ever goes to this site's own API
+      if (!url.startsWith("/") || url.startsWith("//"))
+        throw new Error("authedFetch solo acepta rutas propias");
+      const token = cloud ? await cloud.getToken() : null;
+      const headers = new Headers(init.headers);
+      if (token) headers.set("Authorization", `Bearer ${token}`);
+      return fetch(url, { ...init, headers });
+    },
+    [cloud],
+  );
   const pb = usePlayback(payload, allFires, fd.range, hours);
   const { fires } = pb;
   // stable identity: the map only repaints the early layer when the detections change
@@ -217,6 +233,16 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     [setToolRaw, setEditingRaw],
   );
 
+  const [incidentSel, setIncidentSel] = useState<string | null>(null);
+  // popup "Ver incidente": select the incident that holds the point, then open the view
+  const openIncidentAt = useCallback(
+    (lat: number, lng: number) => {
+      setIncidentSel(incidentContaining(incidentList, lat, lng)?.id ?? null);
+      goTab("incidentes");
+    },
+    [incidentList, goTab],
+  );
+
   const { ruleFirings } = useNotifications({
     ws,
     s,
@@ -278,6 +304,9 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     earlyByZone: ea.earlyByZone,
     earlyError: ea.earlyError,
     terrainAt,
+    authedFetch,
+    incidentSel,
+    setIncidentSel,
     sources: [...(payload?.sources ?? []), ...(ea.earlyPayload?.sources ?? [])],
     earlyFetchedAt: ea.earlyPayload?.fetchedAt ?? 0,
     firesError,
@@ -510,6 +539,7 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     fireInfo: fd.fireInfo,
     earlyOnMap,
     incidentAt,
+    openIncidentAt,
     dayLabels,
     show,
     setShow,

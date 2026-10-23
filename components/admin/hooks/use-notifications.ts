@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, type RefObject } from "react";
 import { toast } from "sonner";
 import { evaluateRules } from "@/lib/admin/rules";
+import { translate, type Translate } from "@/lib/admin/i18n";
 import type { EarlyView } from "@/lib/admin/early";
 import type { DayForecast } from "@/lib/admin/forecast";
 import {
@@ -71,24 +72,29 @@ export function useNotifications({
   setPaletteOpen,
   mapRef,
 }: Params) {
+  // toasts fire from effects that must not re-run when the language changes: read it through a ref
+  const tRef = useRef<Translate>((k, v) => translate(s.locale, k, v));
+  useEffect(() => {
+    tRef.current = (k, v) => translate(s.locale, k, v);
+  }, [s.locale]);
   // two devices (or tabs) edited the same account: never overwrite silently
   useEffect(() => {
     if (sync !== "conflict") {
       toast.dismiss("sync-conflict");
       return;
     }
-    toast.warning("Tu espacio de trabajo cambió en otro dispositivo", {
+    const t = tRef.current;
+    toast.warning(t("nt.conflictTitle"), {
       id: "sync-conflict",
-      description:
-        "Hay cambios nuevos en la nube y también cambios tuyos sin subir. Elegí cuáles conservar.",
+      description: t("nt.conflictDesc"),
       duration: Infinity,
       dismissible: false,
       action: {
-        label: "Usar la nube",
+        label: t("sync.useCloud"),
         onClick: () => resolveConflict("server"),
       },
       cancel: {
-        label: "Mantener lo mío",
+        label: t("sync.keepMine"),
         onClick: () => resolveConflict("mine"),
       },
     });
@@ -102,7 +108,7 @@ export function useNotifications({
           .filter((f) => MODE_ROLE[String(f.properties.mode)] === "zone")
           .map((z) => ({
             id: z.id,
-            name: ws.meta[z.id]?.name ?? "Zona",
+            name: ws.meta[z.id]?.name ?? translate(s.locale, "res.zone"),
             recent: zoneHits[z.id]?.recent ?? 0,
           })),
         last24,
@@ -111,8 +117,9 @@ export function useNotifications({
           Object.entries(earlyByZone).map(([id, e]) => [id, e.length]),
         ),
         growth,
-      }),
+      }, s.locale),
     [
+      s.locale,
       s.rules,
       ws.features,
       ws.meta,
@@ -135,14 +142,11 @@ export function useNotifications({
     if (!prev || !s.notify.onSensor) return;
     for (const x of sensors) {
       if (!now.has(x.feat.id) || prev.has(x.feat.id)) continue;
-      logActivity(
-        "sensor",
-        x.feat.id,
-        `${x.meta.name} fuera de umbral`,
-        `${x.reading.value} ${x.reading.unit} · dato simulado`,
-      );
-      toast.warning(`${x.meta.name} fuera de umbral`, {
-        description: `${x.reading.value} ${x.reading.unit} · dato simulado`,
+      const t = tRef.current;
+      const desc = t("nt.sensorDesc", { v: x.reading.value, unit: x.reading.unit });
+      logActivity("sensor", x.feat.id, t("fx.sensorOut", { name: x.meta.name }), desc);
+      toast.warning(t("fx.sensorOut", { name: x.meta.name }), {
+        description: desc,
         duration: 10_000,
       });
     }
@@ -157,12 +161,13 @@ export function useNotifications({
     for (const [id, detail] of ruleFirings) {
       if (prev.has(id)) continue;
       if (isAcked(ws.alertAck[ruleKey(id)], 0, Date.now())) continue;
-      logActivity("rule", id, "Regla de alerta activada", detail);
-      toast.warning("Regla de alerta activada", {
+      const t = tRef.current;
+      logActivity("rule", id, t("nt.ruleTitle"), detail);
+      toast.warning(t("nt.ruleTitle"), {
         description: detail,
         duration: 12_000,
         action: {
-          label: "Ver reglas",
+          label: t("nt.ruleView"),
           onClick: () => {
             goTab("general");
             setPanelSeg("Alertas");
@@ -170,7 +175,7 @@ export function useNotifications({
         },
       });
       if (s.notify.browser && canNotifyBrowser())
-        new Notification("Sentinel: regla de alerta", {
+        new Notification(t("nt.ruleBrowser"), {
           body: detail,
           tag: `rule-${id}`,
         });
@@ -190,7 +195,7 @@ export function useNotifications({
 
   useEffect(() => {
     if (firesError)
-      toast.error("No se pudieron cargar los focos de NASA", {
+      toast.error(tRef.current("nt.nasaFail"), {
         description: firesError,
       });
   }, [firesError]);
@@ -203,10 +208,10 @@ export function useNotifications({
       const k = e.key.toLowerCase();
       if (k === "z" && !e.shiftKey) {
         e.preventDefault();
-        if (!undo()) toast("Nada para deshacer");
+        if (!undo()) toast(tRef.current("nt.nothingUndo"));
       } else if ((k === "z" && e.shiftKey) || k === "y") {
         e.preventDefault();
-        if (!redo()) toast("Nada para rehacer");
+        if (!redo()) toast(tRef.current("nt.nothingRedo"));
       }
     };
     window.addEventListener("keydown", onKey);
@@ -222,22 +227,19 @@ export function useNotifications({
     if (!prev || !s.notify.onZoneHit) return;
     for (const id of alertIds) {
       if (prev.has(id)) continue;
-      const name = ws.meta[id]?.name ?? "Zona";
+      const t = tRef.current;
+      const name = ws.meta[id]?.name ?? t("res.zone");
       const hits = zoneHits[id]?.recent ?? 0;
       if (isAcked(ws.alertAck[zoneKey(id)], hits, Date.now())) continue;
       const zone = ws.features.find((f) => f.id === id);
-      logActivity(
-        "zone",
-        id,
-        `Foco nuevo en ${name}`,
-        `${hits} ${hits === 1 ? "detección" : "detecciones"} satelitales en 48 h`,
-      );
-      toast.warning(`Foco nuevo en ${name}`, {
-        description: `${hits} ${hits === 1 ? "detección" : "detecciones"} satelitales en 48 h`,
+      const desc = t(hits === 1 ? "nt.zoneDesc1" : "nt.zoneDescN", { n: hits });
+      logActivity("zone", id, t("nt.zoneTitle", { name }), desc);
+      toast.warning(t("nt.zoneTitle", { name }), {
+        description: desc,
         duration: 12_000,
         action: zone
           ? {
-              label: "Ver",
+              label: t("nt.view"),
               onClick: () => {
                 goTab("general");
                 mapRef.current?.fitFeature(zone);
@@ -246,8 +248,8 @@ export function useNotifications({
           : undefined,
       });
       if (s.notify.browser && canNotifyBrowser())
-        new Notification("Sentinel: foco detectado", {
-          body: `${name}: ${hits} focos en 48 h`,
+        new Notification(t("nt.zoneBrowser"), {
+          body: t("nt.zoneBrowserBody", { name, n: hits }),
           tag: id,
         });
     }
@@ -284,19 +286,15 @@ export function useNotifications({
       if (prev.has(k)) continue;
       // handled (acknowledged or snoozed) spots stay quiet
       if (isAcked(ws.alertAck[earlyKey(e)], 0, Date.now())) continue;
-      const name = ws.meta[zoneId]?.name ?? "Zona";
+      const t = tRef.current;
+      const name = ws.meta[zoneId]?.name ?? t("res.zone");
       const min = Math.max(0, Math.round((Date.now() - e.lastAt) / 60_000));
-      logActivity(
-        "early",
-        k,
-        `Posible foco cerca de ${name}`,
-        `GOES-19 vio calor hace ${min} min; ningún satélite polar lo confirmó todavía.`,
-      );
-      toast.warning(`Posible foco cerca de ${name}`, {
-        description: `GOES-19 vio calor hace ${min} min y ningún satélite polar lo confirmó todavía.`,
+      logActivity("early", k, t("nt.earlyTitle", { name }), t("nt.earlyAct", { n: min }));
+      toast.warning(t("nt.earlyTitle", { name }), {
+        description: t("nt.earlyDesc", { n: min }),
         duration: 15_000,
         action: {
-          label: "Ver",
+          label: t("nt.view"),
           onClick: () => {
             goTab("general");
             mapRef.current?.flyTo([e.lng, e.lat], 11);
@@ -304,8 +302,8 @@ export function useNotifications({
         },
       });
       if (s.notify.browser && canNotifyBrowser())
-        new Notification("Sentinel: alerta temprana", {
-          body: `${name}: calor detectado por GOES-19 hace ${min} min`,
+        new Notification(t("nt.earlyBrowser"), {
+          body: t("nt.earlyBrowserBody", { name, n: min }),
           tag: `early-${k}`,
         });
     }

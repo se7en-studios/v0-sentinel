@@ -153,3 +153,31 @@ describe("GOES, FWI and growth rules", () => {
     expect(out.get("g")).toBe("El Bolsón: +350 ha");
   });
 });
+
+test("rule texts follow the language and Spanish stays the default", () => {
+  const zoneName = (id: string) => (id ? "Lote 1" : "");
+  const r = cleanRules([
+    { id: "1", kind: "zone_fire", zoneId: "", min: 2, enabled: true },
+    { id: "2", kind: "fwi", fwi: 20, days: 1, enabled: true },
+  ]);
+  expect(describeRule(r[0], zoneName)).toBe("2+ detecciones en 48 h en cualquier zona");
+  expect(describeRule(r[0], zoneName, "en")).toBe("2+ detections in 48 h in any zone");
+  expect(describeRule(r[0], zoneName, "pt")).toBe("2+ detecções em 48 h em qualquer zona");
+  expect(describeRule(r[1], zoneName, "en")).toBe("FWI ≥ 20 (very high) in the next 1 day");
+  const input = {
+    zones: [{ id: "a", name: "Lote 1", recent: 3 }],
+    last24: 1200,
+    forecast: [f(70)],
+  };
+  const rules = cleanRules([
+    { id: "1", kind: "zone_fire", zoneId: "a", min: 2, enabled: true },
+    { id: "2", kind: "risk", score: 55, days: 1, enabled: true },
+    { id: "3", kind: "activity", focos: 100, enabled: true },
+  ]);
+  const en = evaluateRules(rules, input, "en");
+  expect(en.get("1")).toBe("Lote 1: 3 detections");
+  expect(en.get("2")).toMatch(/^High \(70\/100\) on /);
+  expect(en.get("3")).toBe("1,200 fires in 24 h");
+  expect(evaluateRules(rules, input, "pt").get("3")).toBe("1.200 focos em 24 h");
+  expect(evaluateRules(rules, input).get("3")).toBe("1.200 focos en 24 h");
+});

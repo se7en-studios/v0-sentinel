@@ -6,18 +6,12 @@ import { toast } from "sonner";
 import { FWI_VERY_HIGH, MAX_RULES, describeRule } from "@/lib/admin/rules";
 import { isAcked, ruleKey } from "@/lib/admin/alert-ack";
 import { MODE_ROLE, type AlertRule } from "@/lib/admin/types";
+import type { MsgKey, Translate } from "@/lib/admin/i18n";
 import type { Ctx } from "./ctx";
 import { Badge, Btn, Card, Field, Toggle, inputCls } from "./ui";
 
 type Kind = AlertRule["kind"];
-const KINDS: { value: Kind; label: string }[] = [
-  { value: "zone_fire", label: "Foco en una zona" },
-  { value: "risk", label: "Riesgo meteorológico" },
-  { value: "activity", label: "Actividad en Argentina" },
-  { value: "early_open", label: "Alerta temprana GOES sin confirmar" },
-  { value: "fwi", label: "Índice canadiense (FWI)" },
-  { value: "growth", label: "Crecimiento de un incidente" },
-];
+const KINDS: Kind[] = ["zone_fire", "risk", "activity", "early_open", "fwi", "growth"];
 
 /** Editable numbers of a rule; the ones a kind does not use keep their defaults. */
 interface Values {
@@ -58,25 +52,21 @@ const inRange = (n: number, lo: number, hi: number) =>
   Number.isFinite(n) && n >= lo && n <= hi;
 
 /** One validation for creating and editing. Returns the message to show, or null when valid. */
-function problem(kind: Kind, v: Values): string | null {
+function problem(kind: Kind, v: Values, t: Translate): string | null {
   if (kind === "zone_fire")
-    return inRange(v.min, 1, 99) ? null : "Mínimo de focos entre 1 y 99.";
+    return inRange(v.min, 1, 99) ? null : t("rul.p.zone");
   if (kind === "risk")
     return inRange(v.score, 10, 100) && inRange(v.days, 1, 7)
       ? null
-      : "Índice entre 10 y 100, y días entre 1 y 7.";
+      : t("rul.p.risk");
   if (kind === "early_open") return null;
   if (kind === "fwi")
     return inRange(v.fwi, 5, 100) && inRange(v.days, 1, 7)
       ? null
-      : "FWI entre 5 y 100, y días entre 1 y 7.";
+      : t("rul.p.fwi");
   if (kind === "growth")
-    return inRange(v.ha, 1, 99_999)
-      ? null
-      : "Hectáreas: un número entre 1 y 99.999.";
-  return inRange(v.focos, 1, 99_999)
-    ? null
-    : "Focos en 24 h: un número mayor a 0.";
+    return inRange(v.ha, 1, 99_999) ? null : t("rul.p.growth");
+  return inRange(v.focos, 1, 99_999) ? null : t("rul.p.activity");
 }
 
 const withValues = (
@@ -96,8 +86,8 @@ const withValues = (
             ? { ...base, kind, ha: v.ha }
             : { ...base, kind, focos: v.focos };
 
-const rejected = (msg: string) =>
-  toast.error("Revisá los valores de la regla", { description: msg });
+const rejected = (t: Translate, msg: string) =>
+  toast.error(t("rul.rejected"), { description: msg });
 
 function ValueFields({
   kind,
@@ -105,7 +95,9 @@ function ValueFields({
   onChange,
   zones,
   zoneName,
+  t,
 }: {
+  t: Translate;
   kind: Kind;
   v: Values;
   onChange: (p: Partial<Values>) => void;
@@ -117,13 +109,13 @@ function ValueFields({
     (e: { target: { value: string } }) =>
       onChange({ [k]: Number(e.target.value) });
   const zoneSelect = (
-    <Field label="Zona">
+    <Field label={t("rul.f.zone")}>
       <select
         className={inputCls}
         value={v.zoneId}
         onChange={(e) => onChange({ zoneId: e.target.value })}
       >
-        <option value="">Cualquiera</option>
+        <option value="">{t("rul.anyOpt")}</option>
         {zones.map((z) => (
           <option key={z.id} value={z.id}>
             {zoneName(z.id)}
@@ -136,7 +128,7 @@ function ValueFields({
   if (kind === "fwi")
     return (
       <div className="grid grid-cols-2 gap-2">
-        <Field label="FWI ≥ (20 = muy alto)">
+        <Field label={t("rul.f.fwi")}>
           <input
             className={inputCls}
             type="number"
@@ -146,7 +138,7 @@ function ValueFields({
             onChange={num("fwi")}
           />
         </Field>
-        <Field label="En los próximos (días)">
+        <Field label={t("rul.f.days")}>
           <input
             className={inputCls}
             type="number"
@@ -160,7 +152,7 @@ function ValueFields({
     );
   if (kind === "growth")
     return (
-      <Field label="Creció al menos (ha, último día)">
+      <Field label={t("rul.f.ha")}>
         <input
           className={inputCls}
           type="number"
@@ -175,7 +167,7 @@ function ValueFields({
     return (
       <div className="grid grid-cols-[1fr_84px] gap-2">
         {zoneSelect}
-        <Field label="Mín. focos">
+        <Field label={t("rul.f.min")}>
           <input
             className={inputCls}
             type="number"
@@ -190,7 +182,7 @@ function ValueFields({
   if (kind === "risk")
     return (
       <div className="grid grid-cols-2 gap-2">
-        <Field label="Índice ≥ (10–100)">
+        <Field label={t("rul.f.score")}>
           <input
             className={inputCls}
             type="number"
@@ -200,7 +192,7 @@ function ValueFields({
             onChange={num("score")}
           />
         </Field>
-        <Field label="En los próximos (días)">
+        <Field label={t("rul.f.days")}>
           <input
             className={inputCls}
             type="number"
@@ -213,7 +205,7 @@ function ValueFields({
       </div>
     );
   return (
-    <Field label="Focos en 24 h ≥">
+    <Field label={t("rul.f.focos")}>
       <input
         className={inputCls}
         type="number"
@@ -227,12 +219,13 @@ function ValueFields({
 
 /** User-defined alert rules: evaluated live in use-admin, which raises the toast. */
 export function RulesCard({ ctx }: { ctx: Ctx }) {
-  const { ws, ruleFirings, setSettings } = ctx;
+  const { ws, ruleFirings, setSettings, t } = ctx;
+  const locale = ws.settings.locale;
   const rules = ws.settings.rules;
   const zones = ws.features.filter(
     (f) => MODE_ROLE[String(f.properties.mode)] === "zone",
   );
-  const zoneName = (id: string) => ws.meta[id]?.name ?? "Zona";
+  const zoneName = (id: string) => ws.meta[id]?.name ?? t("res.zone");
 
   const [kind, setKind] = useState<Kind>("zone_fire");
   const [draft, setDraft] = useState<Values>(DEFAULTS);
@@ -242,8 +235,8 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
   );
 
   const add = () => {
-    const msg = problem(kind, draft);
-    if (msg) return rejected(msg);
+    const msg = problem(kind, draft, t);
+    if (msg) return rejected(t, msg);
     const id = (
       globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)
     ).slice(0, 8);
@@ -259,8 +252,8 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
     });
   const saveEdit = (r: AlertRule) => {
     if (!editing) return;
-    const msg = problem(r.kind, editing.v);
-    if (msg) return rejected(msg);
+    const msg = problem(r.kind, editing.v, t);
+    if (msg) return rejected(t, msg);
     setSettings({
       rules: rules.map((x) =>
         x.id === r.id ? withValues(x, r.kind, editing.v) : x,
@@ -272,18 +265,16 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
   return (
     <Card
       bare
-      title="Reglas de alerta"
+      title={t("rul.title")}
       right={
         ruleFirings.size > 0 ? (
-          <Badge tone="fire">{ruleFirings.size} activas</Badge>
+          <Badge tone="fire">{t("rul.firing", { n: ruleFirings.size })}</Badge>
         ) : undefined
       }
     >
       {rules.length === 0 && (
         <p className="mb-3 text-[12px] leading-snug text-foreground/60">
-          Definí cuándo querés que el panel te avise: un foco en una zona,
-          riesgo alto en los próximos días, una alerta temprana sin confirmar,
-          el FWI en nivel muy alto o un incidente que crece rápido.
+          {t("rul.intro")}
         </p>
       )}
       <ul className="space-y-2">
@@ -304,7 +295,7 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
               <div className="flex items-start gap-2">
                 <div className="min-w-0 flex-1">
                   <div className="text-[12.5px] font-medium leading-snug">
-                    {describeRule(r, zoneName)}
+                    {describeRule(r, zoneName, locale)}
                   </div>
                   {detail && (
                     <div className="mt-0.5 text-[11.5px] text-[var(--state-bad-ink)]">
@@ -316,13 +307,13 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
                       {handled ? (
                         <>
                           <span className="text-foreground/65">
-                            Pospuesta por <b>{ack?.by || "Operador"}</b>
+                            {t("gen.snoozedBy")} <b>{ack?.by || t("zd.operator")}</b>
                           </span>
                           <Btn
                             onClick={() => ctx.reopenRule(r.id)}
                             className="min-h-7"
                           >
-                            Reabrir
+                            {t("early.reopen")}
                           </Btn>
                         </>
                       ) : (
@@ -332,13 +323,13 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
                             onClick={() => ctx.ackRule(r.id)}
                             className="min-h-7"
                           >
-                            Reconocer
+                            {t("early.ack")}
                           </Btn>
                           <Btn
                             onClick={() => ctx.ackRule(r.id, 60)}
                             className="min-h-7"
                           >
-                            Posponer 1 h
+                            {t("early.snooze")}
                           </Btn>
                         </>
                       )}
@@ -347,7 +338,7 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
                 </div>
                 <button
                   type="button"
-                  aria-label="Editar regla"
+                  aria-label={t("rul.edit")}
                   aria-pressed={isEditing}
                   onClick={() =>
                     setEditing(isEditing ? null : { id: r.id, v: valuesOf(r) })
@@ -358,7 +349,7 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
                 </button>
                 <button
                   type="button"
-                  aria-label="Eliminar regla"
+                  aria-label={t("rul.delete")}
                   onClick={() => {
                     if (isEditing) setEditing(null);
                     setSettings({ rules: rules.filter((x) => x.id !== r.id) });
@@ -378,6 +369,7 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
                     }
                     zones={zones}
                     zoneName={zoneName}
+                    t={t}
                   />
                   <div className="flex gap-2">
                     <Btn
@@ -385,16 +377,16 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
                       className="flex-1"
                       onClick={() => saveEdit(r)}
                     >
-                      Guardar cambios
+                      {t("rul.save")}
                     </Btn>
-                    <Btn onClick={() => setEditing(null)}>Cancelar</Btn>
+                    <Btn onClick={() => setEditing(null)}>{t("rul.cancel")}</Btn>
                   </div>
                 </div>
               )}
               <Toggle
                 checked={r.enabled}
                 onChange={(v) => patch(r.id, { enabled: v })}
-                label={r.enabled ? "Activa" : "Pausada"}
+                label={r.enabled ? t("rul.on") : t("rul.off")}
               />
             </li>
           );
@@ -403,15 +395,15 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
 
       {rules.length < MAX_RULES && (
         <div className="mt-3 space-y-2 rounded-lg bg-foreground/[0.04] p-2.5">
-          <Field label="Nueva regla">
+          <Field label={t("rul.new")}>
             <select
               className={inputCls}
               value={kind}
               onChange={(e) => setKind(e.target.value as Kind)}
             >
               {KINDS.map((k) => (
-                <option key={k.value} value={k.value}>
-                  {k.label}
+                <option key={k} value={k}>
+                  {t(`rul.kind.${k}` as MsgKey)}
                 </option>
               ))}
             </select>
@@ -422,9 +414,10 @@ export function RulesCard({ ctx }: { ctx: Ctx }) {
             onChange={(p) => setDraft({ ...draft, ...p })}
             zones={zones}
             zoneName={zoneName}
+            t={t}
           />
           <Btn variant="solid" className="w-full" onClick={add}>
-            <Plus className="size-3.5" aria-hidden /> Agregar regla
+            <Plus className="size-3.5" aria-hidden /> {t("rul.add")}
           </Btn>
         </div>
       )}

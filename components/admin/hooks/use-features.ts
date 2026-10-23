@@ -6,6 +6,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { demoWorkspace } from "@/lib/admin/demo";
+import { translate } from "@/lib/admin/i18n";
 import {
   MODE_ROLE,
   REGIONS,
@@ -115,7 +116,7 @@ export function useFeatures({
       region.id === "ar" ? REGIONS[1].center : region.center,
       10.4,
     );
-    toast.success("Demo cargado: zonas, rutas y sensores de ejemplo");
+    toast.success(translate(ws.settings.locale, "ec.demoLoaded"));
   }, [region, ws, replace, mapRef]);
 
   const setTool = useCallback(

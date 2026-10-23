@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { firesInZone } from "@/lib/admin/geo";
+import { translate } from "@/lib/admin/i18n";
 import { nearestPlace } from "@/lib/admin/places";
 import {
   MODE_ROLE,
@@ -54,15 +55,16 @@ export function useZoneHits(
       if (pointTs(days, p) < pointTs(days, first)) first = p;
       if (p[2] > strongest[2]) strongest = p;
     }
+    const locale = ws.settings.locale;
     const place = (p: FirePoint) => {
       const n = nearestPlace(p[0], p[1]);
-      return `${n.km} km de ${n.near}`;
+      return translate(locale, "gen.clusterWhere", { km: n.km, near: n.near });
     };
     out.push({
       id: "first",
       t: pointTs(days, first),
       kind: "first",
-      title: "Primer foco detectado",
+      title: translate(locale, "ev.first"),
       sub: place(first),
       at: [first[1], first[0]],
     });
@@ -75,14 +77,14 @@ export function useZoneHits(
         id: "peak",
         t: peak.t,
         kind: "peak",
-        title: "Pico de actividad",
-        sub: `${peak.count} focos en una hora`,
+        title: translate(locale, "ev.peak"),
+        sub: translate(locale, "ev.peakSub", { n: peak.count }),
       });
     out.push({
       id: "frp",
       t: pointTs(days, strongest),
       kind: "frp",
-      title: `Mayor potencia: ${Math.round(strongest[2])} MW`,
+      title: translate(locale, "ev.frp", { n: Math.round(strongest[2]) }),
       sub: place(strongest),
       at: [strongest[1], strongest[0]],
     });
@@ -93,13 +95,15 @@ export function useZoneHits(
           id: `z-${z.id}`,
           t: h.last,
           kind: "zone",
-          title: `Foco en ${ws.meta[z.id]?.name ?? "zona"}`,
-          sub: `${h.total} detecciones en 10 días`,
+          title: translate(locale, "fx.zone", {
+            name: ws.meta[z.id]?.name ?? translate(locale, "fx.zoneFallback"),
+          }),
+          sub: translate(locale, "ev.zoneSub", { n: h.total }),
           featId: z.id,
         });
     }
     return out.sort((a, b) => b.t - a.t);
-  }, [payload, allFires, series, ws.features, ws.meta, zoneHits]);
+  }, [payload, allFires, series, ws.features, ws.meta, ws.settings.locale, zoneHits]);
 
   return { zoneHits, alertIds, events };
 }

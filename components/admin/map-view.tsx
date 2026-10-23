@@ -9,6 +9,7 @@ import { useMapHandle } from "./map/use-map-handle";
 import { useMapMarkers, useMarkerStore } from "./map/use-map-markers";
 import { useMapSync } from "./map/use-map-sync";
 import type { MapHandle, MapProps } from "./map/types";
+import { uiT } from "@/lib/admin/ui-locale";
 
 // public contract: consumers keep importing these from "./map-view"
 export type {
@@ -28,7 +29,7 @@ function useMapNotice(openEarly: number, ready: boolean) {
     prev.current = openEarly;
     if (before === null || before === openEarly) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- announcement text derived from a change
-    setMsg(`Alertas tempranas abiertas en el mapa: ${openEarly}.`);
+    setMsg(uiT("mv.notice", { n: openEarly }));
   }, [openEarly, ready]);
   return msg;
 }
@@ -56,7 +57,7 @@ export const MapView = forwardRef<MapHandle, MapProps>(
       <div
         className="absolute inset-0"
         role="region"
-        aria-label="Mapa de focos de calor. Con el mapa enfocado, las flechas lo desplazan y más/menos acercan."
+        aria-label={uiT("map.aria")}
       >
         <div ref={box} className="h-full w-full" />
         <p className="sr-only" role="status" aria-live="polite">

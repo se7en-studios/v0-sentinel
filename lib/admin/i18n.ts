@@ -1,5 +1,8 @@
 import { enShell, esShell, ptShell } from "./i18n-shell";
 import { enViews, esViews, ptViews } from "./i18n-views";
+import { enPanels, esPanels, ptPanels } from "./i18n-panels";
+import { enOps, esOps, ptOps } from "./i18n-ops";
+import { enIncidents, esIncidents, ptIncidents } from "./i18n-incidents";
 
 export type Locale = "es" | "en" | "pt";
 
@@ -81,6 +84,9 @@ const es = {
   "status.goDelay": "Ver fuentes y demoras",
   ...esShell,
   ...esViews,
+  ...esPanels,
+  ...esOps,
+  ...esIncidents,
 } as const;
 
 export type MsgKey = keyof typeof es;
@@ -88,6 +94,9 @@ export type MsgKey = keyof typeof es;
 const en: Record<MsgKey, string> = {
   ...enShell,
   ...enViews,
+  ...enPanels,
+  ...enOps,
+  ...enIncidents,
   "tab.general": "Overview",
   "tab.zonas": "Zones",
   "tab.drones": "Drones & sensors",
@@ -161,6 +170,9 @@ const en: Record<MsgKey, string> = {
 const pt: Record<MsgKey, string> = {
   ...ptShell,
   ...ptViews,
+  ...ptPanels,
+  ...ptOps,
+  ...ptIncidents,
   "tab.general": "Visão geral",
   "tab.zonas": "Zonas",
   "tab.drones": "Drones e sensores",

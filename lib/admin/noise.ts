@@ -9,6 +9,8 @@ export interface Classified {
   reason: NoiseReason[];
   /** true when the ~440 m pixel was not seen on an earlier day and is within 24 h of the newest detection */
   fresh: boolean[];
+  /** true when the ground under the detection is not vegetation (urban, water, bare ground, snow); set by applyCover */
+  cover?: boolean[];
 }
 
 // A fixed hot pixel that keeps showing up day after day with modest power is
@@ -76,6 +78,8 @@ export interface FireInfo {
   reason: NoiseReason;
   /** first sighting of this pixel in the last 24 h of data */
   fresh: boolean;
+  /** the land cover under it is not vegetation: its score was lowered (it is still shown) */
+  cover?: boolean;
 }
 
 /** Detection object -> classifier verdict, so the map can explain any point without re-classifying. */
@@ -85,7 +89,12 @@ export function fireInfoMap(
 ): Map<FirePoint, FireInfo> {
   const m = new Map<FirePoint, FireInfo>();
   points.forEach((p, i) =>
-    m.set(p, { score: c.score[i], reason: c.reason[i], fresh: c.fresh[i] }),
+    m.set(p, {
+      score: c.score[i],
+      reason: c.reason[i],
+      fresh: c.fresh[i],
+      cover: c.cover?.[i] ?? false,
+    }),
   );
   return m;
 }
@@ -178,4 +187,61 @@ export function classifyPoints(points: FirePoint[]): Classified {
     reason.push(why);
   }
   return { score, reason, fresh };
+}
+
+// ---- land cover under the detections -------------------------------------------------------
+// The raster lookup costs 1-4 s per point, so it is done per ~1 km cell and only where it matters.
+const COVER_CELL = 0.01;
+/** a detection over non-vegetated ground keeps 40% of its score: probably heat, not a vegetation fire */
+const COVER_FACTOR = 0.4;
+export const COVER_BATCH_MAX = 25;
+
+export const coverKey = (lat: number, lng: number) =>
+  `${Math.round(lat / COVER_CELL)}:${Math.round(lng / COVER_CELL)}`;
+
+export interface CoverTarget {
+  key: string;
+  lat: number;
+  lng: number;
+}
+
+const targetOf = (lat: number, lng: number): CoverTarget => {
+  const key = coverKey(lat, lng);
+  const [i, j] = key.split(":").map(Number);
+  return { key, lat: i * COVER_CELL, lng: j * COVER_CELL };
+};
+
+/** Cells worth a land-cover lookup: incident centres first, then the given detections; one per cell. */
+export function coverCandidates(
+  centers: { lat: number; lng: number }[],
+  points: FirePoint[],
+): CoverTarget[] {
+  const seen = new Set<string>();
+  const out: CoverTarget[] = [];
+  const add = (lat: number, lng: number) => {
+    const t = targetOf(lat, lng);
+    if (seen.has(t.key)) return;
+    seen.add(t.key);
+    out.push(t);
+  };
+  centers.forEach((c) => add(c.lat, c.lng));
+  points.forEach((p) => add(p[0], p[1]));
+  return out;
+}
+
+/** Same verdicts with the score lowered where the cell is known to be non-vegetated. Pure. */
+export function applyCover(
+  points: FirePoint[],
+  c: Classified,
+  nonBurnable: ReadonlySet<string>,
+): Classified {
+  if (nonBurnable.size === 0) return c;
+  const cover = points.map((p) => nonBurnable.has(coverKey(p[0], p[1])));
+  return {
+    ...c,
+    cover,
+    score: c.score.map((s, i) =>
+      cover[i] ? Math.round(s * COVER_FACTOR) : s,
+    ),
+  };
 }

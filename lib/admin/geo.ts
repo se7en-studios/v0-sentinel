@@ -18,16 +18,17 @@ export const lengthKm = (f: Feat) =>
 export const centerOf = (f: Feat): [number, number] =>
   centroid(asFeature(f)).geometry.coordinates as [number, number];
 
-export function fmtArea(ha: number, units: "ha" | "km2") {
+/** `loc` is a BCP 47 tag (NUM_LOCALE); Spanish (Argentina) by default. */
+export function fmtArea(ha: number, units: "ha" | "km2", loc = "es-AR") {
   if (units === "km2")
-    return `${(ha / 100).toLocaleString("es-AR", { maximumFractionDigits: 2 })} km²`;
-  return `${ha.toLocaleString("es-AR", { maximumFractionDigits: ha < 100 ? 1 : 0 })} ha`;
+    return `${(ha / 100).toLocaleString(loc, { maximumFractionDigits: 2 })} km²`;
+  return `${ha.toLocaleString(loc, { maximumFractionDigits: ha < 100 ? 1 : 0 })} ha`;
 }
 
-export const fmtKm = (km: number) =>
+export const fmtKm = (km: number, loc = "es-AR") =>
   km < 1
     ? `${Math.round(km * 1000)} m`
-    : `${km.toLocaleString("es-AR", { maximumFractionDigits: 2 })} km`;
+    : `${km.toLocaleString(loc, { maximumFractionDigits: 2 })} km`;
 
 /** Fires inside a zone, optionally widened by bufferKm. */
 export function firesInZone(
@@ -86,8 +87,13 @@ export const distKm = (a: [number, number], b: [number, number]) => {
 };
 
 /** Closed ring around a zone, offset outward by offsetM. */
-export function patrolRing(zone: Feat, offsetM: number): [number, number][] | null {
-  const b = buffer(asFeature(zone) as GeoJSON.Feature<Poly>, offsetM / 1000, { units: "kilometers" });
+export function patrolRing(
+  zone: Feat,
+  offsetM: number,
+): [number, number][] | null {
+  const b = buffer(asFeature(zone) as GeoJSON.Feature<Poly>, offsetM / 1000, {
+    units: "kilometers",
+  });
   if (!b || b.geometry.type !== "Polygon") return null;
   return b.geometry.coordinates[0] as [number, number][];
 }
@@ -115,7 +121,10 @@ export function sweepPath(zone: Feat, spacingM: number): [number, number][] {
       }
     }
     if (first === null || last === null) continue;
-    path.push(leftToRight ? [first, y] : [last, y], leftToRight ? [last, y] : [first, y]);
+    path.push(
+      leftToRight ? [first, y] : [last, y],
+      leftToRight ? [last, y] : [first, y],
+    );
     leftToRight = !leftToRight;
   }
   return path;

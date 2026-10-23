@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { Locale, Translate } from "@/lib/admin/i18n";
 import type { MapHandle } from "./types";
 
 const glass =
@@ -11,7 +12,15 @@ const glass =
 type Hit = { label: string; lat: number; lng: number };
 
 /** Place / coordinate search with suggestions (Nominatim, Argentina only). */
-export function SearchBox({ a }: { a: { mapRef: { current: MapHandle | null } } }) {
+export function SearchBox({
+  a,
+  t,
+  locale,
+}: {
+  a: { mapRef: { current: MapHandle | null } };
+  t: Translate;
+  locale: Locale;
+}) {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
   const [open, setOpen] = useState(false);
@@ -31,7 +40,7 @@ export function SearchBox({ a }: { a: { mapRef: { current: MapHandle | null } } 
     if (m) {
       setHits([
         {
-          label: `Coordenadas ${m[1]}, ${m[2]}`,
+          label: t("srch.coords", { lat: m[1], lng: m[2] }),
           lat: Number(m[1]),
           lng: Number(m[2]),
         },
@@ -40,17 +49,17 @@ export function SearchBox({ a }: { a: { mapRef: { current: MapHandle | null } } 
     }
     setHits([]);
     return () => abort.current?.abort();
-  }, [q]);
+  }, [q, t]);
 
   // Nominatim's policy forbids autocomplete, so place names are only searched on submit
   const searchPlace = async (text: string) => {
     if (text.length < 3) return;
     abort.current?.abort();
     abort.current = new AbortController();
-    setMsg("Buscando…");
+    setMsg(t("srch.searching"));
     try {
       const r = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(text)}&countrycodes=ar&format=json&limit=5&accept-language=es`,
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(text)}&countrycodes=ar&format=json&limit=5&accept-language=${locale}`,
         { signal: abort.current.signal },
       );
       const j = (await r.json()) as {
@@ -58,7 +67,7 @@ export function SearchBox({ a }: { a: { mapRef: { current: MapHandle | null } } 
         lat: string;
         lon: string;
       }[];
-      setMsg(j.length ? null : "Sin resultados en Argentina");
+      setMsg(j.length ? null : t("srch.none"));
       const found = j.map((x) => ({
         label: x.display_name,
         lat: Number(x.lat),
@@ -68,7 +77,7 @@ export function SearchBox({ a }: { a: { mapRef: { current: MapHandle | null } } 
       setOpen(true);
       if (found[0]) go(found[0]);
     } catch (err) {
-      if ((err as Error).name !== "AbortError") setMsg("No se pudo buscar");
+      if ((err as Error).name !== "AbortError") setMsg(t("srch.fail"));
     }
   };
 
@@ -96,14 +105,14 @@ export function SearchBox({ a }: { a: { mapRef: { current: MapHandle | null } } 
           onFocus={() => setOpen(true)}
           onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
           onBlur={() => setTimeout(() => setOpen(false), 140)}
-          aria-label="Buscar ciudad o coordenadas"
-          placeholder="Buscar ciudad (Enter) o lat, lng…"
+          aria-label={t("srch.aria")}
+          placeholder={t("srch.ph")}
           className="min-w-0 flex-1 bg-transparent text-[12.5px] outline-none placeholder:text-foreground/40"
         />
         {q && (
           <button
             type="button"
-            aria-label="Borrar búsqueda"
+            aria-label={t("lay.clear")}
             onClick={() => setQ("")}
             className="text-foreground/40 hover:text-foreground"
           >

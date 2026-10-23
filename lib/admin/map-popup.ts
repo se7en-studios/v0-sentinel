@@ -27,6 +27,15 @@ export function zoneCircleAt(lat: number, lng: number, id: string): Feat {
   };
 }
 
+/** Popup shortcut for "Crear zona acá": only exists when the map has a real handler (read-only maps have none). */
+export function zoneCreator(
+  onCreateZone: ((f: Feat) => void) | undefined,
+  newId: () => string,
+): ((lat: number, lng: number) => void) | undefined {
+  if (!onCreateZone) return undefined;
+  return (lat, lng) => onCreateZone(zoneCircleAt(lat, lng, newId()));
+}
+
 /** The incident whose latest outline (plus a margin) holds the point, if any; nearest centre wins. */
 export function incidentContaining(
   incidents: Incident[],

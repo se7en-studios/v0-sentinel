@@ -8,6 +8,7 @@ import { ThermalCam } from "./thermal-cam";
 
 /** Floating camera window over the map, like the reference drone view. Simulated feed. */
 export function DronePip({ ctx }: { ctx: Ctx }) {
+  const { t } = ctx;
   const [open, setOpen] = useState(true);
   const [big, setBig] = useState(false);
   const [mode, setMode] = useState<"ir" | "eo">("ir");
@@ -25,8 +26,8 @@ export function DronePip({ ctx }: { ctx: Ctx }) {
         onClick={() => setOpen(true)}
         className="glass absolute right-3 top-[4.25rem] z-10 flex h-9 items-center gap-2 rounded-xl border border-[var(--hairline)] px-3 text-[12px] font-medium shadow-[var(--shadow-1)]"
       >
-        <Video className="size-3.5 text-[var(--fire)]" aria-hidden /> Cámara{" "}
-        {d.spec.name}
+        <Video className="size-3.5 text-[var(--fire)]" aria-hidden />{" "}
+        {t("pip.open", { name: d.spec.name })}
       </button>
     );
   }
@@ -45,7 +46,7 @@ export function DronePip({ ctx }: { ctx: Ctx }) {
           ? "w-[min(34rem,calc(100%-1.5rem))]"
           : "w-[min(20rem,calc(100%-1.5rem))]",
       )}
-      aria-label={`Cámara de ${d.spec.name} (simulada)`}
+      aria-label={t("pip.aria", { name: d.spec.name })}
     >
       <div
         className={cn(
@@ -54,33 +55,33 @@ export function DronePip({ ctx }: { ctx: Ctx }) {
             "[&_canvas]:[filter:grayscale(1)_contrast(1.15)_brightness(0.8)_sepia(0.5)_hue-rotate(60deg)]",
         )}
       >
-        <ThermalCam seed={d.spec.id} hot={fire} />
+        <ThermalCam seed={d.spec.id} hot={fire} label={t("cam.thermal")} />
         <div className="pointer-events-none absolute inset-0 font-mono text-[9px] leading-tight text-[#a8ffd0] [text-shadow:0_0_4px_rgba(0,0,0,0.9)]">
           <div className="absolute left-2 top-1.5">
             <span className="text-[#ff6b5a]">● REC</span> 00:{mm}:{ss}
             <br />
-            {d.spec.name} · {mode === "ir" ? "IR TÉRMICO" : "EO VISIBLE"}
+            {d.spec.name} · {mode === "ir" ? t("pip.ir") : t("pip.eo")}
           </div>
           <div className="absolute right-2 top-1.5 text-right">
-            ENLACE SEGURO
+            {t("pip.link")}
             <br />
             {d.telem.signal} dBm
           </div>
           <div className="absolute bottom-1.5 left-2">
-            ALT {d.telem.altitude} m
+            {t("pip.alt", { n: d.telem.altitude })}
             <br />
-            VEL {d.telem.speed} km/h · RMB {Math.round(d.track.heading)}°
+            {t("pip.speed", { v: d.telem.speed, h: Math.round(d.track.heading) })}
           </div>
           <div className="absolute bottom-1.5 right-2 text-right">
             {lat.toFixed(4)}, {lng.toFixed(4)}
             <br />
-            BAT {d.telem.battery}%
+            {t("pip.bat", { n: d.telem.battery })}
           </div>
         </div>
       </div>
       <figcaption className="flex items-center gap-1 bg-[#0c0b09] px-2 py-1.5 text-white">
         <span className="mr-auto text-[10.5px] font-semibold tracking-wide">
-          {d.spec.name} · simulado
+          {t("pip.sim", { name: d.spec.name })}
         </span>
         {(["ir", "eo"] as const).map((m) => (
           <button
@@ -100,7 +101,7 @@ export function DronePip({ ctx }: { ctx: Ctx }) {
         ))}
         <button
           type="button"
-          aria-label={big ? "Reducir cámara" : "Ampliar cámara"}
+          aria-label={big ? t("pip.shrink") : t("pip.grow")}
           onClick={() => setBig(!big)}
           className="grid size-8 place-items-center rounded-md text-white/60 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:size-6"
         >
@@ -112,7 +113,7 @@ export function DronePip({ ctx }: { ctx: Ctx }) {
         </button>
         <button
           type="button"
-          aria-label="Cerrar cámara"
+          aria-label={t("pip.close")}
           onClick={() => setOpen(false)}
           className="grid size-8 place-items-center rounded-md text-white/60 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:size-6"
         >

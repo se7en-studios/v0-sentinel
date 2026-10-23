@@ -4,6 +4,7 @@ import {
   incidentContaining,
   mapsUrl,
   zoneCircleAt,
+  zoneCreator,
 } from "./map-popup";
 import type { Incident } from "./incident";
 
@@ -47,5 +48,19 @@ describe("map popup helpers", () => {
     const list = [inc("a", -41, -71), inc("b", -35, -65)];
     expect(incidentContaining(list, -41.005, -71.005)?.id).toBe("a");
     expect(incidentContaining(list, -30, -60)).toBeNull();
+  });
+});
+
+describe("zoneCreator", () => {
+  it("offers nothing on a read-only map (no handler)", () => {
+    expect(zoneCreator(undefined, () => "z")).toBeUndefined();
+  });
+
+  it("builds a circle zone at the point and hands it to the handler", () => {
+    const got: unknown[] = [];
+    const create = zoneCreator((f) => got.push(f), () => "z-1");
+    create?.(-40.1, -71.1);
+    expect(got).toHaveLength(1);
+    expect(got[0]).toMatchObject({ id: "z-1", properties: { mode: "zone-circle" } });
   });
 });

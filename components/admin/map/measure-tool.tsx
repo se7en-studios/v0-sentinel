@@ -5,6 +5,7 @@ import type { GeoJSONSource, Map as MLMap } from "maplibre-gl";
 import { Ruler as RulerIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fmtArea, fmtKm } from "@/lib/admin/geo";
+import type { Translate } from "@/lib/admin/i18n";
 import { MEASURING_ATTR, measure, type LngLat } from "@/lib/admin/map-measure";
 
 const SRC = "measure";
@@ -15,16 +16,18 @@ const glass =
 export function MeasureToggle({
   active,
   onToggle,
+  t,
 }: {
   active: boolean;
   onToggle: () => void;
+  t: Translate;
 }) {
   return (
     <button
       type="button"
       aria-pressed={active}
-      aria-label="Medir distancia y área"
-      title="Medir (Esc para salir)"
+      aria-label={t("ms.toggleAria")}
+      title={t("ms.toggleTitle")}
       onClick={onToggle}
       className={cn(
         glass,
@@ -119,10 +122,14 @@ export function MeasureTool({
   getMap,
   units,
   onClose,
+  t,
+  loc,
 }: {
   getMap: () => MLMap | null;
   units: "ha" | "km2";
   onClose: () => void;
+  t: Translate;
+  loc: string;
 }) {
   const [points, setPoints] = useState<LngLat[]>([]);
   const [closed, setClosed] = useState(false);
@@ -176,17 +183,17 @@ export function MeasureTool({
   return (
     <div
       role="group"
-      aria-label="Herramienta de medición"
+      aria-label={t("ms.aria")}
       className={cn(
         glass,
         "absolute left-16 top-[6.25rem] z-20 w-52 p-2.5 text-[12px]",
       )}
     >
       <div className="mb-1 flex items-center justify-between font-medium">
-        Medir
+        {t("ms.title")}
         <button
           type="button"
-          aria-label="Cerrar medición"
+          aria-label={t("ms.close")}
           onClick={onClose}
           className="rounded text-foreground/55 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
@@ -194,10 +201,10 @@ export function MeasureTool({
         </button>
       </div>
       <div className="num text-[15px] font-semibold" aria-live="polite">
-        {points.length < 2 ? "Click en el mapa" : fmtKm(m.km)}
+        {points.length < 2 ? t("ms.click") : fmtKm(m.km, loc)}
       </div>
       {m.ha !== null && (
-        <div className="num text-foreground/70">{fmtArea(m.ha, units)}</div>
+        <div className="num text-foreground/70">{fmtArea(m.ha, units, loc)}</div>
       )}
       <div className="mt-2 flex gap-1.5">
         <button
@@ -206,7 +213,7 @@ export function MeasureTool({
           disabled={!canClose}
           className="rounded-lg border border-[var(--hairline)] px-2 py-1 text-[11px] hover:bg-foreground/[0.06] disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          {closed ? "Abrir" : "Cerrar área"}
+          {closed ? t("ms.open") : t("ms.closeArea")}
         </button>
         <button
           type="button"
@@ -214,7 +221,7 @@ export function MeasureTool({
           disabled={!points.length}
           className="rounded-lg border border-[var(--hairline)] px-2 py-1 text-[11px] hover:bg-foreground/[0.06] disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          Limpiar
+          {t("ms.clear")}
         </button>
       </div>
     </div>

@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BASES } from "@/lib/admin/map-config";
+import type { MsgKey } from "@/lib/admin/i18n";
+import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
 import type { BaseLayer } from "@/lib/admin/types";
 import type { useAdmin } from "./use-admin";
 import { Toolbar } from "./toolbar";
@@ -30,12 +32,13 @@ const glass =
 /** Compass: needle follows the bearing; click resets north. */
 function Compass({ a }: { a: A }) {
   const { bearing, pitch } = a.ctx.camera;
+  const t = a.ctx.t;
   return (
     <button
       type="button"
       onClick={() => a.mapRef.current?.resetNorth()}
-      aria-label={`Orientar al norte (rumbo ${Math.round(((bearing % 360) + 360) % 360)}°)`}
-      title="Orientar al norte"
+      aria-label={t("mc.northAria", { n: Math.round(((bearing % 360) + 360) % 360) })}
+      title={t("mc.north")}
       className={cn(
         glass,
         "group grid size-10 place-items-center transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -54,7 +57,7 @@ function Compass({ a }: { a: A }) {
         </span>
       </span>
       {pitch > 1 && (
-        <span className="sr-only">Inclinación {Math.round(pitch)}°</span>
+        <span className="sr-only">{t("mc.tilt", { n: Math.round(pitch) })}</span>
       )}
     </button>
   );
@@ -63,13 +66,15 @@ function Compass({ a }: { a: A }) {
 function BasePicker({ a }: { a: A }) {
   const [open, setOpen] = useState(false);
   const cur = a.s.baseLayer;
+  const t = a.ctx.t;
+  const baseLabel = (id: BaseLayer) => t(`base.${id}` as MsgKey);
   return (
     <div className="relative">
       <button
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label={`Mapa base: ${BASES[cur].label}`}
+        aria-label={t("mc.baseAria", { label: baseLabel(cur) })}
         onClick={() => setOpen((o) => !o)}
         onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
         className={cn(
@@ -85,13 +90,13 @@ function BasePicker({ a }: { a: A }) {
           height={28}
           className="size-7 rounded-md object-cover shadow-[inset_0_0_0_1px_rgba(0,0,0,0.15)]"
         />
-        <span className="hidden sm:inline">{BASES[cur].label}</span>
+        <span className="hidden sm:inline">{baseLabel(cur)}</span>
         <Layers className="size-3.5 text-foreground/50" aria-hidden />
       </button>
       {open && (
         <ul
           role="listbox"
-          aria-label="Mapa base"
+          aria-label={t("mc.base")}
           onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
           className={cn(glass, "absolute right-0 top-12 z-30 w-52 p-1")}
         >
@@ -121,10 +126,10 @@ function BasePicker({ a }: { a: A }) {
                 />
                 <span className="min-w-0">
                   <span className="block truncate text-[12px] font-medium">
-                    {BASES[id].label}
+                    {baseLabel(id)}
                   </span>
                   <span className="block truncate text-[10px] text-foreground/45">
-                    {BASES[id].hint}
+                    {t(`base.${id}.hint` as MsgKey)}
                   </span>
                 </span>
               </button>
@@ -137,17 +142,19 @@ function BasePicker({ a }: { a: A }) {
 }
 
 function Chips({ a }: { a: A }) {
+  const t = a.ctx.t;
+  const loc = NUM_LOCALE[a.ctx.ws.settings.locale];
   const f = a.fires;
   const avg = f.length
     ? Math.round(f.reduce((x, p) => x + p[2], 0) / f.length)
     : 0;
   const high = f.filter((p) => p[3] === 2).length;
   const items = [
-    { k: "focos visibles", v: f.length.toLocaleString("es-AR"), c: "#c2540a" },
-    { k: "FRP promedio", v: `${avg} MW`, c: "#8a6a00" },
+    { k: t("mc.chip.fires"), v: f.length.toLocaleString(loc), c: "#c2540a" },
+    { k: t("mc.chip.frp"), v: `${avg} MW`, c: "#8a6a00" },
     {
-      k: "alta confianza",
-      v: high.toLocaleString("es-AR"),
+      k: t("mc.chip.conf"),
+      v: high.toLocaleString(loc),
       c: "var(--primary)",
     },
   ];
@@ -171,7 +178,7 @@ function Chips({ a }: { a: A }) {
             {c.v}
           </b>
           <span className="text-foreground/50">
-            {["focos", "FRP", "alta conf."][i]}
+            {[t("mc.s.fires"), t("mc.s.frp"), t("mc.s.conf")][i]}
           </span>
         </span>
       ))}
@@ -182,6 +189,7 @@ function Chips({ a }: { a: A }) {
 /** Bottom-right cluster: 2D/3D, zoom factor and fullscreen, like the reference. */
 function ViewCluster({ a }: { a: A }) {
   const { ctx } = a;
+  const t = ctx.t;
   const [full, setFull] = useState(false);
   useEffect(() => {
     const on = () => setFull(Boolean(document.fullscreenElement));
@@ -196,7 +204,7 @@ function ViewCluster({ a }: { a: A }) {
           key={v}
           type="button"
           aria-pressed={ctx.view === v}
-          aria-label={`Vista ${v.toUpperCase()}`}
+          aria-label={t("mc.view", { v: v.toUpperCase() })}
           onClick={() => ctx.setView(v)}
           className={cn(
             "flex h-7 items-center gap-1 rounded-lg px-2.5 text-[11.5px] font-bold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -213,8 +221,8 @@ function ViewCluster({ a }: { a: A }) {
         <button
           type="button"
           aria-pressed={ctx.orbit}
-          aria-label="Órbita automática"
-          title="Órbita automática"
+          aria-label={t("top.orbitStart")}
+          title={t("top.orbitStart")}
           onClick={() => ctx.setOrbit(!ctx.orbit)}
           className={cn(
             "grid size-7 place-items-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -229,7 +237,7 @@ function ViewCluster({ a }: { a: A }) {
       <span className="mx-0.5 h-4 w-px bg-[var(--hairline)]" />
       <button
         type="button"
-        aria-label="Alejar"
+        aria-label={t("mc.zoomOut")}
         onClick={() => a.mapRef.current?.zoomBy(-0.8)}
         className="grid size-7 place-items-center rounded-lg text-foreground/55 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
@@ -240,7 +248,7 @@ function ViewCluster({ a }: { a: A }) {
       </span>
       <button
         type="button"
-        aria-label="Acercar"
+        aria-label={t("mc.zoomIn")}
         onClick={() => a.mapRef.current?.zoomBy(0.8)}
         className="grid size-7 place-items-center rounded-lg text-foreground/55 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
@@ -249,7 +257,7 @@ function ViewCluster({ a }: { a: A }) {
       <span className="mx-0.5 h-4 w-px bg-[var(--hairline)]" />
       <button
         type="button"
-        aria-label={full ? "Salir de pantalla completa" : "Pantalla completa"}
+        aria-label={full ? t("mc.fullExit") : t("mc.full")}
         onClick={() =>
           document.fullscreenElement
             ? document.exitFullscreen()
@@ -279,6 +287,7 @@ function fmtDeg(v: number, pos: string, neg: string) {
 /** Latitude / longitude ruler on the map edges (2D, north-up only). */
 function Ruler({ a }: { a: A }) {
   const { camera, view } = a.ctx;
+  const tr = a.ctx.t;
   const ticks = useMemo(() => {
     if (view !== "2d" || camera.pitch > 1 || Math.abs(camera.bearing) > 0.5)
       return null;
@@ -316,7 +325,7 @@ function Ruler({ a }: { a: A }) {
           className="mono absolute top-0 -translate-x-1/2 px-1 text-[8.5px] text-foreground/45 [text-shadow:0_0_3px_var(--card)]"
           style={{ left: t.px }}
         >
-          {fmtDeg(t.v, "E", "O")}
+          {fmtDeg(t.v, tr("mc.dirE"), tr("mc.dirW"))}
         </span>
       ))}
       {ticks.ys.map((t) => (
@@ -359,9 +368,10 @@ export function MapOverlays({
           <MeasureToggle
             active={measuring}
             onToggle={() => setMeasuring((m) => !m)}
+            t={ctx.t}
           />
         </div>
-        <SearchBox a={a} />
+        <SearchBox a={a} t={ctx.t} locale={ctx.ws.settings.locale} />
         <div className="flex flex-col items-end gap-1.5">
           <BasePicker a={a} />
           {ctx.tab === "general" && <Chips a={a} />}
@@ -372,6 +382,8 @@ export function MapOverlays({
           getMap={getMap}
           units={ctx.ws.settings.units}
           onClose={closeMeasure}
+          t={ctx.t}
+          loc={NUM_LOCALE[ctx.ws.settings.locale]}
         />
       )}
 
@@ -381,6 +393,7 @@ export function MapOverlays({
           tool={ctx.tool}
           setTool={ctx.setTool}
           editing={ctx.editing}
+          t={ctx.t}
         />
       )}
 
@@ -393,7 +406,7 @@ export function MapOverlays({
         >
           {a.live && <b className="num mr-2 text-primary">{a.live}</b>}
           <span className="text-foreground/60">
-            Click para marcar · doble click para terminar · Esc cancela
+            {ctx.t("mc.hint")}
           </span>
         </div>
       )}

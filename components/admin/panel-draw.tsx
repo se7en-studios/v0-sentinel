@@ -8,6 +8,8 @@ import { Crosshair, Download, Pencil, Trash2, Video, Wand2 } from "lucide-react"
 import { cn } from "@/lib/utils";
 import { areaHa, centerOf, fmtArea, fmtKm, lengthKm, patrolRing, sweepPath } from "@/lib/admin/geo";
 import { toKml } from "@/lib/admin/kml";
+import { riskLabel, type MsgKey } from "@/lib/admin/i18n";
+import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
 import { FLEET, sensorReading } from "@/lib/admin/sim";
 import {
   MODE_ROLE,
@@ -26,7 +28,8 @@ const roleOf = (f: Feat): Role =>
 const newId = () => crypto.randomUUID();
 
 function SelectedCard({ ctx }: { ctx: Ctx }) {
-  const { ws, selectedId, zoneHits } = ctx;
+  const { ws, selectedId, zoneHits, t } = ctx;
+  const loc = NUM_LOCALE[ws.settings.locale];
   const f = ws.features.find((x) => x.id === selectedId);
   const [meters, setMeters] = useState(200);
   if (!f) return null;
@@ -48,19 +51,15 @@ function SelectedCard({ ctx }: { ctx: Ctx }) {
     if (!coords || coords.length < 2) return;
     const free = FLEET.find((d) => !ws.features.some((x) => roleOf(x) === "route" && ws.meta[x.id]?.droneId === d.id));
     if (!free)
-      toast.warning("No quedan drones libres", {
-        description: "La ruta se crea sin asignar. Liberá un dron o asignala a mano.",
-      });
+      toast.warning(t("drw.noDrones"), { description: t("drw.noDronesDesc") });
     const id = newId();
     ctx.addFeature({ id, type: "Feature", geometry: { type: "LineString", coordinates: coords }, properties: { mode: "route" } }, "route");
-    ctx.setMeta(id, { name: `${kind === "ring" ? "Patrullaje" : "Barrido"} ${meta.name}`, droneId: free?.id });
+    ctx.setMeta(id, { name: t(kind === "ring" ? "drw.routePatrol" : "drw.routeSweep", { name: meta.name }), droneId: free?.id });
   };
 
   const makeBuffer = (m: number, asNew: boolean) => {
     if (!Number.isFinite(m) || m === 0 || Math.abs(m) > 50_000)
-      return toast.error("Distancia inválida", {
-        description: "Usá un valor distinto de 0, hasta 50.000 m (negativo para achicar).",
-      });
+      return toast.error(t("drw.badDist"), { description: t("drw.badDistDesc") });
     const b = buffer(
       {
         type: "Feature",
@@ -71,10 +70,8 @@ function SelectedCard({ ctx }: { ctx: Ctx }) {
       { units: "kilometers" },
     );
     if (!b || b.geometry.type !== "Polygon")
-      return toast.error("No se pudo aplicar el buffer", {
-        description: b
-          ? "El resultado dividiría la zona en partes, y eso todavía no se soporta."
-          : "La zona desaparece con ese valor: probá una distancia menor.",
+      return toast.error(t("drw.bufFail"), {
+        description: b ? t("drw.bufSplit") : t("drw.bufGone"),
       });
     if (asNew || role === "line" || role === "route") {
       ctx.addFeature(
@@ -97,25 +94,19 @@ function SelectedCard({ ctx }: { ctx: Ctx }) {
 
   return (
     <Card bare
-      title="Elemento seleccionado"
+      title={t("drw.sel.title")}
       right={
         <span className="flex items-center gap-1.5">
           <span
             className="size-2 rounded-sm"
             style={{ background: ROLE_COLOR[role] }}
           />
-          <Badge>
-            {
-              { zone: "Zona", line: "Línea", route: "Ruta", sensor: "Sensor" }[
-                role
-              ]
-            }
-          </Badge>
+          <Badge>{t(`drw.role.${role}` as MsgKey)}</Badge>
         </span>
       }
     >
       <div className="space-y-3">
-        <Field label="Nombre">
+        <Field label={t("drw.name")}>
           <input
             className={inputCls}
             value={meta.name}
@@ -124,11 +115,11 @@ function SelectedCard({ ctx }: { ctx: Ctx }) {
         </Field>
         {role === "zone" && (
           <div className="grid grid-cols-2 gap-3">
-            <Stat label="Superficie" value={fmtArea(areaHa(f), units)} />
+            <Stat label={t("drw.area")} value={fmtArea(areaHa(f), units, loc)} />
             <Stat
-              label="Focos (10 d)"
+              label={t("drw.fires10")}
               value={hits?.total ?? 0}
-              sub={`${hits?.recent ?? 0} en 48 h · buffer ${ws.settings.bufferKm} km`}
+              sub={t("drw.fireSub", { r: hits?.recent ?? 0, km: ws.settings.bufferKm })}
               tone={hits?.recent ? "fire" : undefined}
             />
           </div>
@@ -136,16 +127,16 @@ function SelectedCard({ ctx }: { ctx: Ctx }) {
         {role === "zone" && ctx.zoneRisk[f.id] && (
           <div className="flex items-center gap-2 text-[12px]">
             <span className="size-2.5 rounded-full" style={{ background: ctx.zoneRisk[f.id].color }} />
-            <span>Riesgo {ctx.zoneRisk[f.id].label.toLowerCase()} ({ctx.zoneRisk[f.id].score})</span>
-            <span className="text-foreground/45">{Math.round(ctx.zoneRisk[f.id].wx.temp)}° · {Math.round(ctx.zoneRisk[f.id].wx.rh)}% HR · {Math.round(ctx.zoneRisk[f.id].wx.wind)} km/h</span>
+            <span>{t("drw.risk", { label: riskLabel(t, ctx.zoneRisk[f.id].label).toLowerCase(), score: ctx.zoneRisk[f.id].score })}</span>
+            <span className="text-foreground/45">{t("drw.wxShort", { temp: Math.round(ctx.zoneRisk[f.id].wx.temp), rh: Math.round(ctx.zoneRisk[f.id].wx.rh), wind: Math.round(ctx.zoneRisk[f.id].wx.wind) })}</span>
           </div>
         )}
         {role === "zone" && <ZoneDetail ctx={ctx} f={f} />}
         {(role === "line" || role === "route") && (
-          <Stat label="Longitud" value={fmtKm(lengthKm(f))} />
+          <Stat label={t("drw.length")} value={fmtKm(lengthKm(f), loc)} />
         )}
         {role === "sensor" && (
-          <Field label="Tipo de sensor">
+          <Field label={t("drw.sensorType")}>
             <select
               className={inputCls}
               value={meta.sensorType ?? "temp"}
@@ -155,14 +146,14 @@ function SelectedCard({ ctx }: { ctx: Ctx }) {
             >
               {Object.entries(SENSOR_LABEL).map(([k, v]) => (
                 <option key={k} value={k}>
-                  {v.label} ({v.unit})
+                  {t(`sen.${k}` as MsgKey)} ({v.unit})
                 </option>
               ))}
             </select>
           </Field>
         )}
         {role === "route" && (
-          <Field label="Dron asignado">
+          <Field label={t("drw.drone")}>
             <select
               className={inputCls}
               value={meta.droneId ?? ""}
@@ -170,10 +161,10 @@ function SelectedCard({ ctx }: { ctx: Ctx }) {
                 ctx.setMeta(f.id, { droneId: e.target.value || undefined })
               }
             >
-              <option value="">Sin asignar</option>
+              <option value="">{t("drw.unassigned")}</option>
               {FLEET.map((d) => (
                 <option key={d.id} value={d.id}>
-                  {d.name} · {d.kind}
+                  {d.name} · {t(`drn.kind.${d.id}` as MsgKey)}
                 </option>
               ))}
             </select>
@@ -183,11 +174,9 @@ function SelectedCard({ ctx }: { ctx: Ctx }) {
           <div className="rounded-md bg-foreground/5 p-2.5">
             <Field
               label={
-                role === "zone"
-                  ? "Expandir o contraer (metros)"
-                  : "Convertir en franja (metros a cada lado)"
+                role === "zone" ? t("drw.buf.zone") : t("drw.buf.line")
               }
-              hint="Marcá la distancia exacta que necesitás, sin depender de rectángulos."
+              hint={t("drw.buf.hint")}
             >
               <div className="flex gap-1.5">
                 <input
@@ -203,20 +192,20 @@ function SelectedCard({ ctx }: { ctx: Ctx }) {
                   <>
                     <Btn
                       onClick={() => makeBuffer(meters, false)}
-                      title="Agrandar"
+                      title={t("drw.grow")}
                     >
                       <Wand2 className="size-3.5" /> +{meters} m
                     </Btn>
                     <Btn
                       onClick={() => makeBuffer(-meters, false)}
-                      title="Achicar"
+                      title={t("drw.shrink")}
                     >
                       −{meters} m
                     </Btn>
                   </>
                 ) : (
                   <Btn onClick={() => makeBuffer(meters, true)}>
-                    <Wand2 className="size-3.5" /> Crear zona
+                    <Wand2 className="size-3.5" /> {t("drw.makeZone")}
                   </Btn>
                 )}
               </div>
@@ -225,35 +214,35 @@ function SelectedCard({ ctx }: { ctx: Ctx }) {
         )}
         {role === "zone" && (
           <div className="rounded-md bg-foreground/5 p-2.5">
-            <div className="mb-1.5 text-[11.5px] font-medium text-foreground/70">Misión automática de dron</div>
+            <div className="mb-1.5 text-[11.5px] font-medium text-foreground/70">{t("drw.mission")}</div>
             <div className="grid grid-cols-2 gap-1.5">
-              <Btn onClick={() => makeRoute("ring")}>Patrullar perímetro</Btn>
-              <Btn onClick={() => makeRoute("sweep")}>Barrido en zigzag</Btn>
+              <Btn onClick={() => makeRoute("ring")}>{t("drw.patrol")}</Btn>
+              <Btn onClick={() => makeRoute("sweep")}>{t("drw.sweep")}</Btn>
             </div>
-            <p className="mt-1.5 text-[10.5px] text-foreground/45">Crea la ruta y se la asigna al primer dron libre. Verla en Drones y sensores.</p>
+            <p className="mt-1.5 text-[10.5px] text-foreground/45">{t("drw.missionNote")}</p>
           </div>
         )}
         <div className="flex flex-wrap gap-1.5">
           <Btn onClick={() => ctx.map.current?.fitFeature(f)}>
-            <Crosshair className="size-3.5" /> Centrar
+            <Crosshair className="size-3.5" /> {t("drw.center")}
           </Btn>
           <Btn
             variant={ctx.editing ? "active" : "ghost"}
             onClick={() => ctx.setEditing(!ctx.editing)}
           >
             <Pencil className="size-3.5" />{" "}
-            {ctx.editing ? "Terminar edición" : "Editar vértices"}
+            {ctx.editing ? t("drw.endEdit") : t("drw.editVerts")}
           </Btn>
           <Btn onClick={exportKml}>
-            <Download className="size-3.5" /> Exportar KML
+            <Download className="size-3.5" /> {t("drw.kml")}
           </Btn>
           <Btn variant="danger" onClick={() => ctx.removeFeature(f.id)}>
-            <Trash2 className="size-3.5" /> Eliminar
+            <Trash2 className="size-3.5" /> {t("drw.remove")}
           </Btn>
         </div>
         {role !== "sensor" && (
           <p className="text-[10.5px] text-foreground/40">
-            Centro: {centerOf(f)[1].toFixed(4)}°, {centerOf(f)[0].toFixed(4)}°
+            {t("drw.centerAt", { lat: centerOf(f)[1].toFixed(4), lng: centerOf(f)[0].toFixed(4) })}
           </p>
         )}
       </div>
@@ -270,6 +259,8 @@ function ItemList({
   roles: Role[];
   empty: string;
 }) {
+  const { t } = ctx;
+  const loc = NUM_LOCALE[ctx.ws.settings.locale];
   const items = ctx.ws.features.filter((f) => roles.includes(roleOf(f)));
   const u = ctx.ws.settings.units;
   if (items.length === 0)
@@ -298,15 +289,15 @@ function ItemList({
                 style={{ background: ROLE_COLOR[r] }}
               />
               <span className="min-w-0 flex-1 truncate">
-                {ctx.ws.meta[f.id]?.name || "Sin nombre"}
+                {ctx.ws.meta[f.id]?.name || t("drw.unnamed")}
               </span>
-              {h && h.recent > 0 && <Badge tone="fire">{h.recent} focos</Badge>}
+              {h && h.recent > 0 && <Badge tone="fire">{t("drw.hits", { n: h.recent })}</Badge>}
               <span className="shrink-0 text-[11px] tabular-nums text-foreground/45">
                 {r === "zone"
-                  ? fmtArea(areaHa(f), u)
+                  ? fmtArea(areaHa(f), u, loc)
                   : r === "sensor"
                     ? ""
-                    : fmtKm(lengthKm(f))}
+                    : fmtKm(lengthKm(f), loc)}
               </span>
             </button>
           </li>
@@ -317,6 +308,8 @@ function ItemList({
 }
 
 export function ZonesPanel({ ctx }: { ctx: Ctx }) {
+  const { t } = ctx;
+  const loc = NUM_LOCALE[ctx.ws.settings.locale];
   const [radius, setRadius] = useState(500);
   const zones = ctx.ws.features.filter((f) => roleOf(f) === "zone");
   const totalHa = zones.reduce((a, z) => a + areaHa(z), 0);
@@ -339,15 +332,15 @@ export function ZonesPanel({ ctx }: { ctx: Ctx }) {
 
   return (
     <div>
-      <Card bare title="Zonas de monitoreo">
+      <Card bare title={t("drw.zonesTitle")}>
         <div className="grid grid-cols-3 gap-3">
-          <Stat label="Zonas" value={zones.length} />
+          <Stat label={t("drw.zones")} value={zones.length} />
           <Stat
-            label="Superficie"
-            value={fmtArea(totalHa, ctx.ws.settings.units)}
+            label={t("drw.area")}
+            value={fmtArea(totalHa, ctx.ws.settings.units, loc)}
           />
           <Stat
-            label="Con alerta"
+            label={t("drw.withAlert")}
             value={
               Object.values(ctx.zoneHits).filter((h) => h.recent > 0).length
             }
@@ -355,16 +348,14 @@ export function ZonesPanel({ ctx }: { ctx: Ctx }) {
           />
         </div>
         <p className="mt-2.5 text-[11.5px] text-foreground/50">
-          Elegí una herramienta a la izquierda del mapa: polígono, mano alzada,
-          rectángulo, círculo o línea (cortafuegos, perímetro, camino). Podés
-          pasar a 3D para ver el relieve.
+          {t("drw.zonesHint")}
         </p>
       </Card>
 
-      <Card bare title="Círculo por radio exacto">
+      <Card bare title={t("drw.circleTitle")}>
         <Field
-          label="Radio (metros)"
-          hint="Se crea en el centro actual del mapa."
+          label={t("drw.radius")}
+          hint={t("drw.radiusHint")}
         >
           <div className="flex gap-1.5">
             <input
@@ -381,7 +372,7 @@ export function ZonesPanel({ ctx }: { ctx: Ctx }) {
               onClick={circleAtCenter}
               disabled={!(radius > 0)}
             >
-              Crear círculo
+              {t("drw.makeCircle")}
             </Btn>
           </div>
         </Field>
@@ -390,17 +381,17 @@ export function ZonesPanel({ ctx }: { ctx: Ctx }) {
       <SelectedCard ctx={ctx} />
 
       <Card bare
-        title="Zonas y líneas"
+        title={t("drw.zonesLines")}
         right={
           ctx.ws.features.length === 0 ? (
-            <Btn onClick={ctx.loadDemo}>Cargar demo</Btn>
+            <Btn onClick={ctx.loadDemo}>{t("drw.loadDemo")}</Btn>
           ) : undefined
         }
       >
         <ItemList
           ctx={ctx}
           roles={["zone", "line"]}
-          empty="Todavía no marcaste nada. Dibujá una zona o cargá el demo para ver cómo queda."
+          empty={t("drw.emptyList")}
         />
       </Card>
     </div>
@@ -421,6 +412,8 @@ function BatteryBar({ pct }: { pct: number }) {
 }
 
 export function DronesPanel({ ctx }: { ctx: Ctx }) {
+  const tr = ctx.t;
+  const loc = NUM_LOCALE[ctx.ws.settings.locale];
   const alerts = ctx.sensors.filter((s) => s.reading.alert).length;
   const airborne = ctx.drones.filter((d) => d.track).length;
   const active = ctx.drones.find((d) => d.spec.id === ctx.activeDrone) ?? ctx.drones.find((d) => d.track) ?? ctx.drones[0];
@@ -431,19 +424,19 @@ export function DronesPanel({ ctx }: { ctx: Ctx }) {
 
   return (
     <div>
-      <Card bare title="Flota" right={<Badge tone="sim">simulado</Badge>}>
+      <Card bare title={tr("drw.fleet")} right={<Badge tone="sim">{tr("res.sim")}</Badge>}>
         <div className="mb-2 flex items-baseline justify-between text-[11px] text-foreground/50">
           <span>
-            <b className="num text-foreground">{airborne}</b> de {ctx.drones.length} en vuelo
+            <b className="num text-foreground">{airborne}</b> {tr("drw.inFlight", { m: ctx.drones.length })}
           </span>
           <span className="inline-flex items-center gap-1 font-semibold text-[var(--fire)]">
-            <span className="size-1.5 animate-pulse rounded-full bg-[var(--fire)]" /> EN VIVO
+            <span className="size-1.5 animate-pulse rounded-full bg-[var(--fire)]" /> {tr("drw.live")}
           </span>
         </div>
         <ul className="-mx-1.5 space-y-px">
           {ctx.drones.map((d) => {
             const on = d.spec.id === active.spec.id;
-            const status = ctx.rtb.has(d.spec.id) ? "Retornando" : d.track ? "En ruta" : d.route ? "En pausa" : "En base";
+            const status = tr(ctx.rtb.has(d.spec.id) ? "drw.st.rtb" : d.track ? "drw.st.route" : d.route ? "drw.st.paused" : "drw.st.base");
             return (
               <li key={d.spec.id}>
                 <button
@@ -460,7 +453,7 @@ export function DronesPanel({ ctx }: { ctx: Ctx }) {
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[12.5px] font-medium">{d.spec.name}</span>
-                    <span className="block truncate text-[10.5px] text-foreground/50">{d.spec.kind}</span>
+                    <span className="block truncate text-[10.5px] text-foreground/50">{tr(`drn.kind.${d.spec.id}` as MsgKey)}</span>
                   </span>
                   <span className="flex flex-col items-end gap-1">
                     <span className={cn("text-[9.5px] font-semibold uppercase tracking-wide", d.track ? "text-primary" : "text-foreground/40")}>{status}</span>
@@ -473,21 +466,21 @@ export function DronesPanel({ ctx }: { ctx: Ctx }) {
         </ul>
       </Card>
 
-      <Card bare title={`${active.spec.name} · detalle`} right={<Badge tone={flying ? "ok" : "muted"}>{flying ? "En vuelo" : "En base"}</Badge>}>
+      <Card bare title={tr("drw.detail", { name: active.spec.name })} right={<Badge tone={flying ? "ok" : "muted"}>{flying ? tr("drw.flying") : tr("drw.st.base")}</Badge>}>
         <div className="grid grid-cols-3 gap-x-3 gap-y-3">
-          <Stat label="Altura" value={flying ? active.telem.altitude : "—"} sub="m AGL" />
-          <Stat label="Velocidad" value={flying ? active.telem.speed : "—"} sub="km/h" />
-          <Stat label="Rumbo" value={t ? `${Math.round(t.heading)}°` : "—"} />
-          <Stat label="Batería" value={flying ? `${active.telem.battery}%` : "100%"} tone={flying && active.telem.battery < 25 ? "fire" : undefined} />
-          <Stat label="Enlace" value={flying ? active.telem.signal : "—"} sub="dBm" />
-          <Stat label="Autonomía" value={flying ? `${endurance}` : "—"} sub="min" />
+          <Stat label={tr("drw.altitude")} value={flying ? active.telem.altitude : "—"} sub="m AGL" />
+          <Stat label={tr("drw.speed")} value={flying ? active.telem.speed : "—"} sub="km/h" />
+          <Stat label={tr("drw.heading")} value={t ? `${Math.round(t.heading)}°` : "—"} />
+          <Stat label={tr("drw.battery")} value={flying ? `${active.telem.battery}%` : "100%"} tone={flying && active.telem.battery < 25 ? "fire" : undefined} />
+          <Stat label={tr("drw.link")} value={flying ? active.telem.signal : "—"} sub="dBm" />
+          <Stat label={tr("drw.endurance")} value={flying ? `${endurance}` : "—"} sub="min" />
         </div>
         <dl className="mt-3 border-t border-[var(--hairline)] pt-2">
-          <KV k="Aeronave">{active.spec.kind}</KV>
-          <KV k="Misión">{active.route ? (ctx.ws.meta[active.route.id]?.name ?? "Ruta") : "Sin asignar"}</KV>
-          <KV k="Avance">{t ? `${Math.round(t.progress * 100)}% de ${fmtKm(t.total)}` : "—"}</KV>
-          <KV k="Sensores">EO · IR térmico</KV>
-          <KV k="Posición" mono>
+          <KV k={tr("drw.aircraft")}>{tr(`drn.kind.${active.spec.id}` as MsgKey)}</KV>
+          <KV k={tr("drw.mission2")}>{active.route ? (ctx.ws.meta[active.route.id]?.name ?? tr("drw.role.route")) : tr("drw.unassigned")}</KV>
+          <KV k={tr("drw.progress")}>{t ? tr("drw.progressVal", { p: Math.round(t.progress * 100), km: fmtKm(t.total, loc) }) : "—"}</KV>
+          <KV k={tr("drw.payload")}>{tr("drw.payloadVal")}</KV>
+          <KV k={tr("drw.position")} mono>
             {t ? `${t.pos[1].toFixed(4)}, ${t.pos[0].toFixed(4)}` : "—"}
           </KV>
           <KV k="Gimbal" mono>
@@ -496,31 +489,31 @@ export function DronesPanel({ ctx }: { ctx: Ctx }) {
         </dl>
         <div className="mt-3 grid grid-cols-2 gap-2">
           <Btn variant={ctx.followId === active.spec.id ? "active" : "ghost"} disabled={!flying} onClick={() => ctx.setFollowId(ctx.followId === active.spec.id ? null : active.spec.id)}>
-            <Video className="size-3.5" /> {ctx.followId === active.spec.id ? "Dejar de seguir" : "Seguir en 3D"}
+            <Video className="size-3.5" /> {ctx.followId === active.spec.id ? tr("drw.unfollow") : tr("drw.follow")}
           </Btn>
           <Btn variant={ctx.rtb.has(active.spec.id) ? "solid" : "danger"} disabled={!active.route} onClick={() => ctx.toggleRtb(active.spec.id)}>
-            {ctx.rtb.has(active.spec.id) ? "Reanudar ruta" : "Abortar y retornar"}
+            {ctx.rtb.has(active.spec.id) ? tr("drw.resume") : tr("drw.abort")}
           </Btn>
         </div>
       </Card>
 
-      <Card bare title={`Dock ${active.spec.id.toUpperCase()} · Base Alfa`} right={<Badge tone="ok">online</Badge>}>
+      <Card bare title={tr("drw.dock", { id: active.spec.id.toUpperCase() })} right={<Badge tone="ok">online</Badge>}>
         <div className="grid grid-cols-4 gap-2">
-          <Stat label="Compuerta" value={flying ? "Abierta" : "Cerrada"} />
-          <Stat label="Viento" value={wind} sub="m/s" />
-          <Stat label="Clima" value="18°" sub="auto" />
-          <Stat label="UPS" value="100%" sub="red AC" tone="ok" />
+          <Stat label={tr("drw.hatch")} value={flying ? tr("drw.open") : tr("drw.closed")} />
+          <Stat label={tr("wx.wind")} value={wind} sub="m/s" />
+          <Stat label={tr("zd.weather")} value="18°" sub={tr("drw.auto")} />
+          <Stat label="UPS" value="100%" sub={tr("drw.acPower")} tone="ok" />
         </div>
       </Card>
 
       <SelectedCard ctx={ctx} />
 
-      <Card bare title="Rutas" right={ctx.ws.features.length === 0 ? <Btn onClick={ctx.loadDemo}>Cargar demo</Btn> : undefined}>
-        <ItemList ctx={ctx} roles={["route"]} empty="Sin rutas. Usá la herramienta de ruta (primer ícono del mapa)." />
+      <Card bare title={tr("drw.routes")} right={ctx.ws.features.length === 0 ? <Btn onClick={ctx.loadDemo}>{tr("drw.loadDemo")}</Btn> : undefined}>
+        <ItemList ctx={ctx} roles={["route"]} empty={tr("drw.routesEmpty")} />
       </Card>
 
-      <Card bare title="Sensores" right={<Badge tone={alerts ? "fire" : "sim"}>{alerts ? `${alerts} en alerta` : "simulado"}</Badge>}>
-        {ctx.sensors.length === 0 && <p className="text-[12px] text-foreground/45">Sin sensores. Colocalos sobre el mapa con la herramienta de sensor.</p>}
+      <Card bare title={tr("lay.sensors")} right={<Badge tone={alerts ? "fire" : "sim"}>{alerts ? tr("drw.sensorsAlert", { n: alerts }) : tr("res.sim")}</Badge>}>
+        {ctx.sensors.length === 0 && <p className="text-[12px] text-foreground/45">{tr("drw.sensorsEmpty")}</p>}
         <ul className="-mx-1.5 space-y-px">
           {ctx.sensors.map((s) => (
             <li key={s.feat.id}>
@@ -536,8 +529,8 @@ export function DronesPanel({ ctx }: { ctx: Ctx }) {
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[12.5px] font-medium">{s.meta.name}</span>
                   <span className="text-[10.5px] text-foreground/50">
-                    {SENSOR_LABEL[s.type].label}
-                    {s.fireKm !== null && s.fireKm < 12 ? ` · foco a ${s.fireKm.toFixed(1)} km` : ""}
+                    {tr(`sen.${s.type}` as MsgKey)}
+                    {s.fireKm !== null && s.fireKm < 12 ? ` · ${tr("drw.fireNear", { km: s.fireKm.toFixed(1) })}` : ""}
                   </span>
                 </span>
                 <Spark id={s.feat.id} type={s.type} now={Math.floor(ctx.now / 60000) * 60000} fireKm={s.fireKm} ctx={ctx} />

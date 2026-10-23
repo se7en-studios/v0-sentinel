@@ -5,11 +5,11 @@ import { Flame, Plane, Truck, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { centerOf, distKm } from "@/lib/admin/geo";
 import {
-  KIND_LABEL,
   etaFromBase,
   type UnitKind,
   type UnitState,
 } from "@/lib/admin/resources";
+import type { MsgKey } from "@/lib/admin/i18n";
 import type { Ctx } from "./ctx";
 import { Badge, Btn, Card, EmptyState, Stat, inputCls } from "./ui";
 
@@ -26,10 +26,10 @@ const STATUS_TONE: Record<UnitState["status"], string> = {
   "en operación": "bg-primary/14 text-primary",
   regresando: "bg-[#1b6fb8]/12 text-[#1b6fb8]",
 };
-const GROUPS: { title: string; kinds: UnitKind[] }[] = [
-  { title: "Aéreos", kinds: ["avion", "helicoptero"] },
-  { title: "Autobombas y cisternas", kinds: ["autobomba", "cisterna"] },
-  { title: "Brigadas", kinds: ["brigada"] },
+const GROUPS: { title: MsgKey; kinds: UnitKind[] }[] = [
+  { title: "res.g.air", kinds: ["avion", "helicoptero"] },
+  { title: "res.g.engines", kinds: ["autobomba", "cisterna"] },
+  { title: "res.g.crews", kinds: ["brigada"] },
 ];
 
 interface Target {
@@ -39,7 +39,7 @@ interface Target {
 }
 
 export function ResourcesPanel({ ctx }: { ctx: Ctx }) {
-  const { ws, units, clusters } = ctx;
+  const { ws, units, clusters, t } = ctx;
   const [targetKey, setTargetKey] = useState("map");
   const sel = ws.features.find((f) => f.id === ctx.selectedId);
 
@@ -49,14 +49,14 @@ export function ResourcesPanel({ ctx }: { ctx: Ctx }) {
       if ((ctx.zoneHits[f.id]?.recent ?? 0) > 0)
         out.push({
           key: `z-${f.id}`,
-          label: `Alerta · ${ws.meta[f.id]?.name ?? "Zona"}`,
+          label: t("res.tAlert", { name: ws.meta[f.id]?.name ?? t("res.zone") }),
           pos: centerOf(f),
         });
     }
     if (sel)
       out.push({
         key: "sel",
-        label: `Seleccionado · ${ws.meta[sel.id]?.name ?? "elemento"}`,
+        label: t("res.tSel", { name: ws.meta[sel.id]?.name ?? t("res.element") }),
         pos: centerOf(sel),
       });
     clusters
@@ -64,13 +64,13 @@ export function ResourcesPanel({ ctx }: { ctx: Ctx }) {
       .forEach((c, i) =>
         out.push({
           key: `c-${i}`,
-          label: `Foco ${i + 1} · ${c.km} km de ${c.near}`,
+          label: t("res.tFire", { i: i + 1, km: c.km, near: c.near }),
           pos: [c.lng, c.lat],
         }),
       );
-    out.push({ key: "map", label: "Centro del mapa", pos: ctx.center });
+    out.push({ key: "map", label: t("res.tMap"), pos: ctx.center });
     return out;
-  }, [ws.features, ws.meta, ctx.zoneHits, sel, clusters, ctx.center]);
+  }, [ws.features, ws.meta, ctx.zoneHits, sel, clusters, ctx.center, t]);
   const target =
     targets.find((t) => t.key === targetKey) ?? targets[targets.length - 1];
 
@@ -92,27 +92,27 @@ export function ResourcesPanel({ ctx }: { ctx: Ctx }) {
     <div>
       <Card
         bare
-        title="Recursos de respuesta"
-        right={<Badge tone="sim">simulado</Badge>}
+        title={t("res.title")}
+        right={<Badge tone="sim">{t("res.sim")}</Badge>}
       >
         <div className="grid grid-cols-3 gap-3">
           <Stat
-            label="Activos"
+            label={t("res.active")}
             value={`${active.length}/${units.length}`}
             tone={active.length ? "ok" : undefined}
           />
-          <Stat label="Personal" value={people} />
+          <Stat label={t("res.staff")} value={people} />
           <Stat
-            label="Agua"
+            label={t("res.water")}
             value={water >= 1000 ? `${(water / 1000).toFixed(1)}k` : water}
-            sub="L en operación"
+            sub={t("res.waterSub")}
           />
         </div>
       </Card>
 
-      <Card bare title="Objetivo">
+      <Card bare title={t("res.target")}>
         <label htmlFor="objetivo" className="sr-only">
-          Objetivo del despacho
+          {t("res.targetAria")}
         </label>
         <select
           id="objetivo"
@@ -138,25 +138,24 @@ export function ResourcesPanel({ ctx }: { ctx: Ctx }) {
                 )
             }
           >
-            <Flame className="size-3.5" /> Enviar 3 cercanas
+            <Flame className="size-3.5" /> {t("res.send3")}
           </Btn>
           <Btn
             disabled={active.length === 0}
             onClick={() => active.forEach((u) => ctx.recallUnit(u.spec.id))}
           >
-            Retirar todas
+            {t("res.recallAll")}
           </Btn>
         </div>
         <p className="mt-2 text-[10.5px] leading-snug text-foreground/45">
-          Sentinel no despacha medios reales. Esta vista simula cómo se vería la
-          coordinación de respuesta sobre una alerta.
+          {t("res.disclaimer")}
         </p>
       </Card>
 
       {GROUPS.map((g) => {
         const rows = units.filter((u) => g.kinds.includes(u.spec.kind));
         return (
-          <Card bare key={g.title} title={g.title}>
+          <Card bare key={g.title} title={t(g.title)}>
             <ul className="-mx-1.5 space-y-px">
               {rows.map((u) => {
                 const Icon = ICON[u.spec.kind];
@@ -171,7 +170,7 @@ export function ResourcesPanel({ ctx }: { ctx: Ctx }) {
                       type="button"
                       onClick={() => ctx.map.current?.flyTo(u.pos, 11.5)}
                       className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
-                      aria-label={`Ver ${u.spec.name} en el mapa`}
+                      aria-label={t("res.viewMap", { name: u.spec.name })}
                     >
                       <span
                         className={cn(
@@ -188,16 +187,17 @@ export function ResourcesPanel({ ctx }: { ctx: Ctx }) {
                           {u.spec.name}
                         </span>
                         <span className="num block truncate text-[10.5px] text-foreground/50">
-                          {KIND_LABEL[u.spec.kind]} · {u.spec.crew} pers.
+                          {t(`res.kind.${u.spec.kind}` as MsgKey)} ·{" "}
+                          {t("res.crew", { n: u.spec.crew })}
                           {u.status === "disponible"
-                            ? ` · ETA ${eta} min`
+                            ? ` · ${t("res.eta", { n: eta })}`
                             : u.target
                               ? ` · ${u.target.label.split("·").pop()?.trim()}`
                               : ""}
                           {u.status === "en ruta" && u.etaMin
-                            ? ` · llega en ${u.etaMin} min`
+                            ? ` · ${t("res.arrives", { n: u.etaMin })}`
                             : ""}
-                          {u.status === "en operación" ? ` · a ${away} km` : ""}
+                          {u.status === "en operación" ? ` · ${t("res.away", { n: away })}` : ""}
                         </span>
                       </span>
                     </button>
@@ -209,7 +209,7 @@ export function ResourcesPanel({ ctx }: { ctx: Ctx }) {
                           STATUS_TONE[u.status],
                         )}
                       >
-                        {u.status}
+                        {t(`res.status.${u.status}` as MsgKey)}
                       </span>
                     )}
                     {u.status === "disponible" ? (
@@ -219,7 +219,7 @@ export function ResourcesPanel({ ctx }: { ctx: Ctx }) {
                           ctx.dispatchUnit(u.spec.id, target.pos, target.label)
                         }
                       >
-                        Enviar
+                        {t("res.send")}
                       </Btn>
                     ) : (
                       <Btn
@@ -227,7 +227,7 @@ export function ResourcesPanel({ ctx }: { ctx: Ctx }) {
                         onClick={() => ctx.recallUnit(u.spec.id)}
                         disabled={u.status === "regresando"}
                       >
-                        Retirar
+                        {t("res.recall")}
                       </Btn>
                     )}
                   </li>
@@ -242,10 +242,9 @@ export function ResourcesPanel({ ctx }: { ctx: Ctx }) {
         <div className="px-4 pb-4">
           <EmptyState
             icon={<Truck className="size-4" />}
-            title="Sin medios desplegados"
+            title={t("res.emptyTitle")}
           >
-            Elegí un objetivo y enviá las unidades más cercanas para ver ETA,
-            posición y registro.
+            {t("res.emptyBody")}
           </EmptyState>
         </div>
       )}

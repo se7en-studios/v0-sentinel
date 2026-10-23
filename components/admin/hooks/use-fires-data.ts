@@ -1,17 +1,27 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isModis } from "@/lib/admin/fire-sources";
 import type { PolarRef } from "@/lib/admin/early";
-import { classifyPoints, fireInfoMap } from "@/lib/admin/noise";
+import {
+  applyCover,
+  classifyPoints,
+  coverCandidates,
+  fireInfoMap,
+} from "@/lib/admin/noise";
+import { firesInZone } from "@/lib/admin/geo";
+import { incidentContaining } from "@/lib/admin/map-popup";
 import { buildIncidents, recentGrowth } from "@/lib/admin/incident";
 import { nearestPlace } from "@/lib/admin/places";
 import { detectionHectares } from "@/lib/admin/history";
-import type { FireCluster, FiresPayload, Settings } from "@/lib/admin/types";
+import type { Feat, FireCluster, FiresPayload, Settings } from "@/lib/admin/types";
 import type { FireStats, HourPoint } from "../ctx";
 import type { CloudSession } from "../use-admin";
 import { ART_MS, artPerDay, pointTs } from "./fire-time";
+import { useCover } from "./use-cover";
 
 const CONF_MIN = { l: 0, n: 1, h: 2 } as const;
 const EMPTY_CLUSTERS: FireCluster[] = [];
+const EMPTY_ZONES: Feat[] = [];
+const COVER_INCIDENTS = 20;
 const EMPTY_STATS: FireStats = {
   total: 0,
   last24: 0,
@@ -31,6 +41,8 @@ export function useFiresData(
     Settings,
     "refreshMin" | "minConfidence" | "hideNoise" | "minScore" | "useModis"
   >,
+  /** the user's zones: new detections inside them get their land cover checked */
+  zones: Feat[] = EMPTY_ZONES,
 ) {
   const [payload, setPayload] = useState<FiresPayload | null>(null);
   const [firesError, setFiresError] = useState<string | null>(null);
@@ -70,9 +82,34 @@ export function useFiresData(
 
   const minConf = CONF_MIN[s.minConfidence];
   // industrial heat (fixed pixels, known sites) is scored apart so the user can see what was left out
-  const classified = useMemo(
+  const baseClassified = useMemo(
     () => classifyPoints(payload?.points ?? []),
     [payload],
+  );
+  const keeps = useCallback(
+    (p: FiresPayload["points"][number], i: number, c: typeof baseClassified) =>
+      p[3] >= minConf &&
+      (s.useModis || !isModis(p[7])) &&
+      c.score[i] >= s.minScore &&
+      !(s.hideNoise && c.reason[i]),
+    [minConf, s.useModis, s.minScore, s.hideNoise],
+  );
+  // land cover is only looked up where it matters: incident centres and new detections in zones or incidents
+  const coverTargets = useMemo(() => {
+    const pts = payload?.points ?? [];
+    const base = pts.filter((p, i) => keeps(p, i, baseClassified));
+    const incidents = buildIncidents(base, COVER_INCIDENTS);
+    const fresh = pts.filter((p, i) => baseClassified.fresh[i] && keeps(p, i, baseClassified));
+    const inZones = new Set(zones.flatMap((z) => firesInZone(z, fresh, 0)));
+    const relevant = fresh.filter(
+      (p) => inZones.has(p) || incidentContaining(incidents, p[0], p[1]),
+    );
+    return coverCandidates(incidents, relevant);
+  }, [payload, baseClassified, keeps, zones]);
+  const nonBurnable = useCover(cloud, coverTargets);
+  const classified = useMemo(
+    () => applyCover(payload?.points ?? [], baseClassified, nonBurnable),
+    [payload, baseClassified, nonBurnable],
   );
   const fireInfo = useMemo(
     () => fireInfoMap(payload?.points ?? [], classified),
@@ -87,14 +124,8 @@ export function useFiresData(
   );
   const allFires = useMemo(
     () =>
-      (payload?.points ?? []).filter(
-        (p, i) =>
-          p[3] >= minConf &&
-          (s.useModis || !isModis(p[7])) &&
-          classified.score[i] >= s.minScore &&
-          !(s.hideNoise && classified.reason[i]),
-      ),
-    [payload, minConf, classified, s.hideNoise, s.minScore, s.useModis],
+      (payload?.points ?? []).filter((p, i) => keeps(p, i, classified)),
+    [payload, classified, keeps],
   );
   // what a GOES detection is checked against: nominal-or-better polar pixels, flagged when they look fixed
   const polarRefs = useMemo<PolarRef[]>(() => {

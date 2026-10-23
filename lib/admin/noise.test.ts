@@ -1,5 +1,11 @@
 import { describe, expect, test } from "vitest";
-import { classifyPoints, fireInfoMap } from "./noise";
+import {
+  applyCover,
+  classifyPoints,
+  coverCandidates,
+  coverKey,
+  fireInfoMap,
+} from "./noise";
 import type { FirePoint } from "./types";
 
 // [lat, lng, frp, confidence 0|1|2, dayIdx, hhmm, isNight]
@@ -93,5 +99,39 @@ describe("fireInfoMap", () => {
     expect(info.get(b)?.reason).toBeNull();
     expect(info.get(b)?.score).toBeGreaterThanOrEqual(80);
     expect(info.get([...b] as FirePoint)).toBeUndefined(); // identity, not value
+  });
+});
+
+describe("land cover", () => {
+  const points = [pt(-41.1, -71.3, 0, 30, 2), pt(-41.5, -71.5, 0, 30, 2)];
+
+  test("a non-vegetated cell lowers only the score of detections inside it", () => {
+    const base = classifyPoints(points);
+    const out = applyCover(points, base, new Set([coverKey(-41.1, -71.3)]));
+    expect(out.score[0]).toBeLessThan(base.score[0]);
+    expect(out.score[1]).toBe(base.score[1]);
+    expect(out.cover).toEqual([true, false]);
+    expect(out.reason).toEqual(base.reason); // never hides the detection
+  });
+
+  test("without information the verdicts stay exactly as they were", () => {
+    const base = classifyPoints(points);
+    expect(applyCover(points, base, new Set())).toBe(base);
+  });
+
+  test("fireInfoMap carries the cover flag for the popup", () => {
+    const base = classifyPoints(points);
+    const out = applyCover(points, base, new Set([coverKey(-41.1, -71.3)]));
+    expect(fireInfoMap(points, out).get(points[0])?.cover).toBe(true);
+  });
+
+  test("candidates: incident centres first, one per ~1 km cell", () => {
+    const near = pt(-41.1004, -71.3004, 0);
+    const c = coverCandidates(
+      [{ lat: -41.1, lng: -71.3 }],
+      [near, pt(-30, -60, 0)],
+    );
+    expect(c).toHaveLength(2);
+    expect(c[0].key).toBe(coverKey(-41.1, -71.3));
   });
 });

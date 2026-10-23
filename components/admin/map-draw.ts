@@ -12,6 +12,7 @@ import {
 } from "terra-draw";
 import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter";
 import { areaHa, fmtArea, fmtKm, lengthKm } from "@/lib/admin/geo";
+import { uiLoc, uiT } from "@/lib/admin/ui-locale";
 import { ROLE_COLOR, type Feat, type Role } from "@/lib/admin/types";
 
 type Hex = `#${string}`;
@@ -135,9 +136,9 @@ export function createDraw(map: MLMap, h: DrawHandlers) {
     try {
       h.onLive(
         s.geometry.type === "LineString"
-          ? `Largo ${fmtKm(lengthKm(f))}`
+          ? uiT("ms.length", { v: fmtKm(lengthKm(f), uiLoc()) })
           : s.geometry.type === "Polygon"
-            ? `Área ${fmtArea(areaHa(f), h.units())}`
+            ? uiT("ms.area", { v: fmtArea(areaHa(f), h.units(), uiLoc()) })
             : null,
       );
     } catch {

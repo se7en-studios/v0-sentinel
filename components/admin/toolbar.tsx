@@ -11,22 +11,23 @@ import {
   Square,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { MsgKey, Translate } from "@/lib/admin/i18n";
 import type { Tab } from "./ctx";
 
 const TOOLS: Record<
   string,
-  { mode: string; label: string; key: string; Icon: typeof Circle }[]
+  { mode: string; label: MsgKey; key: string; Icon: typeof Circle }[]
 > = {
   zonas: [
-    { mode: "zone-polygon", label: "Polígono libre", key: "P", Icon: Pentagon },
-    { mode: "zone-free", label: "Mano alzada", key: "M", Icon: Pencil },
-    { mode: "zone-rect", label: "Rectángulo", key: "R", Icon: Square },
-    { mode: "zone-circle", label: "Círculo (radio)", key: "C", Icon: Circle },
-    { mode: "line", label: "Línea / cortafuego", key: "L", Icon: Ruler },
+    { mode: "zone-polygon", label: "tl.zone-polygon", key: "P", Icon: Pentagon },
+    { mode: "zone-free", label: "tl.zone-free", key: "M", Icon: Pencil },
+    { mode: "zone-rect", label: "tl.zone-rect", key: "R", Icon: Square },
+    { mode: "zone-circle", label: "tl.zone-circle", key: "C", Icon: Circle },
+    { mode: "line", label: "tl.line", key: "L", Icon: Ruler },
   ],
   drones: [
-    { mode: "route", label: "Ruta de dron", key: "R", Icon: Route },
-    { mode: "sensor", label: "Colocar sensor", key: "S", Icon: Radio },
+    { mode: "route", label: "tl.route", key: "R", Icon: Route },
+    { mode: "sensor", label: "tl.sensor", key: "S", Icon: Radio },
   ],
 };
 
@@ -35,7 +36,9 @@ export function Toolbar({
   tool,
   setTool,
   editing,
+  t,
 }: {
+  t: Translate;
   tab: Tab;
   tool: string | null;
   setTool: (t: string | null) => void;
@@ -66,12 +69,13 @@ export function Toolbar({
   return (
     <div
       role="toolbar"
-      aria-label="Herramientas de dibujo"
+      aria-label={t("tl.aria")}
       aria-orientation="vertical"
       className="glass absolute left-3 top-[4.25rem] z-10 flex flex-col gap-0.5 rounded-xl border border-[var(--hairline)] p-1 shadow-[var(--shadow-1)]"
     >
-      {items.map(({ mode, label, key, Icon }) => {
+      {items.map(({ mode, label: labelKey, key, Icon }) => {
         const on = tool === mode;
+        const label = t(labelKey);
         return (
           <button
             key={mode}

@@ -5,6 +5,8 @@ import { satLabel } from "@/lib/admin/fire-sources";
 import type { FireInfo } from "@/lib/admin/noise";
 import { terrainLine, type TerrainInfo } from "@/lib/admin/terrain";
 import { coordText, mapsUrl } from "@/lib/admin/map-popup";
+import type { MsgKey } from "@/lib/admin/i18n";
+import { uiLoc, uiLocale, uiT } from "@/lib/admin/ui-locale";
 
 export const reducedMotion = () =>
   typeof window !== "undefined" &&
@@ -42,7 +44,7 @@ export const fireCollection = (
         sat: q[7] ?? -1,
         score: i ? i.score : -1,
         fresh: i ? (i.fresh ? 1 : 0) : -1,
-        reason: i?.reason ?? "",
+        reason: i?.reason ?? (i?.cover ? "cover" : ""),
       },
       geometry: { type: "Point", coordinates: [q[1], q[0]] },
     };
@@ -60,9 +62,11 @@ export type FireProps = {
   reason?: string;
 };
 
-const REASON_TEXT: Record<string, string> = {
-  static: "Posible fuente fija (más de 5 días en el mismo punto)",
-  industrial: "Cerca de una planta o yacimiento conocido",
+/** the popup reads the language from ui-locale (it lives outside React) */
+const REASON_TEXT: Record<string, MsgKey> = {
+  static: "pop.reason.static",
+  industrial: "pop.reason.industrial",
+  cover: "pop.reason.cover",
 };
 
 type TerrainLookup = (lat: number, lng: number) => Promise<TerrainInfo | null>;
@@ -76,16 +80,15 @@ function addTerrain(
   if (!terrainAt) return;
   const { lat, lng } = maplibregl.LngLat.convert(at);
   const line = document.createElement("span");
-  line.textContent = "Terreno: consultando…";
+  line.textContent = uiT("pop.terrainLoading");
   root.append(line);
   terrainAt(lat, lng).then((t) => {
-    const text = t ? terrainLine(t) : "";
+    const text = t ? terrainLine(t, uiLocale()) : "";
     if (!text) return line.remove();
-    line.textContent = `Terreno: ${text}`;
+    line.textContent = uiT("pop.terrain", { text });
     if (t?.burnable === false) {
       const warn = document.createElement("span");
-      warn.textContent =
-        "Cobertura no vegetal: puede ser calor urbano o industrial.";
+      warn.textContent = uiT("pop.nonveg");
       root.append(warn);
     }
   });
@@ -125,10 +128,10 @@ function actionRow(
   const { lat, lng } = maplibregl.LngLat.convert(at);
   const row = document.createElement("div");
   row.className = "snt-pop__actions";
-  const copy = actionBtn("Copiar coordenadas", () => {
+  const copy = actionBtn(uiT("pop.copy"), () => {
     void copyText(coordText(lat, lng)).then((ok) => {
-      copy.textContent = ok ? "Copiadas ✓" : "No se pudo copiar";
-      window.setTimeout(() => (copy.textContent = "Copiar coordenadas"), 1800);
+      copy.textContent = ok ? uiT("pop.copied") : uiT("pop.copyFail");
+      window.setTimeout(() => (copy.textContent = uiT("pop.copy")), 1800);
     });
   });
   const gmaps = document.createElement("a");
@@ -136,18 +139,18 @@ function actionRow(
   gmaps.href = mapsUrl(lat, lng);
   gmaps.target = "_blank";
   gmaps.rel = "noopener noreferrer";
-  gmaps.textContent = "Abrir en Google Maps";
+  gmaps.textContent = uiT("pop.gmaps");
   row.append(copy, gmaps);
   if (a?.createZone)
     row.append(
-      actionBtn("Crear zona acá", () => {
+      actionBtn(uiT("pop.createZone"), () => {
         a.createZone?.(lat, lng);
         close();
       }),
     );
   if (a?.openIncident)
     row.append(
-      actionBtn("Ver incidente", () => {
+      actionBtn(uiT("pop.openIncident"), () => {
         a.openIncident?.();
         close();
       }),
@@ -185,20 +188,21 @@ export function firePopup(
   root.className = "snt-pop";
   const title = document.createElement("b");
   const sat = satLabel(pr.sat);
-  title.textContent = sat ? `Foco térmico (${sat})` : "Foco térmico";
+  title.textContent = sat ? uiT("pop.fireSat", { sat }) : uiT("pop.fire");
   const l1 = document.createElement("span");
   l1.textContent = `${days[pr.day] ?? ""} · ${hh.slice(0, 2)}:${hh.slice(2)} UTC`;
   const l2 = document.createElement("span");
-  l2.textContent = `FRP ${pr.frp} MW · confianza ${["baja", "nominal", "alta"][pr.conf] ?? "—"}`;
+  const confKey = (["pop.conf0", "pop.conf1", "pop.conf2"] as const)[pr.conf];
+  l2.textContent = uiT("pop.frp", { frp: pr.frp, conf: confKey ? uiT(confKey) : "—" });
   root.append(title, l1, l2);
   if (typeof pr.score === "number" && pr.score >= 0) {
     const l3 = document.createElement("span");
-    l3.textContent = `Puntaje de confianza ${pr.score}/100${pr.fresh === 1 ? " · nuevo" : pr.fresh === 0 ? " · ya visto" : ""}`;
+    l3.textContent = `${uiT("pop.score", { n: pr.score })}${pr.fresh === 1 ? uiT("pop.fresh") : pr.fresh === 0 ? uiT("pop.seen") : ""}`;
     root.append(l3);
   }
   if (pr.reason && REASON_TEXT[pr.reason]) {
     const l4 = document.createElement("span");
-    l4.textContent = REASON_TEXT[pr.reason];
+    l4.textContent = uiT(REASON_TEXT[pr.reason]);
     root.append(l4);
   }
   addTerrain(root, at, terrainAt);
@@ -240,7 +244,7 @@ const SOURCE_NAME: Record<string, string> = {
   INPE: "INPE",
 };
 const artTime = (ms: number) =>
-  new Date(ms).toLocaleTimeString("es-AR", {
+  new Date(ms).toLocaleTimeString(uiLoc(), {
     timeZone: "America/Argentina/Buenos_Aires",
     hour: "2-digit",
     minute: "2-digit",
@@ -268,17 +272,19 @@ export function earlyPopup(
   const ago = Math.max(0, Math.round((Date.now() - pr.lastAt) / 60_000));
   const status =
     pr.status === "confirmed"
-      ? `Confirmado por un satélite polar (${artTime(pr.confirmedAt)} hs)`
-      : "Todavía sin confirmar por un satélite polar";
+      ? uiT("pop.early.confirmed", { t: artTime(pr.confirmedAt) })
+      : uiT("pop.early.open");
   const root = lines(
-    "Alerta temprana (GOES-19)",
-    `Visto desde las ${artTime(pr.firstAt)} hs · último escaneo hace ${ago} min`,
-    `${pr.scans} ${pr.scans === 1 ? "escaneo" : "escaneos"}${pr.frp > 0 ? ` · FRP máx. ${Math.round(pr.frp)} MW` : ""}`,
+    uiT("pop.early.title"),
+    uiT("pop.early.seen", { t: artTime(pr.firstAt), n: ago }),
+    `${uiT(pr.scans === 1 ? "pop.early.scan1" : "pop.early.scanN", { n: pr.scans })}${pr.frp > 0 ? uiT("pop.early.frp", { n: Math.round(pr.frp) }) : ""}`,
     status,
-    `Fuente: ${pr.sources
-      .split("+")
-      .map((s) => SOURCE_NAME[s] ?? s)
-      .join(" y ")}. Píxel de 2 a 4 km: la posición es aproximada.`,
+    uiT("pop.early.source", {
+      src: pr.sources
+        .split("+")
+        .map((s) => SOURCE_NAME[s] ?? s)
+        .join(uiT("pop.and")),
+    }),
   );
   addTerrain(root, at, terrainAt);
   openPopup(map, at, root, actions);

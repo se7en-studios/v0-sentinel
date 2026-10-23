@@ -11,6 +11,7 @@ import {
   zoneVolumes,
 } from "@/lib/admin/map-3d";
 import { DEFAULT_SETTINGS } from "@/lib/admin/types";
+import { uiT } from "@/lib/admin/ui-locale";
 import { earlyCollection, fireCollection, setSource, setVis } from "./helpers";
 import { applyOpacity } from "./opacity";
 import type { MapProps } from "./types";
@@ -339,9 +340,7 @@ function useDrawMode(
         } catch {
           /* geometry Terra Draw cannot edit: fall through to render mode */
         }
-        latest.current.onLive(
-          "No se puede editar la geometría de este elemento",
-        );
+        latest.current.onLive(uiT("map.noEdit"));
       }
     }
     draw.clear();
