@@ -66,6 +66,15 @@ La sincronización (`lib/admin/store.ts` y `cloud.ts`) usa un número de revisi�
 - **No integrado todavía** (piden cuenta propia): Sentinel-3 SLSTR (EUMETSAT, EUMDAC) y Meteosat LSA SAF. El segundo casi no cubre Argentina; el primero sumaría pasadas polares nuevas.
 - **Licencias:** `components/admin/sources-card.tsx` lista cada fuente con su atribución. Open-Meteo gratuito es para uso no comercial: antes de vender el servicio hace falta su plan de pago.
 
+### Backtest de la alerta temprana (22/10/2026)
+
+Se midió con 5 días reales (19 al 23 de octubre) de FIRMS para Argentina: 3.753 filas de GOES-19 contra 1.996 detecciones VIIRS de confianza nominal o alta.
+
+- Método: un punto por mancha y por día (≥3 escaneos, solo FIRMS), la alerta cuenta desde el tercer escaneo más 20 min de entrega. Se la compara con la primera detección VIIRS a menos de 4,5 km en las 24 h siguientes. Se descartaron las 73 manchas sin 24 h de cobertura polar posterior.
+- De las 98 manchas evaluables, **61 (62 %) las confirmó un VIIRS** y 37 no. Las no confirmadas pueden ser falsas alarmas de GOES, fuegos chicos o breves que VIIRS no vio, o nubes: con estos datos no se puede separar.
+- En los 61 casos confirmados GOES avisó primero en **46 (75 %)**. La ventaja ganada es muy dispareja: mediana **162 min** (cuartiles 2 y 508 min, máximo 22 h), porque depende de cuándo pasa el siguiente satélite polar.
+- Límites: una sola semana, sin separar quema agrícola de incendio forestal, y el 62 % usa VIIRS como verdad aunque VIIRS también se pierde fuegos. No usar estas cifras como promesa comercial sin repetirlas con más semanas. El script era una prueba temporal de Vitest con `parseFirmsGoes`, `mergeEarly` y `parseFireRows`.
+
 ## Pendientes conocidos
 
 - **Reglas de Firestore que validen `rev`**: hay una propuesta lista en `docs/firestore-rules-propuesta.md`, sin desplegar y sin probar porque falta Java para el emulador. Instalar Java, correr los casos de esa página y recién ahí desplegar.
