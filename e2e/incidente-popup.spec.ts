@@ -15,6 +15,8 @@ const bunch = (lat: number, lng: number, n: number, frp: number) =>
   Array.from({ length: n }, (_, i) => [lat + i * 0.0003, lng, frp, 2, 0, 1200 + i, 0, 0]);
 
 test("el popup de un foco abre el incidente que lo contiene", async ({ page }) => {
+  // the first map render in a cold dev server, with other specs compiling at the same time, can take close to a minute
+  test.setTimeout(120_000);
   await page.addInitScript(() => {
     try {
       localStorage.clear();

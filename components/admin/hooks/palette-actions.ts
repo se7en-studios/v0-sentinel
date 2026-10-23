@@ -120,5 +120,11 @@ export function buildPaletteActions(d: Deps): PaletteAction[] {
       run: d.openShortcuts,
     },
     { id: "guide", group: g.help, label: t("guide.title"), run: openGuide },
+    {
+      id: "present",
+      group: g.help,
+      label: t("pal.presentation"),
+      run: () => window.open("/demo", "_blank", "noopener"),
+    },
   ];
 }

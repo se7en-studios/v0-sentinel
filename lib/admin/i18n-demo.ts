@@ -1,0 +1,383 @@
+// Texts of the public presentation mode (/demo). Own catalog: the page never loads the admin catalogs.
+// Rules: almost no numbers, no jargon, nothing promised. Spanish (rioplatense) is the source.
+
+export type DemoLocale = "es" | "en" | "pt";
+
+export const DEMO_LOCALES: { id: DemoLocale; label: string; short: string }[] =
+  [
+    { id: "es", label: "Español", short: "ES" },
+    { id: "en", label: "English", short: "EN" },
+    { id: "pt", label: "Português", short: "PT" },
+  ];
+
+const es = {
+  "chrome.lang": "Idioma",
+  "chrome.themeDark": "Modo oscuro",
+  "chrome.themeLight": "Modo claro",
+  "chrome.site": "Ir al sitio de Sentinel",
+  "chrome.steps": "Pasos de la presentación",
+  "chrome.progress": "Avance de la presentación",
+  "chrome.step": "Paso {n} de {total}",
+  "chrome.prev": "Anterior",
+  "chrome.next": "Siguiente",
+  "chrome.hint": "Avanzá con los botones, las flechas del teclado o deslizando",
+  "chrome.sample": "Datos de ejemplo para esta presentación",
+  "chrome.replay": "Ver de nuevo",
+  "chrome.mapLabel": "Mapa de Argentina con datos de ejemplo",
+  "s1.nav": "Un satélite ve calor",
+  "s1.title": "Un satélite ve calor desde el espacio",
+  "s1.body":
+    "Satélites de NASA y NOAA recorren el planeta y detectan lugares más calientes de lo normal. Mirá cómo aparecen sobre Argentina.",
+  "s1.legend": "Calor detectado",
+  "s1.note": "Todavía no sabemos qué es cada punto.",
+  "s2.nav": "Separa fuego de ruido",
+  "s2.title": "Sentinel separa el fuego del ruido",
+  "s2.body":
+    "No todo calor es un incendio. Sentinel aparta lo que no lo es, para que no pierdas tiempo con falsas alarmas.",
+  "s2.criterion":
+    "El criterio: el calor que sale de una instalación industrial, o que aparece siempre en el mismo lugar, no se trata como un incendio nuevo.",
+  "s2.fire": "Posible fuego",
+  "s2.noise": "Calor apartado",
+  "s2.chipIndustrial": "Planta industrial",
+  "s2.chipFixed": "Calor que siempre está ahí",
+  "s3.nav": "Avisa antes",
+  "s3.title": "Avisa antes de que pase el satélite polar",
+  "s3.body":
+    "Un satélite que queda fijo sobre el continente (GOES-19) mira Argentina cada 10 minutos. Los satélites polares, que dan más detalle, pasan solo en dos franjas por día.",
+  "s3.body2":
+    "Si un fuego nace entre dos pasadas, Sentinel lo marca como alerta temprana. No siempre avisa antes: depende de cuándo nace el fuego.",
+  "s3.laneGoes": "GOES-19: mira todo el tiempo",
+  "s3.lanePolar": "Satélite polar: dos franjas por día",
+  "s3.ev1": "Nace un fuego",
+  "s3.ev2": "Alerta temprana",
+  "s3.ev3": "El satélite polar lo confirma",
+  "s3.scale": "Ilustración, sin escala de tiempo.",
+  "s3.timeline": "Línea de tiempo de la alerta temprana",
+  "s3.confTitle": "Cada alerta tiene un nivel de confianza",
+  "s3.confLow": "Baja",
+  "s3.confMid": "Media",
+  "s3.confHigh": "Alta",
+  "s3.confLowText": "Se vio poco todavía: conviene mirarla con cuidado.",
+  "s3.confMidText": "Se repitió varias veces: merece atención.",
+  "s3.confHighText": "Se sostuvo muchas veces seguidas: es la más firme.",
+  "s4.nav": "Tu zona, tu aviso",
+  "s4.title": "Marcás tu zona y Sentinel te avisa",
+  "s4.body":
+    "Dibujá el lugar que te importa: un campo, un bosque, un barrio. Si aparece fuego adentro, el aviso te llega al celular.",
+  "s4.draw": "Dibujar una zona de ejemplo",
+  "s4.orTap": "o tocá un lugar del mapa",
+  "s4.again": "Probar con otra zona",
+  "s4.zoneName": "Mi zona",
+  "s4.zoneDrawn": "Zona dibujada. Llegó un aviso al celular de ejemplo.",
+  "s4.idle": "Acá va a llegar tu aviso",
+  "s4.notifApp": "Sentinel",
+  "s4.notifWhen": "ahora",
+  "s4.notifTitle": "Alerta en {zone}",
+  "s4.notifBody":
+    "Se detectó calor dentro de tu zona. Confianza: media. Tocá para ver el mapa y avisar a tu equipo.",
+  "s4.mock": "Maqueta: en esta presentación no se envía ningún mensaje.",
+  "s4.phone": "Maqueta de un celular con el aviso",
+  "s5.nav": "Qué hacés con el aviso",
+  "s5.title": "Del aviso a la acción",
+  "s5.body":
+    "Cada alerta se convierte en un incidente que tu equipo puede seguir: quién lo atiende, en qué estado está y qué se hizo. Tocá los estados para verlo.",
+  "s5.card": "Incidente de ejemplo",
+  "s5.status": "Estado",
+  "s5.owner": "Responsable",
+  "s5.ownerName": "Brigada de ejemplo",
+  "s5.history": "Historial",
+  "s5.report": "Ver informe de ejemplo",
+  "s5.reportClose": "Cerrar informe",
+  "s5.reportTitle": "Informe del incidente",
+  "s5.reportWhere": "Dónde: zona de ejemplo",
+  "s5.reportStatus": "Estado: {status}",
+  "s5.reportDone": "Qué pasó",
+  "s5.st.new": "Nuevo",
+  "s5.st.active": "En atención",
+  "s5.st.controlled": "Controlado",
+  "s5.st.closed": "Cerrado",
+  "s5.h.new": "Sentinel detectó calor y avisó al equipo",
+  "s5.h.active": "Se asignó el incidente a una brigada",
+  "s5.h.controlled": "La brigada informó que el fuego está controlado",
+  "s5.h.closed": "Se cerró el incidente y quedó el informe",
+  "s6.nav": "Dónde se usa",
+  "s6.title": "Dónde se puede usar Sentinel",
+  "s6.body":
+    "En cualquier lugar donde enterarse a tiempo de un incendio cambie lo que pasa después.",
+  "s6.forestry": "Producción forestal",
+  "s6.forestryText":
+    "Vigilá plantaciones y bosques extensos con una mirada desde el espacio.",
+  "s6.farms": "Campos y ganadería",
+  "s6.farmsText":
+    "Recibí un aviso cuando hay fuego cerca de tus lotes, caminos o pastizales.",
+  "s6.towns": "Municipios y defensa civil",
+  "s6.townsText":
+    "Un mismo panel para que brigadas y equipos vean lo mismo y se coordinen.",
+  "s6.parks": "Parques y áreas protegidas",
+  "s6.parksText":
+    "Cuidá zonas grandes y de difícil acceso sin recorrerlas todas.",
+  "s6.energy": "Energía e infraestructura",
+  "s6.energyText":
+    "Enterate si hay fuego cerca de líneas eléctricas, caminos e instalaciones.",
+  "s6.ctaTitle": "¿Querés verlo funcionando en tu zona?",
+  "s6.ctaBody": "Contanos qué necesitás cuidar y lo conversamos.",
+  "s6.ctaMeet": "Solicitar reunión",
+  "s6.ctaMsg": "Enviar mensaje",
+  "s6.restart": "Volver a empezar",
+};
+
+export type DemoKey = keyof typeof es;
+
+const en: Record<DemoKey, string> = {
+  "chrome.lang": "Language",
+  "chrome.themeDark": "Dark mode",
+  "chrome.themeLight": "Light mode",
+  "chrome.site": "Go to the Sentinel website",
+  "chrome.steps": "Presentation steps",
+  "chrome.progress": "Presentation progress",
+  "chrome.step": "Step {n} of {total}",
+  "chrome.prev": "Back",
+  "chrome.next": "Next",
+  "chrome.hint": "Move on with the buttons, the arrow keys or by swiping",
+  "chrome.sample": "Sample data for this presentation",
+  "chrome.replay": "Watch again",
+  "chrome.mapLabel": "Map of Argentina with sample data",
+  "s1.nav": "A satellite sees heat",
+  "s1.title": "A satellite sees heat from space",
+  "s1.body":
+    "NASA and NOAA satellites orbit the planet and spot places hotter than normal. Watch them appear over Argentina.",
+  "s1.legend": "Heat detected",
+  "s1.note": "We do not know yet what each point is.",
+  "s2.nav": "Fire apart from noise",
+  "s2.title": "Sentinel separates fire from noise",
+  "s2.body":
+    "Not all heat is a wildfire. Sentinel sets aside what is not, so you do not lose time on false alarms.",
+  "s2.criterion":
+    "The rule: heat coming from an industrial site, or that always shows up in the same place, is not treated as a new fire.",
+  "s2.fire": "Possible fire",
+  "s2.noise": "Heat set aside",
+  "s2.chipIndustrial": "Industrial plant",
+  "s2.chipFixed": "Heat that is always there",
+  "s3.nav": "Warns earlier",
+  "s3.title": "It warns before the polar satellite passes",
+  "s3.body":
+    "A satellite that stays fixed over the continent (GOES-19) looks at Argentina every 10 minutes. Polar satellites, which give more detail, pass over only in two windows a day.",
+  "s3.body2":
+    "If a fire starts between two passes, Sentinel flags it as an early alert. It does not always warn first: it depends on when the fire starts.",
+  "s3.laneGoes": "GOES-19: watching all the time",
+  "s3.lanePolar": "Polar satellite: two windows a day",
+  "s3.ev1": "A fire starts",
+  "s3.ev2": "Early alert",
+  "s3.ev3": "The polar satellite confirms it",
+  "s3.scale": "Illustration, not to a time scale.",
+  "s3.timeline": "Early alert timeline",
+  "s3.confTitle": "Every alert has a confidence level",
+  "s3.confLow": "Low",
+  "s3.confMid": "Medium",
+  "s3.confHigh": "High",
+  "s3.confLowText": "Seen only a little so far: worth a careful look.",
+  "s3.confMidText": "Seen several times: deserves attention.",
+  "s3.confHighText": "Held up many times in a row: the firmest one.",
+  "s4.nav": "Your area, your alert",
+  "s4.title": "You mark your area and Sentinel warns you",
+  "s4.body":
+    "Draw the place you care about: a farm, a forest, a neighborhood. If fire appears inside, the alert reaches your phone.",
+  "s4.draw": "Draw an example area",
+  "s4.orTap": "or tap a spot on the map",
+  "s4.again": "Try another area",
+  "s4.zoneName": "My area",
+  "s4.zoneDrawn": "Area drawn. An alert reached the sample phone.",
+  "s4.idle": "Your alert will arrive here",
+  "s4.notifApp": "Sentinel",
+  "s4.notifWhen": "now",
+  "s4.notifTitle": "Alert in {zone}",
+  "s4.notifBody":
+    "Heat was detected inside your area. Confidence: medium. Tap to see the map and warn your team.",
+  "s4.mock": "Mock-up: nothing is sent in this presentation.",
+  "s4.phone": "Mock-up of a phone showing the alert",
+  "s5.nav": "What you do with it",
+  "s5.title": "From alert to action",
+  "s5.body":
+    "Every alert becomes an incident your team can follow: who is handling it, what state it is in and what was done. Tap the states to see it.",
+  "s5.card": "Sample incident",
+  "s5.status": "Status",
+  "s5.owner": "Owner",
+  "s5.ownerName": "Sample crew",
+  "s5.history": "History",
+  "s5.report": "See a sample report",
+  "s5.reportClose": "Close report",
+  "s5.reportTitle": "Incident report",
+  "s5.reportWhere": "Where: sample area",
+  "s5.reportStatus": "Status: {status}",
+  "s5.reportDone": "What happened",
+  "s5.st.new": "New",
+  "s5.st.active": "In progress",
+  "s5.st.controlled": "Under control",
+  "s5.st.closed": "Closed",
+  "s5.h.new": "Sentinel detected heat and warned the team",
+  "s5.h.active": "The incident was assigned to a crew",
+  "s5.h.controlled": "The crew reported the fire is under control",
+  "s5.h.closed": "The incident was closed and the report saved",
+  "s6.nav": "Where it fits",
+  "s6.title": "Where Sentinel can be used",
+  "s6.body":
+    "Anywhere that hearing about a fire in time changes what happens next.",
+  "s6.forestry": "Forestry",
+  "s6.forestryText":
+    "Watch over plantations and large forests with a view from space.",
+  "s6.farms": "Farms and livestock",
+  "s6.farmsText":
+    "Get an alert when there is fire near your fields, roads or grazing land.",
+  "s6.towns": "Municipalities and civil defense",
+  "s6.townsText":
+    "One shared panel so crews and teams see the same thing and coordinate.",
+  "s6.parks": "Parks and protected areas",
+  "s6.parksText":
+    "Look after large, hard-to-reach areas without walking all of them.",
+  "s6.energy": "Energy and infrastructure",
+  "s6.energyText":
+    "Know when there is fire near power lines, roads and facilities.",
+  "s6.ctaTitle": "Want to see it working in your area?",
+  "s6.ctaBody": "Tell us what you need to protect and we will talk it through.",
+  "s6.ctaMeet": "Request a meeting",
+  "s6.ctaMsg": "Send a message",
+  "s6.restart": "Start over",
+};
+
+const pt: Record<DemoKey, string> = {
+  "chrome.lang": "Idioma",
+  "chrome.themeDark": "Modo escuro",
+  "chrome.themeLight": "Modo claro",
+  "chrome.site": "Ir ao site da Sentinel",
+  "chrome.steps": "Passos da apresentação",
+  "chrome.progress": "Andamento da apresentação",
+  "chrome.step": "Passo {n} de {total}",
+  "chrome.prev": "Voltar",
+  "chrome.next": "Próximo",
+  "chrome.hint": "Avance com os botões, as setas do teclado ou deslizando",
+  "chrome.sample": "Dados de exemplo para esta apresentação",
+  "chrome.replay": "Ver de novo",
+  "chrome.mapLabel": "Mapa da Argentina com dados de exemplo",
+  "s1.nav": "Um satélite vê calor",
+  "s1.title": "Um satélite vê calor do espaço",
+  "s1.body":
+    "Satélites da NASA e da NOAA percorrem o planeta e detectam lugares mais quentes do que o normal. Veja como aparecem sobre a Argentina.",
+  "s1.legend": "Calor detectado",
+  "s1.note": "Ainda não sabemos o que é cada ponto.",
+  "s2.nav": "Fogo separado do ruído",
+  "s2.title": "A Sentinel separa o fogo do ruído",
+  "s2.body":
+    "Nem todo calor é um incêndio. A Sentinel põe de lado o que não é, para você não perder tempo com alarmes falsos.",
+  "s2.criterion":
+    "O critério: o calor que vem de uma instalação industrial, ou que aparece sempre no mesmo lugar, não é tratado como um incêndio novo.",
+  "s2.fire": "Possível fogo",
+  "s2.noise": "Calor descartado",
+  "s2.chipIndustrial": "Planta industrial",
+  "s2.chipFixed": "Calor que está sempre ali",
+  "s3.nav": "Avisa antes",
+  "s3.title": "Avisa antes de o satélite polar passar",
+  "s3.body":
+    "Um satélite que fica fixo sobre o continente (GOES-19) olha a Argentina a cada 10 minutos. Os satélites polares, que dão mais detalhe, passam só em duas faixas por dia.",
+  "s3.body2":
+    "Se um fogo nasce entre duas passagens, a Sentinel o marca como alerta precoce. Nem sempre avisa antes: depende de quando o fogo nasce.",
+  "s3.laneGoes": "GOES-19: olhando o tempo todo",
+  "s3.lanePolar": "Satélite polar: duas faixas por dia",
+  "s3.ev1": "Nasce um fogo",
+  "s3.ev2": "Alerta precoce",
+  "s3.ev3": "O satélite polar confirma",
+  "s3.scale": "Ilustração, sem escala de tempo.",
+  "s3.timeline": "Linha do tempo do alerta precoce",
+  "s3.confTitle": "Cada alerta tem um nível de confiança",
+  "s3.confLow": "Baixa",
+  "s3.confMid": "Média",
+  "s3.confHigh": "Alta",
+  "s3.confLowText": "Foi vista pouco até agora: vale olhar com cuidado.",
+  "s3.confMidText": "Apareceu várias vezes: merece atenção.",
+  "s3.confHighText": "Se manteve muitas vezes seguidas: é a mais firme.",
+  "s4.nav": "Sua área, seu aviso",
+  "s4.title": "Você marca sua área e a Sentinel avisa",
+  "s4.body":
+    "Desenhe o lugar que importa: um campo, uma floresta, um bairro. Se aparecer fogo dentro, o aviso chega ao seu celular.",
+  "s4.draw": "Desenhar uma área de exemplo",
+  "s4.orTap": "ou toque num lugar do mapa",
+  "s4.again": "Tentar outra área",
+  "s4.zoneName": "Minha área",
+  "s4.zoneDrawn": "Área desenhada. Chegou um aviso ao celular de exemplo.",
+  "s4.idle": "Aqui vai chegar o seu aviso",
+  "s4.notifApp": "Sentinel",
+  "s4.notifWhen": "agora",
+  "s4.notifTitle": "Alerta em {zone}",
+  "s4.notifBody":
+    "Foi detectado calor dentro da sua área. Confiança: média. Toque para ver o mapa e avisar sua equipe.",
+  "s4.mock": "Maquete: nesta apresentação nenhuma mensagem é enviada.",
+  "s4.phone": "Maquete de um celular com o aviso",
+  "s5.nav": "O que fazer com o aviso",
+  "s5.title": "Do aviso à ação",
+  "s5.body":
+    "Cada alerta vira um incidente que sua equipe pode acompanhar: quem atende, em que estado está e o que foi feito. Toque nos estados para ver.",
+  "s5.card": "Incidente de exemplo",
+  "s5.status": "Estado",
+  "s5.owner": "Responsável",
+  "s5.ownerName": "Brigada de exemplo",
+  "s5.history": "Histórico",
+  "s5.report": "Ver relatório de exemplo",
+  "s5.reportClose": "Fechar relatório",
+  "s5.reportTitle": "Relatório do incidente",
+  "s5.reportWhere": "Onde: área de exemplo",
+  "s5.reportStatus": "Estado: {status}",
+  "s5.reportDone": "O que aconteceu",
+  "s5.st.new": "Novo",
+  "s5.st.active": "Em atendimento",
+  "s5.st.controlled": "Controlado",
+  "s5.st.closed": "Encerrado",
+  "s5.h.new": "A Sentinel detectou calor e avisou a equipe",
+  "s5.h.active": "O incidente foi atribuído a uma brigada",
+  "s5.h.controlled": "A brigada informou que o fogo está controlado",
+  "s5.h.closed": "O incidente foi encerrado e o relatório ficou salvo",
+  "s6.nav": "Onde se usa",
+  "s6.title": "Onde a Sentinel pode ser usada",
+  "s6.body":
+    "Em qualquer lugar onde saber de um incêndio a tempo muda o que acontece depois.",
+  "s6.forestry": "Produção florestal",
+  "s6.forestryText":
+    "Vigie plantações e florestas extensas com um olhar do espaço.",
+  "s6.farms": "Campos e pecuária",
+  "s6.farmsText":
+    "Receba um aviso quando houver fogo perto de seus lotes, estradas ou pastagens.",
+  "s6.towns": "Municípios e defesa civil",
+  "s6.townsText":
+    "Um mesmo painel para brigadas e equipes verem o mesmo e se coordenarem.",
+  "s6.parks": "Parques e áreas protegidas",
+  "s6.parksText":
+    "Cuide de áreas grandes e de difícil acesso sem percorrê-las todas.",
+  "s6.energy": "Energia e infraestrutura",
+  "s6.energyText":
+    "Saiba se há fogo perto de linhas elétricas, estradas e instalações.",
+  "s6.ctaTitle": "Quer ver funcionando na sua região?",
+  "s6.ctaBody": "Conte o que você precisa proteger e conversamos.",
+  "s6.ctaMeet": "Solicitar reunião",
+  "s6.ctaMsg": "Enviar mensagem",
+  "s6.restart": "Recomeçar",
+};
+
+export const DEMO_MESSAGES: Record<DemoLocale, Record<DemoKey, string>> = {
+  es,
+  en,
+  pt,
+};
+
+export type DemoTranslate = (
+  key: DemoKey,
+  vars?: Record<string, string | number>,
+) => string;
+
+export function parseDemoLocale(v: unknown): DemoLocale {
+  return v === "en" || v === "pt" ? v : "es";
+}
+
+export function demoTranslator(locale: DemoLocale): DemoTranslate {
+  return (key, vars = {}) =>
+    DEMO_MESSAGES[locale][key].replace(/\{(\w+)\}/g, (m, k: string) =>
+      k in vars ? String(vars[k]) : m,
+    );
+}

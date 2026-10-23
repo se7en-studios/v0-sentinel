@@ -96,6 +96,7 @@ export const esShell = {
   "pal.pdf": "Generar reporte PDF",
   "pal.reload": "Actualizar datos satelitales",
   "pal.demo": "Cargar zonas, rutas y sensores demo",
+  "pal.presentation": "Modo presentación (abre en otra pestaña)",
   // keyboard help
   "keys.title": "Atajos de teclado",
   "keys.desc":
@@ -278,6 +279,7 @@ export const enShell: Record<ShellKey, string> = {
   "pal.pdf": "Generate PDF report",
   "pal.reload": "Refresh satellite data",
   "pal.demo": "Load demo zones, routes and sensors",
+  "pal.presentation": "Presentation mode (opens in a new tab)",
   "keys.title": "Keyboard shortcuts",
   "keys.desc":
     "They work on any screen, except while you are typing in a field.",
@@ -454,6 +456,7 @@ export const ptShell: Record<ShellKey, string> = {
   "pal.pdf": "Gerar relatório em PDF",
   "pal.reload": "Atualizar dados de satélite",
   "pal.demo": "Carregar zonas, rotas e sensores de demonstração",
+  "pal.presentation": "Modo apresentação (abre em outra aba)",
   "keys.title": "Atalhos de teclado",
   "keys.desc":
     "Funcionam em qualquer tela, exceto enquanto você digita em um campo.",

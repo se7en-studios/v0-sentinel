@@ -29,8 +29,8 @@ const isTyping = (t: EventTarget | null) => {
   const el = t as HTMLElement | null;
   return Boolean(
     el?.isConnected &&
-      (el.isContentEditable ||
-        el.closest("input,textarea,select,[contenteditable=true],[role=slider]")),
+    (el.isContentEditable ||
+      el.closest("input,textarea,select,[contenteditable=true],[role=slider]")),
   );
 };
 
@@ -52,9 +52,12 @@ export function useShortcuts({
   useEffect(() => {
     let armedAt = 0;
     const onKey = (e: KeyboardEvent) => {
-      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.repeat)
+        return;
       if (isTyping(e.target)) return;
-      if (document.querySelector("[role=menu],[role=dialog][data-state=open]")) {
+      if (
+        document.querySelector("[role=menu],[role=dialog][data-state=open]")
+      ) {
         armedAt = 0;
         return;
       }
@@ -86,7 +89,9 @@ function Keys({ keys, then }: { keys: string[]; then: string }) {
     <span className="flex shrink-0 items-center gap-1">
       {keys.map((k, i) => (
         <span key={`${i}-${k}`} className="flex items-center gap-1">
-          {i > 0 && <span className="text-[10.5px] text-foreground/60">{then}</span>}
+          {i > 0 && (
+            <span className="text-[10.5px] text-foreground/60">{then}</span>
+          )}
           <kbd className={kbd}>{k}</kbd>
         </span>
       ))}
@@ -113,14 +118,18 @@ export function ShortcutsList({ t }: { t: Translate }) {
     ["m", t("tab.metricas")],
     ["c", t("tab.config")],
   ];
-  const h3 = "mb-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-foreground/60";
+  const h3 =
+    "mb-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-foreground/60";
   return (
     <>
       <section>
         <h3 className={h3}>{t("keys.general")}</h3>
         <ul className="space-y-1.5">
           {general.map(([keys, label]) => (
-            <li key={label} className="flex items-center justify-between gap-3 text-[12.5px]">
+            <li
+              key={label}
+              className="flex items-center justify-between gap-3 text-[12.5px]"
+            >
               <span>{label}</span>
               <Keys keys={keys} then="+" />
             </li>
@@ -131,7 +140,10 @@ export function ShortcutsList({ t }: { t: Translate }) {
         <h3 className={h3}>{t("keys.goto")}</h3>
         <ul className="grid grid-cols-1 gap-1.5 min-[420px]:grid-cols-2">
           {go.map(([k, label]) => (
-            <li key={k} className="flex items-center justify-between gap-3 text-[12.5px]">
+            <li
+              key={k}
+              className="flex items-center justify-between gap-3 text-[12.5px]"
+            >
               <span>{label}</span>
               <Keys keys={["g", k]} then={t("keys.then")} />
             </li>
@@ -157,33 +169,48 @@ export function ShortcutsHelp({
 }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent showCloseButton={false} className="max-h-[85dvh] overflow-y-auto sm:max-w-md">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <DialogTitle className="font-heading text-lg">{t("keys.title")}</DialogTitle>
-              <DialogDescription className="mt-1 text-[12.5px]">{t("keys.desc")}</DialogDescription>
-            </div>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label={t("keys.close")}
-              className="grid size-9 shrink-0 place-items-center rounded-lg text-foreground/70 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <X className="size-4" aria-hidden />
-            </button>
+      <DialogContent
+        showCloseButton={false}
+        className="max-h-[85dvh] overflow-y-auto sm:max-w-md"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <DialogTitle className="font-heading text-lg">
+              {t("keys.title")}
+            </DialogTitle>
+            <DialogDescription className="mt-1 text-[12.5px]">
+              {t("keys.desc")}
+            </DialogDescription>
           </div>
-          <ShortcutsList t={t} />
           <button
             type="button"
-            onClick={() => {
-              setOpen(false);
-              openGuide();
-            }}
-            className="self-start rounded-lg px-1 py-1.5 text-[12.5px] font-medium text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            onClick={() => setOpen(false)}
+            aria-label={t("keys.close")}
+            className="grid size-9 shrink-0 place-items-center rounded-lg text-foreground/70 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            {t("guide.openFromKeys")}
+            <X className="size-4" aria-hidden />
           </button>
-        </DialogContent>
+        </div>
+        <ShortcutsList t={t} />
+        <button
+          type="button"
+          onClick={() => {
+            setOpen(false);
+            openGuide();
+          }}
+          className="self-start rounded-lg px-1 py-1.5 text-[12.5px] font-medium text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {t("guide.openFromKeys")}
+        </button>
+        <a
+          href="/demo"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="self-start rounded-lg px-1 py-1.5 text-[12.5px] font-medium text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {t("pal.presentation")}
+        </a>
+      </DialogContent>
     </Dialog>
   );
 }
