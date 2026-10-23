@@ -39,7 +39,10 @@ describe("checkHealth", () => {
   });
 
   test("without a key the FIRMS probes say so and nothing calls FIRMS", async () => {
-    const f = vi.fn(async (_u: string) => new Response("", { status: 200 }));
+    const f = vi.fn(async (u: string) => {
+      void u; // typed so the test can read the requested URLs
+      return new Response("", { status: 200 });
+    });
     vi.stubGlobal("fetch", f);
     const h = await checkHealth(NOW, undefined);
     expect(

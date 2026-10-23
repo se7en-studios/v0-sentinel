@@ -28,7 +28,6 @@ function useMapNotice(openEarly: number, ready: boolean) {
     const before = prev.current;
     prev.current = openEarly;
     if (before === null || before === openEarly) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- announcement text derived from a change
     setMsg(uiT("mv.notice", { n: openEarly }));
   }, [openEarly, ready]);
   return msg;

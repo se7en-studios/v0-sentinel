@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Box,
   Layers,
@@ -10,8 +10,6 @@ import {
   Navigation2,
   Plus,
   Rotate3d,
-  Search,
-  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BASES } from "@/lib/admin/map-config";
