@@ -66,14 +66,25 @@ La sincronización (`lib/admin/store.ts` y `cloud.ts`) usa un número de revisi�
 - **No integrado todavía** (piden cuenta propia): Sentinel-3 SLSTR (EUMETSAT, EUMDAC) y Meteosat LSA SAF. El segundo casi no cubre Argentina; el primero sumaría pasadas polares nuevas.
 - **Licencias:** `components/admin/sources-card.tsx` lista cada fuente con su atribución. Open-Meteo gratuito es para uso no comercial: antes de vender el servicio hace falta su plan de pago.
 
-### Backtest de la alerta temprana (22/10/2026)
+### Backtest de la alerta temprana (25/9 al 23/10/2026)
 
-Se midió con 5 días reales (19 al 23 de octubre) de FIRMS para Argentina: 3.753 filas de GOES-19 contra 1.996 detecciones VIIRS de confianza nominal o alta.
+Se midió con 28 días reales de FIRMS para Argentina: 62.364 filas de GOES-19 contra 26.562 detecciones VIIRS de confianza nominal o alta, 1.305 manchas diarias evaluables.
 
-- Método: un punto por mancha y por día (≥3 escaneos, solo FIRMS), la alerta cuenta desde el tercer escaneo más 20 min de entrega. Se la compara con la primera detección VIIRS a menos de 4,5 km en las 24 h siguientes. Se descartaron las 73 manchas sin 24 h de cobertura polar posterior.
-- De las 98 manchas evaluables, **61 (62 %) las confirmó un VIIRS** y 37 no. Las no confirmadas pueden ser falsas alarmas de GOES, fuegos chicos o breves que VIIRS no vio, o nubes: con estos datos no se puede separar.
-- En los 61 casos confirmados GOES avisó primero en **46 (75 %)**. La ventaja ganada es muy dispareja: mediana **162 min** (cuartiles 2 y 508 min, máximo 22 h), porque depende de cuándo pasa el siguiente satélite polar.
-- Límites: una sola semana, sin separar quema agrícola de incendio forestal, y el 62 % usa VIIRS como verdad aunque VIIRS también se pierde fuegos. No usar estas cifras como promesa comercial sin repetirlas con más semanas. El script era una prueba temporal de Vitest con `parseFirmsGoes`, `mergeEarly` y `parseFireRows`.
+- Método: un punto por mancha y por día (solo FIRMS), la alerta cuenta desde el tercer escaneo más 20 min de entrega, y se la compara con la primera detección VIIRS a menos de 4,5 km en las 24 h siguientes. Se dejaron afuera las manchas sin 24 h de cobertura polar posterior.
+- **Cuantos más escaneos, más se confirma:**
+
+| Escaneos | Manchas | Confirmadas por VIIRS | GOES avisó primero | Mediana de ventaja |
+|---|---|---|---|---|
+| ≥ 3 (umbral actual) | 1.305 | 74 % | 68 % | 103 min |
+| ≥ 5 | 987 | 81 % | 71 % | 114 min |
+| ≥ 8 | 708 | 87 % | 73 % | 116 min |
+| ≥ 12 | 524 | 92 % | 76 % | 125 min |
+| ≥ 20 | 330 | 97 % | 81 % | 131 min |
+
+- Por banda (lo que usa el panel como "confianza", `earlyTier` en `lib/admin/early.ts`): menos de 5 escaneos **52 %**, de 5 a 11 **69 %**, 12 o más **92 %**.
+- La potencia también cuenta: de 20 a 50 MW se confirma 58 %, de 50 a 100 MW 71 %, desde 100 MW 85 %.
+- Límites: la ventaja de la tabla supone alertar al tercer escaneo; con un umbral más alto el aviso llega 10 min más tarde por cada escaneo extra. "Sin confirmar" mezcla falsas alarmas, fuegos chicos que VIIRS no vio y nubes: con estos datos no se separan. No cubre INPE (que ya viene filtrado), ni distingue quema agrícola de incendio forestal. Son tasas históricas, no una promesa.
+- El script fue una prueba temporal de Vitest con `parseFirmsGoes`, `mergeEarly` y `parseFireRows`; FIRMS acepta solo 1 o 2 días por pedido de GOES, así que se pidió en ventanas.
 
 ## Pendientes conocidos
 

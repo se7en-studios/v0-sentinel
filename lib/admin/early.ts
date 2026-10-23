@@ -32,6 +32,23 @@ export interface EarlyDetection {
 
 export type EarlyStatus = "open" | "confirmed" | "noise";
 
+export type EarlyTier = "low" | "mid" | "high";
+
+/**
+ * Share of GOES spots in each persistence band that a polar satellite then confirmed within 24 h and
+ * 4.5 km. Backtest over 28 days (25/9 to 23/10/2026, 1,305 daily spots, FIRMS GOES-19 vs VIIRS):
+ * under 5 scans 165 of 318, 5 to 11 scans 319 of 463, 12 or more 482 of 524. A historical rate, not a promise.
+ */
+export const EARLY_TIER_RATE: Record<EarlyTier, number> = {
+  low: 0.52,
+  mid: 0.69,
+  high: 0.92,
+};
+
+/** The more scans saw the heat, the likelier a polar pass confirms it (measured, see EARLY_TIER_RATE). */
+export const earlyTier = (scans: number): EarlyTier =>
+  scans >= 12 ? "high" : scans >= 5 ? "mid" : "low";
+
 export interface EarlyView extends EarlyDetection {
   status: EarlyStatus;
   /** when the polar detection that confirmed it was acquired */

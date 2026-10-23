@@ -1,6 +1,6 @@
 import * as maplibregl from "maplibre-gl";
 import type { FirePoint } from "@/lib/admin/types";
-import type { EarlyView } from "@/lib/admin/early";
+import { EARLY_TIER_RATE, earlyTier, type EarlyView } from "@/lib/admin/early";
 import { satLabel } from "@/lib/admin/fire-sources";
 import type { FireInfo } from "@/lib/admin/noise";
 import { terrainLine, type TerrainInfo } from "@/lib/admin/terrain";
@@ -279,6 +279,10 @@ export function earlyPopup(
     uiT("pop.early.seen", { t: artTime(pr.firstAt), n: ago }),
     `${uiT(pr.scans === 1 ? "pop.early.scan1" : "pop.early.scanN", { n: pr.scans })}${pr.frp > 0 ? uiT("pop.early.frp", { n: Math.round(pr.frp) }) : ""}`,
     status,
+    uiT("ec.tier", {
+      level: uiT(`ec.tier.${earlyTier(pr.scans)}`),
+      pct: Math.round(EARLY_TIER_RATE[earlyTier(pr.scans)] * 100),
+    }),
     uiT("pop.early.source", {
       src: pr.sources
         .split("+")

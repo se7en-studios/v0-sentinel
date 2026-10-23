@@ -4,7 +4,7 @@ import { Radar } from "lucide-react";
 import { nearestPlace } from "@/lib/admin/places";
 import { earlyKey, isAcked } from "@/lib/admin/alert-ack";
 import { cn } from "@/lib/utils";
-import type { EarlyView } from "@/lib/admin/early";
+import { EARLY_TIER_RATE, earlyTier, type EarlyView } from "@/lib/admin/early";
 import type { Ctx } from "./ctx";
 import { Badge, Btn, Card, EmptyState } from "./ui";
 
@@ -42,6 +42,12 @@ function Row({ e, zone, ctx }: { e: EarlyView; zone?: string; ctx: Ctx }) {
           {ctx.t(e.scans === 1 ? "ec.scan1" : "ec.scanN", { n: e.scans })}
           {e.frp > 0 && ` · ${Math.round(e.frp)} MW`} ·{" "}
           {e.sources.map((s) => SOURCE_NAME[s] ?? s).join(" + ")}
+        </div>
+        <div className="text-foreground/65">
+          {ctx.t("ec.tier", {
+            level: ctx.t(`ec.tier.${earlyTier(e.scans)}`),
+            pct: Math.round(EARLY_TIER_RATE[earlyTier(e.scans)] * 100),
+          })}
         </div>
       </div>
       <Btn

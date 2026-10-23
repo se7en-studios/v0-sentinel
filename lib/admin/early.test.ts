@@ -153,3 +153,14 @@ describe("resolveEarly", () => {
     });
   });
 });
+
+describe("earlyTier", () => {
+  it("bands persistence the way the backtest measured it", async () => {
+    const { earlyTier, EARLY_TIER_RATE } = await import("./early");
+    expect([1, 3, 4].map(earlyTier)).toEqual(["low", "low", "low"]);
+    expect([5, 11].map(earlyTier)).toEqual(["mid", "mid"]);
+    expect([12, 40].map(earlyTier)).toEqual(["high", "high"]);
+    expect(EARLY_TIER_RATE.low).toBeLessThan(EARLY_TIER_RATE.mid);
+    expect(EARLY_TIER_RATE.mid).toBeLessThan(EARLY_TIER_RATE.high);
+  });
+});
