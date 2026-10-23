@@ -96,6 +96,24 @@ El orden de las bandas se sostiene y la alta da lo mismo en los dos períodos. *
 - Límites: la ventaja de la tabla supone alertar al tercer escaneo; con un umbral más alto el aviso llega 10 min más tarde por cada escaneo extra. "Sin confirmar" mezcla falsas alarmas, fuegos chicos que VIIRS no vio y nubes: con estos datos no se separan. No cubre INPE (que ya viene filtrado), ni distingue quema agrícola de incendio forestal. Son tasas históricas, no una promesa.
 - El script fue una prueba temporal de Vitest con `parseFirmsGoes`, `mergeEarly` y `parseFireRows`; FIRMS acepta solo 1 o 2 días por pedido de GOES, así que se pidió en ventanas.
 
+### Cuánto tiempo gana GOES, según la hora (84 días, 31/7 al 23/10/2026)
+
+Con las 5.399 manchas evaluables de los 84 días y la alerta contada desde el escaneo que alcanza la persistencia de su banda (3, 5 o 12 escaneos, más 20 min de entrega):
+
+| Hora en que GOES ve el foco (ART) | Manchas | Se confirman | GOES avisa primero | Ventaja cuando avisa primero (mediana) |
+|---|---|---|---|---|
+| 00 a 06 | 64 | 84 % | 26 % | (muestra chica) |
+| **06 a 12** | 971 | 71 % | **99 %** | **137 min** (cuartiles 84 y 200) |
+| 12 a 18 | 3.535 | 75 % | 32 % | (la mayoría los confirma el pase de la tarde) |
+| **18 a 24** | 829 | 74 % | **100 %** | **181 min** (cuartiles 143 y 302) |
+| Todas | 5.399 | 74 % | 54 % | 170 min |
+
+- **La ventaja depende de cuándo pasa el satélite polar, no de qué tan rápido es GOES.** Los VIIRS (NOAA-20 y NOAA-21) solo sobrevuelan Argentina en dos ventanas al día: de **00:30 a 04:00** y de **13:00 a 17:00** hora argentina (935 franjas de 10 min con detecciones en 84 días, ninguna entre las 04:00 y las 13:00 ni entre las 17:00 y las 00:00). Un foco que nace de mañana o de noche espera horas a que pase alguien; uno que nace de tarde suele coincidir con el pase.
+- **Lo que sí se puede afirmar:** para focos que GOES ve entre las 18:00 y las 12:00, GOES avisa antes que el satélite polar en casi todos los casos, con una mediana de 2 a 3 horas de ventaja. **Lo que no:** que gane tiempo siempre. Entre las 12:00 y las 18:00 lo hace en 1 de cada 3.
+- MODIS agrega pasadas (Terra ~09:00 a 10:30 y ~21:00 a 22:30, Aqua ~04:00 a 05:30 y ~16:00 a 18:00), medidas con una muestra chica (15 días). Las ventanas están en `lib/admin/polar-passes.ts` y el panel las usa para decir cuándo es el próximo pase.
+- La banda (baja, media, alta) cambia la tasa de confirmación (58, 72 y 92 % en estos 84 días) más que la ventaja de tiempo.
+- Límites: las cifras de ventana de pase salen de una sola estación del año (invierno a primavera); la órbita se desplaza unos minutos por día.
+
 ## Temporada: ¿es normal para esta época?
 
 La tarjeta "Temporada" de Métricas (`components/admin/season-card.tsx`) compara los focos de los últimos 10 días con las mismas fechas de los 3 años anteriores.

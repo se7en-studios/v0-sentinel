@@ -5,6 +5,7 @@ import { nearestPlace } from "@/lib/admin/places";
 import { earlyKey, isAcked } from "@/lib/admin/alert-ack";
 import { cn } from "@/lib/utils";
 import { EARLY_TIER_RATE, earlyTier, type EarlyView } from "@/lib/admin/early";
+import { clock, nextPass } from "@/lib/admin/polar-passes";
 import type { Ctx } from "./ctx";
 import { Badge, Btn, Card, EmptyState } from "./ui";
 
@@ -99,6 +100,23 @@ function Row({ e, zone, ctx }: { e: EarlyView; zone?: string; ctx: Ctx }) {
   );
 }
 
+/** When a polar satellite will next fly over: until then, an open alert cannot be confirmed by anyone. */
+function PassHint({ ctx }: { ctx: Ctx }) {
+  const p = nextPass(ctx.now, ctx.ws.settings.useModis);
+  const dur = `${Math.floor(p.minutes / 60)} h ${String(p.minutes % 60).padStart(2, "0")} min`;
+  return (
+    <p className="mb-2 rounded-md bg-foreground/[0.04] px-2 py-1.5 text-[11px] leading-snug text-foreground/70">
+      {p.inWindow
+        ? ctx.t("ec.pass.now", { to: clock(p.window.to) })
+        : ctx.t("ec.pass.next", {
+            t: dur,
+            from: clock(p.window.from),
+            to: clock(p.window.to),
+          })}
+    </p>
+  );
+}
+
 /** GOES-19 sees Argentina every 10 minutes; these are the spots no polar satellite has confirmed yet. */
 export function EarlyCard({ ctx }: { ctx: Ctx }) {
   const { ws, early, earlyOpen, earlyByZone, earlyError, earlyFetchedAt, t } = ctx;
@@ -128,6 +146,7 @@ export function EarlyCard({ ctx }: { ctx: Ctx }) {
       <p className="mb-2 text-[11px] leading-snug text-foreground/60">
         {t("early.intro")}
       </p>
+      {shown.length > 0 && <PassHint ctx={ctx} />}
       {earlyFetchedAt === 0 && !earlyError && (
         <p className="text-[11.5px] text-foreground/55">{t("early.loading")}</p>
       )}

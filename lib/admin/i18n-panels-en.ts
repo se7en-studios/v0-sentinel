@@ -664,6 +664,8 @@ export const enPanels: Record<PanelKey, string> = {
   "ec.far": "{km} km from {near}",
   "ec.last": "Last scan {age}",
   "ec.scan1": "{n} scan",
+  "ec.pass.now": "A polar satellite is over the country now (until {to}): confirmation should arrive shortly.",
+  "ec.pass.next": "Next polar satellite over Argentina: in {t} ({from} to {to}). Until then only GOES-19 sees these alerts.",
   "ec.tier.low": "low",
   "ec.tier.mid": "medium",
   "ec.tier.high": "high",

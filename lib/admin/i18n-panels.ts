@@ -665,6 +665,8 @@ export const esPanels = {
   "ec.far": "A {km} km de {near}",
   "ec.last": "Último escaneo {age}",
   "ec.scan1": "{n} escaneo",
+  "ec.pass.now": "Hay un satélite polar sobre el país ahora (hasta las {to} hs): la confirmación debería llegar enseguida.",
+  "ec.pass.next": "Próximo satélite polar sobre Argentina: en {t} ({from} a {to} hs). Hasta entonces solo GOES-19 ve estas alertas.",
   "ec.tier.low": "baja",
   "ec.tier.mid": "media",
   "ec.tier.high": "alta",

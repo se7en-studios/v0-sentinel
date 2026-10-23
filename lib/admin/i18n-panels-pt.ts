@@ -664,6 +664,8 @@ export const ptPanels: Record<PanelKey, string> = {
   "ec.far": "A {km} km de {near}",
   "ec.last": "Última varredura {age}",
   "ec.scan1": "{n} varredura",
+  "ec.pass.now": "Há um satélite polar sobre o país agora (até as {to}): a confirmação deve chegar logo.",
+  "ec.pass.next": "Próximo satélite polar sobre a Argentina: em {t} ({from} a {to}). Até lá só o GOES-19 vê estes alertas.",
   "ec.tier.low": "baixa",
   "ec.tier.mid": "média",
   "ec.tier.high": "alta",
