@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, type RefObject } from "react";
 import { toast } from "sonner";
 import { evaluateRules } from "@/lib/admin/rules";
 import { translate, type Translate } from "@/lib/admin/i18n";
-import type { EarlyView } from "@/lib/admin/early";
+import { EARLY_TIER_RATE, earlyTier, type EarlyView } from "@/lib/admin/early";
 import type { DayForecast } from "@/lib/admin/forecast";
 import {
   MODE_ROLE,
@@ -289,9 +289,13 @@ export function useNotifications({
       const t = tRef.current;
       const name = ws.meta[zoneId]?.name ?? t("res.zone");
       const min = Math.max(0, Math.round((Date.now() - e.lastAt) / 60_000));
+      const tier = earlyTier(e.scans);
       logActivity("early", k, t("nt.earlyTitle", { name }), t("nt.earlyAct", { n: min }));
       toast.warning(t("nt.earlyTitle", { name }), {
-        description: t("nt.earlyDesc", { n: min }),
+        description: `${t("nt.earlyDesc", { n: min })} ${t("ec.tier", {
+          level: t(`ec.tier.${tier}`),
+          pct: Math.round(EARLY_TIER_RATE[tier] * 100),
+        })}`,
         duration: 15_000,
         action: {
           label: t("nt.view"),
@@ -301,7 +305,8 @@ export function useNotifications({
           },
         },
       });
-      if (s.notify.browser && canNotifyBrowser())
+      // a low-confidence spot (about half get confirmed) does not interrupt: it only shows in the panel
+      if (s.notify.browser && tier !== "low" && canNotifyBrowser())
         new Notification(t("nt.earlyBrowser"), {
           body: t("nt.earlyBrowserBody", { name, n: min }),
           tag: `early-${k}`,
