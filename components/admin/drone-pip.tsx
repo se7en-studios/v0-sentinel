@@ -92,7 +92,7 @@ export function DronePip({ ctx }: { ctx: Ctx }) {
             className={cn(
               "rounded-md px-2 py-1.5 text-[10px] font-bold uppercase transition-colors sm:py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               mode === m
-                ? "bg-[var(--fire)] text-white"
+                ? "bg-[var(--fire-solid)] text-white"
                 : "text-white/55 hover:text-white",
             )}
           >

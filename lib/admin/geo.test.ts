@@ -1,4 +1,5 @@
-import { describe, expect, test } from "vitest";
+import { beforeAll, describe, expect, test } from "vitest";
+import { loadBuffer } from "./buffer";
 import {
   alongRoute,
   areaHa,
@@ -12,6 +13,10 @@ import {
   sweepPath,
 } from "./geo";
 import type { Feat, FirePoint } from "./types";
+
+beforeAll(async () => {
+  await loadBuffer();
+});
 
 const poly = (coordinates: unknown, type = "Polygon"): Feat => ({
   id: "z",

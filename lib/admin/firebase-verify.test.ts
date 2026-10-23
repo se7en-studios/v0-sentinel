@@ -33,6 +33,8 @@ describe("verifyFirebaseToken", () => {
     expect(jwtVerify).toHaveBeenCalledWith("t", "jwks", {
       issuer: "https://securetoken.google.com/proj",
       audience: "proj",
+      algorithms: ["RS256"],
+      requiredClaims: ["exp", "sub"],
     });
   });
 

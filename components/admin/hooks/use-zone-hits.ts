@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useBufferReady } from "./use-buffer-ready";
 import { firesInZone } from "@/lib/admin/geo";
 import { translate } from "@/lib/admin/i18n";
 import { nearestPlace } from "@/lib/admin/places";
@@ -20,9 +21,10 @@ export function useZoneHits(
   bufferKm: number,
   nowStep: number,
 ) {
+  const bufferReady = useBufferReady(bufferKm > 0);
   const zoneHits = useMemo(() => {
     const out: Ctx["zoneHits"] = {};
-    if (!payload) return out;
+    if (!payload || !bufferReady) return out;
     const since = nowStep * 600_000 - 48 * 3600_000;
     for (const z of ws.features) {
       if (MODE_ROLE[String(z.properties.mode)] !== "zone") continue;
@@ -34,7 +36,7 @@ export function useZoneHits(
       };
     }
     return out;
-  }, [ws.features, allFires, payload, bufferKm, nowStep]);
+  }, [ws.features, allFires, payload, bufferKm, nowStep, bufferReady]);
   const alertIds = useMemo(
     () =>
       new Set(

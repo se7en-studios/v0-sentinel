@@ -82,6 +82,15 @@ const corners = (p: FirePoint): [number, number][] => {
 
 /** Single-link groups of detections closer than LINK_KM. Grid-bucketed, so ~linear. */
 function groups(points: FirePoint[]) {
+  const hit = groupsCache.get(points);
+  if (hit) return hit;
+  const out = computeGroups(points);
+  groupsCache.set(points, out);
+  return out;
+}
+const groupsCache = new WeakMap<FirePoint[], FirePoint[][]>();
+
+function computeGroups(points: FirePoint[]) {
   const parent = points.map((_, i) => i);
   const find = (i: number): number =>
     parent[i] === i ? i : (parent[i] = find(parent[i]));
@@ -93,7 +102,9 @@ function groups(points: FirePoint[]) {
   const grid = new Map<string, number[]>();
   points.forEach((p, i) => {
     const k = key(p);
-    grid.set(k, [...(grid.get(k) ?? []), i]);
+    const cell = grid.get(k);
+    if (cell) cell.push(i);
+    else grid.set(k, [i]);
   });
   points.forEach((p, i) => {
     const [cy, cx] = key(p).split(":").map(Number);
@@ -104,17 +115,24 @@ function groups(points: FirePoint[]) {
             parent[find(j)] = find(i);
   });
   const out = new Map<number, FirePoint[]>();
-  points.forEach((p, i) => out.set(find(i), [...(out.get(find(i)) ?? []), p]));
+  points.forEach((p, i) => {
+    const root = find(i);
+    const members = out.get(root);
+    if (members) members.push(p);
+    else out.set(root, [p]);
+  });
   return [...out.values()].filter((g) => g.length >= MIN_POINTS);
 }
 
 // cells sized so one ring of neighbours always covers JUMP_KM (same longitude trick as groups())
 const jumpCellLat = JUMP_KM / KM_LAT;
 const jumpCellLng = jumpCellLat / 0.55;
-const jumpKey = (p: FirePoint) =>
-  `${Math.floor(p[0] / jumpCellLat)}:${Math.floor(p[1] / jumpCellLng)}`;
+const jumpCell = (p: FirePoint): [number, number] => [Math.floor(p[0] / jumpCellLat), Math.floor(p[1] / jumpCellLng)];
+// both indices packed in one number (|index| < 1e6 for any real coordinate): cheaper Map keys than "y:x" strings
+const cellKey = (y: number, x: number) => (y + 1e6) * 4e6 + (x + 1e6);
+const jumpKey = (p: FirePoint) => cellKey(...jumpCell(p));
 
-function addToGrid(grid: Map<string, FirePoint[]>, p: FirePoint) {
+function addToGrid(grid: Map<number, FirePoint[]>, p: FirePoint) {
   const k = jumpKey(p);
   const cell = grid.get(k);
   if (cell) cell.push(p);
@@ -124,17 +142,17 @@ function addToGrid(grid: Map<string, FirePoint[]>, p: FirePoint) {
 /** For each of today's detections with nothing earlier within JUMP_KM, the distance to the nearest earlier one. Near-linear: only isolated points pay for a full scan. */
 function isolatedKm(
   today: FirePoint[],
-  seen: Map<string, FirePoint[]>,
+  seen: Map<number, FirePoint[]>,
   g: FirePoint[],
   day: number,
 ) {
   const out: number[] = [];
   for (const p of today) {
-    const [cy, cx] = jumpKey(p).split(":").map(Number);
+    const [cy, cx] = jumpCell(p);
     let near = false;
     for (let dy = -1; dy <= 1 && !near; dy++)
       for (let dx = -1; dx <= 1 && !near; dx++)
-        near = (seen.get(`${cy + dy}:${cx + dx}`) ?? []).some(
+        near = (seen.get(cellKey(cy + dy, cx + dx)) ?? []).some(
           (q) => kmBetween(p, q) < JUMP_KM,
         );
     if (near) continue;
@@ -146,15 +164,19 @@ function isolatedKm(
 }
 
 /** Largest-FRP incidents with a day-by-day cumulative outline. Pure; the outline is convex, so it overestimates ragged fires. */
-export function buildIncidents(points: FirePoint[], limit = 8): Incident[] {
+function buildUncached(points: FirePoint[], limit: number): Incident[] {
+  // rank by FRP first and only build the outlines of the groups that survive the cut (stable sort: same order as before)
   return groups(points)
-    .map((g): Incident => {
+    .map((g) => ({ g, frp: Math.round(g.reduce((s, p) => s + p[2], 0)) }))
+    .sort((a, b) => b.frp - a.frp)
+    .slice(0, limit)
+    .map(({ g }): Incident => {
       const lastDay = Math.max(...g.map((p) => p[4]));
       const firstDay = Math.min(...g.map((p) => p[4]));
       const perDay: Incident["perDay"] = [];
       const hulls: Incident["hulls"] = [];
       const events: IncidentEvent[] = [];
-      const seen = new Map<string, FirePoint[]>();
+      const seen = new Map<number, FirePoint[]>();
       let prevArea = 0;
       for (let d = firstDay; d <= lastDay; d++) {
         const upTo = g.filter((p) => p[4] <= d);
@@ -216,9 +238,20 @@ export function buildIncidents(points: FirePoint[], limit = 8): Incident[] {
         hulls,
         events,
       };
-    })
-    .sort((a, b) => b.frp - a.frp)
-    .slice(0, limit);
+    });
+}
+
+// The same detections array feeds the popup lookup, the incidents tab and the growth rule: build once per array and limit.
+const cache = new WeakMap<FirePoint[], Map<number, Incident[]>>();
+
+export function buildIncidents(points: FirePoint[], limit = 8): Incident[] {
+  const byLimit = cache.get(points) ?? new Map<number, Incident[]>();
+  cache.set(points, byLimit);
+  const hit = byLimit.get(limit);
+  if (hit) return hit;
+  const out = buildUncached(points, limit);
+  byLimit.set(limit, out);
+  return out;
 }
 
 /**

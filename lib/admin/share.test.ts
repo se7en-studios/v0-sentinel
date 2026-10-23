@@ -14,7 +14,7 @@ vi.mock("firebase/firestore", () => ({
   getDocs: (...a: unknown[]) => getDocs(...a),
   deleteDoc: (...a: unknown[]) => deleteDoc(...a),
 }));
-vi.mock("./firebase", () => ({ fb: () => ({ db: "db" }) }));
+vi.mock("./firebase-db", () => ({ fbDb: () => "db" }));
 
 import {
   createShare,
@@ -131,5 +131,31 @@ describe("revokeShares", () => {
     getDocs.mockResolvedValue({ docs, size: 2 });
     expect(await revokeShares("u1")).toBe(2);
     expect(deleteDoc).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("loadShare: un snapshot hostil no llega crudo al visor", () => {
+  const load = async (over: Record<string, unknown>) => {
+    answer({ json: JSON.stringify({ ...snap(), ...over }), expiresAt: Date.now() + 1000 });
+    return loadShare(TOKEN);
+  };
+
+  test("meta con nombres no-texto, region rara y capa desconocida se normalizan", async () => {
+    const s = await load({
+      meta: { z1: { name: { $: 1 } }, z2: { name: "<img src=x onerror=alert(1)>" }, z3: null },
+      region: { name: 5, center: ["a", 1e9], zoom: 1e9 },
+      baseLayer: "https://evil.example/{z}/{x}/{y}",
+      org: { x: 1 },
+    });
+    expect(s?.meta).toEqual({ z2: { name: "<img src=x onerror=alert(1)>" } });
+    expect(s?.region).toEqual({ name: "", center: [-64, -38], zoom: 22 });
+    expect(s?.baseLayer).toBe("esri");
+    expect(s?.org).toBe("");
+  });
+
+  test("focos con forma inválida se descartan", async () => {
+    const good = [-38, -64, 10, 1, 0, 1200, 0];
+    const s = await load({ fires: [good, [1, 2], "x", [...good.slice(0, 6), "n"], null] });
+    expect(s?.fires).toEqual([good]);
   });
 });

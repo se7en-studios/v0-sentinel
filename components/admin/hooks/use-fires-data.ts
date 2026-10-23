@@ -17,6 +17,9 @@ import type { FireStats, HourPoint } from "../ctx";
 import type { CloudSession } from "../use-admin";
 import { ART_MS, artPerDay, pointTs } from "./fire-time";
 import { useCover } from "./use-cover";
+import { useRecover } from "./use-recover";
+import { isFiresPayload } from "@/lib/admin/payload-guard";
+import { adminJson } from "@/lib/admin/admin-fetch";
 
 const CONF_MIN = { l: 0, n: 1, h: 2 } as const;
 const EMPTY_CLUSTERS: FireCluster[] = [];
@@ -53,13 +56,10 @@ export function useFiresData(
     const seq = ++loadSeq.current;
     setLoading(true);
     try {
-      const token = cloud ? await cloud.getToken() : null;
-      const res = await fetch(
-        "/api/admin/fires",
-        token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
-      );
-      const j = (await res.json()) as FiresPayload;
-      if (!res.ok) throw new Error(j.error ?? "Error al cargar focos");
+      const j = await adminJson<FiresPayload>("/api/admin/fires", cloud?.getToken, {
+        errorMessage: "Error al cargar focos",
+      });
+      if (!isFiresPayload(j)) throw new Error("Respuesta de focos inválida");
       if (seq !== loadSeq.current) return;
       setPayload(j);
       setFiresError(null);
@@ -79,6 +79,9 @@ export function useFiresData(
     );
     return () => clearInterval(t);
   }, [load, s.refreshMin]);
+
+  // a failed cycle used to wait for the next one (30 min): retry gently, and as soon as the network is back
+  useRecover(load, firesError !== null);
 
   const minConf = CONF_MIN[s.minConfidence];
   // industrial heat (fixed pixels, known sites) is scored apart so the user can see what was left out

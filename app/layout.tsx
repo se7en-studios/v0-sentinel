@@ -85,6 +85,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  // lets the admin use the phone's safe areas (notch, home bar)
+  viewportFit: "cover",
   themeColor: "#faf7f0",
 };
 

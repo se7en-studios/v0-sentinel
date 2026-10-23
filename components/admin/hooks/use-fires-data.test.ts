@@ -74,6 +74,7 @@ describe("useFiresData", () => {
     const { result } = render(settings({ refreshMin: 5 }));
     await tick(0);
     await tick(5 * 60_000);
+    await tick(30_000); // the retries with backoff run out
     expect(result.current.firesError).toBe("offline");
     expect(result.current.allFires).toHaveLength(1);
     expect(result.current.loading).toBe(false);

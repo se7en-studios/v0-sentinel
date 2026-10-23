@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { resolveEarly, type EarlyView, type PolarRef } from "@/lib/admin/early";
 import { firesInZone } from "@/lib/admin/geo";
+import { useBufferReady } from "./use-buffer-ready";
 import {
   MODE_ROLE,
   type EarlyPayload,
@@ -8,6 +9,9 @@ import {
   type Feat,
 } from "@/lib/admin/types";
 import type { CloudSession } from "../use-admin";
+import { isEarlyPayload } from "@/lib/admin/payload-guard";
+import { adminJson } from "@/lib/admin/admin-fetch";
+import { useRecover } from "./use-recover";
 
 const POLL_MS = 5 * 60_000;
 /** a spot GOES stopped seeing this long ago is no longer news (burnt out, or hidden by cloud) */
@@ -33,14 +37,10 @@ export function useEarly(
   const load = useCallback(async () => {
     const mine = ++seq.current;
     try {
-      const token = cloud ? await cloud.getToken() : null;
-      const res = await fetch(
-        "/api/admin/early",
-        token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
-      );
-      const j = (await res.json()) as EarlyPayload;
-      if (!res.ok)
-        throw new Error(j.error ?? "Error al cargar alertas tempranas");
+      const j = await adminJson<EarlyPayload>("/api/admin/early", cloud?.getToken, {
+        errorMessage: "Error al cargar alertas tempranas",
+      });
+      if (!isEarlyPayload(j)) throw new Error("Respuesta de alertas tempranas inválida");
       if (mine !== seq.current) return;
       setPayload(j);
       setError(null);
@@ -62,6 +62,8 @@ export function useEarly(
     return () => clearInterval(t);
   }, [enabled, load]);
 
+  useRecover(load, enabled && error !== null);
+
   const early = useMemo(
     () => (enabled && payload ? resolveEarly(payload.early, polar) : NO_EARLY),
     [enabled, payload, polar],
@@ -75,9 +77,10 @@ export function useEarly(
     [early, nowStep],
   );
   // open spots inside (or within the alert radius of) each zone
+  const bufferReady = useBufferReady(bufferKm > 0);
   const earlyByZone = useMemo(() => {
     const out: Record<string, EarlyView[]> = {};
-    if (earlyOpen.length === 0) return out;
+    if (earlyOpen.length === 0 || !bufferReady) return out;
     const pseudo = new Map<FirePoint, EarlyView>(
       earlyOpen.map((e) => [[e.lat, e.lng, e.frp, 1, 0, 0, 0], e]),
     );
@@ -88,7 +91,7 @@ export function useEarly(
       if (hits.length) out[z.id] = hits;
     }
     return out;
-  }, [earlyOpen, zones, bufferKm]);
+  }, [earlyOpen, zones, bufferKm, bufferReady]);
 
   return {
     earlyPayload: payload,

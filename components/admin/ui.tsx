@@ -81,7 +81,7 @@ export function Stat({
           "num mt-0.5 truncate font-heading text-[19px] font-bold leading-tight tracking-tight",
           tone === "fire" && "text-[#c8321e]",
           tone === "ok" && "text-primary",
-          tone === "warn" && "text-[#b9560a]",
+          tone === "warn" && "text-[var(--state-watch-ink)]",
         )}
       >
         {value}
@@ -178,7 +178,7 @@ export function Btn({ variant = "ghost", className, ...p }: BtnProps) {
         variant === "solid" &&
           "border-primary bg-primary text-primary-foreground shadow-sm hover:brightness-110",
         variant === "fire" &&
-          "border-[var(--fire)] bg-[var(--fire)] text-white shadow-sm hover:brightness-110",
+          "border-[var(--fire)] bg-[var(--fire-solid)] text-white shadow-sm hover:brightness-110",
         variant === "active" && "border-primary/50 bg-primary/10 text-primary",
         variant === "ghost" &&
           "border-[var(--hairline)] bg-card text-foreground/80 hover:bg-foreground/[0.04]",
@@ -223,7 +223,7 @@ export function Badge({
         tone === "muted" && "bg-foreground/[0.07] text-foreground/55",
         tone === "fire" && "bg-[#b83a3a]/12 text-[#b83a3a]",
         tone === "ok" && "bg-primary/12 text-primary",
-        tone === "sim" && "bg-[#e8710a]/14 text-[#b9560a]",
+        tone === "sim" && "bg-[#e8710a]/14 text-[var(--state-watch-ink)]",
       )}
     >
       {children}
@@ -447,7 +447,10 @@ export function ChartFrame({
   return (
     <>
       <div role="img" aria-label={label} className={className}>
-        {children}
+        {/* the label and the table below carry the data; recharts' own svg roles are hidden from AT */}
+        <div aria-hidden className="size-full">
+          {children}
+        </div>
       </div>
       <table className="sr-only">
         <caption>{caption}</caption>

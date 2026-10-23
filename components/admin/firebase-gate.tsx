@@ -9,7 +9,7 @@ import {
   type User,
 } from "firebase/auth";
 import { LoginShell } from "./login-shell";
-import { fb } from "@/lib/admin/firebase";
+import { fbAuth } from "@/lib/admin/firebase";
 import { AdminApp, type CloudSession } from "./admin-app";
 import { Btn, inputCls } from "./ui";
 import { useStoredT } from "./use-stored-t";
@@ -37,7 +37,7 @@ function CloudLogin() {
     setBusy(true);
     setMsg(null);
     try {
-      await signInWithEmailAndPassword(fb().auth, email.trim(), pw);
+      await signInWithEmailAndPassword(fbAuth(), email.trim(), pw);
     } catch (err) {
       setMsg({ text: errMsg(err, t) });
       setBusy(false);
@@ -50,7 +50,7 @@ function CloudLogin() {
         text: t("login.needEmail"),
       });
     try {
-      await sendPasswordResetEmail(fb().auth, email.trim());
+      await sendPasswordResetEmail(fbAuth(), email.trim());
     } catch {
       /* same answer either way: do not reveal which emails exist */
     }
@@ -125,7 +125,7 @@ function CloudLogin() {
 export function FirebaseGate() {
   const { t } = useStoredT();
   const [user, setUser] = useState<User | null | undefined>(undefined);
-  useEffect(() => onAuthStateChanged(fb().auth, setUser), []);
+  useEffect(() => onAuthStateChanged(fbAuth(), setUser), []);
 
   const cloud = useMemo<CloudSession | undefined>(
     () =>
@@ -134,7 +134,7 @@ export function FirebaseGate() {
             uid: user.uid,
             email: user.email,
             getToken: () => user.getIdToken(),
-            signOut: () => signOut(fb().auth),
+            signOut: () => signOut(fbAuth()),
           }
         : undefined,
     [user],

@@ -166,7 +166,7 @@ export function SharedView({ token }: { token: string }) {
                 className={cn(
                   "rounded-lg px-3 py-1.5 transition-colors",
                   view === v
-                    ? "bg-[var(--fire)] text-white"
+                    ? "bg-[var(--fire-solid)] text-white"
                     : "text-foreground/60 hover:text-foreground",
                 )}
               >

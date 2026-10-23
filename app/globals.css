@@ -11,7 +11,7 @@
   --card-foreground: #1a1812;
   --popover: #f3efe4;
   --popover-foreground: #1a1812;
-  --primary: #0f7a4f;
+  --primary: #09593a;
   --primary-foreground: #faf7f0;
   --secondary: #f1ede3;
   --secondary-foreground: #1a1812;
@@ -274,8 +274,9 @@ html {
 /* Admin panel design tokens. Light is the default; .admin-dark is the HUD variant. */
 /* custom tokens live on :root so portaled menus/dialogs inherit them */
 :root {
-  --fire: #e5532d;
-  --fire-soft: rgba(229, 83, 45, 0.12);
+  --fire: #b0360f; /* text/accents on light surfaces */
+  --fire-solid: #b0360f; /* backgrounds that carry white text (>= 4.5:1) */
+  --fire-soft: rgba(176, 54, 15, 0.12);
   --surface: #fbf9f4;
   --surface-2: #f3efe5;
   --hairline: rgba(26, 24, 18, 0.09);
@@ -293,7 +294,7 @@ html {
   --state-warn: #c9a300;
   --state-warn-ink: #806600;
   --state-watch: #e8710a;
-  --state-watch-ink: #a8500a;
+  --state-watch-ink: #964508;
   --state-bad: #c8321e;
   --state-bad-ink: #b83a3a;
   --state-idle: rgba(26, 24, 18, 0.3);
@@ -305,6 +306,8 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 html.admin-dark {
+  --fire: #ff7a59;
+  --fire-solid: #c8431d;
   --background: #0a0f0d;
   --foreground: #e8f1ec;
   --card: #111815;
@@ -546,7 +549,7 @@ html.admin-dark .admin-root :is(
   width: 22px;
   height: 22px;
   border-radius: 7px;
-  background: #e5532d;
+  background: #c8431d;
   color: #fff;
   font:
     700 11px var(--font-sans),
@@ -627,5 +630,19 @@ html.admin-dark .admin-root :is(
   .tour-fill {
     animation: none;
     width: 100%;
+  }
+}
+
+/* Phones: notch / home-indicator insets (non-zero only with viewport-fit=cover) and room above the
+   on-screen keyboard when a field is focused (notes, alerts, search). */
+.admin-root > header {
+  padding-top: env(safe-area-inset-top);
+}
+.admin-root > main {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@media (max-width: 767px) {
+  .admin-root :is(input, textarea, select) {
+    scroll-margin-bottom: 45vh;
   }
 }

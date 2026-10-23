@@ -51,6 +51,8 @@ const securityHeaders = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // ANALYZE_MAPS=1 npx next build: sourcemaps para que scripts/analyze-bundle.mjs atribuya bytes por paquete.
+  productionBrowserSourceMaps: process.env.ANALYZE_MAPS === "1",
   // ponytail: default is webp-only; avif is smaller for photos (hero bg,
   // press/blog art) and next/image already falls back to webp/original
   // per browser support, so this is a free size win with no risk.

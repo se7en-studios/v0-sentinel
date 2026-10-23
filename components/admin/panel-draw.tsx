@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import buffer from "@turf/buffer";
+import { loadBuffer } from "@/lib/admin/buffer";
 import circle from "@turf/circle";
 import { Crosshair, Download, Pencil, Trash2, Video, Wand2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -46,7 +46,8 @@ function SelectedCard({ ctx }: { ctx: Ctx }) {
     setTimeout(() => URL.revokeObjectURL(a.href), 1500);
   };
 
-  const makeRoute = (kind: "ring" | "sweep") => {
+  const makeRoute = async (kind: "ring" | "sweep") => {
+    if (kind === "ring") await loadBuffer();
     const coords = kind === "ring" ? patrolRing(f, 150) : sweepPath(f, 250);
     if (!coords || coords.length < 2) return;
     const free = FLEET.find((d) => !ws.features.some((x) => roleOf(x) === "route" && ws.meta[x.id]?.droneId === d.id));
@@ -57,9 +58,10 @@ function SelectedCard({ ctx }: { ctx: Ctx }) {
     ctx.setMeta(id, { name: t(kind === "ring" ? "drw.routePatrol" : "drw.routeSweep", { name: meta.name }), droneId: free?.id });
   };
 
-  const makeBuffer = (m: number, asNew: boolean) => {
+  const makeBuffer = async (m: number, asNew: boolean) => {
     if (!Number.isFinite(m) || m === 0 || Math.abs(m) > 50_000)
       return toast.error(t("drw.badDist"), { description: t("drw.badDistDesc") });
+    const buffer = await loadBuffer();
     const b = buffer(
       {
         type: "Feature",

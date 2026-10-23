@@ -31,7 +31,7 @@ export function MeasureToggle({
       onClick={onToggle}
       className={cn(
         glass,
-        "grid size-10 place-items-center transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "grid size-10 max-md:size-11 place-items-center transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         active && "bg-primary text-primary-foreground",
       )}
     >

@@ -26,7 +26,16 @@ export function artPerDay(
   return out;
 }
 
+// parsed once per detection: stats, series, zone hits, polar refs and playback all ask for the same timestamps
+const tsCache = new WeakMap<string[], WeakMap<FirePoint, number>>();
 export const pointTs = (days: string[], p: FirePoint) => {
-  const hh = String(p[5]).padStart(4, "0");
-  return Date.parse(`${days[p[4]]}T${hh.slice(0, 2)}:${hh.slice(2)}:00Z`);
+  const byPoint = tsCache.get(days) ?? new WeakMap<FirePoint, number>();
+  tsCache.set(days, byPoint);
+  let ts = byPoint.get(p);
+  if (ts === undefined) {
+    const hh = String(p[5]).padStart(4, "0");
+    ts = Date.parse(`${days[p[4]]}T${hh.slice(0, 2)}:${hh.slice(2)}:00Z`);
+    byPoint.set(p, ts);
+  }
+  return ts;
 };

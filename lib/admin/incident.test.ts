@@ -60,3 +60,14 @@ describe("recentGrowth", () => {
     expect(out).toEqual([{ id: "a", lat: -38, lng: -68, ha: 250 }]);
   });
 });
+
+describe("buildIncidents cache", () => {
+  test("same array and limit share one result; a smaller limit is a prefix of a larger one", () => {
+    const two = [...pts, ...pts.map((p): FirePoint => [p[0] + 1, p[1], p[2] * 2, p[3], p[4], p[5], p[6]])];
+    expect(buildIncidents(two, 60)).toBe(buildIncidents(two, 60));
+    const all = buildIncidents(two, 60);
+    expect(all.length).toBe(2);
+    expect(buildIncidents(two, 1)).toEqual(all.slice(0, 1));
+    expect(all[0].frp).toBeGreaterThanOrEqual(all[1].frp);
+  });
+});

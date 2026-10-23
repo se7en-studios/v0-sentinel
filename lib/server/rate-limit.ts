@@ -35,10 +35,14 @@ export function createLimiter(limit: number, windowMs: number): Limiter {
 }
 
 /** Client address as seen behind Vercel/proxies; "unknown" shares one bucket (stricter, never open). */
+// ponytail: trusts x-real-ip / x-forwarded-for, which only Vercel (or another proxy that overwrites them)
+// makes unforgeable. The 64-char cap keeps a flood of junk values from filling the limiter's memory.
 export const clientIp = (req: Request) =>
-  req.headers.get("x-real-ip")?.trim() ||
-  req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-  "unknown";
+  (
+    req.headers.get("x-real-ip")?.trim() ||
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "unknown"
+  ).slice(0, 64);
 
 /** 429 with Retry-After when `key` is over the limit, otherwise null. */
 export function limitResponse(

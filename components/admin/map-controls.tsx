@@ -41,7 +41,7 @@ function Compass({ a }: { a: A }) {
       title={t("mc.north")}
       className={cn(
         glass,
-        "group grid size-10 place-items-center transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "group grid size-10 max-md:size-11 place-items-center transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
       )}
     >
       <span
@@ -207,9 +207,9 @@ function ViewCluster({ a }: { a: A }) {
           aria-label={t("mc.view", { v: v.toUpperCase() })}
           onClick={() => ctx.setView(v)}
           className={cn(
-            "flex h-7 items-center gap-1 rounded-lg px-2.5 text-[11.5px] font-bold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            "flex h-7 max-md:h-11 items-center gap-1 rounded-lg px-2.5 text-[11.5px] font-bold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             ctx.view === v
-              ? "bg-[var(--fire)] text-white shadow-sm"
+              ? "bg-[var(--fire-solid)] text-white shadow-sm"
               : "text-foreground/55 hover:bg-foreground/[0.06] hover:text-foreground",
           )}
         >
@@ -225,7 +225,7 @@ function ViewCluster({ a }: { a: A }) {
           title={t("top.orbitStart")}
           onClick={() => ctx.setOrbit(!ctx.orbit)}
           className={cn(
-            "grid size-7 place-items-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            "grid size-7 max-md:size-11 place-items-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             ctx.orbit
               ? "bg-primary text-primary-foreground"
               : "text-foreground/55 hover:bg-foreground/[0.06]",
@@ -239,7 +239,7 @@ function ViewCluster({ a }: { a: A }) {
         type="button"
         aria-label={t("mc.zoomOut")}
         onClick={() => a.mapRef.current?.zoomBy(-0.8)}
-        className="grid size-7 place-items-center rounded-lg text-foreground/55 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="grid size-7 max-md:size-11 place-items-center rounded-lg text-foreground/55 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Minus className="size-3.5" />
       </button>
@@ -250,7 +250,7 @@ function ViewCluster({ a }: { a: A }) {
         type="button"
         aria-label={t("mc.zoomIn")}
         onClick={() => a.mapRef.current?.zoomBy(0.8)}
-        className="grid size-7 place-items-center rounded-lg text-foreground/55 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="grid size-7 max-md:size-11 place-items-center rounded-lg text-foreground/55 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Plus className="size-3.5" />
       </button>
@@ -265,7 +265,7 @@ function ViewCluster({ a }: { a: A }) {
                 .requestFullscreen()
                 .catch(() => undefined)
         }
-        className="grid size-7 place-items-center rounded-lg text-foreground/55 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="grid size-7 max-md:size-11 place-items-center rounded-lg text-foreground/55 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {full ? (
           <Minimize2 className="size-3.5" />
@@ -414,13 +414,13 @@ export function MapOverlays({
       <div className="pointer-events-none absolute bottom-9 left-3 z-10 flex flex-col items-start gap-2 [&>*]:pointer-events-auto">
         {ctx.tab === "general" && <MapLegend ctx={ctx} />}
         <div
-          className="mono rounded-md bg-card/80 px-2 py-1 text-[10px] text-foreground/60 backdrop-blur"
+          className="mono rounded-md bg-card/80 px-2 py-1 text-[10px] text-foreground/60 backdrop-blur max-md:hidden"
           aria-live="off"
         >
           {cursor ? `${cursor[1].toFixed(4)}°, ${cursor[0].toFixed(4)}°` : "—"}
         </div>
       </div>
-      <div className="pointer-events-none absolute bottom-3 right-3 z-10 [&>*]:pointer-events-auto">
+      <div className="pointer-events-none absolute bottom-3 right-3 z-10 max-md:bottom-8 [&>*]:pointer-events-auto">
         <ViewCluster a={a} />
       </div>
     </>

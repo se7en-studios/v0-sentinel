@@ -50,7 +50,7 @@ import { IconBtn } from "./ui";
 type A = ReturnType<typeof useAdmin>;
 
 const trigger =
-  "relative inline-flex h-8 items-center gap-1 rounded-lg px-2 before:absolute before:-inset-1 before:content-[''] text-[12px] font-medium text-foreground/70 transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-foreground/[0.06] data-[state=open]:text-foreground";
+  "relative inline-flex h-8 max-md:h-11 items-center gap-1 rounded-lg px-2 before:absolute before:-inset-1 before:content-[''] text-[12px] font-medium text-foreground/70 transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-foreground/[0.06] data-[state=open]:text-foreground";
 
 function fmtRange(days: string[], loc: Locale) {
   if (!days.length) return null;
@@ -122,7 +122,7 @@ export function Topbar({ a }: { a: A }) {
   const email = a.cloud?.email;
 
   return (
-    <header className="relative z-30 flex h-11 shrink-0 items-center gap-1 border-b border-[var(--hairline)] bg-card px-2 sm:px-3">
+    <header className="relative z-30 flex min-h-11 shrink-0 items-center gap-1 border-b border-[var(--hairline)] bg-card px-2 sm:px-3">
       <a
         href="/"
         aria-label={t("top.back")}
@@ -194,7 +194,7 @@ export function Topbar({ a }: { a: A }) {
               onClick={() => a.goTab(t.id)}
               aria-current={on ? "page" : undefined}
               className={cn(
-                "relative flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "relative flex h-8 max-lg:h-11 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 on
                   ? "bg-foreground text-background"
                   : "text-foreground/60 hover:bg-foreground/[0.06] hover:text-foreground",
@@ -372,7 +372,7 @@ export function Topbar({ a }: { a: A }) {
       {/* phones: everything the desktop menus offer, in one place */}
       <DropdownMenu>
         <DropdownMenuTrigger
-          className="grid size-8 shrink-0 place-items-center rounded-lg text-foreground/70 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-foreground/[0.06] md:hidden"
+          className="grid size-8 max-md:size-11 shrink-0 place-items-center rounded-lg text-foreground/70 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-foreground/[0.06] md:hidden"
           aria-label={ctx.t("top.more")}
         >
           <MoreHorizontal className="size-4" aria-hidden />
@@ -464,7 +464,7 @@ export function Topbar({ a }: { a: A }) {
 
       <DropdownMenu>
         <DropdownMenuTrigger
-          className="ml-1 grid size-8 shrink-0 place-items-center rounded-full bg-primary/12 text-[12px] font-bold text-primary ring-offset-2 transition-shadow hover:ring-2 hover:ring-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:ring-2 data-[state=open]:ring-primary/30"
+          className="ml-1 grid size-8 max-md:size-11 shrink-0 place-items-center rounded-full bg-primary/12 text-[12px] font-bold text-primary ring-offset-2 transition-shadow hover:ring-2 hover:ring-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:ring-2 data-[state=open]:ring-primary/30"
           aria-label={t("top.account")}
         >
           {(email ?? s.org ?? "S").slice(0, 1).toUpperCase()}

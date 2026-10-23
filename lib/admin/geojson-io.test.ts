@@ -117,3 +117,38 @@ describe("parseGeoJson", () => {
     );
   });
 });
+
+describe("parseGeoJson: archivos hostiles", () => {
+  const fc = (features: unknown[]) => JSON.stringify({ type: "FeatureCollection", features });
+  const pt = (id: unknown, c: number[] = [-71, -41]) => ({
+    type: "Feature",
+    id,
+    properties: {},
+    geometry: { type: "Point", coordinates: c },
+  });
+
+  it("ids __proto__/constructor o larguísimos se reemplazan por uno generado", () => {
+    const r = parseGeoJson(fc([pt("__proto__"), pt("constructor"), pt("a".repeat(500))]));
+    expect(r.features.map((f) => f.id).every((id) => /^imp-/.test(String(id)))).toBe(true);
+    expect(Object.keys(r.names)).not.toContain("__proto__");
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+  });
+
+  it("un meta con __proto__ no contamina Object.prototype", () => {
+    const r = parseGeoJson(
+      `{"type":"FeatureCollection","meta":{"__proto__":{"polluted":1}},"features":[${JSON.stringify(pt("a"))}]}`,
+    );
+    expect(r.features).toHaveLength(1);
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+  });
+
+  it("descarta coordenadas fuera de rango y corta más de 100 000 vértices", () => {
+    expect(parseGeoJson(fc([pt("a", [1e308, 0]), pt("b")])).features.map((f) => f.id)).toEqual(["b"]);
+    const big = { type: "LineString", coordinates: Array.from({ length: 100_001 }, () => [1, 1]) };
+    expect(() => parseGeoJson(fc([{ type: "Feature", properties: {}, geometry: big }]))).toThrow(/demasiado/);
+  });
+
+  it("corta más de 5000 elementos", () => {
+    expect(() => parseGeoJson(fc(Array.from({ length: 5001 }, (_, i) => pt(`p${i}`))))).toThrow(/demasiados/);
+  });
+});

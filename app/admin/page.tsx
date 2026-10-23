@@ -1,10 +1,13 @@
+import dynamicImport from "next/dynamic";
 import { AdminApp } from "@/components/admin/admin-app";
-import { FirebaseGate } from "@/components/admin/firebase-gate";
 import { firebaseEnabled } from "@/lib/admin/firebase";
 import { LoginForm } from "@/components/admin/login-form";
 import { authConfigured, authRequired, isAuthed } from "@/lib/admin/auth";
 
 export const dynamic = "force-dynamic";
+
+// Firebase Auth is ~130 kB gzip: only deployments with per-client accounts should download it.
+const FirebaseGate = dynamicImport(() => import("@/components/admin/firebase-gate").then((m) => m.FirebaseGate));
 
 export default async function AdminPage() {
   // per-client Firebase accounts when configured, shared ADMIN_PASSWORD otherwise

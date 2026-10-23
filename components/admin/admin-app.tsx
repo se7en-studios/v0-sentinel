@@ -21,6 +21,8 @@ import { ViewSkeleton } from "./ui";
 import { GuidedTour } from "./tour";
 import { StatusStrip } from "./status-strip";
 import { BackupNotice } from "./backup-notice";
+import { ConnectionBanner } from "./connection-banner";
+import { ViewBoundary } from "./view-boundary";
 
 export type { CloudSession };
 
@@ -89,6 +91,15 @@ export function AdminApp({
       )}
       {a.mounted && <StatusStrip ctx={ctx} />}
       {a.mounted && <BackupNotice ctx={ctx} />}
+      {a.mounted && (
+        <ConnectionBanner
+          t={ctx.t}
+          sync={a.sync}
+          retrySync={a.retrySync}
+          reload={ctx.reload}
+          logout={a.logout}
+        />
+      )}
       <Toaster position="bottom-center" />
       {a.tour && <GuidedTour a={a} />}
       {a.mounted && (
@@ -112,6 +123,7 @@ export function AdminApp({
           <div className="flex min-w-0 flex-1 flex-col lg:min-h-0">
             <div className="relative h-[58vh] min-h-[340px] shrink-0 lg:h-auto lg:min-h-0 lg:flex-1 lg:shrink">
               {a.ready && (
+                <ViewBoundary name={ctx.t("view.map")} t={ctx.t} className="absolute inset-0">
                 <MapView
                   ref={a.mapRef}
                   baseLayer={a.s.baseLayer}
@@ -161,13 +173,16 @@ export function AdminApp({
                     a.setToolRaw(null);
                   }}
                 />
+                </ViewBoundary>
               )}
               <MapOverlays a={a} cursor={cursor} />
               {ctx.tab === "drones" && <DronePip ctx={ctx} />}
             </div>
-            {ctx.tab === "general" && <TimelineDock ctx={ctx} />}
-            {ctx.tab === "drones" && <DroneDock ctx={ctx} />}
-            {ctx.tab === "recursos" && <ResourcesDock ctx={ctx} />}
+            <ViewBoundary name={ctx.t(`tab.${ctx.tab}`)} t={ctx.t} resetKey={ctx.tab}>
+              {ctx.tab === "general" && <TimelineDock ctx={ctx} />}
+              {ctx.tab === "drones" && <DroneDock ctx={ctx} />}
+              {ctx.tab === "recursos" && <ResourcesDock ctx={ctx} />}
+            </ViewBoundary>
           </div>
           <aside
             aria-label={ctx.t("app.sidePanel")}
@@ -176,10 +191,12 @@ export function AdminApp({
               !ctx.panelOpen && "lg:hidden",
             )}
           >
-            {ctx.tab === "general" && <GeneralPanel ctx={ctx} />}
-            {ctx.tab === "zonas" && <ZonesPanel ctx={ctx} />}
-            {ctx.tab === "drones" && <DronesPanel ctx={ctx} />}
-            {ctx.tab === "recursos" && <ResourcesPanel ctx={ctx} />}
+            <ViewBoundary name={ctx.t("view.panel")} t={ctx.t} resetKey={ctx.tab}>
+              {ctx.tab === "general" && <GeneralPanel ctx={ctx} />}
+              {ctx.tab === "zonas" && <ZonesPanel ctx={ctx} />}
+              {ctx.tab === "drones" && <DronesPanel ctx={ctx} />}
+              {ctx.tab === "recursos" && <ResourcesPanel ctx={ctx} />}
+            </ViewBoundary>
           </aside>
         </main>
       ) : (
@@ -188,10 +205,12 @@ export function AdminApp({
           tabIndex={-1}
           className="min-h-0 flex-1 overflow-y-auto bg-[var(--surface)] outline-none"
         >
-          {ctx.tab === "pronostico" && <ForecastView ctx={ctx} />}
-          {ctx.tab === "incidentes" && <IncidentsView ctx={ctx} />}
-          {ctx.tab === "metricas" && <MetricsView ctx={ctx} />}
-          {ctx.tab === "config" && <SettingsView ctx={ctx} />}
+          <ViewBoundary name={ctx.t(`tab.${ctx.tab}`)} t={ctx.t} resetKey={ctx.tab}>
+            {ctx.tab === "pronostico" && <ForecastView ctx={ctx} />}
+            {ctx.tab === "incidentes" && <IncidentsView ctx={ctx} />}
+            {ctx.tab === "metricas" && <MetricsView ctx={ctx} />}
+            {ctx.tab === "config" && <SettingsView ctx={ctx} />}
+          </ViewBoundary>
         </main>
       )}
     </div>

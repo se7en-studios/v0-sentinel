@@ -18,6 +18,9 @@ export async function verifyFirebaseToken(token: string): Promise<boolean> {
     const { payload } = await jwtVerify(token, JWKS, {
       issuer: `https://securetoken.google.com/${projectId}`,
       audience: projectId,
+      // Firebase signs with RS256 only: pin it so no other algorithm is ever accepted
+      algorithms: ["RS256"],
+      requiredClaims: ["exp", "sub"],
     });
     if (!payload.sub) return false;
     const allowed = (process.env.ADMIN_ALLOWED_EMAILS ?? "")

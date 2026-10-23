@@ -1,6 +1,5 @@
 import { getApps, initializeApp, type FirebaseOptions } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
 
 // NEXT_PUBLIC_* must be referenced literally so Next inlines them at build time.
 const config: FirebaseOptions = {
@@ -13,7 +12,14 @@ const config: FirebaseOptions = {
 /** True when the deployment is configured for per-client Firebase accounts. */
 export const firebaseEnabled = Boolean(config.apiKey && config.projectId);
 
-export function fb() {
-  const app = getApps()[0] ?? initializeApp(config);
-  return { auth: getAuth(app), db: getFirestore(app) };
+function app() {
+  return getApps()[0] ?? initializeApp(config);
 }
+
+/** Auth only: the login screen must not pull Firestore (~100 kB gzip) into its chunk. */
+export function fbAuth() {
+  return getAuth(app());
+}
+
+/** Firestore lives in its own module (firebase-db.ts) so only cloud sync and shares load it. */
+export { app as fbApp };

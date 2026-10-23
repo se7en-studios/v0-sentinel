@@ -1,15 +1,7 @@
 "use client";
 
 import { memo, useEffect, useMemo, useRef } from "react";
-import {
-  Area,
-  AreaChart,
-  ReferenceLine,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import dynamic from "next/dynamic";
 import {
   Activity,
   Flame,
@@ -27,15 +19,11 @@ import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
 import type { Ctx, HourPoint, KeyEvent } from "./ctx";
 import { IconBtn, Segmented } from "./ui";
 
-const AXIS = { fontSize: 9.5, fill: "var(--chart-axis)" };
-const TIP = {
-  fontSize: 11,
-  borderRadius: 8,
-  border: "1px solid var(--hairline)",
-  background: "var(--chart-tip)",
-  color: "var(--foreground)",
-  boxShadow: "var(--shadow-2)",
-};
+// recharts loads on demand (own chunk), after the first paint
+const TimelineAreaChart = dynamic(
+  () => import("./dock-charts").then((m) => m.TimelineAreaChart),
+  { ssr: false },
+);
 const HOUR = HOUR_MS;
 const MINOR_STEP_H = 6;
 /** more 6 h ticks than this would sit under ~6 px apart: draw only the day marks */
@@ -45,27 +33,26 @@ const MAX_LABELLED_TICKS = 12;
 
 // every time on screen is Argentine local time (ART), whatever the browser says
 const TZ = "America/Argentina/Buenos_Aires";
+// toLocale*String builds a new Intl formatter on every call (~0.1 ms): the timeline labels run it per tick per render
+const dtfCache = new Map<string, Intl.DateTimeFormat>();
+const dtf = (loc: string, kind: string, opts: Intl.DateTimeFormatOptions) => {
+  const key = `${loc}|${kind}`;
+  let f = dtfCache.get(key);
+  if (!f) dtfCache.set(key, (f = new Intl.DateTimeFormat(loc, { ...opts, timeZone: TZ })));
+  return f;
+};
 const fmtDay = (t: number, loc: string) =>
-  new Date(t).toLocaleDateString(loc, {
-    day: "2-digit",
-    month: "short",
-    timeZone: TZ,
-  });
+  dtf(loc, "day", { day: "2-digit", month: "short" }).format(t);
 const fmtFull = (t: number, loc: string) =>
-  new Date(t).toLocaleString(loc, {
+  dtf(loc, "full", {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
     hourCycle: "h23",
-    timeZone: TZ,
-  });
+  }).format(t);
 const fmtHour = (t: number, loc: string) =>
-  new Date(t).toLocaleTimeString(loc, {
-    hour: "2-digit",
-    hourCycle: "h23",
-    timeZone: TZ,
-  });
+  dtf(loc, "hour", { hour: "2-digit", hourCycle: "h23" }).format(t);
 
 const EVENT_ICON = {
   first: Flame,
@@ -165,10 +152,8 @@ function Scrubber({ ctx }: { ctx: Ctx }) {
           </div>
         ))}
         {marks.map((m) => (
-          <button
+          <div
             key={m.id}
-            type="button"
-            tabIndex={-1}
             title={tr("tln.markTitle", {
               label: tr(m.kind === "first" ? "tln.markFirst" : "tln.markConfirmed"),
               t: fmtFull(m.t, loc),
@@ -201,10 +186,8 @@ function Scrubber({ ctx }: { ctx: Ctx }) {
           </div>
         ))}
         {events.map((ev) => (
-          <button
+          <div
             key={ev.id}
-            type="button"
-            tabIndex={-1}
             title={`${ev.title} · ${fmtFull(ev.t, loc)}`}
             onPointerDown={(e) => e.stopPropagation()}
             onClick={() => ctx.setCursor(ev.t)}
@@ -264,57 +247,19 @@ const MiniChart = memo(function MiniChart({
         <span className="text-[9.5px] text-foreground/35">{unit}</span>
       </div>
       <div className="min-h-0 flex-1">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart
-            data={data}
-            margin={{ top: 4, right: 6, left: 0, bottom: 0 }}
-          >
-            <defs>
-              <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={color} stopOpacity={0.4} />
-                <stop offset="100%" stopColor={color} stopOpacity={0.02} />
-              </linearGradient>
-            </defs>
-            <XAxis
-              dataKey="t"
-              type="number"
-              domain={[range.t0, range.t1]}
-              scale="time"
-              tickFormatter={(v) => fmtDay(Number(v), loc)}
-              tick={AXIS}
-              tickLine={false}
-              axisLine={false}
-              interval="preserveStartEnd"
-              tickCount={5}
-              minTickGap={34}
-            />
-            <YAxis
-              tick={AXIS}
-              tickLine={false}
-              axisLine={false}
-              width={34}
-              tickCount={3}
-            />
-            <Tooltip
-              contentStyle={TIP}
-              labelFormatter={(t) => fmtFull(Number(t), loc)}
-              formatter={(v) => [`${v} ${unit}`, title]}
-            />
-            <Area
-              type={step ? "stepAfter" : "monotone"}
-              dataKey={dataKey}
-              stroke={color}
-              strokeWidth={1.6}
-              fill={`url(#${id})`}
-              isAnimationActive={false}
-            />
-            <ReferenceLine
-              x={cursor ?? range.t1}
-              stroke="var(--fire)"
-              strokeWidth={1.4}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+        <TimelineAreaChart
+          data={data}
+          id={id}
+          color={color}
+          dataKey={dataKey}
+          unit={unit}
+          title={title}
+          range={range}
+          cursor={cursor}
+          step={step}
+          fmtDay={(t) => fmtDay(t, loc)}
+          fmtFull={(t) => fmtFull(t, loc)}
+        />
       </div>
     </div>
   );

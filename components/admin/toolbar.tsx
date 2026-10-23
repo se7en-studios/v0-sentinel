@@ -71,7 +71,7 @@ export function Toolbar({
       role="toolbar"
       aria-label={t("tl.aria")}
       aria-orientation="vertical"
-      className="glass absolute left-3 top-[4.25rem] z-10 flex flex-col gap-0.5 rounded-xl border border-[var(--hairline)] p-1 shadow-[var(--shadow-1)]"
+      className="glass absolute left-3 top-28 z-10 flex flex-col gap-0.5 rounded-xl border border-[var(--hairline)] p-1 shadow-[var(--shadow-1)]"
     >
       {items.map(({ mode, label: labelKey, key, Icon }) => {
         const on = tool === mode;
@@ -85,9 +85,9 @@ export function Toolbar({
             disabled={editing}
             onClick={() => setTool(on ? null : mode)}
             className={cn(
-              "group relative grid size-10 place-items-center rounded-lg text-foreground/65 transition-[background-color,color,transform] duration-150 active:scale-95 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "group relative grid size-10 max-md:size-11 place-items-center rounded-lg text-foreground/65 transition-[background-color,color,transform] duration-150 active:scale-95 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               on
-                ? "bg-[var(--fire)] text-white shadow-sm"
+                ? "bg-[var(--fire-solid)] text-white shadow-sm"
                 : "hover:bg-foreground/[0.07] hover:text-foreground",
             )}
           >

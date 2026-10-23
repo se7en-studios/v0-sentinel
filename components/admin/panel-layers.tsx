@@ -67,7 +67,7 @@ function LayerRow({
           {label}
         </span>
         {badge && (
-          <span className="rounded bg-[#e8710a]/14 px-1 text-[8.5px] font-semibold uppercase tracking-wider text-[#b9560a]">
+          <span className="rounded bg-[#e8710a]/14 px-1 text-[8.5px] font-semibold uppercase tracking-wider text-[var(--state-watch-ink)]">
             {badge}
           </span>
         )}

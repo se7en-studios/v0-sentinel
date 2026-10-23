@@ -64,8 +64,19 @@ describe("useEarly", () => {
     const { result } = render();
     await tick(0);
     await tick(FIVE_MIN);
+    await tick(30_000); // the retries with backoff run out
     expect(result.current.earlyPayload?.fetchedAt).toBe(1);
     expect(result.current.earlyError).toBe("offline");
+  });
+
+  test("tras un fallo reintenta solo y se recupera sin esperar al próximo ciclo", async () => {
+    mockFetch({ json: payload(1) }, { reject: true }, { reject: true }, { json: payload(2) });
+    const { result } = render();
+    await tick(0);
+    await tick(FIVE_MIN);
+    await tick(30_000);
+    expect(result.current.earlyPayload?.fetchedAt).toBe(2);
+    expect(result.current.earlyError).toBeNull();
   });
 
   test("una respuesta con error HTTP usa el mensaje del servidor", async () => {

@@ -19,6 +19,7 @@ service cloud.firestore {
       allow list: if request.auth != null && resource.data.owner == request.auth.uid;
       allow create: if request.auth != null
                     && request.resource.data.owner == request.auth.uid
+                    && request.resource.data.keys().hasOnly(['owner', 'json', 'expiresAt'])
                     && request.resource.data.json is string
                     && request.resource.data.json.size() < 900000
                     && request.resource.data.expiresAt is number

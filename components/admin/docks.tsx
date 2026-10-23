@@ -1,14 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import {
-  Area,
-  AreaChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import dynamic from "next/dynamic";
 import { Flame } from "lucide-react";
 import { distKm } from "@/lib/admin/geo";
 import { FLEET, droneTelemetry, hash } from "@/lib/admin/sim";
@@ -17,15 +10,11 @@ import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
 import type { Ctx } from "./ctx";
 import { Badge } from "./ui";
 
-const AXIS = { fontSize: 9.5, fill: "var(--chart-axis)" };
-const TIP = {
-  fontSize: 11,
-  borderRadius: 8,
-  border: "1px solid var(--hairline)",
-  background: "var(--chart-tip)",
-  color: "var(--foreground)",
-  boxShadow: "var(--shadow-2)",
-};
+// recharts loads on demand (own chunk), after the first paint
+const TelemetryAreaChart = dynamic(
+  () => import("./dock-charts").then((m) => m.TelemetryAreaChart),
+  { ssr: false },
+);
 
 interface Pt {
   t: number;
@@ -80,56 +69,17 @@ function Mini({
             {noActivity}
           </span>
         )}
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart
-            data={data}
-            margin={{ top: 4, right: 6, left: 0, bottom: 0 }}
-          >
-            <defs>
-              <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={color} stopOpacity={0.4} />
-                <stop offset="100%" stopColor={color} stopOpacity={0.02} />
-              </linearGradient>
-            </defs>
-            <XAxis
-              dataKey="t"
-              type="number"
-              domain={["dataMin", "dataMax"]}
-              scale="time"
-              tick={AXIS}
-              tickLine={false}
-              axisLine={false}
-              tickCount={4}
-              minTickGap={36}
-              tickFormatter={(t) =>
-                new Date(t).toLocaleTimeString(loc, hm ? { hour: "2-digit", minute: "2-digit" } : { minute: "2-digit", second: "2-digit" })
-              }
-            />
-            <YAxis
-              tick={AXIS}
-              tickLine={false}
-              axisLine={false}
-              width={34}
-              tickCount={3}
-              domain={domain ?? ["auto", "auto"]}
-            />
-            <Tooltip
-              contentStyle={TIP}
-              labelFormatter={(t) =>
-                new Date(Number(t)).toLocaleTimeString(loc)
-              }
-              formatter={(v) => [`${Math.round(Number(v))} ${unit}`, title]}
-            />
-            <Area
-              type={step ? "stepAfter" : "monotone"}
-              dataKey="v"
-              stroke={color}
-              strokeWidth={1.6}
-              fill={`url(#${id})`}
-              isAnimationActive={false}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+        <TelemetryAreaChart
+          data={data}
+          id={id}
+          color={color}
+          unit={unit}
+          title={title}
+          domain={domain}
+          step={step}
+          hm={hm}
+          loc={loc}
+        />
       </div>
     </div>
   );

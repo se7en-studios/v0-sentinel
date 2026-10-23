@@ -188,11 +188,11 @@ export function ForecastView({ ctx }: { ctx: Ctx }) {
           </div>
 
           <Card title={t("fc.heat")}>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[560px] border-separate border-spacing-1 text-[12px]">
+            <div className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" tabIndex={0} role="region" aria-label={t("fc.heat")}>
+              <table className="w-full border-separate border-spacing-0.5 sm:min-w-[560px] sm:border-spacing-1 text-[12px]">
                 <thead>
                   <tr>
-                    <th className="w-40" />
+                    <th className="w-[72px] sm:w-40" />
                     {region.map((d) => (
                       <th
                         key={d.date}
@@ -209,7 +209,8 @@ export function ForecastView({ ctx }: { ctx: Ctx }) {
                     <tr key={r.id}>
                       <th
                         scope="row"
-                        className="max-w-40 truncate pr-2 text-left text-[12px] font-medium"
+                        title={nameOf(r)}
+                        className="max-w-[72px] truncate pr-1 text-left sm:max-w-40 sm:pr-2 text-[12px] font-medium"
                       >
                         {nameOf(r)}
                       </th>
@@ -229,7 +230,8 @@ export function ForecastView({ ctx }: { ctx: Ctx }) {
                               )}
                               style={{
                                 background: `${d.color}26`,
-                                color: d.color,
+                                // text in the foreground colour (AA in both themes); the risk hue stays as the bottom bar
+                                boxShadow: `inset 0 -3px 0 ${d.color}`,
                               }}
                             >
                               {r.days ? (
@@ -287,16 +289,16 @@ export function ForecastView({ ctx }: { ctx: Ctx }) {
                 </Badge>
               }
             >
-              <dl className="grid gap-x-8 sm:grid-cols-2">
-                <div>
+              <div className="grid gap-x-8 sm:grid-cols-2">
+                <dl>
                   <KV k={t("fc.tmax")}>
                     <span className="num">{Math.round(day.tmax)} °C</span>
                   </KV>
                   <KV k={t("fc.rhmin")}>
                     <span className="num">{Math.round(day.rhmin)} %</span>
                   </KV>
-                </div>
-                <div>
+                </dl>
+                <dl>
                   <KV k={t("fc.windmax")}>
                     <span className="num">
                       {Math.round(day.wind)} km/h · {t(`dir.${compass(day.windDir)}` as MsgKey)}
@@ -305,8 +307,8 @@ export function ForecastView({ ctx }: { ctx: Ctx }) {
                   <KV k={t("fc.rainDay")}>
                     <span className="num">{day.rain.toFixed(1)} mm</span>
                   </KV>
-                </div>
-              </dl>
+                </dl>
+              </div>
               {day.fwi !== undefined && (
                 <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-[var(--hairline)] pt-2 text-[12.5px]">
                   <span className="text-foreground/65">

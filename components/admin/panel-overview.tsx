@@ -144,7 +144,7 @@ export function WeatherCard({ ctx }: { ctx: Ctx }) {
               icon={Droplets}
               label={t("wx.rh")}
               value={`${Math.round(w.rh)}%`}
-              tone={w.rh < 30 ? "#b9560a" : undefined}
+              tone={w.rh < 30 ? "var(--state-watch-ink)" : undefined}
             />
             <Tile
               icon={CloudRain}

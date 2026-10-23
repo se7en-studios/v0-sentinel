@@ -1,7 +1,24 @@
 import { isFeat } from "./store";
 import type { Feat } from "./types";
 
+import { MAX_FEATURES, MAX_VERTICES } from "./kml";
+
 export const MAX_IMPORT_BYTES = 2_000_000;
+const MAX_ID_CHARS = 80;
+/** keys that would hit Object.prototype if an id ever became a property name */
+const UNSAFE_IDS = new Set(["__proto__", "constructor", "prototype"]);
+
+/** Vertex count of a coordinates tree, or Infinity when any position is out of range (lng ±180, lat ±90). */
+function vertices(c: unknown): number {
+  if (!Array.isArray(c)) return Infinity;
+  if (typeof c[0] === "number") {
+    const [x, y] = c as number[];
+    return Math.abs(x) <= 180 && Math.abs(y) <= 90 ? 1 : Infinity;
+  }
+  let n = 0;
+  for (const k of c) if ((n += vertices(k)) === Infinity) break;
+  return n;
+}
 
 /**
  * Geometry -> app mode. The app only draws Polygon / LineString / Point:
@@ -85,6 +102,7 @@ export function parseGeoJson(text: string): GeoJsonImport {
       "No es un FeatureCollection, Feature ni geometría GeoJSON.",
     );
 
+  if (raw.length > MAX_FEATURES) throw new Error("El archivo tiene demasiados elementos.");
   const meta =
     j.meta && typeof j.meta === "object"
       ? (j.meta as Record<string, unknown>)
@@ -95,6 +113,7 @@ export function parseGeoJson(text: string): GeoJsonImport {
   const names: Record<string, string> = {};
   let skipped = 0;
   let n = 0;
+  let budget = MAX_VERTICES;
 
   for (const item of raw) {
     const f = item as {
@@ -102,9 +121,16 @@ export function parseGeoJson(text: string): GeoJsonImport {
       properties?: Record<string, unknown>;
       geometry?: Geom;
     } | null;
-    const parts = simple(f?.geometry);
+    const parts = simple(f?.geometry).filter((g) => {
+      const v = vertices(g.coordinates);
+      if (v !== Infinity) budget -= v;
+      if (budget < 0) throw new Error("El archivo es demasiado grande o complejo.");
+      return v !== Infinity;
+    });
     if (parts.length === 0) skipped++;
-    const baseId = f?.id !== undefined && f.id !== null ? String(f.id) : "";
+    const rawId = f?.id !== undefined && f.id !== null ? String(f.id) : "";
+    const baseId =
+      rawId.length > MAX_ID_CHARS || UNSAFE_IDS.has(rawId) ? "" : rawId;
     const props = f?.properties ?? {};
     // a Sentinel export already carries a valid mode (zone-circle, route...): keep it when the geometry agrees
     const ownMode = typeof props.mode === "string" ? props.mode : "";
@@ -127,7 +153,9 @@ export function parseGeoJson(text: string): GeoJsonImport {
       if (!isFeat(feat)) return void skipped++;
       seen.add(id);
       features.push(feat);
-      const m = meta[baseId] as { name?: unknown } | undefined;
+      const m = (baseId && Object.hasOwn(meta, baseId) ? meta[baseId] : undefined) as
+        | { name?: unknown }
+        | undefined;
       const name = [m?.name, props.name, props.title].find(
         (v) => typeof v === "string" && v.trim(),
       );

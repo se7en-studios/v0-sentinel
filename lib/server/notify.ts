@@ -158,7 +158,7 @@ async function email(b: NotifyBody, env: Env): Promise<ChannelResult> {
         body: JSON.stringify({
           from,
           to: [addr],
-          subject: `[Sentinel] ${b.title}`,
+          subject: `[Sentinel] ${oneLine(b.title)}`,
           text,
         }),
       }),

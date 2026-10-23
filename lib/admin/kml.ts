@@ -7,6 +7,12 @@ const MODE_FOR: Record<string, string> = {
   Point: "sensor",
 };
 
+/** Caps shared with the GeoJSON import: a hostile file must not hang the tab. */
+export const MAX_KML_CHARS = 2_000_000;
+export const MAX_FEATURES = 5_000;
+export const MAX_VERTICES = 100_000;
+const TOO_BIG = "El archivo es demasiado grande o complejo.";
+
 const stripCtl = (s: string) => s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, "");
 const esc = (s: string) =>
   stripCtl(s).replace(
@@ -24,7 +30,12 @@ function coords(text: string | null | undefined): [number, number][] {
     .split(/\s+/)
     .map((t) => t.split(",").map(Number))
     .filter(
-      (p) => p.length >= 2 && Number.isFinite(p[0]) && Number.isFinite(p[1]),
+      (p) =>
+        p.length >= 2 &&
+        Number.isFinite(p[0]) &&
+        Number.isFinite(p[1]) &&
+        Math.abs(p[0]) <= 180 &&
+        Math.abs(p[1]) <= 90,
     )
     .map((p) => [p[0], p[1]] as [number, number]);
 }
@@ -38,11 +49,19 @@ const kids = (el: Element, tag: string) =>
  * Needs DOMParser (browser, or jsdom in tests). Throws on malformed XML.
  */
 export function parseKml(text: string, idPrefix = "kml"): Feat[] {
+  if (text.length > MAX_KML_CHARS) throw new Error(TOO_BIG);
+  // KML never needs a DTD; refusing it closes entity-expansion (billion laughs) and external-entity tricks
+  if (/<!(DOCTYPE|ENTITY)/i.test(text))
+    throw new Error("El archivo KML no es válido.");
   const doc = new DOMParser().parseFromString(text, "application/xml");
   if (doc.getElementsByTagName("parsererror").length)
     throw new Error("El archivo KML no es válido.");
   const out: Feat[] = [];
+  let vertices = 0;
   const add = (geometry: Feat["geometry"], name: string) => {
+    vertices += JSON.stringify(geometry.coordinates).split("],[").length;
+    if (out.length >= MAX_FEATURES || vertices > MAX_VERTICES)
+      throw new Error(TOO_BIG);
     const f = {
       type: "Feature" as const,
       id: `${idPrefix}-${out.length}`,

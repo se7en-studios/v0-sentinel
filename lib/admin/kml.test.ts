@@ -87,3 +87,29 @@ describe("toKml", () => {
     expect(back[1].geometry.type).toBe("Polygon");
   });
 });
+
+describe("parseKml: archivos hostiles", () => {
+  const poly = (n: number) =>
+    kml(
+      `<Placemark><name>x</name><LineString><coordinates>${Array.from({ length: n }, (_, i) => `${(i % 100) / 10},1`).join(" ")}</coordinates></LineString></Placemark>`,
+    );
+
+  it("rechaza DOCTYPE y ENTITY (billion laughs / XXE)", () => {
+    const bomb = `<?xml version="1.0"?><!DOCTYPE kml [<!ENTITY a "aaaa"><!ENTITY b "&a;&a;&a;&a;">]><kml><Document><Placemark><name>&b;</name></Placemark></Document></kml>`;
+    expect(() => parseKml(bomb)).toThrow();
+  });
+
+  it("corta archivos con más de 100 000 vértices o de más de 2 M de caracteres", () => {
+    expect(() => parseKml(poly(100_001))).toThrow(/demasiado/);
+    expect(() => parseKml("x".repeat(2_000_001))).toThrow(/demasiado/);
+    expect(parseKml(poly(1000))).toHaveLength(1);
+  });
+
+  it("descarta coordenadas fuera de rango", () => {
+    const fs = parseKml(
+      kml(`<Placemark><Point><coordinates>1e308,1e308</coordinates></Point></Placemark>
+           <Placemark><Point><coordinates>-71,-41</coordinates></Point></Placemark>`),
+    );
+    expect(fs).toHaveLength(1);
+  });
+});

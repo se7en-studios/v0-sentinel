@@ -149,7 +149,7 @@ export function SourcesCard({ ctx }: { ctx: Ctx }) {
           {firesError ?? earlyError ?? t("src.empty")}
         </p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" tabIndex={0} role="region" aria-label={t("src.caption")}>
           <table className="w-full min-w-[600px] text-left text-[12px]">
             <caption className="sr-only">{t("src.caption")}</caption>
             <thead className="text-[10px] text-foreground/60">

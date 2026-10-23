@@ -53,3 +53,10 @@ describe("limitResponse / clientIp", () => {
     expect(clientIp(h({}))).toBe("unknown");
   });
 });
+
+describe("clientIp cap", () => {
+  test("a giant spoofed header cannot become a giant map key", () => {
+    const r = new Request("http://x", { headers: { "x-real-ip": "9".repeat(5000) } });
+    expect(clientIp(r).length).toBe(64);
+  });
+});

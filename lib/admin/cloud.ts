@@ -4,7 +4,8 @@ import {
   runTransaction,
   serverTimestamp,
 } from "firebase/firestore";
-import { fb } from "./firebase";
+import { fbDb } from "./firebase-db";
+import { reportAuthExpired } from "./connection";
 import type { Workspace } from "./types";
 
 // Firestore rejects nested arrays (GeoJSON coordinates are nested), so the
@@ -24,8 +25,15 @@ export class ConflictError extends Error {}
 
 const MAX_JSON = 850_000;
 
+/** Firestore says the session is gone: flag it so the banner offers to sign in again (the local copy is untouched). */
+function flagAuth(e: unknown): never {
+  const code = (e as { code?: unknown } | null)?.code;
+  if (code === "unauthenticated" || code === "permission-denied") reportAuthExpired();
+  throw e;
+}
+
 export async function loadCloud(uid: string): Promise<CloudCopy | null> {
-  const snap = await getDoc(doc(fb().db, "workspaces", uid));
+  const snap = await getDoc(doc(fbDb(), "workspaces", uid)).catch(flagAuth);
   const d = snap.data();
   if (typeof d?.json !== "string") return null;
   return {
@@ -43,7 +51,7 @@ export async function saveCloud(
   clientAt: number,
   force = false,
 ): Promise<number> {
-  const db = fb().db;
+  const db = fbDb();
   const ref = doc(db, "workspaces", uid);
   return runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
@@ -61,5 +69,5 @@ export async function saveCloud(
       updatedAt: serverTimestamp(),
     });
     return rev;
-  });
+  }).catch(flagAuth);
 }

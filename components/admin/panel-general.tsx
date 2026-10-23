@@ -385,11 +385,11 @@ function AlertsTab({ ctx }: { ctx: Ctx }) {
                 className="flex w-full items-start gap-2.5 text-left"
               >
                 <AlertTriangle
-                  className="mt-0.5 size-4 shrink-0 text-[#b9560a]"
+                  className="mt-0.5 size-4 shrink-0 text-[var(--state-watch-ink)]"
                   aria-hidden
                 />
                 <span className="min-w-0">
-                  <span className="block truncate text-[12.5px] font-semibold text-[#b9560a]">
+                  <span className="block truncate text-[12.5px] font-semibold text-[var(--state-watch-ink)]">
                     {x.meta.name}
                   </span>
                   <span className="text-[11px] text-foreground/65">
@@ -666,7 +666,7 @@ export function GeneralPanel({ ctx }: { ctx: Ctx }) {
             tabIndex={seg === x ? 0 : -1}
             onClick={() => setSeg(x)}
             className={cn(
-              "relative flex-1 px-1 py-2.5 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "relative flex-1 px-1 py-2.5 max-md:py-3.5 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               seg === x
                 ? "text-foreground"
                 : "text-foreground/45 hover:text-foreground/75",

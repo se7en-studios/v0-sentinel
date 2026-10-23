@@ -65,8 +65,10 @@ const kmApart = (aLat: number, aLng: number, bLat: number, bLng: number) => {
   return Math.hypot(dx, dy);
 };
 
-const pixel = (p: FirePoint) =>
-  `${Math.round(p[0] / PIXEL)}:${Math.round(p[1] / PIXEL)}`;
+// pixel index pair packed into one number: Set/Map lookups on numbers are far cheaper than on "i:j" strings
+const PIX_OFF = 100_000;
+const PIX_MUL = 1_000_000;
+const pixelKey = (i: number, j: number) => (i + PIX_OFF) * PIX_MUL + (j + PIX_OFF);
 
 /**
  * Scores every detection and flags those that look like industrial heat.
@@ -100,17 +102,19 @@ export function fireInfoMap(
 }
 
 export function classifyPoints(points: FirePoint[]): Classified {
-  const byPixel = new Set<string>();
+  const pi = points.map((p) => Math.round(p[0] / PIXEL));
+  const pj = points.map((p) => Math.round(p[1] / PIXEL));
+  const byPixel = new Set<number>();
   type Cell = { days: Set<number>; maxFrp: number; positions: Set<string> };
-  const cells = new Map<string, Cell>();
+  const cells = new Map<number, Cell>();
   const coarse = (p: FirePoint): [number, number] => [
     Math.round(p[0] / COARSE),
     Math.round(p[1] / COARSE),
   ];
-  for (const p of points) {
-    byPixel.add(pixel(p));
+  points.forEach((p, n) => {
+    byPixel.add(pixelKey(pi[n], pj[n]));
     const [ci, cj] = coarse(p);
-    const k = `${ci}:${cj}`;
+    const k = pixelKey(ci, cj);
     const e = cells.get(k) ?? {
       days: new Set<number>(),
       maxFrp: 0,
@@ -120,17 +124,17 @@ export function classifyPoints(points: FirePoint[]): Classified {
     e.maxFrp = Math.max(e.maxFrp, p[2]);
     e.positions.add(`${p[0].toFixed(3)},${p[1].toFixed(3)}`);
     cells.set(k, e);
-  }
-  const hoods = new Map<string, Cell>();
+  });
+  const hoods = new Map<number, Cell>();
   const hood = (p: FirePoint): Cell => {
     const [ci, cj] = coarse(p);
-    const k = `${ci}:${cj}`;
+    const k = pixelKey(ci, cj);
     let h = hoods.get(k);
     if (!h) {
       h = { days: new Set(), maxFrp: 0, positions: new Set() };
       for (let di = -1; di <= 1; di++)
         for (let dj = -1; dj <= 1; dj++) {
-          const c = cells.get(`${ci + di}:${cj + dj}`);
+          const c = cells.get(pixelKey(ci + di, cj + dj));
           if (!c) continue;
           c.days.forEach((d) => h!.days.add(d));
           c.positions.forEach((q) => h!.positions.add(q));
@@ -140,32 +144,32 @@ export function classifyPoints(points: FirePoint[]): Classified {
     }
     return h;
   };
-  const neighbours = (p: FirePoint) => {
-    const [i, j] = pixel(p).split(":").map(Number);
-    let n = 0;
+  const neighbours = (n: number) => {
+    let c = 0;
     for (let di = -3; di <= 3; di++)
       for (let dj = -3; dj <= 3; dj++)
-        if ((di || dj) && byPixel.has(`${i + di}:${j + dj}`)) n++;
-    return n;
+        if ((di || dj) && byPixel.has(pixelKey(pi[n] + di, pj[n] + dj))) c++;
+    return c;
   };
 
-  const firstDay = new Map<string, number>();
+  const firstDay = new Map<number, number>();
   let newest = -Infinity;
-  for (const p of points) {
-    const k = pixel(p);
+  points.forEach((p, n) => {
+    const k = pixelKey(pi[n], pj[n]);
     firstDay.set(k, Math.min(firstDay.get(k) ?? Infinity, p[4]));
     newest = Math.max(newest, minutes(p));
-  }
+  });
 
   const score: number[] = [];
   const reason: NoiseReason[] = [];
   const fresh: boolean[] = [];
-  for (const p of points) {
+  points.forEach((p, n) => {
     fresh.push(
-      firstDay.get(pixel(p)) === p[4] && newest - minutes(p) <= FRESH_MIN,
+      firstDay.get(pixelKey(pi[n], pj[n])) === p[4] &&
+        newest - minutes(p) <= FRESH_MIN,
     );
     const h = hood(p);
-    const near = neighbours(p);
+    const near = neighbours(n);
     let why: NoiseReason = null;
     if (
       h.days.size >= STATIC_DAYS &&
@@ -185,7 +189,7 @@ export function classifyPoints(points: FirePoint[]): Classified {
       why ? Math.min(15, Math.round(raw / 6)) : Math.min(100, Math.round(raw)),
     );
     reason.push(why);
-  }
+  });
   return { score, reason, fresh };
 }
 

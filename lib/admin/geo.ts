@@ -1,7 +1,7 @@
 import area from "@turf/area";
 import length from "@turf/length";
 import along from "@turf/along";
-import buffer from "@turf/buffer";
+import { getBuffer } from "./buffer";
 import centroid from "@turf/centroid";
 import bbox from "@turf/bbox";
 import inside from "@turf/boolean-point-in-polygon";
@@ -30,7 +30,27 @@ export const fmtKm = (km: number, loc = "es-AR") =>
     ? `${Math.round(km * 1000)} m`
     : `${km.toLocaleString(loc, { maximumFractionDigits: 2 })} km`;
 
-/** Fires inside a zone, optionally widened by bufferKm. */
+// Buffered zone polygons are expensive (jsts) and zones are immutable, so cache per geometry object.
+const zoneCache = new WeakMap<object, Map<number, { poly: GeoJSON.Feature<Poly>; box: number[] }>>();
+
+function zoneArea(zone: Feat, bufferKm: number) {
+  const byKm = zoneCache.get(zone.geometry) ?? new Map();
+  zoneCache.set(zone.geometry, byKm);
+  const hit = byKm.get(bufferKm);
+  if (hit) return hit;
+  let poly = asFeature(zone) as GeoJSON.Feature<Poly>;
+  const buffer = bufferKm > 0 ? getBuffer() : null;
+  if (buffer) {
+    const b = buffer(poly, bufferKm, { units: "kilometers" });
+    if (b) poly = b as GeoJSON.Feature<Poly>;
+  }
+  const entry = { poly, box: bbox(poly) };
+  // ponytail: an unbuffered fallback (chunk not loaded yet) is never cached; hooks wait for useBufferReady
+  if (bufferKm <= 0 || buffer) byKm.set(bufferKm, entry);
+  return entry;
+}
+
+/** Fires inside a zone, optionally widened by bufferKm (needs loadBuffer() done when bufferKm > 0). */
 export function firesInZone(
   zone: Feat,
   pts: FirePoint[],
@@ -38,12 +58,8 @@ export function firesInZone(
 ): FirePoint[] {
   if (zone.geometry.type !== "Polygon" && zone.geometry.type !== "MultiPolygon")
     return [];
-  let poly = asFeature(zone) as GeoJSON.Feature<Poly>;
-  if (bufferKm > 0) {
-    const b = buffer(poly, bufferKm, { units: "kilometers" });
-    if (b) poly = b as GeoJSON.Feature<Poly>;
-  }
-  const [w, s, e, n] = bbox(poly);
+  const { poly, box } = zoneArea(zone, bufferKm);
+  const [w, s, e, n] = box;
   return pts.filter(
     (p) =>
       p[1] >= w &&
@@ -91,6 +107,8 @@ export function patrolRing(
   zone: Feat,
   offsetM: number,
 ): [number, number][] | null {
+  const buffer = getBuffer();
+  if (!buffer) return null;
   const b = buffer(asFeature(zone) as GeoJSON.Feature<Poly>, offsetM / 1000, {
     units: "kilometers",
   });

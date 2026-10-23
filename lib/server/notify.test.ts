@@ -185,3 +185,16 @@ describe("recipients and text limits", () => {
     expect(text.endsWith(link)).toBe(true);
   });
 });
+
+describe("email subject", () => {
+  test("a title with line breaks cannot inject header lines", async () => {
+    const calls: { init: RequestInit }[] = [];
+    vi.stubGlobal("fetch", async (_u: string, init: RequestInit) => {
+      calls.push({ init });
+      return new Response("{}", { status: 200 });
+    });
+    await sendNotice(body({ title: "Foco\r\nBcc: x@evil.com" }), ENV, 0);
+    const mail = calls.find((c) => String(c.init.body).includes('"subject"'))!;
+    expect(JSON.parse(mail.init.body as string).subject).toBe("[Sentinel] Foco Bcc: x@evil.com");
+  });
+});

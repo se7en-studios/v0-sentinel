@@ -265,7 +265,7 @@ export function MetricsView({ ctx }: { ctx: Ctx }) {
           {zones.length === 0 ? (
             <p className="text-[12.5px] text-foreground/60">{t("met.zones.empty")}</p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" tabIndex={0} role="region" aria-label={t("met.zones")}>
               <table className="w-full min-w-[420px] text-left text-[12.5px]">
                 <thead className="text-[10.5px] uppercase tracking-wider text-foreground/60">
                   <tr>
@@ -379,7 +379,7 @@ function LeadCard({ ctx, loc }: { ctx: Ctx; loc: string }) {
 
 function LeadTable({ leads, t, loc }: { leads: GoesLead[]; t: Translate; loc: string }) {
   return (
-    <div className="mt-3 overflow-x-auto">
+    <div className="mt-3 overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" tabIndex={0} role="region" aria-label={t("met.lead.caption")}>
       <table className="w-full min-w-[420px] text-left text-[11.5px]">
         <caption className="sr-only">{t("met.lead.caption")}</caption>
         <thead className="text-[10px] uppercase tracking-[0.08em] text-foreground/60">

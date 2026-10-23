@@ -22,7 +22,7 @@ const ICON: Record<UnitKind, typeof Plane> = {
 };
 const STATUS_TONE: Record<UnitState["status"], string> = {
   disponible: "bg-foreground/[0.07] text-foreground/55",
-  "en ruta": "bg-[#e8710a]/14 text-[#b9560a]",
+  "en ruta": "bg-[#e8710a]/14 text-[var(--state-watch-ink)]",
   "en operación": "bg-primary/14 text-primary",
   regresando: "bg-[#1b6fb8]/12 text-[#1b6fb8]",
 };
