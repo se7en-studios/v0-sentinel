@@ -73,7 +73,8 @@ export function Stat({
 }) {
   return (
     <div className={cn("min-w-0", className)}>
-      <div className="truncate text-[10px] font-medium uppercase tracking-[0.08em] text-foreground/45">
+      {/* phone: two narrow columns, so the label and the note wrap instead of getting cut ("para operar o quemas pre...") */}
+      <div className="truncate max-md:whitespace-normal max-md:text-clip text-[10px] font-medium uppercase tracking-[0.08em] text-foreground/45">
         {label}
       </div>
       <div
@@ -87,7 +88,7 @@ export function Stat({
         {value}
       </div>
       {sub && (
-        <div className="mt-px truncate text-[10.5px] text-foreground/45">
+        <div className="mt-px truncate max-md:whitespace-normal max-md:text-clip text-[10.5px] leading-snug text-foreground/45">
           {sub}
         </div>
       )}

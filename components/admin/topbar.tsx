@@ -122,7 +122,7 @@ export function Topbar({ a }: { a: A }) {
   const email = a.cloud?.email;
 
   return (
-    <header className="relative z-30 flex min-h-11 shrink-0 items-center gap-1 border-b border-[var(--hairline)] bg-card px-2 sm:px-3">
+    <header className="relative z-30 flex min-h-11 shrink-0 items-center gap-1 max-md:flex-wrap border-b border-[var(--hairline)] bg-card px-2 sm:px-3">
       <a
         href="/"
         aria-label={t("top.back")}
@@ -179,9 +179,11 @@ export function Topbar({ a }: { a: A }) {
         </span>
       )}
 
+      {/* phone: the tabs get their own full-width row under the logo and icons instead of ~110 px between them */}
+      <span className="flex-1 md:hidden" aria-hidden />
       <nav
         ref={nav}
-        className="no-scrollbar mx-1 flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [&>*:first-child]:ml-auto [&>*:last-child]:mr-auto"
+        className="no-scrollbar mx-1 flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto max-md:order-last max-md:mx-0 max-md:basis-full max-md:flex-none max-md:snap-x max-md:border-t max-md:border-[var(--hairline)] max-md:py-1 [&>*:first-child]:ml-auto [&>*:last-child]:mr-auto max-md:[&>*:first-child]:ml-0 max-md:[&>*:last-child]:mr-0"
         aria-label={t("top.modes")}
       >
         {TABS.map((t) => {
@@ -194,7 +196,7 @@ export function Topbar({ a }: { a: A }) {
               onClick={() => a.goTab(t.id)}
               aria-current={on ? "page" : undefined}
               className={cn(
-                "relative flex h-8 max-lg:h-11 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "relative flex h-8 max-lg:h-11 max-md:h-9 max-md:snap-center shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 on
                   ? "bg-foreground text-background"
                   : "text-foreground/60 hover:bg-foreground/[0.06] hover:text-foreground",

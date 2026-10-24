@@ -241,7 +241,8 @@ function ViewCluster({ a }: { a: A }) {
       >
         <Minus className="size-3.5" />
       </button>
-      <span className="num w-9 text-center text-[11px] font-medium text-foreground/70">
+      {/* phone: pinch zooms and the factor only takes room (the cluster used to cover the map attribution) */}
+      <span className="num w-9 text-center text-[11px] font-medium text-foreground/70 max-md:hidden">
         {factor >= 10 ? Math.round(factor) : factor.toFixed(1)}×
       </span>
       <button
@@ -252,7 +253,7 @@ function ViewCluster({ a }: { a: A }) {
       >
         <Plus className="size-3.5" />
       </button>
-      <span className="mx-0.5 h-4 w-px bg-[var(--hairline)]" />
+      <span className="mx-0.5 h-4 w-px bg-[var(--hairline)] max-md:hidden" />
       <button
         type="button"
         aria-label={full ? t("mc.fullExit") : t("mc.full")}
@@ -263,7 +264,7 @@ function ViewCluster({ a }: { a: A }) {
                 .requestFullscreen()
                 .catch(() => undefined)
         }
-        className="grid size-7 max-md:size-11 place-items-center rounded-lg text-foreground/55 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="grid size-7 place-items-center rounded-lg text-foreground/55 hover:bg-foreground/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:hidden"
       >
         {full ? (
           <Minimize2 className="size-3.5" />
@@ -418,7 +419,7 @@ export function MapOverlays({
           {cursor ? `${cursor[1].toFixed(4)}°, ${cursor[0].toFixed(4)}°` : "—"}
         </div>
       </div>
-      <div className="pointer-events-none absolute bottom-3 right-3 z-10 max-md:bottom-8 [&>*]:pointer-events-auto">
+      <div className="pointer-events-none absolute bottom-3 right-3 z-10 max-md:bottom-14 [&>*]:pointer-events-auto">
         <ViewCluster a={a} />
       </div>
     </>

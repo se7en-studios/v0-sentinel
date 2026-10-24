@@ -199,7 +199,7 @@ export function AdminApp({
           <aside
             aria-label={ctx.t("app.sidePanel")}
             className={cn(
-              "w-full shrink-0 overflow-y-auto border-t border-[var(--hairline)] bg-card lg:w-[336px] lg:border-l lg:border-t-0",
+              "w-full shrink-0 overflow-y-auto border-t border-[var(--hairline)] bg-card lg:w-[336px] lg:border-l lg:border-t-0 2xl:w-[400px]",
               !ctx.panelOpen && "lg:hidden",
             )}
           >
