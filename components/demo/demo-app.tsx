@@ -9,14 +9,17 @@ import {
   type TouchEvent,
 } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Moon, Sun } from "lucide-react";
+import { ChevronLeft, ChevronRight, Moon, Sun, Users } from "lucide-react";
 import {
   DEMO_LOCALES,
   demoTranslator,
   parseDemoLocale,
   type DemoKey,
   type DemoLocale,
+  type DemoProfile,
 } from "@/lib/admin/i18n-demo";
+import { parseProfile } from "@/lib/demo/profile";
+import { Chooser } from "./chooser";
 import type { CountryGeo } from "@/lib/demo/geo";
 import type { DemoGeo } from "./map";
 import { SceneEarly } from "./scene-early";
@@ -38,6 +41,7 @@ const NAV_KEYS: DemoKey[] = [
 const TOTAL = NAV_KEYS.length;
 const LOCALE_KEY = "sentinel-demo-locale";
 const THEME_KEY = "sentinel-demo-theme";
+const PROFILE_KEY = "sentinel-demo-profile"; // a profile id, or "none" once the screen was skipped
 const SWIPE_PX = 60;
 
 type Theme = "light" | "dark";
@@ -76,6 +80,10 @@ export function DemoApp({
   const [step, setStep] = useState(0);
   const [locale, setLocale] = useState<DemoLocale>("es");
   const [theme, setTheme] = useState<Theme | null>(null);
+  const [profile, setProfile] = useState<DemoProfile | null>(null);
+  const [choosing, setChoosing] = useState(false);
+  // the server draws step 1; until the saved choices are read the scene stays hidden, so a first visit does not flash it before the profile screen
+  const [ready, setReady] = useState(false);
   const prefersDark = useSyncExternalStore(
     subscribeScheme,
     systemDark,
@@ -93,6 +101,11 @@ export function DemoApp({
     const th = store(() => localStorage.getItem(THEME_KEY));
     if (th === "light" || th === "dark") setTheme(th);
     setStep(stepFromHash());
+    const saved = store(() => localStorage.getItem(PROFILE_KEY));
+    setProfile(parseProfile(saved));
+    // first visit without a #N link: ask once; a link to a step goes straight to it
+    if (saved === null && !window.location.hash) setChoosing(true);
+    setReady(true);
     /* eslint-enable react-hooks/set-state-in-effect */
     const onHash = () => setStep(stepFromHash());
     window.addEventListener("hashchange", onHash);
@@ -119,7 +132,18 @@ export function DemoApp({
     if (!moved.current) return;
     window.scrollTo({ top: 0 });
     document.getElementById("demo-title")?.focus({ preventScroll: true });
-  }, [step]);
+  }, [step, choosing]);
+
+  const openChooser = () => {
+    moved.current = true;
+    setChoosing(true);
+  };
+  const pickProfile = (p: DemoProfile | null) => {
+    moved.current = true;
+    setProfile(p);
+    setChoosing(false);
+    store(() => (localStorage.setItem(PROFILE_KEY, p ?? "none"), null));
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -128,6 +152,7 @@ export function DemoApp({
         e.ctrlKey ||
         e.metaKey ||
         e.altKey ||
+        choosing ||
         isFormField(e.target)
       )
         return;
@@ -139,7 +164,7 @@ export function DemoApp({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [go, step]);
+  }, [go, step, choosing]);
 
   const pickLocale = (l: DemoLocale) => {
     setLocale(l);
@@ -169,9 +194,9 @@ export function DemoApp({
     <SceneHeat key="1" t={t} geo={geo} />,
     <SceneFilter key="2" t={t} geo={geo} />,
     <SceneEarly key="3" t={t} geo={geo} />,
-    <SceneZone key="4" t={t} geo={geo} rings={rings} />,
-    <SceneIncident key="5" t={t} />,
-    <SceneUseCases key="6" t={t} restart={() => go(0)} />,
+    <SceneZone key="4" t={t} geo={geo} rings={rings} profile={profile} />,
+    <SceneIncident key="5" t={t} profile={profile} />,
+    <SceneUseCases key="6" t={t} restart={() => go(0)} profile={profile} />,
   ][step];
 
   return (
@@ -198,6 +223,15 @@ export function DemoApp({
           <button
             type="button"
             className="d-icon-btn"
+            onClick={openChooser}
+            aria-label={t("who.change")}
+            title={t("who.change")}
+          >
+            <Users aria-hidden className="size-5" />
+          </button>
+          <button
+            type="button"
+            className="d-icon-btn"
             onClick={toggleTheme}
             aria-label={dark ? t("chrome.themeLight") : t("chrome.themeDark")}
           >
@@ -210,6 +244,7 @@ export function DemoApp({
         </div>
       </header>
 
+      {!choosing && (
       <nav aria-label={t("chrome.steps")} className="d-steps">
         <div
           role="progressbar"
@@ -238,16 +273,23 @@ export function DemoApp({
           ))}
         </ol>
       </nav>
+      )}
 
       <main
         id="main-content"
         className="d-main"
+        style={{ visibility: ready ? "visible" : "hidden" }}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
-        {scene}
+        {choosing ? (
+          <Chooser t={t} current={profile} onPick={pickProfile} />
+        ) : (
+          scene
+        )}
       </main>
 
+      {!choosing && (
       <footer className="d-footer">
         <button
           type="button"
@@ -274,6 +316,7 @@ export function DemoApp({
           <ChevronRight aria-hidden className="size-6" />
         </button>
       </footer>
+      )}
     </div>
   );
 }

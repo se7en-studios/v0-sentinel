@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FileText, UsersRound, X } from "lucide-react";
-import type { DemoKey, DemoTranslate } from "@/lib/admin/i18n-demo";
+import type { DemoKey, DemoTranslate, DemoProfile } from "@/lib/admin/i18n-demo";
 import { INCIDENT_STAGES, type IncidentStage } from "@/lib/demo/data";
 import { SceneFrame } from "./scene-frame";
 
@@ -10,7 +10,13 @@ const stageLabel = (s: IncidentStage) => `s5.st.${s}` as DemoKey;
 const stageHistory = (s: IncidentStage) => `s5.h.${s}` as DemoKey;
 
 /** Scene 5: a sample incident card. Tapping a state moves it and extends the history; the report is a sheet. */
-export function SceneIncident({ t }: { t: DemoTranslate }) {
+export function SceneIncident({
+  t,
+  profile,
+}: {
+  t: DemoTranslate;
+  profile: DemoProfile | null;
+}) {
   const [stage, setStage] = useState<IncidentStage>("new");
   const [report, setReport] = useState(false);
   const upto = INCIDENT_STAGES.slice(0, INCIDENT_STAGES.indexOf(stage) + 1);
@@ -44,7 +50,7 @@ export function SceneIncident({ t }: { t: DemoTranslate }) {
           <UsersRound aria-hidden className="size-6" />
           <span>
             <span className="d-label">{t("s5.owner")}</span>
-            {t("s5.ownerName")}
+            {profile ? t(`s5.ownerFor.${profile}`) : t("s5.ownerName")}
           </span>
         </p>
         <div>

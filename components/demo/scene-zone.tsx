@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { BellRing, PenTool, RotateCcw } from "lucide-react";
-import type { DemoTranslate } from "@/lib/admin/i18n-demo";
+import type { DemoProfile, DemoTranslate } from "@/lib/admin/i18n-demo";
 import { ZONE_PRESET, ZONE_SHAPE } from "@/lib/demo/data";
 import { inside } from "@/lib/demo/geo";
 import { ArgentinaMap, at, delayStyle, type DemoGeo } from "./map";
@@ -47,7 +47,9 @@ export function SceneZone({
   t,
   geo,
   rings,
+  profile,
 }: {
+  profile: DemoProfile | null;
   t: DemoTranslate;
   geo: DemoGeo;
   rings: readonly (readonly (readonly number[])[])[];
@@ -71,7 +73,11 @@ export function SceneZone({
       t={t}
       n={4}
       title={t("s4.title")}
-      body={t("s4.body")}
+      body={
+        profile
+          ? t("s4.bodyP", { place: t(`s4.place.${profile}`) })
+          : t("s4.body")
+      }
       extra={
         <>
           <div className="d-actions">

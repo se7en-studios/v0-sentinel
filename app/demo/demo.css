@@ -990,3 +990,67 @@
     transform: translateY(-14px);
   }
 }
+
+/* audience chooser */
+.d-chooser {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.25rem;
+  max-width: 56rem;
+  margin: 0 auto;
+}
+.d-profiles {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+}
+@media (min-width: 640px) {
+  .d-profiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.d-profile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 5rem;
+  padding: 1rem 1.25rem;
+  text-align: left;
+  background: var(--d-card);
+  border: 1.5px solid var(--d-line);
+  border-radius: 0.75rem;
+  color: var(--d-fg);
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-family: var(--font-heading), system-ui, sans-serif;
+}
+.d-profile[aria-pressed="true"] {
+  border-color: var(--d-primary);
+  box-shadow: inset 0 0 0 1.5px var(--d-primary);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .d-chooser {
+    animation: d-fade 0.45s ease-out both;
+  }
+}
+
+@media (max-width: 400px) {
+  .d-header {
+    padding-inline: 0.75rem;
+    gap: 0.5rem;
+  }
+  .d-brand {
+    font-size: 1.0625rem;
+  }
+  .d-tools {
+    gap: 0.25rem;
+  }
+  .d-lang button {
+    min-width: 2.5rem;
+    padding: 0 0.25rem;
+  }
+  .d-icon-btn {
+    width: 2.75rem;
+  }
+}

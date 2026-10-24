@@ -33,6 +33,9 @@ test("recorre los 6 pasos con botones, teclado y clics sin llamar a la API", asy
   expect(
     await page.locator('meta[name="robots"]').getAttribute("content"),
   ).toContain("noindex");
+  // first visit: the optional audience screen comes first
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("¿Con quién estás hablando?");
+  await page.getByRole("button", { name: "Saltear" }).click();
   await title(page, 0);
   await expect(page.getByText(SAMPLE)).toBeVisible();
 
@@ -120,6 +123,60 @@ test("el hash abre el paso y un clic en el mapa dibuja la zona", async ({
   // roughly the Córdoba hills: a point inside the country for any reasonable layout
   await page.mouse.click(box.x + box.width * 0.55, box.y + box.height * 0.45);
   await expect(page.getByText("Alerta en Mi zona")).toBeVisible();
+});
+
+const firstCard = (page: Page) => page.locator(".d-cases h2").first();
+
+test("elegir un perfil reordena casos, cambia textos, persiste y se puede cambiar sin perder el paso", async ({ page }) => {
+  await page.goto("/demo");
+  await page.getByRole("button", { name: "Municipio o defensa civil" }).click();
+  await title(page, 0);
+  await page.goto("/demo#4");
+  await expect(page.getByText("un barrio")).toBeVisible();
+  await page.goto("/demo#5");
+  await expect(page.getByText("Equipo de defensa civil de ejemplo")).toBeVisible();
+  await page.goto("/demo#6");
+  await expect(firstCard(page)).toHaveText("Municipios y defensa civil");
+  await expect(page.getByText(/qué territorio/)).toBeVisible();
+
+  await page.reload();
+  await title(page, 5);
+  await expect(firstCard(page)).toHaveText("Municipios y defensa civil");
+
+  // change from the header: same step, investment keeps the default order but changes the closing
+  await page.getByRole("button", { name: "Cambiar público" }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("¿Con quién estás hablando?");
+  await page.getByRole("button", { name: "Inversión o alianzas" }).click();
+  await title(page, 5);
+  await expect(firstCard(page)).toHaveText("Producción forestal");
+  await expect(page.getByText(/una alianza/)).toBeVisible();
+});
+
+test("saltear no cambia nada y no vuelve a preguntar", async ({ page }) => {
+  await page.goto("/demo");
+  await page.getByRole("button", { name: "Saltear" }).click();
+  await title(page, 0);
+  await page.goto("/demo#5");
+  await expect(page.getByText("Brigada de ejemplo")).toBeVisible();
+  await page.goto("/demo#6");
+  await expect(firstCard(page)).toHaveText("Producción forestal");
+  await expect(page.getByText("Contanos qué necesitás cuidar y lo conversamos.")).toBeVisible();
+  await page.reload();
+  await title(page, 5);
+});
+
+test("a11y axe de la pantalla de perfiles", async ({ page }) => {
+  for (const scheme of ["light", "dark"] as const)
+    for (const width of [390, 1440]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.emulateMedia({ reducedMotion: "reduce", colorScheme: scheme });
+      await page.goto("/demo");
+      await page.evaluate(() => localStorage.clear());
+      await page.reload();
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("¿Con quién estás hablando?");
+      const { violations } = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+      expect(violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => v.id)).toEqual([]);
+    }
 });
 
 test("la paleta del admin ofrece abrir el modo presentación", async ({

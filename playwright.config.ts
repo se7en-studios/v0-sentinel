@@ -11,6 +11,8 @@ export default defineConfig({
   // the dev server recompiles on demand and is slow under load; assertions get room instead of the tests being marked flaky
   expect: { timeout: 15_000 },
   fullyParallel: false,
+  // one dev server compiles pages on demand: more workers than this just make every test slower and flakier
+  workers: process.env.CI ? 2 : 3,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI
     ? [["list"], ["html", { open: "never" }]]

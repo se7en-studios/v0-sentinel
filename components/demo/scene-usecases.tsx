@@ -10,15 +10,25 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
-import type { DemoKey, DemoTranslate } from "@/lib/admin/i18n-demo";
+import type {
+  DemoKey,
+  DemoProfile,
+  DemoTranslate,
+} from "@/lib/admin/i18n-demo";
+import { orderCases } from "@/lib/demo/profile";
 import { SceneFrame } from "./scene-frame";
 
-const CASES: { icon: LucideIcon; title: DemoKey; text: DemoKey }[] = [
-  { icon: TreePine, title: "s6.forestry", text: "s6.forestryText" },
-  { icon: Tractor, title: "s6.farms", text: "s6.farmsText" },
-  { icon: Building2, title: "s6.towns", text: "s6.townsText" },
-  { icon: Mountain, title: "s6.parks", text: "s6.parksText" },
-  { icon: Zap, title: "s6.energy", text: "s6.energyText" },
+const CASES: {
+  id: string;
+  icon: LucideIcon;
+  title: DemoKey;
+  text: DemoKey;
+}[] = [
+  { id: "forestry", icon: TreePine, title: "s6.forestry", text: "s6.forestryText" },
+  { id: "farms", icon: Tractor, title: "s6.farms", text: "s6.farmsText" },
+  { id: "towns", icon: Building2, title: "s6.towns", text: "s6.townsText" },
+  { id: "parks", icon: Mountain, title: "s6.parks", text: "s6.parksText" },
+  { id: "energy", icon: Zap, title: "s6.energy", text: "s6.energyText" },
 ];
 
 // Same destinations as the landing's call to action (components/cta.tsx).
@@ -29,14 +39,16 @@ const MESSAGE_URL = "/#contacto";
 export function SceneUseCases({
   t,
   restart,
+  profile,
 }: {
+  profile: DemoProfile | null;
   t: DemoTranslate;
   restart: () => void;
 }) {
   return (
     <SceneFrame t={t} n={6} title={t("s6.title")} body={t("s6.body")} stacked>
       <ul className="d-cases">
-        {CASES.map(({ icon: Icon, title, text }) => (
+        {orderCases(CASES, profile).map(({ icon: Icon, title, text }) => (
           <li key={title} className="d-card d-case">
             <span className="d-case-icon" aria-hidden>
               <Icon className="size-7" />
@@ -49,7 +61,7 @@ export function SceneUseCases({
       <div className="d-card d-cta">
         <div>
           <h2 className="d-h2 d-h2--lg">{t("s6.ctaTitle")}</h2>
-          <p className="d-body">{t("s6.ctaBody")}</p>
+          <p className="d-body">{profile ? t(`s6.ctaFor.${profile}`) : t("s6.ctaBody")}</p>
         </div>
         <div className="d-actions">
           <a
