@@ -104,7 +104,7 @@ export function StatusStrip({ ctx }: { ctx: Ctx }) {
   } = ctx;
   const today = forecast?.[0];
   const stale =
-    lastDetection > 0 && Date.now() - lastDetection > STALE_MIN * 60_000;
+    lastDetection > 0 && now - lastDetection > STALE_MIN * 60_000;
   const attention = alertCount + unackedRules;
   const goAlerts = () => {
     goTab("general");
