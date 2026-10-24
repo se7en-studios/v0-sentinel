@@ -9,9 +9,16 @@ export const dynamic = "force-dynamic";
 // Firebase Auth is ~130 kB gzip: only deployments with per-client accounts should download it.
 const FirebaseGate = dynamicImport(() => import("@/components/admin/firebase-gate").then((m) => m.FirebaseGate));
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string | string[] }>;
+}) {
+  // /admin?tab=incendios opens that tab (read here so the first render matches the client)
+  const { tab } = await searchParams;
+  const initialTab = typeof tab === "string" ? tab : undefined;
   // per-client Firebase accounts when configured, shared ADMIN_PASSWORD otherwise
-  if (firebaseEnabled) return <FirebaseGate />;
+  if (firebaseEnabled) return <FirebaseGate initialTab={initialTab} />;
   if (!authConfigured() && !(await isAuthed())) {
     return (
       <main className="grid min-h-dvh place-items-center bg-[#faf7f0] px-6 text-center text-[#1a1812]">
@@ -28,5 +35,5 @@ export default async function AdminPage() {
     );
   }
   if (!(await isAuthed())) return <LoginForm />;
-  return <AdminApp authRequired={authRequired()} />;
+  return <AdminApp authRequired={authRequired()} initialTab={initialTab} />;
 }

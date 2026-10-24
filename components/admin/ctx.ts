@@ -49,6 +49,7 @@ export type PanelSeg = "Capas" | "Análisis" | "Alertas" | "Notas";
 
 export type Tab =
   | "general"
+  | "incendios"
   | "zonas"
   | "drones"
   | "recursos"

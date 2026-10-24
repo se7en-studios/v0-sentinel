@@ -14,6 +14,7 @@ const API_HOSTS = [
   "https://nominatim.openstreetmap.org", // place search
   "https://*.googleapis.com", // Firebase Auth / Firestore / installations
   "https://va.vercel-scripts.com", // Vercel Analytics beacon (dev loads its script from here)
+  "https://power.larc.nasa.gov", // NASA POWER: weather of each tracked fire (Incendios tab)
 ];
 
 // ponytail: 'unsafe-inline' scripts are needed by Next's inline bootstrap and the JSON-LD tags
@@ -53,6 +54,8 @@ const securityHeaders = [
 const nextConfig = {
   // ANALYZE_MAPS=1 npx next build: sourcemaps para que scripts/analyze-bundle.mjs atribuya bytes por paquete.
   productionBrowserSourceMaps: process.env.ANALYZE_MAPS === "1",
+  // /api/admin/live reads data/static/** from disk (country outline, land cover): ship it with the function.
+  outputFileTracingIncludes: { "/api/admin/live": ["./data/static/**/*"] },
   // ponytail: default is webp-only; avif is smaller for photos (hero bg,
   // press/blog art) and next/image already falls back to webp/original
   // per browser support, so this is a free size win with no risk.

@@ -1,0 +1,550 @@
+{
+  "fire": "Puerto Patriada (Chubut, Argentina)",
+  "firePeriod": {
+    "start": "2026-01-05",
+    "end": "2026-02-12"
+  },
+  "bounds": [
+    [
+      -71.629597,
+      -42.053294
+    ],
+    [
+      -71.162142,
+      -42.053294
+    ],
+    [
+      -71.162142,
+      -42.437168
+    ],
+    [
+      -71.629597,
+      -42.437168
+    ]
+  ],
+  "image": {
+    "file": "dnbr.png",
+    "width": 1929,
+    "height": 2132,
+    "crs": "EPSG:4326",
+    "rows": "mercator",
+    "pixelDeg": [
+      0.00024233041951330454,
+      0.00018005357974761426
+    ],
+    "approxPixelM": 20,
+    "sampling": "nearest neighbour from the UTM class raster",
+    "maxMapLibreShiftM": 0
+  },
+  "grid": {
+    "crs": "EPSG:32719",
+    "originX": 283680,
+    "originY": 5341000,
+    "width": 1871,
+    "height": 2080,
+    "resM": 20,
+    "padM": 3000
+  },
+  "scenes": {
+    "pre": {
+      "date": "2026-01-04",
+      "platform": "sentinel-2b",
+      "windowCloudPct": 0.004,
+      "windowObstructedPct": 0.01,
+      "items": [
+        {
+          "id": "S2B_T19GBP_20260104T143915_L2A",
+          "tile": "MGRS-19GBP",
+          "datetime": "2026-01-04T14:44:35.873000Z",
+          "platform": "sentinel-2b",
+          "cloudPct": 0.037,
+          "processingBaseline": "05.11",
+          "sunElevation": 57.04,
+          "scaling": {
+            "nir08": {
+              "scale": 0.0001,
+              "offset": -0.1,
+              "nodata": 0
+            },
+            "swir22": {
+              "scale": 0.0001,
+              "offset": -0.1,
+              "nodata": 0
+            }
+          },
+          "windowPx": {
+            "cols": [
+              0,
+              1305
+            ],
+            "rows": [
+              0,
+              2080
+            ],
+            "mosaicPx": 2206880
+          }
+        },
+        {
+          "id": "S2B_T19GCP_20260104T143915_L2A",
+          "tile": "MGRS-19GCP",
+          "datetime": "2026-01-04T14:44:32.533000Z",
+          "platform": "sentinel-2b",
+          "cloudPct": 0.01,
+          "processingBaseline": "05.11",
+          "sunElevation": 57.82,
+          "scaling": {
+            "nir08": {
+              "scale": 0.0001,
+              "offset": -0.1,
+              "nodata": 0
+            },
+            "swir22": {
+              "scale": 0.0001,
+              "offset": -0.1,
+              "nodata": 0
+            }
+          },
+          "windowPx": {
+            "cols": [
+              816,
+              1871
+            ],
+            "rows": [
+              0,
+              2080
+            ],
+            "mosaicPx": 1684800
+          }
+        }
+      ],
+      "tileOverlap": {
+        "tiles": [
+          "MGRS-19GBP",
+          "MGRS-19GCP"
+        ],
+        "pixels": 1011056,
+        "meanDiff": -0.00039,
+        "meanAbsDiff": 0.00113
+      },
+      "candidates": [
+        {
+          "date": "2025-12-02",
+          "platform": "sentinel-2a",
+          "tileCloudPct": [
+            96.628,
+            72.282,
+            56.873
+          ],
+          "windowObstructedPct": 98.067
+        },
+        {
+          "date": "2025-12-05",
+          "platform": "sentinel-2b",
+          "tileCloudPct": [
+            64.184,
+            33.11,
+            2.84
+          ],
+          "windowObstructedPct": 39.266
+        },
+        {
+          "date": "2025-12-10",
+          "platform": "sentinel-2c",
+          "tileCloudPct": [
+            38.013,
+            73.035,
+            13.128
+          ],
+          "windowObstructedPct": 27.406
+        },
+        {
+          "date": "2025-12-15",
+          "platform": "sentinel-2b",
+          "tileCloudPct": [
+            97.843,
+            78.891,
+            74.31
+          ],
+          "windowObstructedPct": null
+        },
+        {
+          "date": "2025-12-20",
+          "platform": "sentinel-2c",
+          "tileCloudPct": [
+            99.419,
+            99.814,
+            99.965
+          ],
+          "windowObstructedPct": null
+        },
+        {
+          "date": "2025-12-22",
+          "platform": "sentinel-2a",
+          "tileCloudPct": [
+            95.663,
+            94.107,
+            92.92
+          ],
+          "windowObstructedPct": null
+        },
+        {
+          "date": "2025-12-25",
+          "platform": "sentinel-2b",
+          "tileCloudPct": [
+            91.136,
+            91.511,
+            39.143,
+            34.91,
+            31.263,
+            47.549
+          ],
+          "windowObstructedPct": 63.499
+        },
+        {
+          "date": "2025-12-30",
+          "platform": "sentinel-2c",
+          "tileCloudPct": [
+            84.659,
+            30.403,
+            35.852
+          ],
+          "windowObstructedPct": 70.119
+        },
+        {
+          "date": "2026-01-04",
+          "platform": "sentinel-2b",
+          "tileCloudPct": [
+            0.037,
+            0,
+            0.01
+          ],
+          "windowObstructedPct": 0.01
+        }
+      ]
+    },
+    "post": {
+      "date": "2026-03-10",
+      "platform": "sentinel-2c",
+      "windowCloudPct": 0.007,
+      "windowObstructedPct": 0.007,
+      "items": [
+        {
+          "id": "S2C_T19GBP_20260310T144233_L2A",
+          "tile": "MGRS-19GBP",
+          "datetime": "2026-03-10T14:44:39.039000Z",
+          "platform": "sentinel-2c",
+          "cloudPct": 0.674,
+          "processingBaseline": "05.12",
+          "sunElevation": 41.7,
+          "scaling": {
+            "nir08": {
+              "scale": 0.0001,
+              "offset": -0.1,
+              "nodata": 0
+            },
+            "swir22": {
+              "scale": 0.0001,
+              "offset": -0.1,
+              "nodata": 0
+            }
+          },
+          "windowPx": {
+            "cols": [
+              0,
+              1305
+            ],
+            "rows": [
+              0,
+              2080
+            ],
+            "mosaicPx": 2206880
+          }
+        },
+        {
+          "id": "S2C_T19GCP_20260310T144233_L2A",
+          "tile": "MGRS-19GCP",
+          "datetime": "2026-03-10T14:44:35.687000Z",
+          "platform": "sentinel-2c",
+          "cloudPct": 0.012,
+          "processingBaseline": "05.12",
+          "sunElevation": 42.33,
+          "scaling": {
+            "nir08": {
+              "scale": 0.0001,
+              "offset": -0.1,
+              "nodata": 0
+            },
+            "swir22": {
+              "scale": 0.0001,
+              "offset": -0.1,
+              "nodata": 0
+            }
+          },
+          "windowPx": {
+            "cols": [
+              816,
+              1871
+            ],
+            "rows": [
+              0,
+              2080
+            ],
+            "mosaicPx": 1684800
+          }
+        }
+      ],
+      "tileOverlap": {
+        "tiles": [
+          "MGRS-19GBP",
+          "MGRS-19GCP"
+        ],
+        "pixels": 1010981,
+        "meanDiff": -0.0005,
+        "meanAbsDiff": 0.00124
+      },
+      "candidates": [
+        {
+          "date": "2026-02-13",
+          "platform": "sentinel-2b",
+          "tileCloudPct": [
+            73.185,
+            9.512,
+            32.794
+          ],
+          "windowObstructedPct": 33.959
+        },
+        {
+          "date": "2026-02-18",
+          "platform": "sentinel-2c",
+          "tileCloudPct": [
+            18.921,
+            39.94,
+            6.531
+          ],
+          "windowObstructedPct": 1.58
+        },
+        {
+          "date": "2026-02-23",
+          "platform": "sentinel-2b",
+          "tileCloudPct": [
+            88.11,
+            39.325,
+            57.441
+          ],
+          "windowObstructedPct": 74.546
+        },
+        {
+          "date": "2026-02-28",
+          "platform": "sentinel-2c",
+          "tileCloudPct": [
+            89.123,
+            51.118,
+            71.65
+          ],
+          "windowObstructedPct": 44.723
+        },
+        {
+          "date": "2026-03-05",
+          "platform": "sentinel-2b",
+          "tileCloudPct": [
+            11.199,
+            0.147,
+            1.486
+          ],
+          "windowObstructedPct": 0.913
+        },
+        {
+          "date": "2026-03-10",
+          "platform": "sentinel-2c",
+          "tileCloudPct": [
+            0.674,
+            0.011,
+            0.012
+          ],
+          "windowObstructedPct": 0.007
+        },
+        {
+          "date": "2026-03-12",
+          "platform": "sentinel-2a",
+          "tileCloudPct": [
+            36.306,
+            42.39,
+            42.685
+          ],
+          "windowObstructedPct": 76.396
+        },
+        {
+          "date": "2026-03-15",
+          "platform": "sentinel-2b",
+          "tileCloudPct": [
+            72.096,
+            35.495,
+            30.309
+          ],
+          "windowObstructedPct": 59.785
+        },
+        {
+          "date": "2026-03-20",
+          "platform": "sentinel-2c",
+          "tileCloudPct": [
+            68.774,
+            10.338,
+            14.596
+          ],
+          "windowObstructedPct": 29.855
+        },
+        {
+          "date": "2026-03-22",
+          "platform": "sentinel-2a",
+          "tileCloudPct": [
+            96.648,
+            80.48,
+            70.669
+          ],
+          "windowObstructedPct": null
+        },
+        {
+          "date": "2026-03-25",
+          "platform": "sentinel-2b",
+          "tileCloudPct": [
+            89.202,
+            45.794,
+            18.692
+          ],
+          "windowObstructedPct": 56.524
+        },
+        {
+          "date": "2026-03-30",
+          "platform": "sentinel-2c",
+          "tileCloudPct": [
+            94.423,
+            13.402,
+            25.158
+          ],
+          "windowObstructedPct": 87.199
+        }
+      ]
+    }
+  },
+  "classes": [
+    {
+      "key": "unburned",
+      "min": null,
+      "max": 0.1,
+      "color": null
+    },
+    {
+      "key": "low",
+      "min": 0.1,
+      "max": 0.27,
+      "color": "#f6d55c"
+    },
+    {
+      "key": "modLow",
+      "min": 0.27,
+      "max": 0.44,
+      "color": "#f39c34"
+    },
+    {
+      "key": "modHigh",
+      "min": 0.44,
+      "max": 0.66,
+      "color": "#d9480f"
+    },
+    {
+      "key": "high",
+      "min": 0.66,
+      "max": null,
+      "color": "#8c1d04"
+    }
+  ],
+  "windowHa": 155765.2,
+  "validHa": 153060.4,
+  "areasHa": {
+    "unburned": 119316.2,
+    "low": 8543.9,
+    "modLow": 5811.2,
+    "modHigh": 7021.8,
+    "high": 12367.3
+  },
+  "burnedHa": 33744.2,
+  "burned27Ha": 25200.3,
+  "insidePerimeterHa": 28606.2,
+  "areasInsidePerimeterHa": {
+    "unburned": 15032.8,
+    "low": 4590.7,
+    "modLow": 5307.5,
+    "modHigh": 6708.3,
+    "high": 11999.7
+  },
+  "burnedOutsidePerimeterHa": 5137.9,
+  "burned27OutsidePerimeterHa": 1184.7,
+  "perimeter": {
+    "statedHa": 44850.3,
+    "rasterHa": 45068.6,
+    "validHa": 43639,
+    "maskedHa": 1429.6,
+    "unburnedPct": 34.45,
+    "below027Pct": 44.97
+  },
+  "official": {
+    "ha": 30677,
+    "source": "Servicio Provincial de Manejo del Fuego, Chubut (13 Feb 2026)",
+    "burnedHaVsOfficial": 1.1,
+    "burned27HaVsOfficial": 0.821,
+    "perimeterVsOfficial": 1.462
+  },
+  "iou10": 0.5865,
+  "f1_10": 0.7393,
+  "iou27": 0.5358,
+  "f1_27": 0.6977,
+  "validation": {
+    "dnbr010": {
+      "tpHa": 28606.2,
+      "fpHa": 15032.8,
+      "fnHa": 5137.9,
+      "iou": 0.5865,
+      "f1": 0.7393,
+      "precision": 0.6555,
+      "recall": 0.8477
+    },
+    "dnbr027": {
+      "tpHa": 24015.5,
+      "fpHa": 19623.5,
+      "fnHa": 1184.7,
+      "iou": 0.5358,
+      "f1": 0.6977,
+      "precision": 0.5503,
+      "recall": 0.953
+    },
+    "note": "our perimeter vs dNBR mask, masked pixels excluded, areas in ha"
+  },
+  "maskedPct": 1.736,
+  "maskedInsidePerimeterPct": 3.172,
+  "maskBreakdownPct": {
+    "nodata": 0,
+    "cloud": 0.005,
+    "cloudShadow": 0.006,
+    "snow": 0.006,
+    "water": 1.719,
+    "defective": 0,
+    "invalidReflectance": 0.001
+  },
+  "diagnostics": {
+    "dnbrMedianOutsidePerimeter": -0.012,
+    "dnbrMedianInsidePerimeter": 0.341,
+    "darkAreaSclPct": 3.834
+  },
+  "burnedVector": {
+    "file": "data/derived/puerto-patriada-burned.geojson",
+    "threshold": 0.27,
+    "cellM": 60,
+    "rule": "majority of valid 20 m pixels per cell",
+    "mmuHa": 1,
+    "simplifyM": 20,
+    "polygons": 193,
+    "areaHa": 25363.1,
+    "areaHaSimplified": 25363.1
+  },
+  "method": "Sentinel-2 L2A (Earth Search sentinel-2-c1-l2a), B8A/B12 surface reflectance at 20 m (DN*scale+offset from raster:bands). NBR=(B8A-B12)/(B8A+B12); dNBR=NBR_pre-NBR_post, no offset correction. Masked on either date: SCL 0,1,3,6,8,9,10,11, band nodata, reflectance<=0. Classes (Key & Benson 2006 / USGS): unburned<0.10, low 0.10-0.27, moderate-low 0.27-0.44, moderate-high 0.44-0.66, high>=0.66. Computed on the EPSG:32719 20 m grid over the perimeter bbox + 3 km; MGRS tiles mosaicked by deepest-inside tile; areas corrected for UTM scale factor. Perimeter rasterized at pixel centres. PNG resampled by nearest neighbour to a ~20 m Web-Mercator-row grid. Scenes: least SCL-obstructed acquisition in each period."
+}

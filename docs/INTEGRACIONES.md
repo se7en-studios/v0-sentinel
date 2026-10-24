@@ -81,7 +81,7 @@ Sonda corta (tope de 6 s por fuente, en paralelo) de FIRMS VIIRS, FIRMS MODIS, F
 
 En `next.config.mjs`, para todas las rutas: CSP, `X-Frame-Options: DENY` y `frame-ancestors 'none'`, `X-Content-Type-Options`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (cámara, micrófono, geolocalización, pagos y USB apagados) y HSTS en producción.
 
-La CSP enumera los dominios del mapa (Esri, EOX, CARTO, NASA GIBS, OpenFreeMap, AWS S3), Open-Meteo, Nominatim, `*.googleapis.com` (Firebase) y Vercel Analytics. **Si agregás una fuente nueva de teselas o una API consumida desde el navegador, sumá su dominio a `MAP_HOSTS`/`API_HOSTS`**, o el navegador la bloquea (se ve como error `Refused to connect` en la consola). Concesiones: `script-src` permite `'unsafe-inline'` (el arranque de Next y los JSON-LD; un nonce obligaría a renderizar todo dinámico) y `img-src` permite cualquier `https:` (imágenes de prensa y teselas). `'unsafe-eval'` solo se agrega en desarrollo.
+La CSP enumera los dominios del mapa (Esri, EOX, CARTO, NASA GIBS, OpenFreeMap, AWS S3), Open-Meteo, Nominatim, NASA POWER (`power.larc.nasa.gov`, el clima de cada incendio en la pestaña Incendios), `*.googleapis.com` (Firebase) y Vercel Analytics. **Si agregás una fuente nueva de teselas o una API consumida desde el navegador, sumá su dominio a `MAP_HOSTS`/`API_HOSTS`**, o el navegador la bloquea (se ve como error `Refused to connect` en la consola). Concesiones: `script-src` permite `'unsafe-inline'` (el arranque de Next y los JSON-LD; un nonce obligaría a renderizar todo dinámico) y `img-src` permite cualquier `https:` (imágenes de prensa y teselas). `'unsafe-eval'` solo se agrega en desarrollo.
 
 ## Desde el panel: Configuración > Integraciones
 

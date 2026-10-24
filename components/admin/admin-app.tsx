@@ -23,6 +23,10 @@ import { StatusStrip } from "./status-strip";
 import { BackupNotice } from "./backup-notice";
 import { ConnectionBanner } from "./connection-banner";
 import { ViewBoundary } from "./view-boundary";
+import { useTracking } from "./incendios/use-tracking";
+import { IncendiosPanel } from "./incendios/incendios-panel";
+import { IncendiosDock } from "./incendios/incendios-dock";
+import { TrackingLayers } from "./incendios/tracking-layers";
 
 export type { CloudSession };
 
@@ -52,12 +56,17 @@ const MapView = dynamic(() => import("./map-view").then((m) => m.MapView), {
 export function AdminApp({
   authRequired,
   cloud,
+  initialTab,
 }: {
   authRequired: boolean;
   cloud?: CloudSession;
+  initialTab?: string;
 }) {
-  const a = useAdmin(authRequired, cloud);
+  const a = useAdmin(authRequired, cloud, initialTab);
   const { ctx } = a;
+  const fireTab = ctx.tab === "incendios";
+  // loads the national feed only while the tab is open
+  const tracking = useTracking(fireTab);
   const [cursor, setCursorPos] = useState<[number, number] | null>(null);
 
   const { setShortcutsOpen } = a;
@@ -138,8 +147,9 @@ export function AdminApp({
                   early={a.earlyOnMap}
                   terrainAt={ctx.terrainAt}
                   dayLabels={a.dayLabels}
-                  show={ctx.show}
-                  spread={ctx.predH ? a.spread : null}
+                  // the tracking tab draws its own fire layers: switch ours off so they do not overlap
+                  show={fireTab ? { ...ctx.show, fires: false, heat: false, early: false, spread: false } : ctx.show}
+                  spread={ctx.predH && !fireTab ? a.spread : null}
                   orbit={ctx.orbit && ctx.view === "3d"}
                   follow={a.followDrone}
                   zoneRisk={a.zoneRiskColors}
@@ -176,10 +186,12 @@ export function AdminApp({
                 </ViewBoundary>
               )}
               <MapOverlays a={a} cursor={cursor} />
+              <TrackingLayers mapHandle={a.mapRef} t={tracking} active={fireTab && a.ready} />
               {ctx.tab === "drones" && <DronePip ctx={ctx} />}
             </div>
             <ViewBoundary name={ctx.t(`tab.${ctx.tab}`)} t={ctx.t} resetKey={ctx.tab}>
               {ctx.tab === "general" && <TimelineDock ctx={ctx} />}
+              {fireTab && <IncendiosDock t={tracking} />}
               {ctx.tab === "drones" && <DroneDock ctx={ctx} />}
               {ctx.tab === "recursos" && <ResourcesDock ctx={ctx} />}
             </ViewBoundary>
@@ -193,6 +205,7 @@ export function AdminApp({
           >
             <ViewBoundary name={ctx.t("view.panel")} t={ctx.t} resetKey={ctx.tab}>
               {ctx.tab === "general" && <GeneralPanel ctx={ctx} />}
+              {fireTab && <IncendiosPanel t={tracking} />}
               {ctx.tab === "zonas" && <ZonesPanel ctx={ctx} />}
               {ctx.tab === "drones" && <DronesPanel ctx={ctx} />}
               {ctx.tab === "recursos" && <ResourcesPanel ctx={ctx} />}
@@ -207,7 +220,16 @@ export function AdminApp({
         >
           <ViewBoundary name={ctx.t(`tab.${ctx.tab}`)} t={ctx.t} resetKey={ctx.tab}>
             {ctx.tab === "pronostico" && <ForecastView ctx={ctx} />}
-            {ctx.tab === "incidentes" && <IncidentsView ctx={ctx} />}
+            {ctx.tab === "incidentes" && (
+              <IncidentsView
+                ctx={ctx}
+                // bridge to the tracking tab: opens the same fire in its reconstruction
+                onOpenMap={(i) => {
+                  tracking.focus({ at: [i.lng, i.lat], ring: i.hulls[i.hulls.length - 1].ring });
+                  ctx.goTab("incendios");
+                }}
+              />
+            )}
             {ctx.tab === "metricas" && <MetricsView ctx={ctx} />}
             {ctx.tab === "config" && <SettingsView ctx={ctx} />}
           </ViewBoundary>
