@@ -27,6 +27,7 @@ import { useTracking } from "./incendios/use-tracking";
 import { IncendiosPanel } from "./incendios/incendios-panel";
 import { IncendiosDock } from "./incendios/incendios-dock";
 import { TrackingLayers } from "./incendios/tracking-layers";
+import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
 
 export type { CloudSession };
 
@@ -66,7 +67,7 @@ export function AdminApp({
   const { ctx } = a;
   const fireTab = ctx.tab === "incendios";
   // loads the national feed only while the tab is open
-  const tracking = useTracking(fireTab);
+  const tracking = useTracking(fireTab, NUM_LOCALE[ctx.ws.settings.locale]);
   const [cursor, setCursorPos] = useState<[number, number] | null>(null);
 
   const { setShortcutsOpen } = a;
@@ -186,12 +187,12 @@ export function AdminApp({
                 </ViewBoundary>
               )}
               <MapOverlays a={a} cursor={cursor} />
-              <TrackingLayers mapHandle={a.mapRef} t={tracking} active={fireTab && a.ready} />
+              <TrackingLayers mapHandle={a.mapRef} t={tracking} active={fireTab && a.ready} tr={ctx.t} locale={ctx.ws.settings.locale} />
               {ctx.tab === "drones" && <DronePip ctx={ctx} />}
             </div>
             <ViewBoundary name={ctx.t(`tab.${ctx.tab}`)} t={ctx.t} resetKey={ctx.tab}>
               {ctx.tab === "general" && <TimelineDock ctx={ctx} />}
-              {fireTab && <IncendiosDock t={tracking} />}
+              {fireTab && <IncendiosDock t={tracking} tr={ctx.t} locale={ctx.ws.settings.locale} />}
               {ctx.tab === "drones" && <DroneDock ctx={ctx} />}
               {ctx.tab === "recursos" && <ResourcesDock ctx={ctx} />}
             </ViewBoundary>
@@ -205,7 +206,7 @@ export function AdminApp({
           >
             <ViewBoundary name={ctx.t("view.panel")} t={ctx.t} resetKey={ctx.tab}>
               {ctx.tab === "general" && <GeneralPanel ctx={ctx} />}
-              {fireTab && <IncendiosPanel t={tracking} />}
+              {fireTab && <IncendiosPanel t={tracking} tr={ctx.t} locale={ctx.ws.settings.locale} />}
               {ctx.tab === "zonas" && <ZonesPanel ctx={ctx} />}
               {ctx.tab === "drones" && <DronesPanel ctx={ctx} />}
               {ctx.tab === "recursos" && <ResourcesPanel ctx={ctx} />}

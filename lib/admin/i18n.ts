@@ -6,6 +6,9 @@ import { enIncidents, esIncidents, ptIncidents } from "./i18n-incidents";
 import { enResilience, esResilience, ptResilience } from "./i18n-resilience";
 import { enHistory, esHistory, ptHistory } from "./i18n-history";
 import { enGuide, esGuide, ptGuide } from "./i18n-guide";
+import { esFires } from "./i18n-fires";
+import { enFires } from "./i18n-fires-en";
+import { ptFires } from "./i18n-fires-pt";
 
 export type Locale = "es" | "en" | "pt";
 
@@ -105,6 +108,7 @@ const es = {
   ...esResilience,
   ...esHistory,
   ...esGuide,
+  ...esFires,
 } as const;
 
 export type MsgKey = keyof typeof es;
@@ -118,6 +122,7 @@ const en: Record<MsgKey, string> = {
   ...enResilience,
   ...enHistory,
   ...enGuide,
+  ...enFires,
   "tab.general": "Overview",
   "tab.incendios": "Fires",
   "tab.zonas": "Zones",
@@ -209,6 +214,7 @@ const pt: Record<MsgKey, string> = {
   ...ptResilience,
   ...ptHistory,
   ...ptGuide,
+  ...ptFires,
   "tab.general": "Visão geral",
   "tab.incendios": "Incêndios",
   "tab.zonas": "Zonas",

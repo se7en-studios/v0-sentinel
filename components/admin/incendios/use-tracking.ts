@@ -10,6 +10,8 @@ import type { IncidentBundle, LiveBundle, LiveFireMeta } from "@/lib/incident";
 import { matchFire, type FireQuery } from "@/lib/live-match";
 import { derive, type Derived } from "./derive";
 import type { DnbrStats } from "./severity";
+import type { MsgKey } from "@/lib/admin/i18n";
+import { uiT } from "@/lib/admin/ui-locale";
 
 export type TrackingSource = "vivo" | "puerto-patriada";
 export type FireFilter = "forestales" | "todos" | "agricolas";
@@ -26,13 +28,14 @@ export interface DnbrFile extends DnbrStats {
   bounds: [number, number][];
 }
 
-export const CASES: { id: Exclude<TrackingSource, "vivo">; label: string; when: string }[] = [
-  { id: "puerto-patriada", label: "Puerto Patriada", when: "Chubut, enero 2026" },
+export const CASES: { id: Exclude<TrackingSource, "vivo">; label: string; whenKey: MsgKey }[] = [
+  { id: "puerto-patriada", label: "Puerto Patriada", whenKey: "trk.case.puerto-patriada.when" },
 ];
 
 const HOUR = 3_600_000;
 
-export function useTracking(active: boolean) {
+/** loc: BCP 47 tag of the interface language, for the labels baked into the derived fire data. */
+export function useTracking(active: boolean, loc: string) {
   const [source, setSource] = useState<TrackingSource>("vivo");
   const [bundles, setBundles] = useState<Partial<Record<TrackingSource, IncidentBundle | LiveBundle>>>({});
   const [note, setNote] = useState<string | null>(null);
@@ -87,7 +90,7 @@ export function useTracking(active: boolean) {
           const why = ((await r.json().catch(() => null)) as { error?: string } | null)?.error ?? `HTTP ${r.status}`;
           setNote(why);
           const s = await fetch("/data/live/snapshot.json");
-          if (!s.ok) throw new Error("sin datos en vivo ni instantánea");
+          if (!s.ok) throw new Error(uiT("trk.err.noData"));
           const b = await s.json();
           if (!cancelled) setBundles((x) => ({ ...x, vivo: b }));
         } else {
@@ -156,13 +159,16 @@ export function useTracking(active: boolean) {
     if (!bundle || selected === null) return null;
     if (!bundle.fires.some((f) => f.id === selected)) return null;
     const m = meta.get(selected);
-    return derive({
-      ...bundle,
-      featured: selected,
-      ...(live && m ? { name: `Incendio #${selected}`, place: m.name } : {}),
-      weather: bundle.weather ?? weather[wKey],
-    });
-  }, [bundle, selected, meta, live, weather, wKey]);
+    return derive(
+      {
+        ...bundle,
+        featured: selected,
+        ...(live && m ? { name: `Incendio #${selected}`, place: m.name } : {}),
+        weather: bundle.weather ?? weather[wKey],
+      },
+      loc,
+    );
+  }, [bundle, selected, meta, live, weather, wKey, loc]);
 
   // a new fire starts at its latest pass (live) or at ignition (a case)
   const dKey = d ? `${d.b.id}:${d.fire.id}` : "";
@@ -211,8 +217,8 @@ export function useTracking(active: boolean) {
     setPending(null);
     const id = matchFire(live, pending);
     if (id === null) {
-      toast("Este grupo no está entre los incendios seguidos", {
-        description: "El seguimiento cubre la Argentina con los últimos 10 días de NOAA-20 y NOAA-21.",
+      toast(uiT("trk.toast.miss"), {
+        description: uiT("trk.toast.missDesc"),
       });
       return;
     }

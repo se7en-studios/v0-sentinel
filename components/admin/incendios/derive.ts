@@ -43,7 +43,8 @@ export interface Derived {
 
 const HOUR = 3_600_000;
 
-export function derive(b: IncidentBundle): Derived {
+/** loc: BCP 47 tag for the labels baked into the chart rows and map data. */
+export function derive(b: IncidentBundle, loc?: string): Derived {
   const fire = b.fires.find((f) => f.id === b.featured)!;
   const others = b.fires.filter((f) => f.id !== b.featured);
 
@@ -131,7 +132,7 @@ export function derive(b: IncidentBundle): Derived {
       labels.features.push({
         type: "Feature",
         geometry: { type: "Point", coordinates: s.rosAt ?? fire.ignition.at },
-        properties: { step: s.step, k, label: fmtDayTime(s.t0) },
+        properties: { step: s.step, k, label: fmtDayTime(s.t0, loc) },
       });
     prevMid = mid;
   }
@@ -163,7 +164,7 @@ export function derive(b: IncidentBundle): Derived {
     return {
       step: i,
       t: stepTime[i],
-      label: fmtDayTime(stepTime[i]),
+      label: fmtDayTime(stepTime[i], loc),
       areaHa: i >= firstStep && at ? at.areaHa : null,
       growthHa: own?.growthHa ?? 0,
       rosMax: own?.rosMaxMh ?? null,

@@ -10,10 +10,12 @@ import * as maplibregl from "maplibre-gl";
 import type { ExpressionSpecification, Map as MlMap, MapLayerMouseEvent } from "maplibre-gl";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
+import type { Locale, MsgKey, Translate } from "@/lib/admin/i18n";
 import type { MapHandle } from "../map-view";
 import type { LiveBundle, LiveFireMeta } from "@/lib/incident";
 import type { Derived } from "./derive";
-import { fmtDayTime, fmtHa, satLabel } from "./format";
+import { fmtDayTime, fmtHa, placeName, satLabel } from "./format";
 import type { Tracking } from "./use-tracking";
 
 const AR_BOUNDS: [[number, number], [number, number]] = [
@@ -32,7 +34,7 @@ type Handler = { type: "click" | "mousemove" | "mouseleave"; layer: string; fn: 
 const town = (m: LiveFireMeta) => m.name.replace(/\s*\(.*\)$/, "").replace(/^(en|a \d+ km de) /, "");
 const TOP_LABELS = 5;
 
-export function TrackingLayers({ mapHandle, t, active }: { mapHandle: RefObject<MapHandle | null>; t: Tracking; active: boolean }) {
+export function TrackingLayers({ mapHandle, t, active, tr, locale }: { mapHandle: RefObject<MapHandle | null>; t: Tracking; active: boolean; tr: Translate; locale: Locale }) {
   const mapRef = useRef<MlMap | null>(null);
   const handlers = useRef<Handler[]>([]);
   const marker = useRef<maplibregl.Marker | null>(null);
@@ -40,8 +42,12 @@ export function TrackingLayers({ mapHandle, t, active }: { mapHandle: RefObject<
   const built = useRef<string>("");
   const saved = useRef<{ bounds: maplibregl.LngLatBounds | null; minZoom: number } | null>(null);
   const latest = useRef(t);
+  // the map callbacks and the popups read the interface language from here, like the state
+  const lang = useRef({ tr, loc: NUM_LOCALE[locale] });
   // eslint-disable-next-line react-hooks/refs -- "latest ref": the map callbacks read the newest state
   latest.current = t;
+  // eslint-disable-next-line react-hooks/refs -- same
+  lang.current = { tr, loc: NUM_LOCALE[locale] };
 
   // wait for Sentinel's map (it mounts lazily) and keep a handle on it
   useEffect(() => {
@@ -87,10 +93,11 @@ export function TrackingLayers({ mapHandle, t, active }: { mapHandle: RefObject<
 
   // rebuild when the data or the selected fire changes; restyle on every tick
   const key = t.d ? `${t.d.b.id}:${t.d.fire.id}` : t.live ? `ov:${t.live.generated}` : "";
+  // (a language change rebuilds too: the map's labels and the ignition tooltip carry text)
   useEffect(() => {
     if (active) sync();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, active]);
+  }, [key, active, tr]);
   useEffect(() => {
     if (active && mapRef.current && built.current) restyle();
   }, [t.cur, t.layers, t.shown, active]);
@@ -112,7 +119,7 @@ export function TrackingLayers({ mapHandle, t, active }: { mapHandle: RefObject<
   }, [t.view?.n]);
 
   if (!active) return null;
-  return <Legend mode={t.d ? "fire" : "overview"} filter={t.filter} dnbr={!!t.dnbr && t.layers.dnbr} />;
+  return <Legend mode={t.d ? "fire" : "overview"} filter={t.filter} dnbr={!!t.dnbr && t.layers.dnbr} tr={tr} />;
 
   function frame() {
     const map = mapRef.current;
@@ -224,7 +231,7 @@ export function TrackingLayers({ mapHandle, t, active }: { mapHandle: RefObject<
             now: m.activity === "ahora" ? 1 : 0,
             latent: m.activity === "latente" || m.activity === "extinguido" ? 1 : 0,
             area: area.get(m.id) ?? 0,
-            label: `${town(m)}\n${fmtHa(area.get(m.id) ?? 0)}`,
+            label: `${town(m)}\n${fmtHa(area.get(m.id) ?? 0, lang.current.loc)}`,
           },
         })),
       },
@@ -279,20 +286,21 @@ export function TrackingLayers({ mapHandle, t, active }: { mapHandle: RefObject<
       const id = Number(p?.id ?? p?.fire);
       return Number.isFinite(id) ? id : null;
     };
-    const ACTIVITY = { ahora: "con focos en las últimas 24 h", activo: "sin focos nuevos hoy", latente: "latente", extinguido: "extinguido" };
+    const ACTIVITY = { ahora: "trk.pop.active24", activo: "trk.pop.quiet", latente: "trk.act.latent", extinguido: "trk.pop.out" } as const;
     for (const layer of ["trk-fires", "trk-hull-fill", "trk-px"]) {
       on("mousemove", layer, (e) => {
         const id = pick(e);
         const m = id !== null ? meta.get(id) : undefined;
         if (!m) return;
         map.getCanvas().style.cursor = "pointer";
+        const { tr, loc } = lang.current;
         popup.current
           ?.setLngLat(e.lngLat)
           .setHTML(
-            `<div class="snt-pop"><b>${m.name}</b>` +
-              `<span>${m.forestal ? "Forestal" : "Agrícola o pastizal"} · ${fmtHa(area.get(m.id) ?? 0)}</span>` +
-              `<span>${m.detections24h ? `${m.detections24h} focos en 24 h` : ACTIVITY[m.activity]}</span>` +
-              `<span style="opacity:.6">Clic para ver su avance</span></div>`,
+            `<div class="snt-pop"><b>${placeName(tr, m.name)}</b>` +
+              `<span>${tr(m.forestal ? "trk.b.forest" : "trk.b.agri")} · ${fmtHa(area.get(m.id) ?? 0, loc)}</span>` +
+              `<span>${m.detections24h ? tr(m.detections24h === 1 ? "trk.pop.foci24.one" : "trk.pop.foci24.other", { n: m.detections24h }) : tr(ACTIVITY[m.activity])}</span>` +
+              `<span style="opacity:.6">${tr("trk.pop.click")}</span></div>`,
           )
           .addTo(map);
       });
@@ -374,7 +382,7 @@ export function TrackingLayers({ mapHandle, t, active }: { mapHandle: RefObject<
 
     const ign = document.createElement("div");
     ign.className = "ignition-pulse";
-    ign.title = `Ignición · ${fmtDayTime(d.fire.ignition.t)} · ${satLabel(d.fire.ignition.sat)}`;
+    ign.title = lang.current.tr("trk.ign.title", { time: fmtDayTime(d.fire.ignition.t, lang.current.loc), sat: satLabel(d.fire.ignition.sat) });
     marker.current = new maplibregl.Marker({ element: ign }).setLngLat(d.fire.ignition.at).addTo(map);
 
     popup.current = new maplibregl.Popup({ closeButton: false, closeOnClick: false, className: "snt-popup", offset: 10 });
@@ -383,13 +391,17 @@ export function TrackingLayers({ mapHandle, t, active }: { mapHandle: RefObject<
         const p = e.features?.[0]?.properties as Record<string, string | number> | undefined;
         if (!p) return;
         map.getCanvas().style.cursor = "pointer";
+        const { tr, loc } = lang.current;
+        const time = fmtDayTime(Number(p.t), loc);
+        const sat = satLabel(String(p.sat));
+        const state = tr(`trk.pop.${p.state}` as MsgKey);
         popup.current
           ?.setLngLat(e.lngLat)
           .setHTML(
-            `<div class="snt-pop"><b>Foco${p.main ? "" : ` del incendio #${p.fire}`}, ${fmtDayTime(Number(p.t))}</b>` +
-              `<span>${satLabel(String(p.sat))}, pasada ${Number(p.day) ? "diurna" : "nocturna"}</span>` +
-              `<span>Estado: ${p.state}${Number(p.front) ? ", frente activo" : ""}${Number(p.spot) ? ", posible salto" : ""}</span>` +
-              `<span>Potencia radiativa: ${p.frp} MW</span></div>`,
+            `<div class="snt-pop"><b>${p.main ? tr("trk.pop.px", { time }) : tr("trk.pop.pxOther", { fire: p.fire, time })}</b>` +
+              `<span>${tr(Number(p.day) ? "trk.pop.passDay" : "trk.pop.passNight", { sat })}</span>` +
+              `<span>${tr("trk.pop.state", { state })}${Number(p.front) ? tr("trk.pop.front") : ""}${Number(p.spot) ? tr("trk.pop.spot") : ""}</span>` +
+              `<span>${tr("trk.pop.frp", { frp: p.frp })}</span></div>`,
           )
           .addTo(map);
       });
@@ -499,7 +511,7 @@ function OnMap({ children }: { children: React.ReactNode }) {
   return <span className="flex h-3 w-5 items-center justify-center rounded-[3px] bg-[#3b3029]">{children}</span>;
 }
 
-function Legend({ mode, filter, dnbr }: { mode: "overview" | "fire"; filter: Tracking["filter"]; dnbr: boolean }) {
+function Legend({ mode, filter, dnbr, tr }: { mode: "overview" | "fire"; filter: Tracking["filter"]; dnbr: boolean; tr: Translate }) {
   // folded by default, like Sentinel's own legend; above its cursor read-out
   const [open, setOpen] = useState(false);
   const at = "bottom-[66px] left-3";
@@ -511,23 +523,23 @@ function Legend({ mode, filter, dnbr }: { mode: "overview" | "fire"; filter: Tra
         className={cn(glass, at, "absolute z-10 hidden h-7 items-center gap-1.5 px-2.5 text-[10.5px] font-medium text-foreground/60 hover:text-foreground md:flex")}
       >
         <span className="size-2.5 rounded-full bg-[#c2410c] shadow-[0_0_0_3px_rgba(255,90,31,0.35)]" aria-hidden />
-        Leyenda
+        {tr("trk.leg.open")}
       </button>
     );
   return (
-    <div role="group" aria-label="Leyenda" className={cn(glass, at, "absolute z-10 hidden w-56 p-2.5 text-[10.5px] text-foreground/70 md:block")}>
+    <div role="group" aria-label={tr("trk.leg.open")} className={cn(glass, at, "absolute z-10 hidden w-56 p-2.5 text-[10.5px] text-foreground/70 md:block")}>
       <div className="mb-1.5 flex items-center justify-between font-medium text-foreground/85">
-        {mode === "overview" ? "Incendios seguidos" : "Avance del incendio"}
-        <button type="button" onClick={() => setOpen(false)} aria-label="Ocultar leyenda" className="rounded text-foreground/55 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        {tr(mode === "overview" ? "trk.ov.title" : "trk.dock.fire")}
+        <button type="button" onClick={() => setOpen(false)} aria-label={tr("trk.leg.hide")} className="rounded text-foreground/55 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <X className="size-3" />
         </button>
       </div>
       {mode === "overview" ? (
         <ul className="space-y-1">
-          {filter !== "agricolas" && <Row mark={dot("#c2410c")}>Forestal</Row>}
-          {filter !== "forestales" && <Row mark={dot("#e0a526")}>Agrícola o pastizal</Row>}
-          <Row mark={dot("#c2410c", "shadow-[0_0_0_3px_rgba(255,90,31,0.4)]")}>Con focos en las últimas 24 h</Row>
-          <Row mark={dot("#c2410c", "opacity-30")}>Latente</Row>
+          {filter !== "agricolas" && <Row mark={dot("#c2410c")}>{tr("trk.b.forest")}</Row>}
+          {filter !== "forestales" && <Row mark={dot("#e0a526")}>{tr("trk.b.agri")}</Row>}
+          <Row mark={dot("#c2410c", "shadow-[0_0_0_3px_rgba(255,90,31,0.4)]")}>{tr("trk.leg.active24")}</Row>
+          <Row mark={dot("#c2410c", "opacity-30")}>{tr("trk.b.latent")}</Row>
           <Row
             mark={
               <span className="flex items-end gap-0.5">
@@ -536,20 +548,20 @@ function Legend({ mode, filter, dnbr }: { mode: "overview" | "fire"; filter: Tra
               </span>
             }
           >
-            Tamaño según la superficie
+            {tr("trk.leg.size")}
           </Row>
         </ul>
       ) : (
         <ul className="space-y-1">
-          <Row mark={dot("#ffb020")}>Foco nuevo, fuera del perímetro</Row>
-          <Row mark={dot("#ff5a2a")}>Persistente, dentro del perímetro</Row>
-          <Row mark={dot("#d63fa0")}>Reactivado</Row>
-          <Row mark={dot("#5a1609", "opacity-70")}>Focos de pasadas anteriores</Row>
+          <Row mark={dot("#ffb020")}>{tr("trk.leg.new")}</Row>
+          <Row mark={dot("#ff5a2a")}>{tr("trk.leg.persist")}</Row>
+          <Row mark={dot("#d63fa0")}>{tr("trk.leg.react")}</Row>
+          <Row mark={dot("#5a1609", "opacity-70")}>{tr("trk.leg.old")}</Row>
           {/* the pale map lines need the map's dark under them to read in the light theme */}
-          <Row mark={<OnMap><span className="h-1 w-4 rounded-full" style={{ background: PERIMETER_RAMP }} /></OnMap>}>Perímetro, de la ignición a hoy</Row>
-          <Row mark={<OnMap><span className="h-1 w-4 rounded-full bg-[#ffe08a] shadow-[0_0_4px_#ff7a1a]" /></OnMap>}>Frente activo</Row>
-          <Row mark={<OnMap><span className="w-4 border-t-2 border-dashed border-[#ffd166]" /></OnMap>}>Avance más rápido</Row>
-          {dnbr && <Row mark={<span className="h-1.5 w-5 rounded-full" style={{ background: SEVERITY_RAMP }} />}>Quemado (Sentinel-2): baja a alta</Row>}
+          <Row mark={<OnMap><span className="h-1 w-4 rounded-full" style={{ background: PERIMETER_RAMP }} /></OnMap>}>{tr("trk.leg.perim")}</Row>
+          <Row mark={<OnMap><span className="h-1 w-4 rounded-full bg-[#ffe08a] shadow-[0_0_4px_#ff7a1a]" /></OnMap>}>{tr("trk.lyr.front")}</Row>
+          <Row mark={<OnMap><span className="w-4 border-t-2 border-dashed border-[#ffd166]" /></OnMap>}>{tr("trk.ev.spread")}</Row>
+          {dnbr && <Row mark={<span className="h-1.5 w-5 rounded-full" style={{ background: SEVERITY_RAMP }} />}>{tr("trk.leg.dnbr")}</Row>}
         </ul>
       )}
     </div>
