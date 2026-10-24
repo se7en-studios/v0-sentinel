@@ -156,7 +156,7 @@ export function useFeedExports({
         .reduce((a, z) => a + areaHa(z), 0),
     [ws.features, zoneHits],
   );
-  const exportCsv = () => payload && downloadFiresCsv(fires, payload.days);
+  const exportCsv = () => payload && downloadFiresCsv(fires, payload.days, s.locale);
   const exportReport = async () =>
     printReport({
       mapImage: (await mapRef.current?.snapshot()) ?? null,

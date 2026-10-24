@@ -1,5 +1,6 @@
 import type { Map as MLMap } from "maplibre-gl";
 import { toast } from "sonner";
+import { uiT } from "@/lib/admin/ui-locale";
 import { createTileErrorTracker } from "@/lib/admin/map-tile-errors";
 
 const TOAST_ID = "map-base-down";
@@ -16,10 +17,9 @@ export function watchTileErrors(map: MLMap) {
       // tile errors carry the source id at runtime, typings only expose `error`
       if ((e as { sourceId?: string }).sourceId !== "base") return;
       if (!tracker.fail(Date.now())) return;
-      toast.error("El mapa base no responde", {
+      toast.error(uiT("map.baseDown"), {
         id: TOAST_ID,
-        description:
-          "No se pudieron cargar las imágenes. Revisá la conexión o probá otro mapa base.",
+        description: uiT("map.baseDownDesc"),
       });
     } catch {
       /* a notification must never break the map */

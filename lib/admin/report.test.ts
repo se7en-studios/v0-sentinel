@@ -82,7 +82,7 @@ describe("report", () => {
     );
   });
 
-  test("downloads create and click an anchor", () => {
+  test("downloads create and click an anchor", async () => {
     const click = vi
       .spyOn(HTMLAnchorElement.prototype, "click")
       .mockImplementation(() => {});
@@ -91,8 +91,15 @@ describe("report", () => {
     vi.useFakeTimers();
     const pts: FirePoint[] = [[-40.5, -70.5, 12, 2, 1, 305, 1]];
     downloadFiresCsv(pts, ["2026-01-01", "2026-01-02"]);
+    downloadFiresCsv(pts, ["2026-01-01", "2026-01-02"], "en");
     downloadDataUrl("m.png", "data:image/png;base64,AA");
-    expect(click).toHaveBeenCalledTimes(2);
+    expect(click).toHaveBeenCalledTimes(3);
+    const csv = await (
+      vi.mocked(URL.createObjectURL).mock.calls[1][0] as Blob
+    ).text();
+    expect(csv).toBe(
+      "date_utc,time_utc,lat,lng,frp_mw,confidence,daypart\n2026-01-02,03:05,-40.5,-70.5,12,high,night",
+    );
     vi.advanceTimersByTime(2000);
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:x");
   });

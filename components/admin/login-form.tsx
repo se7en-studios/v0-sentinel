@@ -22,7 +22,7 @@ export function LoginForm() {
     }).catch(() => null);
     if (res?.ok) return window.location.reload();
     const j = (await res?.json().catch(() => null)) as { error?: string } | null;
-    setErr(res ? (j?.error ?? t("login.wrongPassword")) : t("login.noConnection"));
+    setErr(res ? (res.status === 401 ? t("login.wrongPassword") : (j?.error ?? t("login.wrongPassword"))) : t("login.noConnection"));
     setBusy(false);
   };
 

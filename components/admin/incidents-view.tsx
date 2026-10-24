@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { buildIncidents, type Incident } from "@/lib/admin/incident";
 import { nearestPlace } from "@/lib/admin/places";
+import { uiT } from "@/lib/admin/ui-locale";
 import { fmtArea } from "@/lib/admin/geo";
 import {
   ASSIGNEE_MAX,
@@ -72,7 +73,7 @@ async function openReport(ctx: Ctx, inc: Incident) {
     early: earlyNearby(ctx.early, inc.lat, inc.lng),
     history: meta?.history ?? [],
   });
-  if (!ok) toast.error("El navegador bloqueó la ventana del informe", { description: "Permití las ventanas emergentes para este sitio." });
+  if (!ok) toast.error(uiT("inc.popup"), { description: uiT("inc.popupDesc") });
 }
 
 const kmFrom = (center: [number, number], i: Incident) => {

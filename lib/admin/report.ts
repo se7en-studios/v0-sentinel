@@ -29,7 +29,12 @@ export function downloadDataUrl(name: string, dataUrl: string) {
   a.click();
 }
 
-export function downloadFiresCsv(points: FirePoint[], days: string[]) {
+export function downloadFiresCsv(
+  points: FirePoint[],
+  days: string[],
+  locale: Locale = "es",
+) {
+  const t = (k: MsgKey) => translate(locale, k);
   const rows = points.map((p) => {
     const hh = String(p[5]).padStart(4, "0");
     return [
@@ -38,14 +43,11 @@ export function downloadFiresCsv(points: FirePoint[], days: string[]) {
       p[0],
       p[1],
       p[2],
-      ["baja", "nominal", "alta"][p[3]],
-      p[6] ? "noche" : "dia",
+      t(`csv.conf${p[3]}` as MsgKey),
+      t(p[6] ? "csv.night" : "csv.day"),
     ].join(",");
   });
-  const csv = [
-    "fecha_utc,hora_utc,lat,lng,frp_mw,confianza,momento",
-    ...rows,
-  ].join("\n");
+  const csv = [t("csv.header"), ...rows].join("\n");
   download(
     `sentinel-focos-${new Date().toISOString().slice(0, 10)}.csv`,
     "text/csv;charset=utf-8",
