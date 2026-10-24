@@ -35,6 +35,7 @@ import { useTheme } from "./hooks/use-theme";
 import { droneView, useSimulation } from "./hooks/use-simulation";
 import { useWeatherRisk } from "./hooks/use-weather-risk";
 import { useZoneHits } from "./hooks/use-zone-hits";
+import { TABS } from "./tabs";
 
 export interface CloudSession {
   uid: string;
@@ -43,7 +44,11 @@ export interface CloudSession {
   signOut: () => Promise<void>;
 }
 
-export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
+export function useAdmin(
+  authRequired: boolean,
+  cloud?: CloudSession,
+  initialTab?: string,
+) {
   const {
     ws,
     ready,
@@ -75,7 +80,10 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
   useEffect(() => setUiLocale(s.locale), [s.locale]);
   const mapRef = useRef<MapHandle>(null);
 
-  const [tab, setTab] = useState<Tab>("general");
+  // deep links (/admin?tab=incendios) come from the server, so the first render already matches
+  const [tab, setTab] = useState<Tab>(
+    () => TABS.find((x) => x.id === initialTab)?.id ?? "general",
+  );
   const [view, setView] = useState<"2d" | "3d">("2d");
   const [camera, setCamera] = useState<Camera>({
     bearing: 0,
@@ -454,8 +462,10 @@ export function useAdmin(authRequired: boolean, cloud?: CloudSession) {
     setActiveDrone: sim.setActiveDrone,
   };
 
+  // "incendios" draws its own tracking layers on the same map, with its own panel and dock
   const isMapTab =
     tab === "general" ||
+    tab === "incendios" ||
     tab === "zonas" ||
     tab === "drones" ||
     tab === "recursos";

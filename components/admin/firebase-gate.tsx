@@ -122,7 +122,7 @@ function CloudLogin() {
   );
 }
 
-export function FirebaseGate() {
+export function FirebaseGate({ initialTab }: { initialTab?: string }) {
   const { t } = useStoredT();
   const [user, setUser] = useState<User | null | undefined>(undefined);
   useEffect(() => onAuthStateChanged(fbAuth(), setUser), []);
@@ -148,5 +148,5 @@ export function FirebaseGate() {
     );
   }
   if (!cloud) return <CloudLogin />;
-  return <AdminApp authRequired cloud={cloud} />;
+  return <AdminApp authRequired cloud={cloud} initialTab={initialTab} />;
 }

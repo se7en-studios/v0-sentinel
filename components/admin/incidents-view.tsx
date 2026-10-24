@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FileText, Flame, Zap, MoveUpRight } from "lucide-react";
+import { FileText, Flame, MapPinned, Zap, MoveUpRight } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -142,7 +142,14 @@ const dayLabel = (iso: string | undefined) =>
     : "—";
 
 /** Day-by-day perimeter growth for the biggest clusters of detections in the 10-day window. */
-export function IncidentsView({ ctx }: { ctx: Ctx }) {
+// onOpenMap: optional bridge to the "Incendios" tracking tab (the same fire, reconstructed pass by pass)
+export function IncidentsView({
+  ctx,
+  onOpenMap,
+}: {
+  ctx: Ctx;
+  onOpenMap?: (i: Incident) => void;
+}) {
   const { payload, ws } = ctx;
   const days = payload?.days ?? [];
   const all = useMemo(
@@ -273,6 +280,15 @@ export function IncidentsView({ ctx }: { ctx: Ctx }) {
                   perímetro acumulado al{" "}
                   {dayLabel(days[inc.perDay[inc.perDay.length - 1].day])}
                 </p>
+                {onOpenMap && (
+                  <Btn
+                    onClick={() => onOpenMap(inc)}
+                    className="mt-4 border-white bg-white text-[#0f3d2c] hover:bg-white/90"
+                  >
+                    <MapPinned className="size-3.5" aria-hidden />
+                    Ver en el mapa
+                  </Btn>
+                )}
               </div>
               <div className="h-48 p-3 sm:h-auto">
                 <Silhouette inc={inc} />

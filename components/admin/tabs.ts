@@ -2,6 +2,7 @@ import type { Tab } from "./ctx";
 
 export const TABS: { id: Tab; label: string; short: string }[] = [
   { id: "general", label: "Vista general", short: "General" },
+  { id: "incendios", label: "Incendios", short: "Incendios" },
   { id: "zonas", label: "Zonas", short: "Zonas" },
   { id: "drones", label: "Drones y sensores", short: "Drones" },
   { id: "recursos", label: "Recursos", short: "Recursos" },
