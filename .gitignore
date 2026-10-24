@@ -12,7 +12,7 @@ node_modules/
 .DS_Store
 next-env.d.ts
 *.tsbuildinfo
-pnpm-workspace.yaml
+# pnpm-workspace.yaml is tracked: it carries the security overrides the lockfile depends on
 .claude/
 
 # Playwright
