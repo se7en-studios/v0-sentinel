@@ -35,7 +35,10 @@ export interface SpreadInfo {
   rain7d: number;
   rate: number;
   level: "bajo" | "moderado" | "alto" | "extremo";
+  /** typical reach (median of the backtest) at the chosen horizon */
   reachKm: number;
+  /** outer reach (90th percentile of the backtest) at the same horizon */
+  reachMaxKm: number;
   /** land cover under the incident center, when the terrain lookup answered */
   fuel?: string;
   /** slope in degrees, when known */

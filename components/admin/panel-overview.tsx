@@ -11,7 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import { compass } from "@/lib/admin/weather";
 import { riskScore } from "@/lib/admin/sim";
-import { spreadRingsKm } from "@/lib/admin/spread";
+import { spreadRate } from "@/lib/admin/spread";
 import { areaHa, fmtArea } from "@/lib/admin/geo";
 import { riskLabel, type MsgKey } from "@/lib/admin/i18n";
 import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
@@ -117,7 +117,7 @@ export function WeatherCard({ ctx }: { ctx: Ctx }) {
   const { t } = ctx;
   const w = ctx.weather;
   const risk = w ? riskScore(w) : null;
-  const rate = w ? spreadRingsKm(w, 1).head : null;
+  const rate = w ? spreadRate(w) : null;
   return (
     <Card
       bare

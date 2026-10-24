@@ -311,7 +311,17 @@ export function addDataLayers(map: MLMap) {
     type: "circle",
     source: "early",
     paint: {
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 4, 9, 9, 20, 13, 58],
+      "circle-radius": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        4,
+        9,
+        9,
+        20,
+        13,
+        58,
+      ],
       "circle-color": "#22d3ee",
       "circle-blur": 0.8,
       "circle-opacity": ["case", ["==", ["get", "status"], "open"], 0.24, 0.08],
@@ -330,7 +340,12 @@ export function addDataLayers(map: MLMap) {
         "#22d3ee",
         "#7aa6b3",
       ],
-      "circle-stroke-width": ["case", ["==", ["get", "status"], "open"], 2.2, 1.2],
+      "circle-stroke-width": [
+        "case",
+        ["==", ["get", "status"], "open"],
+        2.2,
+        1.2,
+      ],
     },
   });
 
@@ -359,7 +374,11 @@ export function addDataLayers(map: MLMap) {
       "text-size": 12,
       "text-allow-overlap": true,
     },
-    paint: { "text-color": "#ffffff", "text-halo-color": "rgba(80,20,8,0.7)", "text-halo-width": 1.2 },
+    paint: {
+      "text-color": "#ffffff",
+      "text-halo-color": "rgba(80,20,8,0.7)",
+      "text-halo-width": 1.2,
+    },
   });
 
   // --- 3D volumes ---
@@ -406,6 +425,7 @@ export function addDataLayers(map: MLMap) {
     id: "spread-fill",
     type: "fill",
     source: "spread",
+    filter: ["==", ["get", "k"], "typ"],
     paint: {
       "fill-color": "#ff4d2e",
       "fill-opacity": [
@@ -423,10 +443,22 @@ export function addDataLayers(map: MLMap) {
     id: "spread-line",
     type: "line",
     source: "spread",
+    filter: ["==", ["get", "k"], "typ"],
     paint: {
       "line-color": "#ff7a45",
       "line-width": 1.5,
-      "line-dasharray": [3, 2],
+    },
+  });
+  // outer outline: where nearly every fire like this stays inside by the chosen horizon
+  map.addLayer({
+    id: "spread-max",
+    type: "line",
+    source: "spread",
+    filter: ["==", ["get", "k"], "max"],
+    paint: {
+      "line-color": "#ffb199",
+      "line-width": 1.5,
+      "line-dasharray": [4, 3],
     },
   });
 

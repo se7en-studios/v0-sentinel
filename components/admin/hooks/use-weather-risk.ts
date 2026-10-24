@@ -148,13 +148,22 @@ export function useWeatherRisk(
         for (const h of HORIZONS.filter((x) => x <= predH).reverse()) {
           feats.push({
             type: "Feature",
-            properties: { h, label: h === predH ? `+${h} h` : "" },
+            properties: { h, k: "typ", label: h === predH ? `+${h} h` : "" },
             geometry: {
               type: "Polygon",
-              coordinates: [spreadPolygon(c.lat, c.lng, w, h)],
+              coordinates: [spreadPolygon(c.lat, c.lng, w, h, "typical")],
             },
           });
         }
+        // one outer outline: where nearly every fire like this stays inside by the chosen horizon
+        feats.push({
+          type: "Feature",
+          properties: { h: predH, k: "max", label: "" },
+          geometry: {
+            type: "Polygon",
+            coordinates: [spreadPolygon(c.lat, c.lng, w, predH, "max")],
+          },
+        });
       }
       setSpreadResult({
         h: predH,
@@ -172,7 +181,8 @@ export function useWeatherRisk(
               rain7d: w.rain7d,
               rate,
               level: spreadLevel(rate),
-              reachKm: spreadRingsKm(w, predH).head,
+              reachKm: spreadRingsKm(w, predH, "typical").head,
+              reachMaxKm: spreadRingsKm(w, predH, "max").head,
               fuel: w.terrain?.landCoverLabel ?? undefined,
               slopeDeg: w.terrain?.slopeDeg ?? undefined,
             },

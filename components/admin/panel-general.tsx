@@ -183,6 +183,7 @@ function AnalysisTab({ ctx }: { ctx: Ctx }) {
                   {t("gen.rateLine", {
                     rate: c.rate.toFixed(1),
                     km: c.reachKm.toFixed(1),
+                    max: c.reachMaxKm.toFixed(1),
                     h: ctx.predH,
                   })}
                 </div>

@@ -34,6 +34,7 @@ export function applyOpacity(
     0.1 * o.spread,
   ]);
   set("spread-line", "line-opacity", o.spread);
+  set("spread-max", "line-opacity", 0.9 * o.spread);
   set("path-line", "line-opacity", o.routes);
   set("route-flow", "line-opacity", o.routes);
   set("routes3d-ribbon", "fill-extrusion-opacity", 0.95 * o.routes);

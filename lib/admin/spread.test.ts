@@ -6,6 +6,7 @@ import {
   spreadPolygon,
   spreadRate,
   spreadRingsKm,
+  reachMultiplier,
 } from "./spread";
 
 const calm = { wind: 0, rh: 100 };
@@ -33,7 +34,7 @@ describe("spread", () => {
   });
 
   test("rings keep a minimum head and cap the elongation ratio", () => {
-    const r = spreadRingsKm(calm, 3);
+    const r = spreadRingsKm(calm, 3, "typical");
     expect(r.head).toBe(0.4);
     expect(r.back).toBeCloseTo(0.08, 5);
     const w = spreadRingsKm({ wind: 200, rh: 10 }, 10);
@@ -90,5 +91,22 @@ describe("terrain-aware spread", () => {
       6,
     ).head;
     expect(up).toBeGreaterThan(flat * 2);
+  });
+
+  test("typical ring is inside the max ring and both stop growing linearly", () => {
+    for (const h of [3, 6, 9, 12, 18, 24, 36, 48, 72]) {
+      expect(reachMultiplier(h, "typical")).toBeLessThan(reachMultiplier(h, "max"));
+    }
+    const typ = (h: number) => spreadRingsKm(bad, h, "typical").head;
+    expect(typ(48) / typ(24)).toBeLessThan(2); // the linear model doubled it
+    expect(spreadRingsKm(bad, 12).head).toBe(spreadRingsKm(bad, 12, "max").head);
+  });
+
+  test("multipliers interpolate between the fitted horizons and clamp outside them", () => {
+    expect(reachMultiplier(6, "max")).toBe(2);
+    expect(reachMultiplier(3, "max")).toBe(2);
+    expect(reachMultiplier(48, "typical")).toBe(0.18);
+    expect(reachMultiplier(100, "typical")).toBe(0.18);
+    expect(reachMultiplier(18, "max")).toBeCloseTo(1.6, 5);
   });
 });

@@ -241,7 +241,7 @@ function useVisibility(props: MapProps, mapRef: MapRef, ready: boolean) {
     setVis(map, ["fires3d"], s.fires && d3);
     setVis(map, ["zones3d-vol", "zones3d-wall"], s.zones && d3);
     setVis(map, ["sens3d"], s.sensors && d3);
-    setVis(map, ["spread-fill", "spread-line"], s.spread);
+    setVis(map, ["spread-fill", "spread-line", "spread-max"], s.spread);
     setVis(map, ["zone-fill", "zone-glow", "zone-line"], s.zones);
     setVis(map, ["sensor-halo", "sensor-pt"], s.sensors);
     setVis(map, ["places", "peaks"], s.names);

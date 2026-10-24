@@ -205,18 +205,17 @@ async function main() {
         ratio: observed / pred,
         dir: angDiff(bearing(ev.origin, far), toward),
         wind: c.wind,
+        size: ev.members.length,
       });
     }
   }
 
   console.log(`\n=== ${label}  ${startDate} +${DAYS}d  eventos: ${events.length} ===`);
   console.log("horizonte | n  | obs/modelo (mediana, p25-p75) | error de rumbo mediano | % dentro de 45° | modelo medio km | observado medio km");
-  const fit = {};
   for (const h of HORIZONS) {
     const r = rows.filter((x) => x.h === h);
     if (!r.length) continue;
     const ratios = r.map((x) => x.ratio);
-    fit[h] = median(ratios);
     const within = (r.filter((x) => x.dir <= 45).length / r.length) * 100;
     const avg = (k) => r.reduce((s, x) => s + x[k], 0) / r.length;
     console.log(
@@ -227,14 +226,20 @@ async function main() {
         ` | ${avg("observed").toFixed(1)}`,
     );
   }
-  // wind-bin view: does the model get the wind dependence right?
-  const bins = [[0, 15], [15, 30], [30, 200]];
-  console.log("\nobs/modelo por viento (todos los horizontes, mediana):");
-  for (const [a, b] of bins) {
-    const r = rows.filter((x) => x.wind >= a && x.wind < b);
-    if (r.length) console.log(`  ${a}-${b} km/h: n=${r.length}  ${median(r.map((x) => x.ratio)).toFixed(2)}`);
+  // multipliers over the model's head ring: what the typical / maximum rings are fitted from
+  const BIG = 40; // detections chained at 48 h: a fire that matters, not a field burn
+  const q = (r, p) => quart(r.map((x) => x.ratio), p);
+  const mult = {};
+  console.log(`\nmultiplicador sobre el anillo lineal (todos | grandes >= ${BIG} focos):`);
+  for (const h of HORIZONS) {
+    const all = rows.filter((x) => x.h === h);
+    const big = all.filter((x) => x.size >= BIG);
+    if (!all.length) continue;
+    mult[h] = { n: all.length, p50: q(all, 0.5), p90: q(all, 0.9), nBig: big.length, bigP50: q(big, 0.5), bigP90: q(big, 0.9) };
+    const f = (v) => (Number.isNaN(v) ? " -  " : v.toFixed(2));
+    console.log(`  ${String(h).padStart(2)} h  p50 ${f(mult[h].p50)}  p90 ${f(mult[h].p90)}  | grandes n=${big.length} p50 ${f(mult[h].bigP50)}  p90 ${f(mult[h].bigP90)}`);
   }
-  console.log("\nJSON " + JSON.stringify({ label, startDate, days: DAYS, events: events.length, medianRatio: fit }));
+  console.log("\nJSON " + JSON.stringify({ label, startDate, days: DAYS, events: events.length, mult }));
 }
 
 main().catch((e) => {

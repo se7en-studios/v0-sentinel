@@ -70,11 +70,50 @@ export function spreadRate(w: Cond) {
 export type SpreadLevel = "bajo" | "moderado" | "alto" | "extremo";
 
 export function spreadLevel(rate: number): SpreadLevel {
-  return rate < 0.5 ? "bajo" : rate < 1.2 ? "moderado" : rate < 2.5 ? "alto" : "extremo";
+  return rate < 0.5
+    ? "bajo"
+    : rate < 1.2
+      ? "moderado"
+      : rate < 2.5
+        ? "alto"
+        : "extremo";
 }
 
-export function spreadRingsKm(w: Cond, hours: number) {
-  const head = Math.max(0.4, spreadRate(w) * hours);
+/** "typical": where a fire like this usually gets to (median). "max": where nearly all of them stay inside (p90). */
+export type RingKind = "typical" | "max";
+
+/**
+ * Multipliers on the linear head (rate x hours), as [hours, typical, max]. Fitted with scripts/backtest-spread.mjs
+ * against 4 seasons of VIIRS detections (Patagonia summers 2023-25, NEA/pampa winter 2025, medians and 90th percentiles of observed / modelled
+ * reach per horizon, blending all fires with the big ones). Real fires slow down (fuel breaks, suppression, burn-out)
+ * while the linear model keeps growing, so past 24 h the max ring is below the old one; at 6 h the tail ran ahead of it.
+ * Re-run the backtest after changing the rate formula or the fuel factors; no terrain was applied in the fit.
+ */
+const REACH_MULT = [
+  [6, 0.8, 2.0],
+  [12, 0.5, 1.8],
+  [24, 0.35, 1.4],
+  [48, 0.18, 0.85],
+] as const;
+
+export function reachMultiplier(hours: number, kind: RingKind): number {
+  const col = kind === "typical" ? 1 : 2;
+  const first = REACH_MULT[0];
+  const last = REACH_MULT[REACH_MULT.length - 1];
+  if (hours <= first[0]) return first[col];
+  if (hours >= last[0]) return last[col];
+  const i = REACH_MULT.findIndex((k) => k[0] >= hours);
+  const h0 = REACH_MULT[i - 1][0];
+  const a = REACH_MULT[i - 1][col];
+  const b = REACH_MULT[i][col];
+  return a + ((b - a) * (hours - h0)) / (REACH_MULT[i][0] - h0);
+}
+
+export function spreadRingsKm(w: Cond, hours: number, kind: RingKind = "max") {
+  const head = Math.max(
+    0.4,
+    spreadRate(w) * hours * reachMultiplier(hours, kind),
+  );
   const ratio = Math.min(4, 1 + w.wind / 15);
   return { head, back: head * 0.2, flank: head / ratio };
 }
@@ -85,8 +124,9 @@ export function spreadPolygon(
   lng: number,
   w: Cond & Pick<Weather, "windDir">,
   hours: number,
+  kind: RingKind = "max",
 ): [number, number][] {
-  const { head, back, flank } = spreadRingsKm(w, hours);
+  const { head, back, flank } = spreadRingsKm(w, hours, kind);
   const a = (head + back) / 2;
   const shift = (head - back) / 2;
   const toward = (((w.windDir + 180) % 360) * Math.PI) / 180; // wind dir is where it blows FROM
