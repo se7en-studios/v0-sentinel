@@ -46,7 +46,12 @@ const LIST_MAX = 8;
 type Scope = "region" | "ar";
 
 const when = (t: number) =>
-  new Date(t).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  new Date(t).toLocaleString("es-AR", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
 const TERRAIN_WAIT_MS = 4000;
 
@@ -156,7 +161,11 @@ export function IncidentsView({
     () => (payload ? buildIncidents(ctx.allFires, 60) : []),
     [payload, ctx.allFires],
   );
-  const [scope, setScope] = useState<Scope>("region");
+  // until the user picks one, show the region and fall back to Argentina when the region has none
+  const [picked, setScope] = useState<Scope | null>(null);
+  const scope: Scope =
+    picked ??
+    (all.some((i) => kmFrom(ctx.center, i) <= REGION_KM) ? "region" : "ar");
   const incidents = useMemo(
     () =>
       (scope === "ar"
@@ -186,309 +195,352 @@ export function IncidentsView({
       error={ctx.firesError}
       reload={ctx.reload}
     >
-    <div className="view-in mx-auto max-w-6xl space-y-4 p-4 sm:p-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="font-heading text-2xl font-bold">Incidentes</h1>
-          <p className="text-[13px] text-foreground/55">
-            Los mayores grupos de focos de los últimos 10 días, con el avance de
-            su perímetro día a día y los eventos que lo marcaron.
-          </p>
+      <div className="view-in mx-auto max-w-6xl space-y-4 p-4 sm:p-6">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="font-heading text-2xl font-bold">Incidentes</h1>
+            <p className="text-[13px] text-foreground/55">
+              Los mayores grupos de focos de los últimos 10 días, con el avance
+              de su perímetro día a día y los eventos que lo marcaron.
+            </p>
+          </div>
+          <Segmented
+            label="Alcance"
+            value={scope}
+            onChange={setScope}
+            options={[
+              { value: "region", label: `Región (${REGION_KM} km)` },
+              { value: "ar", label: "Argentina" },
+            ]}
+          />
         </div>
-        <Segmented
-          label="Alcance"
-          value={scope}
-          onChange={setScope}
-          options={[
-            { value: "region", label: `Región (${REGION_KM} km)` },
-            { value: "ar", label: "Argentina" },
-          ]}
-        />
-      </div>
 
-      {!inc ? (
-        <EmptyState
-          icon={<Flame className="size-5" />}
-          title="Sin incidentes"
-          action={
-            scope === "region" && all.length > 0 ? (
-              <Btn onClick={() => setScope("ar")}>
-                Ver {all.length} en Argentina
-              </Btn>
-            ) : undefined
-          }
-        >
-          {scope === "region"
-            ? `No hay grupos de 5 o más focos a menos de ${REGION_KM} km de la región en vista.`
-            : "No hay grupos de 5 o más focos cercanos en la ventana actual."}
-        </EmptyState>
-      ) : (
-        <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
-          <ul className="space-y-2" aria-label="Incidentes">
-            {shown.map((i) => {
-              const place = nearestPlace(i.lat, i.lng);
-              const on = i.id === inc.id;
-              return (
-                <li key={i.id}>
-                  <button
-                    type="button"
-                    onClick={() => setSelId(i.id)}
-                    aria-pressed={on}
-                    className={cn(
-                      "w-full rounded-xl border bg-card p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                      on
-                        ? "border-primary/60 shadow-[var(--shadow-1)]"
-                        : "border-[var(--hairline)] hover:bg-foreground/[0.03]",
-                    )}
-                  >
-                    <div className="text-[13px] font-semibold">
-                      {place.near}
-                    </div>
-                    <div className="mt-0.5 text-[11.5px] text-foreground/60">
-                      a {place.km} km · {i.count} focos ·{" "}
-                      {i.frp.toLocaleString("es-AR")} MW
-                    </div>
-                    <div className="num mt-1 font-heading text-[17px] font-bold">
-                      {fmtArea(i.areaHa, units)}
-                    </div>
-                    {ctx.incidentMeta[i.id] && (
-                      <div className="mt-1.5">
-                        <Badge
-                          tone={isOpenStatus(ctx.incidentMeta[i.id].status) ? "fire" : "muted"}
-                        >
-                          {INCIDENT_STATUS_LABEL[ctx.incidentMeta[i.id].status]}
-                        </Badge>
-                      </div>
-                    )}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-
-          <div className="space-y-4">
-            <div className="grid overflow-hidden rounded-xl bg-[var(--brand-deep)] text-white shadow-[var(--shadow-1)] sm:grid-cols-[1fr_200px]">
-              <div className="p-4 sm:p-5">
-                <Badge tone="sim">Estimación satelital</Badge>
-                <h2 className="mt-2 font-heading text-[22px] font-bold leading-tight">
-                  {nearestPlace(inc.lat, inc.lng).near}
-                </h2>
-                <div className="num mt-3 font-heading text-[40px] font-bold leading-none">
-                  {fmtArea(inc.areaHa, units)}
-                </div>
-                <p className="mt-1 text-[12px] text-white/65">
-                  perímetro acumulado al{" "}
-                  {dayLabel(days[inc.perDay[inc.perDay.length - 1].day])}
-                </p>
-                {onOpenMap && (
-                  <Btn
-                    onClick={() => onOpenMap(inc)}
-                    className="mt-4 border-white bg-white text-[#0f3d2c] hover:bg-white/90"
-                  >
-                    <MapPinned className="size-3.5" aria-hidden />
-                    Ver en el mapa
-                  </Btn>
-                )}
-              </div>
-              <div className="h-48 p-3 sm:h-auto">
-                <Silhouette inc={inc} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              {[
-                inc.perDay.length < 2
-                  ? { label: "Último día", value: "—", sub: "primer día de actividad" }
-                  : {
-                      label: "Último día",
-                      value: `${inc.growthHa >= 0 ? "+" : ""}${fmtArea(inc.growthHa, units)}`,
-                      tone: inc.growthHa > 0 ? ("fire" as const) : undefined,
-                    },
-                { label: "Focos", value: inc.count.toLocaleString("es-AR") },
-                {
-                  label: "Potencia radiativa",
-                  value: `${inc.frp.toLocaleString("es-AR")} MW`,
-                },
-                { label: "Días activo", value: inc.perDay.length },
-              ].map((k) => (
-                <Card key={k.label}>
-                  <Stat {...k} />
-                </Card>
-              ))}
-            </div>
-
-            <TerrainCard ctx={ctx} lat={inc.lat} lng={inc.lng} />
-            <Card title="Seguimiento del incidente">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="Estado">
-                  <select
-                    className={inputCls}
-                    value={ctx.incidentMeta[inc.id]?.status ?? "detected"}
-                    onChange={(e) =>
-                      ctx.updateIncident(inc.id, { status: e.target.value as IncidentStatus })
-                    }
-                  >
-                    {INCIDENT_STATUSES.map((s) => (
-                      <option key={s} value={s}>
-                        {INCIDENT_STATUS_LABEL[s]}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-                <Field label="Responsable">
-                  <input
-                    key={inc.id}
-                    className={inputCls}
-                    defaultValue={ctx.incidentMeta[inc.id]?.assignee ?? ""}
-                    maxLength={ASSIGNEE_MAX}
-                    placeholder="Quién está a cargo"
-                    onBlur={(e) => {
-                      if (e.target.value.trim() !== (ctx.incidentMeta[inc.id]?.assignee ?? ""))
-                        ctx.updateIncident(inc.id, { assignee: e.target.value });
-                    }}
-                  />
-                </Field>
-              </div>
-              <p className="mt-2 text-[11.5px] text-foreground/60">
-                {ctx.incidentMeta[inc.id]
-                  ? `Última actualización de ${ctx.incidentMeta[inc.id].by || "Operador"}: ${new Date(ctx.incidentMeta[inc.id].t).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`
-                  : "Sin seguimiento todavía. Cada cambio queda con su autor y su hora."}
-              </p>
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <Btn onClick={() => void openReport(ctx, inc)}>
-                  <FileText className="size-3.5" aria-hidden /> Informe del incidente
+        {!inc ? (
+          <EmptyState
+            icon={<Flame className="size-5" />}
+            title="Sin incidentes"
+            action={
+              scope === "region" && all.length > 0 ? (
+                <Btn onClick={() => setScope("ar")}>
+                  Ver {all.length} en Argentina
                 </Btn>
-                <span className="text-[11px] text-foreground/50">
-                  Incluye terreno, alertas tempranas y la línea de tiempo.
-                </span>
-              </div>
-              {(ctx.incidentMeta[inc.id]?.history?.length ?? 0) > 0 && (
-                <ol className="mt-3 space-y-1.5 border-t border-[var(--hairline)] pt-3" aria-label="Historial del incidente">
-                  {[...(ctx.incidentMeta[inc.id]?.history ?? [])].reverse().map((h) => (
-                    <li key={`${h.t}-${h.status}-${h.assignee}`} className="flex items-baseline justify-between gap-2 text-[12px]">
-                      <span className="min-w-0">
-                        <b className="font-semibold">{INCIDENT_STATUS_LABEL[h.status]}</b>
-                        {h.assignee && <span className="text-foreground/65"> · a cargo: {h.assignee}</span>}
-                        <span className="text-foreground/50"> · {h.by || "Operador"}</span>
-                      </span>
-                      <span className="num shrink-0 text-[11px] text-foreground/55">{when(h.t)}</span>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </Card>
+              ) : undefined
+            }
+          >
+            {scope === "region"
+              ? `No hay grupos de 5 o más focos a menos de ${REGION_KM} km de la región en vista.`
+              : "No hay grupos de 5 o más focos cercanos en la ventana actual."}
+          </EmptyState>
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
+            <ul className="space-y-2" aria-label="Incidentes">
+              {shown.map((i) => {
+                const place = nearestPlace(i.lat, i.lng);
+                const on = i.id === inc.id;
+                return (
+                  <li key={i.id}>
+                    <button
+                      type="button"
+                      onClick={() => setSelId(i.id)}
+                      aria-pressed={on}
+                      className={cn(
+                        "w-full rounded-xl border bg-card p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        on
+                          ? "border-primary/60 shadow-[var(--shadow-1)]"
+                          : "border-[var(--hairline)] hover:bg-foreground/[0.03]",
+                      )}
+                    >
+                      <div className="text-[13px] font-semibold">
+                        {place.near}
+                      </div>
+                      <div className="mt-0.5 text-[11.5px] text-foreground/60">
+                        a {place.km} km · {i.count} focos ·{" "}
+                        {i.frp.toLocaleString("es-AR")} MW
+                      </div>
+                      <div className="num mt-1 font-heading text-[17px] font-bold">
+                        {fmtArea(i.areaHa, units)}
+                      </div>
+                      {ctx.incidentMeta[i.id] && (
+                        <div className="mt-1.5">
+                          <Badge
+                            tone={
+                              isOpenStatus(ctx.incidentMeta[i.id].status)
+                                ? "fire"
+                                : "muted"
+                            }
+                          >
+                            {
+                              INCIDENT_STATUS_LABEL[
+                                ctx.incidentMeta[i.id].status
+                              ]
+                            }
+                          </Badge>
+                        </div>
+                      )}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
 
-            <Card title="Superficie por día">
-              {inc.perDay.length < 2 ? (
-                <p className="py-10 text-center text-[12.5px] text-foreground/60">
-                  Incendio de un solo día. La curva de crecimiento aparece desde el
-                  segundo día de actividad.
-                </p>
-              ) : (
-              <ChartFrame
-                className="h-52"
-                label={`Gráfico de área: superficie acumulada por día del incendio cerca de ${nearestPlace(inc.lat, inc.lng).near}, de ${fmtArea(inc.perDay[0].areaHa, units)} a ${fmtArea(inc.areaHa, units)}`}
-                caption="Superficie acumulada por día"
-                columns={["Día", "Superficie (ha)"]}
-                rows={inc.perDay.map((d) => [
-                  dayLabel(days[d.day]),
-                  d.areaHa.toLocaleString("es-AR"),
-                ])}
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={inc.perDay.map((d) => ({
-                      label: dayLabel(days[d.day]),
-                      ha: d.areaHa,
-                    }))}
-                    margin={{ top: 8, right: 8, left: -8, bottom: 0 }}
-                  >
-                    <CartesianGrid vertical={false} stroke="var(--border)" />
-                    <XAxis
-                      dataKey="label"
-                      tick={AXIS}
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <YAxis tick={AXIS} tickLine={false} axisLine={false} />
-                    <Tooltip
-                      formatter={(v) => [
-                        `${Number(v).toLocaleString("es-AR")} ha`,
-                        "Superficie",
-                      ]}
-                      contentStyle={{
-                        fontSize: 12,
-                        borderRadius: 6,
-                        border: "1px solid var(--border)",
-                        background: "var(--chart-tip)",
-                        color: "var(--foreground)",
+            <div className="space-y-4">
+              <div className="grid overflow-hidden rounded-xl bg-[var(--brand-deep)] text-white shadow-[var(--shadow-1)] sm:grid-cols-[1fr_200px]">
+                <div className="p-4 sm:p-5">
+                  <Badge tone="sim">Estimación satelital</Badge>
+                  <h2 className="mt-2 font-heading text-[22px] font-bold leading-tight">
+                    {nearestPlace(inc.lat, inc.lng).near}
+                  </h2>
+                  <div className="num mt-3 font-heading text-[40px] font-bold leading-none">
+                    {fmtArea(inc.areaHa, units)}
+                  </div>
+                  <p className="mt-1 text-[12px] text-white/65">
+                    perímetro acumulado al{" "}
+                    {dayLabel(days[inc.perDay[inc.perDay.length - 1].day])}
+                  </p>
+                  {onOpenMap && (
+                    <Btn
+                      onClick={() => onOpenMap(inc)}
+                      className="mt-4 border-white bg-white text-[#0f3d2c] hover:bg-white/90"
+                    >
+                      <MapPinned className="size-3.5" aria-hidden />
+                      Ver en el mapa
+                    </Btn>
+                  )}
+                </div>
+                <div className="h-48 p-3 sm:h-auto">
+                  <Silhouette inc={inc} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                {[
+                  inc.perDay.length < 2
+                    ? {
+                        label: "Último día",
+                        value: "—",
+                        sub: "primer día de actividad",
+                      }
+                    : {
+                        label: "Último día",
+                        value: `${inc.growthHa >= 0 ? "+" : ""}${fmtArea(inc.growthHa, units)}`,
+                        tone: inc.growthHa > 0 ? ("fire" as const) : undefined,
+                      },
+                  { label: "Focos", value: inc.count.toLocaleString("es-AR") },
+                  {
+                    label: "Potencia radiativa",
+                    value: `${inc.frp.toLocaleString("es-AR")} MW`,
+                  },
+                  { label: "Días activo", value: inc.perDay.length },
+                ].map((k) => (
+                  <Card key={k.label}>
+                    <Stat {...k} />
+                  </Card>
+                ))}
+              </div>
+
+              <TerrainCard ctx={ctx} lat={inc.lat} lng={inc.lng} />
+              <Card title="Seguimiento del incidente">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field label="Estado">
+                    <select
+                      className={inputCls}
+                      value={ctx.incidentMeta[inc.id]?.status ?? "detected"}
+                      onChange={(e) =>
+                        ctx.updateIncident(inc.id, {
+                          status: e.target.value as IncidentStatus,
+                        })
+                      }
+                    >
+                      {INCIDENT_STATUSES.map((s) => (
+                        <option key={s} value={s}>
+                          {INCIDENT_STATUS_LABEL[s]}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Responsable">
+                    <input
+                      key={inc.id}
+                      className={inputCls}
+                      defaultValue={ctx.incidentMeta[inc.id]?.assignee ?? ""}
+                      maxLength={ASSIGNEE_MAX}
+                      placeholder="Quién está a cargo"
+                      onBlur={(e) => {
+                        if (
+                          e.target.value.trim() !==
+                          (ctx.incidentMeta[inc.id]?.assignee ?? "")
+                        )
+                          ctx.updateIncident(inc.id, {
+                            assignee: e.target.value,
+                          });
                       }}
                     />
-                    <Area
-                      type="monotone"
-                      dataKey="ha"
-                      stroke="var(--state-bad)"
-                      strokeWidth={1.8}
-                      fill="var(--state-bad)"
-                      fillOpacity={0.15}
-                      isAnimationActive={false}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </ChartFrame>
-              )}
-            </Card>
+                  </Field>
+                </div>
+                <p className="mt-2 text-[11.5px] text-foreground/60">
+                  {ctx.incidentMeta[inc.id]
+                    ? `Última actualización de ${ctx.incidentMeta[inc.id].by || "Operador"}: ${new Date(ctx.incidentMeta[inc.id].t).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`
+                    : "Sin seguimiento todavía. Cada cambio queda con su autor y su hora."}
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Btn onClick={() => void openReport(ctx, inc)}>
+                    <FileText className="size-3.5" aria-hidden /> Informe del
+                    incidente
+                  </Btn>
+                  <span className="text-[11px] text-foreground/50">
+                    Incluye terreno, alertas tempranas y la línea de tiempo.
+                  </span>
+                </div>
+                {(ctx.incidentMeta[inc.id]?.history?.length ?? 0) > 0 && (
+                  <ol
+                    className="mt-3 space-y-1.5 border-t border-[var(--hairline)] pt-3"
+                    aria-label="Historial del incidente"
+                  >
+                    {[...(ctx.incidentMeta[inc.id]?.history ?? [])]
+                      .reverse()
+                      .map((h) => (
+                        <li
+                          key={`${h.t}-${h.status}-${h.assignee}`}
+                          className="flex items-baseline justify-between gap-2 text-[12px]"
+                        >
+                          <span className="min-w-0">
+                            <b className="font-semibold">
+                              {INCIDENT_STATUS_LABEL[h.status]}
+                            </b>
+                            {h.assignee && (
+                              <span className="text-foreground/65">
+                                {" "}
+                                · a cargo: {h.assignee}
+                              </span>
+                            )}
+                            <span className="text-foreground/50">
+                              {" "}
+                              · {h.by || "Operador"}
+                            </span>
+                          </span>
+                          <span className="num shrink-0 text-[11px] text-foreground/55">
+                            {when(h.t)}
+                          </span>
+                        </li>
+                      ))}
+                  </ol>
+                )}
+              </Card>
 
-            <Card title="Eventos clave">
-              <ol className="space-y-2.5">
-                {[...inc.events].reverse().map((e) => {
-                  const Icon = EVENT_ICON[e.kind];
-                  return (
-                    <li
-                      key={`${e.kind}-${e.day}`}
-                      className="flex items-start gap-3"
-                    >
-                      <span
-                        className={cn(
-                          "mt-0.5 grid size-7 shrink-0 place-items-center rounded-full",
-                          e.kind === "ignition" &&
-                            "bg-[var(--state-watch)]/15 text-[var(--state-watch-ink)]",
-                          e.kind === "explosive" &&
-                            "bg-[var(--state-bad)]/15 text-[var(--state-bad-ink)]",
-                          e.kind === "jump" &&
-                            "bg-[var(--state-warn)]/20 text-[var(--state-warn-ink)]",
-                        )}
+              <Card title="Superficie por día">
+                {inc.perDay.length < 2 ? (
+                  <p className="py-10 text-center text-[12.5px] text-foreground/60">
+                    Incendio de un solo día. La curva de crecimiento aparece
+                    desde el segundo día de actividad.
+                  </p>
+                ) : (
+                  <ChartFrame
+                    className="h-52"
+                    label={`Gráfico de área: superficie acumulada por día del incendio cerca de ${nearestPlace(inc.lat, inc.lng).near}, de ${fmtArea(inc.perDay[0].areaHa, units)} a ${fmtArea(inc.areaHa, units)}`}
+                    caption="Superficie acumulada por día"
+                    columns={["Día", "Superficie (ha)"]}
+                    rows={inc.perDay.map((d) => [
+                      dayLabel(days[d.day]),
+                      d.areaHa.toLocaleString("es-AR"),
+                    ])}
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={inc.perDay.map((d) => ({
+                          label: dayLabel(days[d.day]),
+                          ha: d.areaHa,
+                        }))}
+                        margin={{ top: 8, right: 8, left: -8, bottom: 0 }}
                       >
-                        <Icon className="size-3.5" aria-hidden />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-baseline justify-between gap-2">
-                          <span className="text-[13px] font-semibold">
-                            {e.title}
-                          </span>
-                          <span className="num text-[11px] text-foreground/55">
-                            {dayLabel(days[e.day])}
-                          </span>
+                        <CartesianGrid
+                          vertical={false}
+                          stroke="var(--border)"
+                        />
+                        <XAxis
+                          dataKey="label"
+                          tick={AXIS}
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <YAxis tick={AXIS} tickLine={false} axisLine={false} />
+                        <Tooltip
+                          formatter={(v) => [
+                            `${Number(v).toLocaleString("es-AR")} ha`,
+                            "Superficie",
+                          ]}
+                          contentStyle={{
+                            fontSize: 12,
+                            borderRadius: 6,
+                            border: "1px solid var(--border)",
+                            background: "var(--chart-tip)",
+                            color: "var(--foreground)",
+                          }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="ha"
+                          stroke="var(--state-bad)"
+                          strokeWidth={1.8}
+                          fill="var(--state-bad)"
+                          fillOpacity={0.15}
+                          isAnimationActive={false}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </ChartFrame>
+                )}
+              </Card>
+
+              <Card title="Eventos clave">
+                <ol className="space-y-2.5">
+                  {[...inc.events].reverse().map((e) => {
+                    const Icon = EVENT_ICON[e.kind];
+                    return (
+                      <li
+                        key={`${e.kind}-${e.day}`}
+                        className="flex items-start gap-3"
+                      >
+                        <span
+                          className={cn(
+                            "mt-0.5 grid size-7 shrink-0 place-items-center rounded-full",
+                            e.kind === "ignition" &&
+                              "bg-[var(--state-watch)]/15 text-[var(--state-watch-ink)]",
+                            e.kind === "explosive" &&
+                              "bg-[var(--state-bad)]/15 text-[var(--state-bad-ink)]",
+                            e.kind === "jump" &&
+                              "bg-[var(--state-warn)]/20 text-[var(--state-warn-ink)]",
+                          )}
+                        >
+                          <Icon className="size-3.5" aria-hidden />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-baseline justify-between gap-2">
+                            <span className="text-[13px] font-semibold">
+                              {e.title}
+                            </span>
+                            <span className="num text-[11px] text-foreground/55">
+                              {dayLabel(days[e.day])}
+                            </span>
+                          </div>
+                          <p className="text-[12px] text-foreground/65">
+                            {e.sub}
+                          </p>
                         </div>
-                        <p className="text-[12px] text-foreground/65">
-                          {e.sub}
-                        </p>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
-              <p className="mt-3 border-t border-[var(--hairline)] pt-2 text-[11px] leading-snug text-foreground/55">
-                Método: detecciones VIIRS (NASA FIRMS, píxel de 375 m) agrupadas
-                a menos de 3 km. El perímetro es el contorno convexo acumulado,
-                por lo que sobreestima incendios de forma irregular. No
-                reemplaza el parte oficial.
-              </p>
-            </Card>
+                      </li>
+                    );
+                  })}
+                </ol>
+                <p className="mt-3 border-t border-[var(--hairline)] pt-2 text-[11px] leading-snug text-foreground/55">
+                  Método: detecciones VIIRS (NASA FIRMS, píxel de 375 m)
+                  agrupadas a menos de 3 km. El perímetro es el contorno convexo
+                  acumulado, por lo que sobreestima incendios de forma
+                  irregular. No reemplaza el parte oficial.
+                </p>
+              </Card>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
     </DataGate>
   );
 }
