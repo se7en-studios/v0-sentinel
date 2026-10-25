@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { FileText, Flame, MapPinned, Zap, MoveUpRight } from "lucide-react";
 import {
   Area,
@@ -162,6 +162,13 @@ export function IncidentsView({
     [payload, ctx.allFires],
   );
   // until the user picks one, show the region and fall back to Argentina when the region has none
+  const detail = useRef<HTMLDivElement>(null);
+  // below lg the list stacks above the detail: bring the detail into view after a tap
+  const select = (id: string) => {
+    setSelId(id);
+    if (!window.matchMedia("(min-width: 1024px)").matches)
+      detail.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   const [picked, setScope] = useState<Scope | null>(null);
   const scope: Scope =
     picked ??
@@ -241,7 +248,7 @@ export function IncidentsView({
                   <li key={i.id}>
                     <button
                       type="button"
-                      onClick={() => setSelId(i.id)}
+                      onClick={() => select(i.id)}
                       aria-pressed={on}
                       className={cn(
                         "w-full rounded-xl border bg-card p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -283,10 +290,12 @@ export function IncidentsView({
               })}
             </ul>
 
-            <div className="space-y-4">
+            <div ref={detail} className="scroll-mt-16 space-y-4">
               <div className="grid overflow-hidden rounded-xl bg-[var(--brand-deep)] text-white shadow-[var(--shadow-1)] sm:grid-cols-[1fr_200px]">
                 <div className="p-4 sm:p-5">
-                  <Badge tone="sim">Estimación satelital</Badge>
+                  <Badge tone="sim" className="bg-white/15 text-amber-200">
+                    Estimación satelital
+                  </Badge>
                   <h2 className="mt-2 font-heading text-[22px] font-bold leading-tight">
                     {nearestPlace(inc.lat, inc.lng).near}
                   </h2>

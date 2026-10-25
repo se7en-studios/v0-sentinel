@@ -78,16 +78,21 @@ export function useTracking(active: boolean, loc: string) {
   useEffect(() => {
     if (!active || bundles[source]) return;
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- an error from another source must not stick to this one
+    setError(null);
     (async () => {
       try {
         if (source === "vivo") {
-          const r = await fetch("/api/admin/live");
-          if (r.ok) {
+          // offline throws here: it must reach the snapshot fallback below like a non-OK answer does
+          const r = await fetch("/api/admin/live").catch(() => null);
+          if (r?.ok) {
             const b = await r.json();
             if (!cancelled) setBundles((x) => ({ ...x, vivo: b }));
             return;
           }
-          const why = ((await r.json().catch(() => null)) as { error?: string } | null)?.error ?? `HTTP ${r.status}`;
+          const why = r
+            ? (((await r.json().catch(() => null)) as { error?: string } | null)?.error ?? `HTTP ${r.status}`)
+            : uiT("trk.err.noData");
           setNote(why);
           const s = await fetch("/data/live/snapshot.json");
           if (!s.ok) throw new Error(uiT("trk.err.noData"));

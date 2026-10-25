@@ -82,8 +82,8 @@ export function BriefingCard({
         </h2>
       </div>
       <ul className="mt-3 space-y-1.5 text-[13px] leading-snug text-foreground/75">
-        {b.points.map((p) => (
-          <li key={p} className="flex gap-2">
+        {b.points.map((p, i) => (
+          <li key={`${i}-${p}`} className="flex gap-2">
             <span className="mt-[7px] size-1 shrink-0 rounded-full bg-foreground/35" />
             {p}
           </li>
@@ -94,8 +94,8 @@ export function BriefingCard({
           {t("brf.actionsTitle")}
         </div>
         <ul className="space-y-1 text-[13px]">
-          {b.actions.map((a) => (
-            <li key={a}>→ {a}</li>
+          {b.actions.map((a, i) => (
+            <li key={`${i}-${a}`}>→ {a}</li>
           ))}
         </ul>
       </div>

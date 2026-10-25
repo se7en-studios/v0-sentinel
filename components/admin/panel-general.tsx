@@ -252,6 +252,12 @@ function PredPlay({ ctx }: { ctx: Ctx }) {
   const { predH, setPredH, t: tr } = ctx;
   useEffect(() => {
     if (!playing) return;
+    if (!predH) {
+      // the projection was switched off (slider to 0, menu): stop instead of restarting it
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reacts to an external change of predH
+      setPlaying(false);
+      return;
+    }
     const t = setTimeout(() => {
       const i = HORIZONS.indexOf(predH as (typeof HORIZONS)[number]);
       setPredH(HORIZONS[(i + 1) % HORIZONS.length]);

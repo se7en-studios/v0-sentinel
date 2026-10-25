@@ -162,7 +162,6 @@ function Chips({ a }: { a: A }) {
         glass,
         "num hidden items-center gap-2.5 rounded-lg px-2.5 py-1 text-[11px] sm:flex",
       )}
-      aria-live="polite"
     >
       {items.map((c, i) => (
         <span key={c.k} className="flex items-baseline gap-1" title={c.k}>

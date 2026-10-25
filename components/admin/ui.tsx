@@ -213,9 +213,12 @@ export function IconBtn({
 export function Badge({
   children,
   tone = "muted",
+  className,
 }: {
   children: ReactNode;
   tone?: "muted" | "fire" | "ok" | "sim";
+  /** override colours where the badge sits on a dark surface */
+  className?: string;
 }) {
   return (
     <span
@@ -225,6 +228,7 @@ export function Badge({
         tone === "fire" && "bg-[#b83a3a]/12 text-[#b83a3a]",
         tone === "ok" && "bg-primary/12 text-primary",
         tone === "sim" && "bg-[#e8710a]/14 text-[var(--state-watch-ink)]",
+        className,
       )}
     >
       {children}

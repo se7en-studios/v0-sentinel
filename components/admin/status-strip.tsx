@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { riskLabel, type Translate } from "@/lib/admin/i18n";
 import type { Ctx } from "./ctx";
+import { scrollToSources } from "./scroll-to-sources";
 
 type Tone = "ok" | "warn" | "bad" | "idle";
 
@@ -70,17 +71,6 @@ function Item({
       )}
     </li>
   );
-}
-
-/** Metrics keeps its sources table at the bottom; bring it into view once the tab has rendered. */
-const SOURCES_SCROLL_MS = 250;
-function scrollToSources() {
-  setTimeout(() => {
-    const h = [...document.querySelectorAll("h2, h3")].find((x) =>
-      x.textContent?.includes("Fuentes satelitales"),
-    );
-    h?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, SOURCES_SCROLL_MS);
 }
 
 /** Always-visible summary under the top bar: risk today, how fresh the satellite data is, and what needs attention. */

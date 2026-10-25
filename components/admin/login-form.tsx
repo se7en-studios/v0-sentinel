@@ -46,9 +46,11 @@ export function LoginForm() {
           className={inputCls}
           value={pw}
           onChange={(e) => setPw(e.target.value)}
+          aria-invalid={!!err}
+          aria-describedby={err ? "pw-err" : undefined}
         />
         {err && (
-          <p role="alert" className="mt-2 text-[12px] text-[#b83a3a]">
+          <p id="pw-err" role="alert" className="mt-2 text-[12px] text-[var(--state-bad-ink)]">
             {err}
           </p>
         )}

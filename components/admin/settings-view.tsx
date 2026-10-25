@@ -18,6 +18,7 @@ import {
 import type { Ctx } from "./ctx";
 import { IntegrationsCard } from "./integrations-card";
 import { Badge, Btn, Card, Field, Toggle, inputCls } from "./ui";
+import { scrollToSources } from "./scroll-to-sources";
 
 const SECTIONS = [
   { id: "set-general", key: "set.g.general" },
@@ -28,7 +29,13 @@ const SECTIONS = [
   { id: "set-sources", key: "set.g.sources" },
 ] as const;
 
-const SOURCES_SCROLL_DELAY_MS = 250;
+/** [min, max] accepted for each sensor threshold */
+const THRESHOLD_LIMITS: Record<"temp" | "humidity" | "smoke" | "wind", [number, number]> = {
+  temp: [-50, 150],
+  humidity: [0, 100],
+  smoke: [0, 10_000],
+  wind: [0, 300],
+};
 
 function saveFile(body: string, mime: string, name: string) {
   const a = document.createElement("a");
@@ -132,24 +139,31 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
   /** The sources card lives in Metrics: go there, scroll to it and open the licenses. */
   const openSources = () => {
     ctx.goTab("metricas");
-    setTimeout(() => {
-      const card = document.getElementById("fuentes");
-      card?.scrollIntoView({ behavior: "smooth", block: "start" });
-      card?.querySelector("details")?.setAttribute("open", "");
-    }, SOURCES_SCROLL_DELAY_MS);
+    scrollToSources();
   };
 
-  const num = (k: keyof typeof th) => (
-    <input
-      type="number"
-      className={inputCls}
-      value={th[k]}
-      onChange={(e) =>
-        Number.isFinite(e.target.valueAsNumber) &&
-        setSettings({ thresholds: { ...th, [k]: e.target.valueAsNumber } })
-      }
-    />
-  );
+  // uncontrolled so the field can be cleared and retyped; the value is clamped and saved on blur
+  const num = (k: keyof typeof th) => {
+    const [min, max] = THRESHOLD_LIMITS[k];
+    return (
+      <input
+        key={th[k]}
+        type="number"
+        min={min}
+        max={max}
+        className={inputCls}
+        defaultValue={th[k]}
+        onBlur={(e) => {
+          const n = e.target.valueAsNumber;
+          if (!Number.isFinite(n)) {
+            e.target.value = String(th[k]);
+            return;
+          }
+          setSettings({ thresholds: { ...th, [k]: Math.min(max, Math.max(min, n)) } });
+        }}
+      />
+    );
+  };
 
   return (
     <div className="view-in mx-auto max-w-4xl space-y-6 p-4 sm:p-6">
@@ -364,8 +378,9 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
             <Toggle
               checked={s.notify.browser}
               onChange={async (v) => {
-                if (v && typeof Notification !== "undefined" && Notification.permission !== "granted") {
-                  const r = await Notification.requestPermission();
+                if (v && typeof Notification === "undefined") return toast.error(t("set.notify.blocked"));
+                if (v && Notification.permission !== "granted") {
+                  const r = await Notification.requestPermission().catch(() => "denied");
                   if (r !== "granted") return toast.error(t("set.notify.blocked"));
                 }
                 setSettings({ notify: { ...s.notify, browser: v } });

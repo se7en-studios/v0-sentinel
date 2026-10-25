@@ -117,6 +117,12 @@ describe("fwiWeatherAt", () => {
   test("uses the local-noon hour of the right day", () => {
     expect(fwiWeatherAt(j, 1)).toEqual({ temp: 36, rh: 30, wind: 12, rain: 0 });
   });
+  test("a day with no data at all is neutral, not 0 °C and 0 % humidity", () => {
+    const empty = {
+      daily: { ...j.daily, temperature_2m_max: [null], relative_humidity_2m_min: [null], wind_speed_10m_max: [null] },
+    };
+    expect(fwiWeatherAt(empty, 0)).toEqual({ temp: 15, rh: 50, wind: 0, rain: 0 });
+  });
   test("falls back to the daily extremes without hourly data", () => {
     expect(fwiWeatherAt({ daily: j.daily }, 0)).toEqual({
       temp: 35,

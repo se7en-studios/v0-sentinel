@@ -26,7 +26,6 @@ export interface PaletteAction {
 
 const RECENT_KEY = "sentinel-admin-palette-recent";
 const RECENT_MAX = 5;
-const FEATURE_MAX = 60;
 
 const ROLE_KEYS = {
   zone: "pal.role.zone",
@@ -85,8 +84,7 @@ export function CommandPalette({
           const name = meta[f.id]?.name ?? String(f.properties.name ?? "");
           return { f, name: name.trim() };
         })
-        .filter((p) => p.name)
-        .slice(0, FEATURE_MAX),
+        .filter((p) => p.name),
     [features, meta],
   );
 

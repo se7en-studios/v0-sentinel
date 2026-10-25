@@ -5,7 +5,6 @@ import { Flame, Plane, Truck, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { centerOf, distKm } from "@/lib/admin/geo";
 import {
-  etaFromBase,
   type UnitKind,
   type UnitState,
 } from "@/lib/admin/resources";
@@ -80,13 +79,12 @@ export function ResourcesPanel({ ctx }: { ctx: Ctx }) {
     .filter((u) => u.status === "en operación")
     .reduce((a, u) => a + u.spec.water, 0);
 
+  // from the unit's own base (set by the saved region, as dispatch does), not from wherever the map is panned
+  const etaTo = (u: UnitState) =>
+    Math.max(1, Math.round((distKm(u.base, target.pos) / u.spec.speedKmh) * 60));
   const ranked = [...units]
     .filter((u) => u.status === "disponible")
-    .sort(
-      (a, b) =>
-        etaFromBase(a.spec, ctx.center, target.pos) -
-        etaFromBase(b.spec, ctx.center, target.pos),
-    );
+    .sort((a, b) => etaTo(a) - etaTo(b));
 
   return (
     <div>
@@ -159,7 +157,7 @@ export function ResourcesPanel({ ctx }: { ctx: Ctx }) {
             <ul className="-mx-1.5 space-y-px">
               {rows.map((u) => {
                 const Icon = ICON[u.spec.kind];
-                const eta = etaFromBase(u.spec, ctx.center, target.pos);
+                const eta = etaTo(u);
                 const away = Math.round(distKm(u.pos, target.pos));
                 return (
                   <li

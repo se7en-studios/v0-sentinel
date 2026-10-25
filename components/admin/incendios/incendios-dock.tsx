@@ -326,11 +326,11 @@ function Scrubber({ t, d, rows, i0, i1, events, go, tr, loc }: { t: Tracking; d:
           if (e.key === "End") go(i1);
         }}
         onPointerDown={(e) => {
-          (e.target as HTMLElement).setPointerCapture(e.pointerId);
+          e.currentTarget.setPointerCapture(e.pointerId);
           pick(e.clientX);
         }}
         onPointerMove={(e) => e.buttons === 1 && pick(e.clientX)}
-        className="relative h-8 cursor-ew-resize rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="relative h-8 cursor-ew-resize touch-none rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {rows.map((r) => {
           const total = r.nuevo + r.persistente + r.reactivado;
