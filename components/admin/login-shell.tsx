@@ -1,5 +1,5 @@
 import type { FormEventHandler, ReactNode } from "react";
-import { SentinelLogo } from "@/components/sentinel-logo";
+import { SentinelLogo, SentinelMark } from "@/components/sentinel-logo";
 import type { Translate } from "@/lib/admin/i18n";
 
 /** Shared frame for both login screens: soft brand glow, faint grid, one card. */
@@ -28,7 +28,10 @@ export function LoginShell({
           onSubmit={onSubmit}
           className="rounded-2xl border border-black/8 bg-white/90 p-7 shadow-xl shadow-black/5 backdrop-blur"
         >
-          <SentinelLogo className="mb-3 h-6 w-auto" />
+          <div className="mb-3 flex items-center gap-2">
+            <SentinelMark className="size-7" />
+            <SentinelLogo className="h-6 w-auto" fill="var(--primary)" />
+          </div>
           <h1 className="font-heading text-2xl font-bold leading-tight">
             {t("login.title")}
           </h1>

@@ -254,7 +254,7 @@ export function FireControls({ t, d, right, tr, loc }: { t: Tracking; d: Derived
       <IconBtn
         aria-label={tr(t.playing ? "trk.dock.pause" : "trk.dock.play")}
         active={t.playing}
-        className="bg-foreground text-background hover:bg-foreground/85 hover:text-background"
+        className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
         onClick={() => t.play(!t.playing)}
       >
         {t.playing ? <Pause className="size-3.5" /> : <Play className="size-3.5 translate-x-px" />}

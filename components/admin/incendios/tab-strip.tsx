@@ -68,7 +68,7 @@ export function TabStrip({ tab, goTab, badge, t }: { tab: Tab; goTab: (t: Tab) =
         aria-current={on ? "page" : undefined}
         className={cn(
           "relative flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          on ? "bg-foreground text-background" : "text-foreground/60 hover:bg-foreground/[0.06] hover:text-foreground",
+          on ? "bg-primary text-primary-foreground" : "text-foreground/60 hover:bg-foreground/[0.06] hover:text-foreground",
         )}
       >
         <span className="hidden lg:inline">{t(`tab.${id}`)}</span>

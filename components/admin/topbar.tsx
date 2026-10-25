@@ -29,7 +29,7 @@ import {
   Flame,
   Keyboard,
 } from "lucide-react";
-import { SentinelLogo } from "@/components/sentinel-logo";
+import { SentinelLogo, SentinelMark } from "@/components/sentinel-logo";
 import { cn } from "@/lib/utils";
 import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
 import type { Locale } from "@/lib/admin/i18n";
@@ -128,7 +128,8 @@ export function Topbar({ a }: { a: A }) {
         aria-label={t("top.back")}
         className="flex shrink-0 items-center gap-2 rounded-md px-1 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <SentinelLogo className="h-[18px] w-auto" />
+        <SentinelMark className="size-[22px] shrink-0" />
+        <SentinelLogo className="h-[18px] w-auto" fill="var(--primary)" />
         <span className="hidden rounded-md bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-primary 2xl:inline">
           Cloud
         </span>
@@ -198,7 +199,7 @@ export function Topbar({ a }: { a: A }) {
               className={cn(
                 "relative flex h-8 max-lg:h-11 max-md:h-9 max-md:snap-center shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 on
-                  ? "bg-foreground text-background"
+                  ? "bg-primary text-primary-foreground"
                   : "text-foreground/60 hover:bg-foreground/[0.06] hover:text-foreground",
               )}
             >

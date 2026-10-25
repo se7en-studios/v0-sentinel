@@ -398,7 +398,7 @@ export function TimelineDock({ ctx }: { ctx: Ctx }) {
         <IconBtn
           aria-label={ctx.playing ? t("gen.pause") : t("tln.play")}
           active={ctx.playing}
-          className="bg-foreground text-background hover:bg-foreground/85 hover:text-background"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
           onClick={() => {
             if (!ctx.playing && live) ctx.setCursor(range.t0);
             ctx.setPlaying(!ctx.playing);

@@ -300,7 +300,7 @@ function Chip({ on, onClick, label, n, color }: { on: boolean; onClick: () => vo
       onClick={onClick}
       className={cn(
         "inline-flex h-6 items-center gap-1 rounded-full border px-2 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        on ? "border-foreground bg-foreground text-background" : "border-[var(--hairline)] text-foreground/65 hover:bg-foreground/[0.05]",
+        on ? "border-primary bg-primary text-primary-foreground" : "border-[var(--hairline)] text-foreground/65 hover:bg-foreground/[0.05]",
       )}
     >
       {color && <span className="size-1.5 rounded-full" style={{ background: color }} aria-hidden />}

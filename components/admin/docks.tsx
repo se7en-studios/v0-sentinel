@@ -152,7 +152,7 @@ export function DroneDock({ ctx }: { ctx: Ctx }) {
               type="button"
               aria-pressed={f.id === d.spec.id}
               onClick={() => ctx.setActiveDrone(f.id)}
-              className={`rounded-md px-2 py-2 text-[10.5px] font-medium transition-colors sm:py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${f.id === d.spec.id ? "bg-foreground text-background" : "text-foreground/55 hover:bg-foreground/[0.06]"}`}
+              className={`rounded-md px-2 py-2 text-[10.5px] font-medium transition-colors sm:py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${f.id === d.spec.id ? "bg-primary text-primary-foreground" : "text-foreground/55 hover:bg-foreground/[0.06]"}`}
             >
               {f.name.replace("SNT-", "")}
             </button>
