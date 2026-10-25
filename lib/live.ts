@@ -80,6 +80,7 @@ export function buildLive(input: LiveInput): LiveBundle {
     const forestal = forestShare >= 0.5;
     meta.push({
       id: f.id,
+      code: fireCode(f.ignition.t, f.ignition.at),
       name: placeLabel(center[1], center[0]),
       province: place.province,
       center: [round(center[0], 4), round(center[1], 4)],
@@ -161,6 +162,14 @@ export function buildLive(input: LiveInput): LiveBundle {
     pixels,
     live: { windowStart, windowEnd, sources: input.sources, origin: input.origin, meta, alerts },
   };
+}
+
+/** DDMM of the ignition (Argentina time) plus a 3-char hash of its ~1 km cell: the same fire keeps the label when the window slides */
+export function fireCode(t: number, at: [number, number]): string {
+  const d = new Date(t - 3 * 3_600_000);
+  const day = `${String(d.getUTCDate()).padStart(2, "0")}${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+  const cell = Math.abs((Math.round(at[1] * 100) * 7919) ^ (Math.round(at[0] * 100) * 104729)) % 46656;
+  return `${day}-${cell.toString(36).toUpperCase().padStart(3, "0")}`;
 }
 
 const round = (v: number, d: number) => Math.round(v * 10 ** d) / 10 ** d;

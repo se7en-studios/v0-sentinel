@@ -181,7 +181,7 @@ function Overview({ t, tr, loc }: { t: Tracking } & L) {
                   </span>
                   <span className="num mt-0.5 flex items-baseline justify-between gap-2 text-[10.5px] text-foreground/50">
                     <span className="flex min-w-0 gap-2 truncate">
-                      <span>#{m.id}</span>
+                      <span>{m.code}</span>
                       <span className="truncate">{m.province}</span>
                     </span>
                     {m.growth24hHa > 0 ? (

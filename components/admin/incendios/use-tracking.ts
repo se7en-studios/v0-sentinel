@@ -163,7 +163,7 @@ export function useTracking(active: boolean, loc: string) {
       {
         ...bundle,
         featured: selected,
-        ...(live && m ? { name: `Incendio #${selected}`, place: m.name } : {}),
+        ...(live && m ? { name: `Incendio ${m.code}`, place: m.name } : {}),
         weather: bundle.weather ?? weather[wKey],
       },
       loc,

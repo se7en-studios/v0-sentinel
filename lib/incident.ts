@@ -110,6 +110,8 @@ export type LiveActivity = "ahora" | "activo" | "latente" | "extinguido";
 
 export interface LiveFireMeta {
   id: number;
+  /** stable label from the ignition date and place ("1018-K7F"); `id` is a counter that changes as the window slides */
+  code: string;
   /** "a 12 km de El Bolsón (Río Negro)" */
   name: string;
   province: string;
