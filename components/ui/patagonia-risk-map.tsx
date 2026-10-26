@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { geoMercator, geoPath } from "d3-geo";
 import type { FeatureCollection, Geometry } from "geojson";
 import countriesGeoJson from "@/data/latam-countries.json";
-import { MapTooltip } from "@/components/ui/map-tooltip";
+import { MapTooltip, mapPointProps } from "@/components/ui/map-tooltip";
 
 export interface RiskPoint {
   name: string;
@@ -91,6 +91,8 @@ export function PatagoniaRiskMap({ points }: { points: RiskPoint[] }) {
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         className="w-full h-full [mask-image:linear-gradient(to_bottom,transparent,white_4%,white_96%,transparent)]"
         onClick={() => setActive(null)}
+        role="group"
+        aria-label="Mapa de riesgo de incendio en la Patagonia. Usá las flechas para recorrer las localidades y Enter para ver el detalle."
       >
         {backdrop.map((feature) => (
           <path
@@ -105,15 +107,20 @@ export function PatagoniaRiskMap({ points }: { points: RiskPoint[] }) {
         {points.map((point, i) => {
           const [x, y] = project(point.lat, point.lon);
           const isActive = i === active;
+          const toggle = () => setActive(isActive ? null : i);
+          const label = `${point.name}: riesgo ${point.label}, ${Math.round(point.temperature)} °C`;
           return (
             <g
               key={point.name}
               onClick={(e) => {
                 e.stopPropagation();
-                setActive(isActive ? null : i);
+                toggle();
               }}
               style={{ cursor: "pointer" }}
+              aria-pressed={isActive}
+              {...mapPointProps(label, toggle, i === (active ?? 0))}
             >
+              <title>{label}</title>
               <circle cx={x} cy={y} r={13} fill="transparent" />
               <circle cx={x} cy={y} r={9} fill={point.color} opacity="0.15" />
               <circle
@@ -130,7 +137,7 @@ export function PatagoniaRiskMap({ points }: { points: RiskPoint[] }) {
                 y={y - 14}
                 textAnchor="middle"
                 fontSize={9}
-                fill="rgba(26,24,18,0.55)"
+                fill="rgba(26,24,18,0.72)"
                 style={{ fontFamily: "var(--font-sans)" }}
               >
                 {point.name}

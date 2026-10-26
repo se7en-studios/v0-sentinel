@@ -2,28 +2,30 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Instagram, Heart } from "lucide-react";
+import { Instagram } from "lucide-react";
 
 const posts = [
   {
     image: "/ig-post-1.jpg",
-    likes: 42,
+    // Review: original caption claimed "drones autónomos... menos de 5 minutos"
+    // (contradicts software-first). Rewritten as target; confirm vs. the real post.
     caption:
-      "Un incendio detectado en los primeros minutos se controla. Uno detectado horas después, arrasa. Sentinel detecta focos activos en menos de 5 minutos con drones autónomos e IA.",
+      "Un incendio detectado en los primeros minutos se controla. Uno detectado horas después, arrasa. Sentinel apunta a detectar focos activos lo antes posible con datos satelitales e IA.",
+    alt: "Publicación de Sentinel sobre detección temprana de incendios",
     href: "https://www.instagram.com/p/DWmLb_DjvIA/",
   },
   {
     image: "/ig-post-2.jpg",
-    likes: 7,
     caption:
       "Con Sentinel pasás de reaccionar a predecir. Monitorear → Detectar/Verificar → Contextualizar → Alertar. Así funciona la protección real del territorio.",
+    alt: "Publicación de Sentinel con el ciclo monitorear, detectar, contextualizar y alertar",
     href: "https://www.instagram.com/p/DWmLh-Bjn91/",
   },
   {
     image: "/ig-post-3.jpg",
-    likes: 36,
     caption:
       "El fuego no da segundas oportunidades. Usamos sistemas de detección temprana e inteligencia territorial para identificar el peligro antes de que sea incontrolable.",
+    alt: "Publicación de Sentinel sobre detección temprana e inteligencia territorial",
     href: "https://www.instagram.com/p/DZL3LoIjMNn/",
   },
 ];
@@ -75,7 +77,7 @@ export function InstagramFeed() {
                 lineHeight: 1,
               }}
             >
-              Seguinos en <span style={{ color: "#0f7a4f" }}>Instagram.</span>
+              Seguinos en <span style={{ color: "var(--green-aa)" }}>Instagram.</span>
             </h2>
             <p
               className="max-w-md text-[13px] leading-relaxed"
@@ -86,10 +88,7 @@ export function InstagramFeed() {
               }}
             >
               Prevenimos incendios y generamos datos ambientales, el detrás de
-              escena de Sentinel contado por el equipo.{" "}
-              <span style={{ color: "rgba(26,24,18,0.75)", fontWeight: 400 }}>
-                +1.000 seguidores.
-              </span>
+              escena de Sentinel contado por el equipo.
             </p>
           </div>
 
@@ -102,7 +101,7 @@ export function InstagramFeed() {
               fontFamily: "var(--font-sans)",
               background: "rgba(15,122,79,0.1)",
               border: "0.5px solid rgba(15,122,79,0.3)",
-              color: "#0f7a4f",
+              color: "var(--green-aa)",
             }}
           >
             <Instagram className="w-4 h-4" />
@@ -130,7 +129,7 @@ export function InstagramFeed() {
             >
               <Image
                 src={post.image}
-                alt={post.caption}
+                alt={post.alt}
                 fill
                 sizes="(max-width: 640px) 100vw, 33vw"
                 className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
@@ -140,21 +139,6 @@ export function InstagramFeed() {
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/30" />
 
               <div className="absolute bottom-0 left-0 right-0 p-5">
-                <div
-                  className="flex items-center gap-1.5 mb-2"
-                  style={{ color: "#94f1be" }}
-                >
-                  <Heart className="w-3.5 h-3.5" fill="currentColor" />
-                  <span
-                    className="text-[11px]"
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      color: "rgba(240,234,216,0.9)",
-                    }}
-                  >
-                    {post.likes}
-                  </span>
-                </div>
                 <p
                   className="text-[12px] leading-relaxed line-clamp-4"
                   style={{

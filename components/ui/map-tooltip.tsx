@@ -58,3 +58,42 @@ export function MapTooltip({
     </div>
   );
 }
+
+/**
+ * Keyboard + screen-reader props for a clickable SVG map point (<g>).
+ * Roving tabindex: only one point is a tab stop; arrows move between points.
+ */
+export function mapPointProps(
+  label: string,
+  onToggle: () => void,
+  tabbable: boolean,
+) {
+  return {
+    role: "button" as const,
+    tabIndex: tabbable ? 0 : -1,
+    "aria-label": label,
+    className:
+      "outline-none [&:focus-visible>circle:first-of-type]:stroke-[#0b6b44] [&:focus-visible>circle:first-of-type]:stroke-2",
+    onKeyDown: (e: React.KeyboardEvent<SVGGElement>) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        e.stopPropagation();
+        onToggle();
+        return;
+      }
+      const step =
+        e.key === "ArrowRight" || e.key === "ArrowDown"
+          ? "nextElementSibling"
+          : e.key === "ArrowLeft" || e.key === "ArrowUp"
+            ? "previousElementSibling"
+            : null;
+      if (!step) return;
+      let el = e.currentTarget[step];
+      while (el && el.getAttribute("role") !== "button") el = el[step];
+      if (el instanceof SVGGElement) {
+        e.preventDefault();
+        el.focus();
+      }
+    },
+  };
+}

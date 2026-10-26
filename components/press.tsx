@@ -32,32 +32,32 @@ export function Press() {
             >
               <Newspaper
                 className="w-7 h-7 shrink-0 hidden sm:block"
-                style={{ color: "#0f7a4f" }}
+                style={{ color: "var(--green-aa)" }}
               />
               Dónde{" "}
-              <span style={{ color: "#0f7a4f" }}>salimos en los medios.</span>
+              <span style={{ color: "var(--green-aa)" }}>salimos en los medios.</span>
             </h2>
             <p
               className="text-[13px] max-w-xl"
               style={{
                 fontFamily: "var(--font-sans)",
                 fontWeight: 300,
-                color: "rgba(26,24,18,0.4)",
+                color: "rgba(26,24,18,0.7)",
               }}
             >
               Medios y organizaciones que ya cubrieron el proyecto.
             </p>
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => scrollByCard(-1)}
-              aria-label="Anterior"
-              className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:-translate-y-0.5 active:scale-95"
+              aria-label="Notas anteriores"
+              className="w-11 h-11 rounded-full flex items-center justify-center transition-all hover:-translate-y-0.5 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f7a4f]"
               style={{
                 border: "0.5px solid rgba(26,24,18,0.15)",
-                color: "rgba(26,24,18,0.6)",
+                color: "rgba(26,24,18,0.8)",
               }}
             >
               <ArrowLeft className="w-4 h-4" />
@@ -65,11 +65,11 @@ export function Press() {
             <button
               type="button"
               onClick={() => scrollByCard(1)}
-              aria-label="Siguiente"
-              className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:-translate-y-0.5 active:scale-95"
+              aria-label="Notas siguientes"
+              className="w-11 h-11 rounded-full flex items-center justify-center transition-all hover:-translate-y-0.5 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f7a4f]"
               style={{
                 border: "0.5px solid rgba(26,24,18,0.15)",
-                color: "rgba(26,24,18,0.6)",
+                color: "rgba(26,24,18,0.8)",
               }}
             >
               <ArrowRight className="w-4 h-4" />
@@ -81,7 +81,10 @@ export function Press() {
       <div className="relative">
         <div
           ref={trackRef}
-          className="scrollbar-hide flex gap-4 overflow-x-auto px-6 lg:px-10"
+          role="region"
+          aria-label="Notas de prensa"
+          tabIndex={0}
+          className="scrollbar-hide focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0f7a4f] flex gap-4 overflow-x-auto px-6 lg:px-10"
           style={{
             scrollSnapType: "x mandatory",
             scrollPadding: "0 24px",
@@ -122,8 +125,8 @@ function PressCard({
     <a
       href={mention.url}
       target="_blank"
-      rel="noopener noreferrer"
-      className="group relative shrink-0 flex flex-col overflow-hidden rounded-lg border-[0.5px] border-[rgba(26,24,18,0.08)] transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(15,122,79,0.3)]"
+      rel="noopener noreferrer"
+      className="group relative shrink-0 flex flex-col overflow-hidden rounded-lg border-[0.5px] border-[rgba(26,24,18,0.08)] transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(15,122,79,0.3)] focus-visible:border-[#0f7a4f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f7a4f]"
       style={{
         background: "rgba(26,24,18,0.02)",
         width: featured ? "min(85vw, 460px)" : "min(75vw, 320px)",
@@ -142,8 +145,11 @@ function PressCard({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={encodeURI(mention.image)}
-            alt={`${mention.outlet}: ${mention.title}`}
+            alt=""
+            width={featured ? 460 : 320}
+            height={featured ? 288 : 240}
             loading="lazy"
+            decoding="async"
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
@@ -163,7 +169,7 @@ function PressCard({
         />
         <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-between">
           <span
-            className="px-2 py-0.5 rounded-sm text-[10px] tracking-wider uppercase font-medium"
+            className="px-2 py-0.5 rounded-sm text-[11px] tracking-wider uppercase font-medium"
             style={{
               fontFamily: "var(--font-sans)",
               color: "#94f1be",
@@ -195,13 +201,14 @@ function PressCard({
           }}
         >
           {mention.title}
+          <span className="sr-only"> (abre en pestaña nueva)</span>
         </p>
         {mention.date && (
           <p
             className="text-[11px] mt-3"
             style={{
               fontFamily: "var(--font-sans)",
-              color: "rgba(26,24,18,0.3)",
+              color: "rgba(26,24,18,0.65)",
             }}
           >
             {formatDate(mention.date)}

@@ -9,10 +9,12 @@ function ChecklistItem({
   title,
   description,
   index = 0,
+  badge,
 }: {
   title: string;
   description: string;
   index?: number;
+  badge?: string;
 }) {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -40,7 +42,7 @@ function ChecklistItem({
     >
       <CheckCircle
         className="w-4 h-4 flex-shrink-0 mt-0.5 transition-transform duration-300 group-hover:scale-110"
-        style={{ color: "#0f7a4f" }}
+        style={{ color: "var(--green-aa)" }}
       />
       <div>
         <p
@@ -48,10 +50,21 @@ function ChecklistItem({
           style={{ color: "rgba(26,24,18,0.75)", fontWeight: 500 }}
         >
           {title}
+          {badge && (
+            <span
+              className="ml-2 inline-block align-middle rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide"
+              style={{
+                background: "rgba(15,122,79,0.1)",
+                color: "var(--green-aa)",
+              }}
+            >
+              {badge}
+            </span>
+          )}
         </p>
         <p
           className="text-[11px] md:text-xs mt-0.5 leading-relaxed"
-          style={{ color: "rgba(26,24,18,0.4)", fontWeight: 300 }}
+          style={{ color: "rgba(26,24,18,0.62)", fontWeight: 300 }}
         >
           {description}
         </p>
@@ -110,7 +123,7 @@ function CountUpStat({ value, label }: { value: number; label: string }) {
           fontWeight: 300,
           letterSpacing: "0.1em",
           textTransform: "uppercase",
-          color: "rgba(26,24,18,0.35)",
+          color: "rgba(26,24,18,0.62)",
           marginTop: "6px",
         }}
       >
@@ -127,29 +140,33 @@ const timelineData = [
       <div>
         <p
           className="text-xs md:text-sm mb-6 leading-relaxed"
-          style={{ color: "rgba(26,24,18,0.55)", fontWeight: 300 }}
+          style={{ color: "var(--muted-foreground)", fontWeight: 300 }}
         >
-          Cinco competencias ganadas en 2025, de norte a sur del país.
+          Competencias y programas de 2025, de norte a sur del país.
         </p>
         <div className="mb-6 flex flex-col gap-4">
           <ChecklistItem
             index={0}
             title="Premios ILAN 2025 - viaje a Israel"
-            description="El galardón a innovación tecnológica de mayor peso del país, con final en Tel Aviv."
+            badge="Ganador"
+            description="Premio a la innovación tecnológica, con final en Tel Aviv."
           />
           <ChecklistItem
             index={1}
             title="JIJE 20 años - Universidad Nacional del Litoral"
-            description="Primer puesto en las jornadas de ingeniería más antiguas de Argentina."
+            badge="Ganador"
+            description="Primer puesto en las Jornadas de Ingeniería de la UNL."
           />
           <ChecklistItem
             index={2}
             title="Premios Sadosky 2025 - CESSI"
-            description="El reconocimiento más importante de la industria del software argentino."
+            badge="Ganador"
+            description="Premios de la Cámara de la Industria Argentina del Software."
           />
           <ChecklistItem
             index={3}
             title="Usina Emprendedores - CAC"
+            badge="Programa"
             description="Programa de la Cámara Argentina de Comercio para escalar startups con impacto real."
           />
           <ChecklistItem
@@ -183,40 +200,46 @@ const timelineData = [
       <div>
         <p
           className="text-xs md:text-sm mb-6 leading-relaxed"
-          style={{ color: "rgba(26,24,18,0.55)", fontWeight: 300 }}
+          style={{ color: "var(--muted-foreground)", fontWeight: 300 }}
         >
-          Reconocimiento fuera de Argentina y primer apoyo financiero.
+          Instancias fuera de Argentina y primer apoyo financiero.
         </p>
         <div className="mb-6 flex flex-col gap-4">
           <ChecklistItem
             index={0}
-            title="Finalistas - Premios Verdes 2026, viaje a Ecuador"
-            description="Entre los proyectos ambientales finalistas de la región, con viaje a Ecuador incluido."
+            title="Premios Verdes 2026, viaje a Ecuador"
+            badge="Finalista"
+            description="Proyectos ambientales finalistas, con viaje a Ecuador incluido en el premio."
           />
           <ChecklistItem
             index={1}
-            title="Finalistas Argentina - Climate Launchpad, viaje a Singapur"
-            description="Entre los 15 finalistas nacionales de la competencia global de innovación climática."
+            title="Climate Launchpad Argentina, viaje a Singapur"
+            badge="Finalista"
+            description="Finalistas nacionales de la competencia global de innovación climática."
           />
           <ChecklistItem
             index={2}
             title="Softlanding en Europa por Piensas.xyz"
+            badge="Programa"
             description="Viaje financiado para instalarse y conectar con el ecosistema tech europeo."
           />
           <ChecklistItem
             index={3}
             title="3.000 USD - Gobierno de Mendoza"
+            badge="Fondo"
             description="Primer capital no dilutivo recibido, vía fondo provincial de innovación."
           />
           <ChecklistItem
             index={4}
             title="Emprelatam y Draper House Americas"
-            description="Programa de la red de aceleración fundada por Tim Draper, referente global en venture capital."
+            badge="Programa"
+            description="Programa de aceleración para startups de la región."
           />
           <ChecklistItem
             index={5}
-            title="Finalistas - Impact Startup Competition Perú 2026 (Scale)"
-            description="Entre las startups de impacto ambiental más prometedoras de Latinoamérica."
+            title="Impact Startup Competition Perú 2026 (Scale)"
+            badge="Finalista"
+            description="Competencia de startups de impacto ambiental en Latinoamérica."
           />
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -270,7 +293,7 @@ export function Awards() {
       >
         <Image
           src="/logros.jpg"
-          alt="Sentinel Technologies en competencias y eventos"
+          alt="Equipo de Sentinel Technologies en competencias y eventos"
           fill
           sizes="100vw"
           className="object-cover transition-transform duration-[8000ms] ease-out"
@@ -344,34 +367,9 @@ export function Awards() {
           className="flex justify-center gap-12 mt-4 pt-12 max-w-4xl mx-auto"
           style={{ borderTop: "0.5px solid rgba(26,24,18,0.07)" }}
         >
-          <CountUpStat value={11} label="reconocimientos" />
-          <CountUpStat value={5} label="países" />
-          <div className="text-center">
-            <div
-              style={{
-                fontFamily: "var(--font-heading)",
-                fontWeight: 700,
-                fontSize: "clamp(1.6rem, 3vw, 2.2rem)",
-                color: "rgba(26,24,18,0.92)",
-                lineHeight: 1,
-              }}
-            >
-              2025-26
-            </div>
-            <div
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: "11px",
-                fontWeight: 300,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                color: "rgba(26,24,18,0.35)",
-                marginTop: "6px",
-              }}
-            >
-              temporada
-            </div>
-          </div>
+          {/* 11 = items listed above (ganados, finalistas, programas y un fondo). */}
+          <CountUpStat value={11} label="reconocimientos y programas" />
+          <CountUpStat value={3} label="ganados" />
         </div>
       </div>
     </section>

@@ -4,30 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 
-function useCountUp(target: number, isVisible: boolean, duration = 1400) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (!isVisible) return;
-    let start = 0;
-    const step = target / (duration / 16);
-    const timer = setInterval(() => {
-      start += step;
-      if (start >= target) {
-        setCount(target);
-        clearInterval(timer);
-      } else setCount(Math.floor(start));
-    }, 16);
-    return () => clearInterval(timer);
-  }, [isVisible, target, duration]);
-  return count;
-}
-
 export function Problem() {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
-
-  const hectareas = useCountUp(1000000, isVisible, 2000);
-  const causa = useCountUp(95, isVisible, 1200);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -82,86 +61,21 @@ export function Problem() {
             Hoy la Patagonia duele.
           </h2>
 
-          {/* Stats live on the photo itself instead of boxed cards below it
-              - a HUD reading on the emergency, not a stat block bolted on
-              after the fact. */}
-          <div
-            className="flex items-center gap-6 sm:gap-10 mt-8 pt-6 transition-all duration-700"
-            style={{
-              borderTop: "0.5px solid rgba(240,234,216,0.2)",
-              opacity: isVisible ? 1 : 0,
-              transform: isVisible ? "translateY(0)" : "translateY(16px)",
-              transitionDelay: "250ms",
-            }}
-          >
-            {[
-              {
-                display:
-                  hectareas >= 1000000
-                    ? "1M+"
-                    : hectareas >= 1000
-                      ? `${Math.floor(hectareas / 1000)}K`
-                      : String(hectareas),
-                label: "Hectáreas quemadas",
-              },
-              { display: `${causa}%`, label: "Causa humana" },
-              { display: "∞", label: "Daño a fauna" },
-            ].map((stat, i) => (
-              <div
-                key={stat.label}
-                className="flex items-center gap-6 sm:gap-10"
-              >
-                {i > 0 && (
-                  <div
-                    className="hidden sm:block w-px self-stretch"
-                    style={{ background: "rgba(240,234,216,0.15)" }}
-                  />
-                )}
-                <div>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-heading)",
-                      fontWeight: 800,
-                      fontSize: "clamp(22px, 3vw, 32px)",
-                      lineHeight: 1,
-                      color: "rgba(240,234,216,0.95)",
-                      letterSpacing: "-0.03em",
-                    }}
-                  >
-                    {stat.display}
-                  </div>
-                  <div
-                    className="mt-1"
-                    style={{
-                      fontSize: "10px",
-                      letterSpacing: "0.15em",
-                      textTransform: "uppercase",
-                      fontFamily: "var(--font-sans)",
-                      fontWeight: 400,
-                      color: "rgba(240,234,216,0.5)",
-                    }}
-                  >
-                    {stat.label}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 
       {/* Contenido */}
       <div className="py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-10">
-          <div className="grid lg:grid-cols-2 gap-16 items-start">
+          <div className="grid lg:grid-cols-2 gap-12 items-start">
             {/* Left */}
             <div>
               <p
-                className="text-lg leading-relaxed mb-10 transition-all duration-700"
+                className="text-lg leading-relaxed mb-8 transition-all duration-700"
                 style={{
                   fontFamily: "var(--font-sans)",
                   fontWeight: 300,
-                  color: "rgba(26,24,18,0.55)",
+                  color: "rgba(26,24,18,0.7)",
                   opacity: isVisible ? 1 : 0,
                   transform: isVisible ? "translateY(0)" : "translateY(16px)",
                   transitionDelay: "150ms",
@@ -169,12 +83,10 @@ export function Problem() {
               >
                 No es solo bosque lo que se quema.{" "}
                 <span style={{ color: "rgba(26,24,18,0.85)", fontWeight: 400 }}>
-                  Más de 1 millón de hectáreas perdidas en incendios forestales
-                  en Argentina en los últimos años.
-                </span>{" "}
-                Bosques milenarios desapareciendo en la Patagonia. Detrás de
-                cada hectárea hay un hogar, una fuente de trabajo y una
-                biodiversidad que no vuelve a crecer en lo que dura una vida.
+                  Detrás de cada hectárea hay un hogar, una fuente de trabajo y
+                  una biodiversidad que no vuelve a crecer en lo que dura una
+                  vida.
+                </span>
               </p>
 
               {/* Problem list */}
@@ -196,8 +108,8 @@ export function Problem() {
                     body: "Familias enteras pierden sus hogares y su sustento económico.",
                   },
                   {
-                    title: "Respuesta insuficiente",
-                    body: "Los brigadistas arriesgan su vida con recursos limitados.",
+                    title: "Detección tardía",
+                    body: "Cuanto más tarde se detecta un foco, más recursos exige controlarlo.",
                   },
                 ].map((item, i) => (
                   <div
@@ -236,7 +148,7 @@ export function Problem() {
                           fontSize: "13px",
                           fontFamily: "var(--font-sans)",
                           fontWeight: 300,
-                          color: "rgba(26,24,18,0.45)",
+                          color: "rgba(26,24,18,0.66)",
                           lineHeight: 1.5,
                         }}
                       >
@@ -257,11 +169,11 @@ export function Problem() {
                 }}
               >
                 <a
-                  href="#servicios"
-                  className="group inline-flex items-center gap-2 px-7 py-3 text-[13px] font-medium rounded-sm transition-all duration-200 border border-[rgba(15,122,79,0.35)] bg-[rgba(15,122,79,0.1)] text-[#0f7a4f] hover:bg-[#0f7a4f] hover:text-[#faf7f0] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
+                  href="#contacto"
+                  className="group inline-flex items-center gap-2 px-7 py-3 text-[13px] font-medium rounded-sm transition-all duration-200 border border-[rgba(15,122,79,0.35)] bg-[rgba(15,122,79,0.1)] text-[var(--green-aa)] hover:bg-[#0f7a4f] hover:text-[#faf7f0] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
                   style={{ fontFamily: "var(--font-sans)" }}
                 >
-                  Ver cómo lo resolvemos
+                  Pedir una reunión
                   <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-1" />
                 </a>
               </div>
@@ -276,12 +188,7 @@ export function Problem() {
                 transitionDelay: "400ms",
               }}
             >
-              {[
-                "/problem-a2.jpg",
-                "/problem-a1.jpg",
-                "/problem-a3.jpg",
-                "/problem-a4.jpg",
-              ].map((src, i) => (
+              {["/problem-a2.jpg", "/problem-a1.jpg"].map((src, i) => (
                 <div
                   key={i}
                   className="relative overflow-hidden rounded-lg group transition-all duration-700"

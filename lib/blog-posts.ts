@@ -24,7 +24,7 @@ export const blogPosts: BlogPost[] = [
     keywords: [
       "detección temprana de incendios forestales",
       "tiempo de respuesta ante incendios",
-      "drones para detección de incendios",
+      "detección automatizada de incendios",
       "monitoreo forestal Patagonia",
     ],
     relatedLink: {
@@ -43,8 +43,8 @@ export const blogPosts: BlogPost[] = [
       {
         heading: "Qué cambia con la detección automatizada",
         paragraphs: [
-          "Un sistema de monitoreo con drones autónomos y cámaras térmicas no depende de que alguien esté mirando en el momento justo. Sobrevuela el territorio de forma programada, analiza cada frame con visión computacional entrenada para reconocer focos de calor incipientes, y descarta automáticamente los falsos positivos (reflejos solares, superficies calientes no combustibles, actividad agrícola normal). Cuando confirma un foco real, genera una alerta geolocalizada en minutos, no en horas.",
-          "En Sentinel medimos esto en la práctica: nuestro sistema identifica focos activos en menos de 5 minutos desde que aparecen, sin intervención humana en el circuito de detección. Esa ventana de 5 minutos contra las 2-3 horas de un reporte tradicional es, en términos prácticos, la diferencia entre apagar un fuego con una mochila de agua y evacuar una zona.",
+          "Un sistema de monitoreo automatizado no depende de que alguien esté mirando en el momento justo. Procesa datos de forma continua (hoy satelitales y geoespaciales; a futuro también sensores y drones), busca focos de calor incipientes y descarta falsos positivos (reflejos solares, superficies calientes no combustibles, actividad agrícola normal). Cuando confirma un foco, genera una alerta geolocalizada con el objetivo de que llegue en minutos, no en horas.",
+          "Nuestra meta de diseño es que la detección ocurra en minutos desde que aparece el foco, sin intervención humana en el circuito de detección (todavía debemos validarlo en pilotos). Frente a las horas de un reporte tradicional, esa diferencia es, en términos prácticos, la que hay entre apagar un fuego con una mochila de agua y evacuar una zona.",
         ],
       },
       {
@@ -86,7 +86,7 @@ export const blogPosts: BlogPost[] = [
         heading:
           "El modelo de cuatro pasos: monitorear, detectar, contextualizar, alertar",
         paragraphs: [
-          "Sentinel reemplaza ese modelo reactivo por un ciclo continuo de cuatro etapas. Primero, monitoreo autónomo: drones y sensores recorren el territorio de forma programada, sin que nadie tenga que pedirlo. Segundo, detección y verificación: los modelos de IA identifican anomalías térmicas y descartan falsos positivos antes de escalar nada. Tercero, contextualización: cada alerta se cruza con datos satelitales de macro-riesgo (humedad, viento, historial de la zona) para entender qué tan urgente es. Cuarto, alerta: la información llega a quien tiene que actuar, con coordenadas exactas, en minutos.",
+          "Sentinel reemplaza ese modelo reactivo por un ciclo continuo de cuatro etapas. Primero, monitoreo autónomo: datos satelitales y geoespaciales cubren el territorio de forma programada, con sensores y drones sumándose de forma progresiva, sin que nadie tenga que pedirlo. Segundo, detección y verificación: los modelos de IA identifican anomalías térmicas y descartan falsos positivos antes de escalar nada. Tercero, contextualización: cada alerta se cruza con datos satelitales de macro-riesgo (humedad, viento, historial de la zona) para entender qué tan urgente es. Cuarto, alerta: la información llega a quien tiene que actuar, con coordenadas exactas, en minutos.",
           "Este ciclo corre solo, de forma continua, sin que el productor tenga que estar revisando cámaras o esperando un llamado. Es la diferencia entre tener un vigía ocasional y tener un sistema que nunca deja de mirar.",
         ],
       },
@@ -128,7 +128,7 @@ export const blogPosts: BlogPost[] = [
       {
         heading: "La amenaza que no se ve es la que se puede prevenir",
         paragraphs: [
-          "La inteligencia territorial (el uso de drones autónomos, cámaras térmicas y modelos de IA para vigilar el territorio de forma continua) existe exactamente para atacar esa amenaza invisible. No reemplaza a los brigadistas ni a los organismos de respuesta: les da la información que necesitan minutos después de que el riesgo aparece, en lugar de horas después de que el daño ya es irreversible.",
+          "La inteligencia territorial (el uso de datos satelitales, información geoespacial y modelos de IA para vigilar el territorio de forma continua, con sensores y drones como expansión progresiva) existe exactamente para atacar esa amenaza invisible. No reemplaza a los brigadistas ni a los organismos de respuesta: les da la información que necesitan minutos después de que el riesgo aparece, en lugar de horas después de que el daño ya es irreversible.",
           "Esto cambia la naturaleza del trabajo de prevención. En lugar de esperar reportes ciudadanos o depender de guardaparques cubriendo territorios enormes, un sistema de monitoreo continuo identifica anomalías térmicas y picos de riesgo antes de que se conviertan en un incendio activo, permitiendo intervenir cuando todavía es una intervención simple.",
         ],
       },
@@ -143,15 +143,15 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "drones-vs-camaras-fijas-deteccion-incendios",
-    title: "Drones autónomos vs. cámaras fijas: qué cambia en la detección",
+    title: "Cámaras fijas y cobertura aérea: qué cambia en la detección",
     excerpt:
-      "Las torres de cámaras fueron un salto respecto a la vigilancia humana. Pero tienen un techo estructural que los drones autónomos no tienen.",
+      "Las torres de cámaras fueron un salto respecto a la vigilancia humana. Pero tienen un techo estructural que la cobertura territorial, satelital o aérea, no tiene.",
     coverImage: "/ig-post-2.jpg",
     publishedAt: "2026-05-12",
     keywords: [
-      "drones vs cámaras fijas incendios",
+      "cámaras fijas vs cobertura territorial incendios",
       "tecnología de detección de incendios",
-      "vigilancia forestal con drones",
+      "vigilancia forestal remota",
       "cámaras térmicas monitoreo forestal",
     ],
     relatedLink: {
@@ -159,18 +159,19 @@ export const blogPosts: BlogPost[] = [
       label: "Ver todas las capacidades de Sentinel",
     },
     pullQuote:
-      "Una cámara fija vigila un punto. Un dron autónomo vigila un territorio, y eso cambia por completo qué tan rápido se detecta un foco fuera de su campo de visión.",
+      "Una cámara fija vigila un punto. Un sistema de cobertura territorial vigila un área, y eso cambia por completo qué tan rápido se detecta un foco fuera de su campo de visión.",
     body: [
       {
         paragraphs: [
+          "Nota: este artículo describe una etapa anterior de nuestro enfoque. Hoy Sentinel Cloud se apoya en datos satelitales y geoespaciales; los drones son una línea de expansión progresiva, no una flota operativa. Lo que sigue explica el concepto general.",
           "Durante años, la respuesta tecnológica al problema de la vigilancia forestal fueron las torres con cámaras fijas: mástiles altos, cámaras térmicas apuntando a un sector del territorio, y un operador humano (o un algoritmo simple) mirando el feed. Funcionan, pero tienen una limitación estructural que no se resuelve con más cámaras: cada torre solo ve lo que está dentro de su línea de visión directa.",
           "En terrenos montañosos o con cobertura boscosa densa, la norma en la Patagonia, eso significa zonas ciegas permanentes detrás de cada loma, cada bosque cerrado, cada quebrada. Cubrir un territorio grande con este modelo requiere multiplicar torres, cada una con su costo de instalación, mantenimiento y conectividad.",
         ],
       },
       {
-        heading: "Qué resuelve un dron autónomo que una torre no puede",
+        heading: "Qué resuelve la cobertura territorial que una torre no puede",
         paragraphs: [
-          "Un dron autónomo no depende de una línea de visión fija: recorre rutas programadas, cubre el territorio de forma dinámica y puede redirigirse hacia una zona de interés en minutos. Donde una torre ve un punto, la red de drones de Sentinel cubre un área completa de forma sistemática, sin los puntos ciegos estructurales del modelo de vigilancia fija.",
+          "Un medio aéreo, como un dron, no depende de una línea de visión fija: puede recorrer rutas programadas y redirigirse hacia una zona de interés. Es la línea que Sentinel contempla de forma progresiva; hoy la cobertura territorial de Sentinel Cloud se apoya en datos satelitales y geoespaciales, que tampoco tienen los puntos ciegos estructurales de la vigilancia fija.",
           "Esto no vuelve obsoletas a las cámaras fijas: en sitios de altísimo tránsito o riesgo constante, siguen teniendo sentido como complemento. Pero como estrategia principal de cobertura territorial extensa, el techo de las torres fijas es real: no importa cuántas cámaras agregues, seguís vigilando puntos, no territorio.",
         ],
       },
@@ -214,7 +215,7 @@ export const blogPosts: BlogPost[] = [
         heading: "Por qué la prevención es matemáticamente más barata",
         paragraphs: [
           "La lógica económica de la prevención es simple pero se ignora seguido: cuanto antes se detecta un foco, menor es el recurso necesario para controlarlo, y esa relación no es lineal: crece de forma exponencial con el tiempo. Un foco de dos hectáreas se apaga con una cuadrilla y unas horas de trabajo. El mismo foco, ocho horas después, puede necesitar múltiples aviones hidrantes, semanas de operativo y una superficie cien veces mayor.",
-          "Monitorear un territorio de forma continua con drones y IA tiene un costo previsible y recurrente: es, en esencia, un seguro operativo. Combatir un incendio que escaló por falta de detección temprana tiene un costo impredecible que puede multiplicar ese gasto muchas veces, sin garantía de que alcance para contener el daño.",
+          "Monitorear un territorio de forma continua con datos satelitales e IA tiene un costo previsible y recurrente: es, en esencia, un seguro operativo. Combatir un incendio que escaló por falta de detección temprana tiene un costo impredecible que puede multiplicar ese gasto muchas veces, sin garantía de que alcance para contener el daño.",
         ],
       },
       {
@@ -229,13 +230,13 @@ export const blogPosts: BlogPost[] = [
   {
     slug: "monitoreo-con-drones-para-incendios-forestales",
     title:
-      "Monitoreo con drones para incendios forestales: cómo funciona en la práctica",
+      "Monitoreo aéreo de incendios forestales: cómo se arma un sistema",
     excerpt:
-      "No es un dron con cámara volando al azar. Es un sistema de monitoreo de incendios con rutas programadas, IA de verificación y alertas automáticas. Así se arma en la práctica.",
+      "Un dron con cámara volando al azar no es un sistema. Estas son las piezas de un monitoreo de incendios con rutas programadas, IA de verificación y alertas automáticas (los drones son una línea progresiva de Sentinel, no una flota operativa).",
     coverImage: "/problem-a3.jpg",
     publishedAt: "2026-07-31",
     keywords: [
-      "monitoreo con drones",
+      "monitoreo aéreo de incendios",
       "monitoreo de incendios",
       "drones para incendios forestales",
       "monitoreo aéreo forestal",
@@ -249,6 +250,7 @@ export const blogPosts: BlogPost[] = [
     body: [
       {
         paragraphs: [
+          "Nota: este artículo describe una etapa anterior de nuestro enfoque. Hoy Sentinel Cloud se apoya en datos satelitales y geoespaciales; los drones son una línea de expansión progresiva, no una flota operativa. Lo que sigue explica el concepto general.",
           "Cuando alguien escucha 'monitoreo con drones' suele imaginarse un equipo pilotando un dron manualmente sobre el monte, mirando una pantalla. Esa imagen está desactualizada. El monitoreo de incendios forestales que realmente funciona a escala no depende de un piloto mirando una pantalla. Depende de una operación programada, repetible y verificada por IA, con intervención humana solo cuando hay algo real que decidir.",
           "Vale la pena desarmar el proceso paso a paso, porque ahí es donde se nota la diferencia entre un dron como juguete caro y un sistema de monitoreo como infraestructura de prevención.",
         ],
@@ -276,7 +278,7 @@ export const blogPosts: BlogPost[] = [
       {
         heading: "Paso 4: alerta geolocalizada a quien puede actuar",
         paragraphs: [
-          "Confirmado el foco, el sistema genera una alerta con coordenadas exactas que llega directo a bomberos, brigadas o al equipo de gestión del territorio, no a una bandeja de entrada que alguien revisa cada tanto. En Sentinel, ese circuito completo (vuelo, detección, verificación, alerta) corre en menos de 5 minutos desde que aparece el foco.",
+          "Confirmado el foco, el sistema genera una alerta con coordenadas exactas que llega directo a bomberos, brigadas o al equipo de gestión del territorio, no a una bandeja de entrada que alguien revisa cada tanto. En Sentinel, la meta de diseño es que ese circuito completo (captura, detección, verificación, alerta) tarde pocos minutos desde que aparece el foco; todavía debemos validarlo en pilotos.",
         ],
       },
     ],
@@ -316,7 +318,7 @@ export const blogPosts: BlogPost[] = [
       {
         heading: "2. Detección automatizada con verificación por IA",
         paragraphs: [
-          "Como desarrollamos en la nota sobre monitoreo con drones, el paso que más diferencia a un sistema real es el filtro de falsos positivos. Sin IA de verificación, cualquier sistema de monitoreo termina generando ruido en vez de señal, y el ruido se ignora.",
+          "Como desarrollamos en la nota sobre monitoreo aéreo, el paso que más diferencia a un sistema real es el filtro de falsos positivos. Sin IA de verificación, cualquier sistema de monitoreo termina generando ruido en vez de señal, y el ruido se ignora.",
         ],
       },
       {

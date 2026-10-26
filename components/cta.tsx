@@ -1,14 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import dynamic from "next/dynamic";
 import { ArrowRight } from "lucide-react";
-
-// ponytail: cobe renders a WebGL globe — kept out of the initial bundle and
-// only mounted once this section is actually visible (see isVisible below).
-const Globe = dynamic(() => import("./ui/globe").then((m) => m.Globe), {
-  ssr: false,
-});
 
 export function CTA() {
   const [isVisible, setIsVisible] = useState(false);
@@ -40,20 +33,6 @@ export function CTA() {
         }}
       />
 
-      {/* Globe */}
-      <div
-        className="absolute inset-0 flex items-end justify-center pointer-events-none overflow-hidden select-none opacity-40 md:opacity-60"
-        style={{
-          maskImage: "linear-gradient(to top, black 15%, transparent 48%)",
-          WebkitMaskImage:
-            "linear-gradient(to top, black 15%, transparent 48%)",
-        }}
-      >
-        {isVisible && (
-          <Globe className="!relative !inset-auto translate-y-1/3" />
-        )}
-      </div>
-
       <div className="relative z-10 max-w-4xl mx-auto px-6 lg:px-10 text-center">
         <h2
           className={`text-4xl sm:text-5xl lg:text-6xl mb-6 mt-2 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
@@ -66,7 +45,7 @@ export function CTA() {
         >
           Dejá que Sentinel vigile
           <br />
-          <span style={{ color: "#0f7a4f" }}>para que vos puedas actuar.</span>
+          <span style={{ color: "var(--green-aa)" }}>para que vos puedas actuar.</span>
         </h2>
 
         <p
@@ -114,9 +93,7 @@ export function CTA() {
           className={`flex flex-col sm:flex-row gap-4 justify-center transition-all duration-700 delay-300 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
         >
           <a
-            href="https://linktr.ee/sentinelarg"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="#contacto"
             className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-sm text-[13px] font-medium transition-all duration-200 bg-[#0f7a4f] text-[#faf7f0] hover:bg-[#0c6941] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
             style={{ fontFamily: "var(--font-sans)", letterSpacing: "0.03em" }}
           >
@@ -125,7 +102,7 @@ export function CTA() {
           </a>
 
           <a
-            href="/#contacto"
+            href="#contacto"
             className="inline-flex items-center justify-center px-8 py-4 rounded-sm text-[13px] font-light transition-all duration-200 border border-[rgba(26,24,18,0.12)] text-[rgba(26,24,18,0.65)] hover:border-[rgba(26,24,18,0.3)] hover:text-[rgba(26,24,18,0.9)] active:scale-[0.98]"
             style={{ fontFamily: "var(--font-sans)" }}
           >

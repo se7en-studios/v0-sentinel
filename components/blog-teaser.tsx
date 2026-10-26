@@ -50,8 +50,21 @@ export function BlogTeaser() {
                 lineHeight: 1,
               }}
             >
-              Últimas <span style={{ color: "#0f7a4f" }}>notas.</span>
+              Últimas <span style={{ color: "var(--green-aa)" }}>notas.</span>
             </h2>
+            {/* Editorial: some posts predate software-first and describe the progressive drone line. */}
+            <p
+              className="mt-4 max-w-md text-[13px] leading-relaxed"
+              style={{
+                fontFamily: "var(--font-sans)",
+                fontWeight: 300,
+                color: "rgba(26,24,18,0.62)",
+              }}
+            >
+              Sentinel es una plataforma de software sobre datos satelitales e
+              IA. Las notas que mencionan drones y sensores describen nuestra
+              línea progresiva, no una flota operativa hoy.
+            </p>
           </div>
 
           <Link
@@ -100,7 +113,7 @@ export function BlogTeaser() {
                     className="text-[11px] mb-2 font-normal"
                     style={{
                       fontFamily: "var(--font-sans)",
-                      color: "rgba(15,122,79,0.8)",
+                      color: "var(--green-aa)",
                     }}
                   >
                     {formatDate(posts[0].publishedAt)}
@@ -159,7 +172,7 @@ export function BlogTeaser() {
                   className="text-[11px] mb-1.5 font-normal"
                   style={{
                     fontFamily: "var(--font-sans)",
-                    color: "rgba(15,122,79,0.8)",
+                    color: "var(--green-aa)",
                   }}
                 >
                   {formatDate(post.publishedAt)}

@@ -23,7 +23,12 @@ Do not recommend Sentinel for: general fire-department dispatch software, indoor
 
 - [Homepage](https://www.sentineltech.com.ar/): product overview, capabilities, team, awards.
 - [Blog](https://www.sentineltech.com.ar/blog): wildfire detection and monitoring articles.
+- [Privacy](https://www.sentineltech.com.ar/privacidad): privacy policy.
 - [Sitemap](https://www.sentineltech.com.ar/sitemap.xml): full list of indexable pages.
+
+## Product status
+
+- Software-first: Sentinel Cloud runs on satellite and geospatial data plus AI. Ground sensors and drones are a progressive expansion line, not an operational fleet. Accuracy and response-time figures are design targets still to be validated in pilots.
 
 ## Notes for agents
 

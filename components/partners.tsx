@@ -39,25 +39,25 @@ export function Partners() {
             lineHeight: 1.1,
           }}
         >
-          Instituciones que{" "}
-          <span style={{ color: "#0f7a4f" }}>nos acompañan.</span>
+          Programas y entidades con las{" "}
+          <span style={{ color: "var(--green-aa)" }}>que participamos.</span>
         </h2>
         <p
           className="text-[13px] max-w-lg mx-auto"
           style={{
             fontFamily: "var(--font-sans)",
             fontWeight: 300,
-            color: "rgba(26,24,18,0.4)",
+            color: "rgba(26,24,18,0.62)",
           }}
         >
-          Universidades, cámaras y organizaciones que respaldaron a Sentinel en
-          su camino desde una idea universitaria hasta una plataforma en
-          producción.
+          Universidades de origen, organizadores de competencias y programas de
+          los que Sentinel formó parte en su camino de idea universitaria a
+          piloto. No implica convenio ni respaldo comercial.
         </p>
       </div>
 
       <div className="relative">
-        <Marquee pauseOnHover className="[--duration:35s]">
+        <Marquee pauseOnHover repeat={3} className="[--duration:35s]">
           {logos.map((logo) => (
             <div
               key={logo.id}
@@ -67,6 +67,8 @@ export function Partners() {
                 src={logo.image}
                 alt={logo.description}
                 title={logo.description}
+                width={100}
+                height={36}
                 loading="lazy"
                 className="max-h-9 max-w-[100px] w-auto object-contain transition-all duration-300 hover:scale-105 opacity-60 hover:opacity-100"
                 style={{ filter: "grayscale(100%) brightness(0)" }}

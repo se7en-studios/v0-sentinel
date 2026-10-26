@@ -22,10 +22,9 @@ const jetbrains = JetBrains_Mono({
 });
 
 const siteUrl = "https://www.sentineltech.com.ar";
-const title =
-  "Sentinel Cloud: Detección Temprana de Incendios Forestales con IA | Sentinel";
+const title = "Sentinel Cloud | Detección temprana de incendios forestales";
 const description =
-  "Sentinel Cloud integra datos satelitales, información geoespacial e inteligencia artificial para detectar incendios forestales a tiempo, con expansión progresiva a sensores y drones. Patagonia y Argentina.";
+  "Detección temprana de incendios forestales con datos satelitales, información geoespacial e IA. Sensores y drones se suman de forma progresiva. Patagonia, Argentina.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -34,21 +33,6 @@ export const metadata: Metadata = {
     template: "%s | Sentinel Technologies",
   },
   description,
-  keywords: [
-    "Sentinel Cloud",
-    "detección temprana de incendios forestales",
-    "monitoreo satelital de incendios",
-    "inteligencia artificial incendios forestales",
-    "monitoreo de incendios",
-    "solución a incendios forestales",
-    "prevención incendios Patagonia",
-    "monitoreo geoespacial ambiental",
-    "monitoreo con drones",
-    "drones monitoreo ambiental",
-    "Sentinel Technologies Argentina",
-    "monitoreo Río Negro",
-    "wildfire detection Argentina",
-  ],
   authors: [{ name: "Sentinel Technologies", url: siteUrl }],
   creator: "Sentinel Technologies",
   publisher: "Sentinel Technologies",
@@ -116,6 +100,8 @@ const organizationJsonLd = {
       availableLanguage: ["es"],
     },
   ],
+  // TODO(dueño): confirmar el domicilio real. San Rafael, Mendoza no coincide con el resto de la landing
+  // (Río Negro/Neuquén); si no hay dirección pública, omitir este bloque. No se cambió a propósito.
   address: {
     "@type": "PostalAddress",
     addressLocality: "San Rafael",
@@ -150,13 +136,6 @@ const productJsonLd = {
   operatingSystem: "Web",
   description:
     "Plataforma SaaS de monitoreo, alertas y dashboards en tiempo real para detección de incendios forestales.",
-  offers: {
-    "@type": "Offer",
-    priceSpecification: {
-      "@type": "UnitPriceSpecification",
-      description: "Modelo sin CAPEX inicial. Piloto de 4 a 8 semanas.",
-    },
-  },
   provider: {
     "@type": "Organization",
     name: "Sentinel Technologies",
@@ -169,14 +148,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className="scroll-smooth">
+    <html lang="es-AR" className="scroll-smooth">
       <head>
-        {/* ponytail: the hero video streams from Cloudinary — preconnecting
-            lets the browser open that connection while the HTML is still
-            parsing instead of waiting until the <video> tag is discovered,
-            which matters on the LCP critical path. */}
-        <link rel="preconnect" href="https://res.cloudinary.com" />
-        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

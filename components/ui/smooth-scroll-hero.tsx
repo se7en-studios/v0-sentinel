@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import Image from "next/image";
 
 import {
   motion,
@@ -14,8 +15,8 @@ interface SmoothScrollHeroProps {
   scrollHeight?: number;
   /** Background image URL for desktop view */
   desktopImage: string;
-  /** Background image URL for mobile view */
-  mobileImage: string;
+  /** Kept for API compatibility; one cover image serves both */
+  mobileImage?: string;
   /** Initial clip path percentage @default 25 */
   initialClipPercentage?: number;
   /** Final clip path percentage @default 75 */
@@ -27,7 +28,6 @@ interface SmoothScrollHeroProps {
 function SmoothScrollHeroBackground({
   scrollHeight = 1500,
   desktopImage,
-  mobileImage,
   initialClipPercentage = 25,
   finalClipPercentage = 75,
   children,
@@ -52,48 +52,47 @@ function SmoothScrollHeroBackground({
 
   const clipPath = useMotionTemplate`polygon(${clipStart}% ${clipStart}%, ${clipEnd}% ${clipStart}%, ${clipEnd}% ${clipEnd}%, ${clipStart}% ${clipEnd}%)`;
 
-  const backgroundSize = useTransform(
-    scrollY,
-    [0, scrollHeight + 500],
-    ["170%", "100%"],
-  );
+  // cover + transform zoom: no black bars on any aspect ratio
+  const zoom = useTransform(scrollY, [0, scrollHeight], [1.5, 1]);
 
   const contentOpacity = useTransform(scrollY, [0, scrollHeight * 0.4], [1, 0]);
 
+  const contentVisibility = useTransform(contentOpacity, (v) =>
+    v < 0.05 ? "hidden" : "visible",
+  );
+
   return (
     <motion.div
-      className="sticky top-0 h-screen w-full bg-black"
+      className="sticky top-0 h-screen w-full overflow-hidden bg-black"
       style={{
         clipPath: reduceMotion
           ? "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)"
           : clipPath,
-        willChange: "transform, opacity",
+        willChange: "clip-path",
       }}
     >
       <motion.div
-        className="absolute inset-0 md:hidden"
-        style={{
-          backgroundImage: `url(${mobileImage})`,
-          backgroundSize: reduceMotion ? "100%" : backgroundSize,
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      />
-      <motion.div
-        className="absolute inset-0 hidden md:block"
-        style={{
-          backgroundImage: `url(${desktopImage})`,
-          backgroundSize: reduceMotion ? "100%" : backgroundSize,
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      />
-      <div className="absolute inset-0 bg-[#0c0b09]/45" />
+        className="absolute inset-0"
+        style={{ scale: reduceMotion ? 1 : zoom }}
+      >
+        <Image
+          src={desktopImage}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+      </motion.div>
+      <div className="absolute inset-0 bg-[#0c0b09]/55" />
 
       {children && (
         <motion.div
           className="absolute inset-0 flex items-center justify-center px-6"
-          style={{ opacity: reduceMotion ? 1 : contentOpacity }}
+          style={{
+            opacity: reduceMotion ? 1 : contentOpacity,
+            visibility: reduceMotion ? "visible" : contentVisibility,
+          }}
         >
           {children}
         </motion.div>
@@ -105,7 +104,6 @@ function SmoothScrollHeroBackground({
 export default function SmoothScrollHero({
   scrollHeight = 1500,
   desktopImage,
-  mobileImage,
   initialClipPercentage = 25,
   finalClipPercentage = 75,
   children,
@@ -118,7 +116,6 @@ export default function SmoothScrollHero({
       <SmoothScrollHeroBackground
         scrollHeight={scrollHeight}
         desktopImage={desktopImage}
-        mobileImage={mobileImage}
         initialClipPercentage={initialClipPercentage}
         finalClipPercentage={finalClipPercentage}
       >

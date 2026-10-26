@@ -1,18 +1,28 @@
 import { ArrowUpRight, Flame } from "lucide-react";
+import { curateNews, type NewsItem } from "@/lib/landing-data/news";
+import {
+  DataUnavailable,
+  FAINT,
+  GREEN_TEXT,
+  INK,
+  MUTED,
+  SectionShell,
+  Updated,
+} from "@/components/data/data-section";
+
+// Licensing note (team decision, not made here): GNews's free plan restricts
+// commercial/production use and has a daily request cap. Thumbnails are
+// hotlinked from third-party publishers; confirm rights before launch.
 
 const QUERY = "incendios forestales Argentina";
-const MAX_ITEMS = 6;
-
-interface NewsItem {
-  title: string;
-  source: string;
-  link: string;
-  image: string;
-  publishedAt: string;
-}
+const MAX_ITEMS = 6; // same single GNews request as before
+const MIN_USEFUL = 1;
+const ID = "noticias-title";
+const TITLE = "Noticias sobre incendios forestales en Argentina.";
 
 interface GNewsArticle {
   title: string;
+  description?: string | null;
   url: string;
   image: string | null;
   publishedAt: string;
@@ -32,6 +42,7 @@ async function fetchWildfireNews(): Promise<NewsItem[] | null> {
 
     return data.articles.map((a) => ({
       title: a.title,
+      description: a.description ?? "",
       source: a.source.name,
       link: a.url,
       image: a.image ?? "",
@@ -42,10 +53,10 @@ async function fetchWildfireNews(): Promise<NewsItem[] | null> {
   }
 }
 
-function relativeTime(publishedAt: string): string {
+function relativeTime(publishedAt: string, now: number): string {
   const then = new Date(publishedAt).getTime();
   if (Number.isNaN(then)) return "";
-  const hours = Math.max(1, Math.round((Date.now() - then) / 3_600_000));
+  const hours = Math.max(1, Math.round((now - then) / 3_600_000));
   if (hours < 24) return `hace ${hours} h`;
   return `hace ${Math.round(hours / 24)} d`;
 }
@@ -53,140 +64,171 @@ function relativeTime(publishedAt: string): string {
 const ACCENTS = ["#b83a3a", "#8a5a1f", "#0f7a4f"];
 
 export async function WildfireNews() {
-  const news = await fetchWildfireNews();
+  const raw = await fetchWildfireNews();
+  if (raw === null) {
+    return (
+      <DataUnavailable
+        id={ID}
+        title={TITLE}
+        what="El feed de noticias"
+        minHeight={420}
+        max="max-w-4xl"
+      />
+    );
+  }
 
-  // ponytail: no key or feed unreachable -> hide the section rather than
-  // show broken/empty rows.
-  if (!news || news.length === 0) return null;
+  const news = curateNews(raw, MAX_ITEMS);
+  const at = new Date();
 
   return (
-    <section
-      className="relative py-20 lg:py-28"
-      style={{ background: "#faf7f0" }}
-    >
-      <div className="max-w-4xl mx-auto px-6 lg:px-10">
-        <h2
-          className="text-3xl sm:text-4xl lg:text-5xl mb-4 max-w-2xl"
-          style={{
-            fontFamily: "var(--font-heading)",
-            fontWeight: 800,
-            color: "rgba(26,24,18,0.92)",
-            lineHeight: 1.1,
-          }}
-        >
-          Noticias sobre <span style={{ color: "#0f7a4f" }}>incendios</span>{" "}
-          forestales, al día.
-        </h2>
-        <p
-          className="text-[13px] mb-12 max-w-xl"
-          style={{
-            fontFamily: "var(--font-sans)",
-            fontWeight: 300,
-            color: "rgba(26,24,18,0.4)",
-          }}
-        >
-          Cobertura reciente de otros medios sobre el problema que Sentinel
-          existe para resolver.
-        </p>
+    <SectionShell labelledBy={ID} minHeight={420} max="max-w-4xl">
+      <h2
+        id={ID}
+        className="text-3xl sm:text-4xl lg:text-5xl mb-4 max-w-2xl"
+        style={{
+          fontFamily: "var(--font-heading)",
+          fontWeight: 800,
+          color: INK,
+          lineHeight: 1.1,
+        }}
+      >
+        Noticias sobre <span style={{ color: GREEN_TEXT }}>incendios</span>{" "}
+        forestales en Argentina.
+      </h2>
+      <p
+        className="text-sm mb-12 max-w-xl"
+        style={{ fontFamily: "var(--font-sans)", color: MUTED }}
+      >
+        Cobertura reciente de otros medios sobre el problema que Sentinel existe
+        para resolver. <Updated at={at} />.
+      </p>
 
-        <div>
+      {news.length < MIN_USEFUL ? (
+        <p
+          role="status"
+          className="text-sm"
+          style={{ fontFamily: "var(--font-sans)", color: MUTED }}
+        >
+          No hay notas recientes relevantes sobre incendios en Argentina en este
+          momento.
+        </p>
+      ) : (
+        <ul className="list-none p-0 m-0">
           {news.map((item, i) => {
             const accent = ACCENTS[i % ACCENTS.length];
             return (
-              <a
-                key={i}
-                href={item.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center gap-5 py-5"
+              <li
+                key={item.link}
                 style={{
                   borderBottom:
                     i < news.length - 1
-                      ? "0.5px solid rgba(26,24,18,0.08)"
+                      ? "0.5px solid rgba(26,24,18,0.14)"
                       : "none",
                 }}
               >
-                <span
-                  className="hidden sm:block shrink-0 tabular-nums"
-                  style={{
-                    fontFamily: "var(--font-heading)",
-                    fontWeight: 800,
-                    fontSize: "22px",
-                    color: "rgba(26,24,18,0.15)",
-                    width: "36px",
-                  }}
+                <a
+                  href={item.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-5 py-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b6b44]"
                 >
-                  {String(i + 1).padStart(2, "0")}
-                </span>
+                  <span
+                    aria-hidden="true"
+                    className="hidden sm:block shrink-0 tabular-nums"
+                    style={{
+                      fontFamily: "var(--font-heading)",
+                      fontWeight: 800,
+                      fontSize: "22px",
+                      color: "var(--muted-foreground)",
+                      width: "36px",
+                    }}
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
 
-                <div
-                  className="relative shrink-0 overflow-hidden rounded-md"
-                  style={{
-                    width: "88px",
-                    height: "64px",
-                    background: `radial-gradient(circle at 30% 30%, ${accent}22, rgba(26,24,18,0.06))`,
-                  }}
-                >
-                  {item.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      loading="lazy"
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Flame
-                        className="w-5 h-5"
-                        style={{ color: accent, opacity: 0.85 }}
+                  <div
+                    className="relative shrink-0 overflow-hidden rounded-md"
+                    style={{
+                      width: 88,
+                      height: 64,
+                      background: `radial-gradient(circle at 30% 30%, ${accent}22, rgba(26,24,18,0.06))`,
+                    }}
+                  >
+                    {item.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={item.image}
+                        alt=""
+                        width={88}
+                        height={64}
+                        loading="lazy"
+                        decoding="async"
+                        referrerPolicy="no-referrer"
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
-                    </div>
-                  )}
-                </div>
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Flame
+                          aria-hidden="true"
+                          className="w-5 h-5"
+                          style={{ color: accent, opacity: 0.85 }}
+                        />
+                      </div>
+                    )}
+                  </div>
 
-                <div className="flex-1 min-w-0">
-                  <p
-                    className="text-[14px] sm:text-[15px] leading-snug line-clamp-2 transition-colors group-hover:text-[#0f7a4f]"
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      fontWeight: 500,
-                      color: "rgba(26,24,18,0.85)",
-                    }}
-                  >
-                    {item.title}
-                  </p>
-                  <p
-                    className="text-[11px] mt-1.5"
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      color: "rgba(26,24,18,0.35)",
-                    }}
-                  >
-                    {item.source} · {relativeTime(item.publishedAt)}
-                  </p>
-                </div>
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="text-[15px] leading-snug line-clamp-2 transition-colors group-hover:text-[#0b6b44]"
+                      style={{
+                        fontFamily: "var(--font-sans)",
+                        fontWeight: 500,
+                        color: INK,
+                      }}
+                    >
+                      {item.title}
+                    </p>
+                    <p
+                      className="text-xs mt-1.5"
+                      style={{ fontFamily: "var(--font-sans)", color: FAINT }}
+                    >
+                      {item.source} ·{" "}
+                      {relativeTime(item.publishedAt, at.getTime())}
+                      <span className="sr-only">
+                        {" "}
+                        (se abre en una pestaña nueva)
+                      </span>
+                    </p>
+                  </div>
 
-                <ArrowUpRight
-                  className="w-4 h-4 shrink-0 transition-all duration-200 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                  style={{ color: "rgba(26,24,18,0.4)" }}
-                />
-              </a>
+                  <ArrowUpRight
+                    aria-hidden="true"
+                    className="w-4 h-4 shrink-0 transition-all duration-200 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                    style={{ color: MUTED }}
+                  />
+                </a>
+              </li>
             );
           })}
-        </div>
+        </ul>
+      )}
 
-        <p
-          className="text-[10px] mt-8"
-          style={{
-            fontFamily: "var(--font-sans)",
-            color: "rgba(26,24,18,0.42)",
-          }}
+      <p
+        className="text-xs mt-8"
+        style={{ fontFamily: "var(--font-sans)", color: FAINT }}
+      >
+        Fuente:{" "}
+        <a
+          href="https://gnews.io/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline"
         >
-          Fuente: GNews. Los enlaces abren la nota original en el medio que la
-          publicó.
-        </p>
-      </div>
-    </section>
+          GNews
+        </a>
+        , filtradas por relevancia (incendios en Argentina) y sin repetidos. Los
+        enlaces abren la nota original en el medio que la publicó.
+      </p>
+    </SectionShell>
   );
 }

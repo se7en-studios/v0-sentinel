@@ -6,29 +6,29 @@ import {
   Radar,
   Satellite,
   BellRing,
-  PlaneTakeoff,
+  Plane,
   Thermometer,
 } from "lucide-react";
 
 const flow = [
   { icon: Flame, label: "Detectar" },
-  { icon: Radar, label: "Verificar / Descubrir" },
+  { icon: Radar, label: "Verificar" },
   { icon: Satellite, label: "Contextualizar" },
   { icon: BellRing, label: "Alertar" },
 ];
 
 const monitoring = [
   {
-    icon: PlaneTakeoff,
-    text: "Patrullas térmicas diarias con verificación automatizada.",
+    icon: Plane,
+    text: "Verificación automatizada de cada foco con datos satelitales y contexto geoespacial.",
   },
   {
     icon: Thermometer,
-    text: "Sensores que identifican anomalías térmicas y picos de calor en la fuente.",
+    text: "Sensores y drones en el territorio, sumándose de forma progresiva a la cobertura satelital.",
   },
   {
     icon: Satellite,
-    text: "Feed satelital para contexto de macro-riesgo y mapeo horario.",
+    text: "Datos satelitales (VIIRS, MODIS y GOES-19) para contexto de riesgo y mapeo continuo.",
   },
 ];
 
@@ -96,7 +96,7 @@ export function Features() {
           className="text-[11px] tracking-[0.3em] uppercase mb-5 transition-all duration-700"
           style={{
             fontFamily: "var(--font-sans)",
-            color: "rgba(26,24,18,0.3)",
+            color: "rgba(26,24,18,0.62)",
             opacity: isVisible ? 1 : 0,
           }}
         >
@@ -114,22 +114,22 @@ export function Features() {
             transitionDelay: "100ms",
           }}
         >
-          Nuestra <span style={{ color: "#0f7a4f" }}>solución.</span>
+          Nuestra <span style={{ color: "var(--green-aa)" }}>solución.</span>
         </h2>
         <p
           className="max-w-2xl mx-auto text-[15px] leading-relaxed transition-all duration-700"
           style={{
             fontFamily: "var(--font-sans)",
             fontWeight: 300,
-            color: "rgba(26,24,18,0.55)",
+            color: "rgba(26,24,18,0.7)",
             opacity: isVisible ? 1 : 0,
             transitionDelay: "200ms",
           }}
         >
           Una plataforma integral que combina datos satelitales, información
-          geoespacial e IA, con cobertura desde{" "}
+          geoespacial e IA, con foco inicial en{" "}
           <span style={{ color: "rgba(26,24,18,0.85)", fontWeight: 400 }}>
-            Patagonia hasta todo el país
+            la Patagonia
           </span>
           , sumando sensores y drones de forma progresiva.{" "}
           <span style={{ color: "rgba(26,24,18,0.85)", fontWeight: 400 }}>
@@ -179,14 +179,14 @@ export function Features() {
                   boxShadow: "0 4px 16px rgba(15,122,79,0.08)",
                 }}
               >
-                <step.icon className="w-6 h-6" style={{ color: "#0f7a4f" }} />
+                <step.icon className="w-6 h-6" style={{ color: "var(--green-aa)" }} />
               </div>
               <div>
                 <span
                   className="block text-[10px] tracking-[0.2em] uppercase mb-1"
                   style={{
                     fontFamily: "var(--font-sans)",
-                    color: "rgba(26,24,18,0.3)",
+                    color: "rgba(26,24,18,0.62)",
                   }}
                 >
                   0{i + 1}
@@ -228,14 +228,14 @@ export function Features() {
             >
               <item.icon
                 className="w-3.5 h-3.5 shrink-0"
-                style={{ color: "#0f7a4f" }}
+                style={{ color: "var(--green-aa)" }}
               />
               <p
                 className="text-[12px] leading-snug"
                 style={{
                   fontFamily: "var(--font-sans)",
                   fontWeight: 300,
-                  color: "rgba(26,24,18,0.55)",
+                  color: "rgba(26,24,18,0.7)",
                 }}
               >
                 {item.text}
@@ -260,7 +260,7 @@ export function Features() {
               className="text-[11px] tracking-wide"
               style={{
                 fontFamily: "var(--font-sans)",
-                color: "rgba(26,24,18,0.4)",
+                color: "rgba(26,24,18,0.62)",
               }}
             >
               Sentinel Cloud en desarrollo y validación en territorio

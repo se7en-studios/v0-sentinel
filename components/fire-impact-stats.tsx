@@ -1,163 +1,219 @@
 import { Flame, MapPin, Satellite } from "lucide-react";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { FIRMS_LABEL, fetchFirmsCsv } from "@/lib/firms";
+import {
+  isInArgentina,
+  isReliable,
+  parseFirmsCsv,
+} from "@/lib/landing-data/firms";
+import {
+  DataUnavailable,
+  FAINT,
+  INK,
+  MUTED,
+  RED_TEXT,
+  SectionShell,
+  Updated,
+} from "@/components/data/data-section";
 
-// ponytail: Argentina bounding box (west,south,east,north).
+// ponytail: Argentina bounding box (west,south,east,north) used only to limit
+// the request; every row is then checked against the country polygon.
 const ARG_BBOX = "-73,-55,-53,-21";
 const CHUNK_DAYS = 5;
 const WINDOW_DAYS = 90;
+const ID = "cifras-argentina-title";
 
-function isoDate(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
+const isoDate = (d: Date) => d.toISOString().slice(0, 10);
 
-function countHighConfidenceRows(csv: string): number {
-  const lines = csv.trim().split("\n");
-  if (lines.length < 2) return 0;
-  const header = lines[0].split(",");
-  const confI = header.indexOf("confidence");
-  if (confI === -1) return lines.length - 1;
-  return lines.slice(1).filter((line) => line.split(",")[confI] !== "l").length;
-}
-
-async function fetchChunkCount(startDate: string): Promise<number> {
-  const key = process.env.NASA_FIRMS_KEY;
-  if (!key) return 0;
+// null = the chunk failed (not zero detections).
+async function fetchChunkCount(
+  key: string,
+  startDate: string,
+): Promise<number | null> {
   const csv = await fetchFirmsCsv(
     (source) =>
       `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${key}/${source}/${ARG_BBOX}/${CHUNK_DAYS}/${startDate}`,
     { next: { revalidate: 86400 } },
   );
-  return csv === null ? 0 : countHighConfidenceRows(csv);
+  if (csv === null) return null;
+  return parseFirmsCsv(csv).filter(
+    (p) => isReliable(p) && isInArgentina(p.lat, p.lng),
+  ).length;
 }
 
-async function fetchYtdDetectionCount(): Promise<number | null> {
-  if (!process.env.NASA_FIRMS_KEY) return null;
+interface Impact {
+  total: number;
+  coveredDays: number;
+  failedChunks: number;
+  totalChunks: number;
+  from: string;
+  to: string;
+  at: Date;
+}
+
+async function fetchImpact(): Promise<Impact | null> {
+  const key = process.env.NASA_FIRMS_KEY;
+  if (!key) return null;
 
   const today = new Date();
-  const chunkStarts: string[] = [];
+  const starts: Date[] = [];
   for (let offset = WINDOW_DAYS; offset > 0; offset -= CHUNK_DAYS) {
     const d = new Date(today);
     d.setDate(d.getDate() - offset);
-    chunkStarts.push(isoDate(d));
+    starts.push(d);
   }
+  const counts = await Promise.all(
+    starts.map((d) => fetchChunkCount(key, isoDate(d))),
+  );
+  const ok = counts.filter((n): n is number => n !== null);
+  if (ok.length === 0) return null;
 
-  const counts = await Promise.all(chunkStarts.map(fetchChunkCount));
-  return counts.reduce((sum, n) => sum + n, 0);
+  const end = new Date(starts[starts.length - 1]);
+  end.setDate(end.getDate() + CHUNK_DAYS - 1);
+  return {
+    total: ok.reduce((s, n) => s + n, 0),
+    coveredDays: ok.length * CHUNK_DAYS,
+    failedChunks: counts.length - ok.length,
+    totalChunks: counts.length,
+    from: isoDate(starts[0]),
+    to: isoDate(end),
+    at: new Date(),
+  };
 }
 
 export async function FireImpactStats() {
-  const total = await fetchYtdDetectionCount();
+  const impact = await fetchImpact();
 
-  // ponytail: no key configured, or NASA request failed entirely -> hide
-  // rather than show a broken/zero stat.
-  if (total === null) return null;
+  if (impact === null) {
+    return (
+      <DataUnavailable
+        id={ID}
+        title="Detecciones de calor en Argentina, últimos 90 días."
+        what="La serie histórica de NASA FIRMS"
+        minHeight={360}
+        max="max-w-5xl"
+      />
+    );
+  }
 
+  const isPartial = impact.failedChunks > 0;
   const stats = [
     {
       icon: Flame,
-      value: total,
-      label: `Detecciones satelitales de calor en Argentina, últimos ${WINDOW_DAYS} días`,
+      value: impact.total,
+      label: `Detecciones satelitales de calor dentro de Argentina (${impact.from} a ${impact.to})${isPartial ? ", dato parcial" : ""}`,
     },
     {
       icon: MapPin,
-      value: Math.round(total / WINDOW_DAYS),
-      label: "Promedio de focos detectados por día",
+      value: Math.round(impact.total / impact.coveredDays),
+      label: "Promedio de detecciones por día en ese período",
     },
   ];
 
   return (
-    <section
-      className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "#faf7f0" }}
-    >
+    <SectionShell labelledBy={ID} minHeight={360} max="max-w-5xl">
       <div
+        aria-hidden="true"
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
             "radial-gradient(ellipse at 50% 0%, rgba(184,58,58,0.08) 0%, transparent 60%)",
         }}
       />
-      <div className="relative z-10 max-w-5xl mx-auto px-6 lg:px-10">
-        <div className="flex items-center gap-2 mb-4">
-          <Satellite className="w-3.5 h-3.5" style={{ color: "#b83a3a" }} />
-          <span
-            className="text-[11px]"
-            style={{
-              fontFamily: "var(--font-sans)",
-              color: "rgba(26,24,18,0.35)",
-            }}
-          >
-            Datos satelitales NASA FIRMS
-          </span>
-        </div>
-        <h2
-          className="text-3xl sm:text-4xl lg:text-5xl mb-10 max-w-2xl"
-          style={{
-            fontFamily: "var(--font-heading)",
-            fontWeight: 800,
-            color: "rgba(26,24,18,0.92)",
-            lineHeight: 1.1,
-          }}
+      <div className="flex items-center gap-2 mb-4">
+        <Satellite
+          aria-hidden="true"
+          className="w-3.5 h-3.5"
+          style={{ color: RED_TEXT }}
+        />
+        <span
+          className="text-xs"
+          style={{ fontFamily: "var(--font-sans)", color: FAINT }}
         >
-          El monitoreo de incendios en Argentina, en cifras.
-        </h2>
-
-        <div
-          className="grid sm:grid-cols-2 gap-px"
-          style={{ background: "rgba(26,24,18,0.05)" }}
-        >
-          {stats.map((stat, i) => (
-            <div
-              key={i}
-              className="flex flex-col items-start p-8"
-              style={{ background: "#faf7f0" }}
-            >
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center mb-5"
-                style={{
-                  background: "rgba(184,58,58,0.1)",
-                  border: "0.5px solid rgba(184,58,58,0.3)",
-                }}
-              >
-                <stat.icon className="w-5 h-5" style={{ color: "#b83a3a" }} />
-              </div>
-              <div
-                className="text-4xl sm:text-5xl font-extrabold mb-2 tabular-nums"
-                style={{
-                  fontFamily: "var(--font-heading)",
-                  color: "#b83a3a",
-                }}
-              >
-                <AnimatedNumber value={stat.value} />
-              </div>
-              <p
-                className="text-[13px] leading-snug max-w-[280px]"
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  fontWeight: 300,
-                  color: "rgba(26,24,18,0.4)",
-                }}
-              >
-                {stat.label}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <p
-          className="text-[10px] mt-6"
-          style={{
-            fontFamily: "var(--font-sans)",
-            color: "rgba(26,24,18,0.42)",
-          }}
-        >
-          Fuente: NASA FIRMS ({FIRMS_LABEL}), detecciones satelitales de calor
-          en territorio argentino. Datos preliminares, no verificados en campo,
-          no distingue incendios forestales de otras fuentes de calor (quemas
-          agrícolas, etc.).
-        </p>
+          Datos satelitales NASA FIRMS · <Updated at={impact.at} />
+        </span>
       </div>
-    </section>
+      <h2
+        id={ID}
+        className="text-3xl sm:text-4xl lg:text-5xl mb-10 max-w-2xl"
+        style={{
+          fontFamily: "var(--font-heading)",
+          fontWeight: 800,
+          color: INK,
+          lineHeight: 1.1,
+        }}
+      >
+        Detecciones de calor en Argentina, últimos {WINDOW_DAYS} días.
+      </h2>
+
+      {isPartial && (
+        <p
+          role="status"
+          className="text-sm mb-6 max-w-xl"
+          style={{ fontFamily: "var(--font-sans)", color: RED_TEXT }}
+        >
+          Dato parcial: {impact.failedChunks} de {impact.totalChunks} períodos
+          de {CHUNK_DAYS} días no respondieron. La cifra es un mínimo; el
+          promedio diario usa solo los períodos disponibles.
+        </p>
+      )}
+
+      <div
+        className="grid sm:grid-cols-2 gap-px"
+        style={{ background: "rgba(26,24,18,0.08)" }}
+      >
+        {stats.map((stat, i) => (
+          <div
+            key={i}
+            className="flex flex-col items-start p-8"
+            style={{ background: "#faf7f0", minHeight: 220 }}
+          >
+            <div
+              aria-hidden="true"
+              className="w-10 h-10 rounded-lg flex items-center justify-center mb-5"
+              style={{
+                background: "rgba(184,58,58,0.1)",
+                border: "0.5px solid rgba(184,58,58,0.3)",
+              }}
+            >
+              <stat.icon className="w-5 h-5" style={{ color: RED_TEXT }} />
+            </div>
+            <div
+              className="text-4xl sm:text-5xl font-extrabold mb-2 tabular-nums"
+              style={{ fontFamily: "var(--font-heading)", color: RED_TEXT }}
+            >
+              {isPartial && "≥ "}
+              <AnimatedNumber value={stat.value} />
+            </div>
+            <p
+              className="text-sm leading-snug max-w-[300px]"
+              style={{ fontFamily: "var(--font-sans)", color: MUTED }}
+            >
+              {stat.label}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <p
+        className="text-xs mt-6"
+        style={{ fontFamily: "var(--font-sans)", color: FAINT }}
+      >
+        Fuente:{" "}
+        <a
+          href="https://firms.modaps.eosdis.nasa.gov/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline"
+        >
+          NASA FIRMS
+        </a>{" "}
+        ({FIRMS_LABEL}), detecciones de confianza media o alta dentro del
+        contorno de Argentina (simplificado: puede errar cerca de la
+        frontera). Datos preliminares, no verificados en campo; no distinguen
+        incendios forestales de otras fuentes de calor (quemas agrícolas,
+        etc.).
+      </p>
+    </SectionShell>
   );
 }

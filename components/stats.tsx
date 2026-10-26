@@ -1,31 +1,23 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Flame, Clock, Trees, Trophy, Star } from "lucide-react";
+import { Flame, Trophy, Star } from "lucide-react";
 
 // ponytail: single accent for every stat — the per-icon brown/green split
 // here used to carry no meaning (same metric type, different color for no
 // reason), which read as arbitrary rather than as a signal.
 const ACCENT = "#0f7a4f";
 
+// Claims policy: product metrics are targets, not measured results (same as
+// hero/FAQ). "60% reducción de respuesta" and "300 ha por vuelo" had no source
+// (the latter presupposes drones, which are "progresivo"), so they were removed
+// pending team evidence.
 const stats = [
   {
     icon: Flame,
     value: 98,
     suffix: "%",
-    label: "Precisión en detección",
-  },
-  {
-    icon: Clock,
-    value: 60,
-    suffix: "%",
-    label: "Reducción en tiempo de respuesta",
-  },
-  {
-    icon: Trees,
-    value: 300,
-    suffix: " ha",
-    label: "Cobertura por vuelo",
+    label: "Precisión objetivo en detección",
   },
   {
     icon: Trophy,
@@ -37,7 +29,7 @@ const stats = [
     icon: Star,
     value: 11,
     suffix: "",
-    label: "Reconocimientos obtenidos",
+    label: "Reconocimientos y programas",
   },
 ];
 
@@ -117,7 +109,7 @@ export function Stats() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10">
         <div
-          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-px"
+          className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-px"
           style={{ background: "rgba(26,24,18,0.05)" }}
         >
           {stats.map((stat, i) => (
@@ -159,7 +151,7 @@ export function Stats() {
                 style={{
                   fontFamily: "var(--font-sans)",
                   fontWeight: 300,
-                  color: "rgba(26,24,18,0.4)",
+                  color: "rgba(26,24,18,0.62)",
                 }}
               >
                 {stat.label}

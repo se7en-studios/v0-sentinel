@@ -50,7 +50,7 @@ export function FaqSectionWithCategories({
             className="text-[11px] tracking-[0.3em] uppercase mb-5"
             style={{
               fontFamily: "var(--font-sans)",
-              color: "rgba(26,24,18,0.3)",
+              color: "var(--muted-foreground)",
             }}
           >
             Preguntas frecuentes
@@ -72,7 +72,7 @@ export function FaqSectionWithCategories({
               style={{
                 fontFamily: "var(--font-sans)",
                 fontWeight: 300,
-                color: "rgba(26,24,18,0.45)",
+                color: "var(--muted-foreground)",
               }}
             >
               {description}
@@ -100,7 +100,7 @@ export function FaqSectionWithCategories({
                   background: active
                     ? "rgba(15,122,79,0.08)"
                     : "rgba(26,24,18,0.02)",
-                  color: active ? "#0f7a4f" : "rgba(26,24,18,0.5)",
+                  color: active ? "var(--green-aa)" : "var(--muted-foreground)",
                 }}
               >
                 {cat}
@@ -155,12 +155,12 @@ export function FaqSectionWithCategories({
                     {isOpen ? (
                       <Minus
                         className="w-3.5 h-3.5"
-                        style={{ color: "#0f7a4f" }}
+                        style={{ color: "var(--green-aa)" }}
                       />
                     ) : (
                       <Plus
                         className="w-3.5 h-3.5"
-                        style={{ color: "rgba(26,24,18,0.5)" }}
+                        style={{ color: "var(--muted-foreground)" }}
                       />
                     )}
                   </div>
@@ -212,7 +212,7 @@ export function FaqSectionWithCategories({
                 fontFamily: "var(--font-sans)",
                 background: "rgba(15,122,79,0.06)",
                 border: "0.5px solid rgba(15,122,79,0.25)",
-                color: "#0f7a4f",
+                color: "var(--green-aa)",
               }}
             >
               {contactInfo.buttonText}

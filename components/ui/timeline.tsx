@@ -63,7 +63,7 @@ export const Timeline = ({ data }: { data: TimelineEntry[] }) => {
               </div>
               <h3
                 className="hidden md:block text-lg md:pl-20 font-semibold"
-                style={{ color: "#0f7a4f" }}
+                style={{ color: "var(--green-aa)" }}
               >
                 {item.title}
               </h3>
@@ -72,7 +72,7 @@ export const Timeline = ({ data }: { data: TimelineEntry[] }) => {
             <div className="relative pl-16 pr-4 md:pl-4 w-full">
               <h3
                 className="md:hidden block text-base mb-2 text-left font-semibold"
-                style={{ color: "#0f7a4f" }}
+                style={{ color: "var(--green-aa)" }}
               >
                 {item.title}
               </h3>

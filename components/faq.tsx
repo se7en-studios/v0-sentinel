@@ -6,31 +6,31 @@ const faqs = [
   {
     question: "¿Cómo funciona Sentinel Cloud para prevenir incendios?",
     answer:
-      "Sentinel Cloud cruza datos satelitales, información geoespacial e inteligencia artificial para identificar condiciones de riesgo en tiempo real. El modelo descarta falsos positivos y genera una alerta geolocalizada apenas confirma un foco de calor real, con un objetivo de precisión del 98%, antes de que se convierta en un incendio incontrolable. Sensores y drones se suman a esta base de forma progresiva.",
+      "Sentinel Cloud cruza datos satelitales, información geoespacial e inteligencia artificial para identificar condiciones de riesgo en tiempo real. El modelo descarta falsos positivos y genera una alerta geolocalizada apenas confirma un foco de calor real, con un objetivo de precisión del 98% (meta de diseño, aún no un resultado medido en campo), antes de que se convierta en un incendio incontrolable. Sensores y drones se suman a esta base de forma progresiva.",
     category: "Producto",
   },
   {
     question: "¿Y si la IA se equivoca y salta una falsa alarma?",
     answer:
-      "Es la primera pregunta que hace cualquier brigada, y con razón: una alerta falsa cuesta tiempo y recursos. Por eso el modelo cruza distintas fuentes de datos (satelitales y geoespaciales, y a futuro las de sensores en territorio) antes de confirmar un foco, y ese cruce es justamente lo que sostiene nuestro objetivo de precisión del 98%.",
+      "Es la primera pregunta que hace cualquier brigada, y con razón: una alerta falsa cuesta tiempo y recursos. Por eso el modelo cruza distintas fuentes de datos (satelitales y geoespaciales, y a futuro las de sensores en territorio) antes de confirmar un foco, y ese cruce es justamente lo que sostiene nuestra meta de precisión del 98%, que todavía debemos validar en pilotos.",
     category: "Producto",
   },
   {
     question: "¿Cuánto cuesta implementar Sentinel?",
     answer:
-      "No hay inversión inicial en equipos (CAPEX): el servicio se contrata como una suscripción a Sentinel Cloud sobre la cobertura que necesitás. Arrancamos con un piloto acotado para validar resultados antes de un contrato mayor.",
+      "No hay inversión inicial en equipos (CAPEX): el modelo apunta a una suscripción a Sentinel Cloud sobre la cobertura que necesitás, sin equipos propios. El precio se define según el territorio. Arrancamos con un piloto acotado para validar resultados antes de un contrato mayor.",
     category: "Precio",
   },
   {
     question: "¿Cuánto tarda en estar operativo en mi territorio?",
     answer:
-      "Un piloto típico busca estar generando alertas en 4 a 8 semanas desde que arrancamos, sin obra ni infraestructura que instalar de tu lado. Nuestro equipo se encarga del despliegue de principio a fin.",
+      "Nuestra meta para un piloto es generar alertas en 4 a 8 semanas desde el inicio (estimación interna, a confirmar según el territorio), sin obra ni infraestructura que instalar de tu lado. Nuestro equipo se encarga del despliegue.",
     category: "Implementación",
   },
   {
     question: "¿Es difícil implementar Sentinel en mi región?",
     answer:
-      "No. La plataforma es cloud-based y se adapta a cualquier territorio: bosque nativo, forestación productiva o campo abierto. Solo necesitás acceso a internet, el resto lo resuelve nuestro equipo.",
+      "No. La plataforma es cloud-based y se adapta a cualquier territorio: bosque nativo, forestación productiva o campo abierto. Necesitás acceso a internet y definir la zona a cubrir; el resto lo resuelve nuestro equipo.",
     category: "Implementación",
   },
   {
@@ -42,7 +42,7 @@ const faqs = [
   {
     question: "¿Qué tipo de soporte ofrecen?",
     answer:
-      "Soporte 24/7 durante operaciones críticas, onboarding personalizado para tu equipo y actualizaciones continuas de los modelos de IA a medida que suman más datos de tu territorio.",
+      "En los pilotos acordamos con cada cliente el esquema de soporte (el objetivo es cubrir operaciones críticas las 24 h), onboarding para tu equipo y actualizaciones de los modelos de IA a medida que suman datos de tu territorio.",
     category: "Soporte",
   },
   {

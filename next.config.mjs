@@ -25,7 +25,7 @@ const csp = [
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval' https://va.vercel-scripts.com" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
-  "media-src 'self' blob: https://res.cloudinary.com",
+  "media-src 'self' blob:",
   "font-src 'self' data:",
   `connect-src 'self' blob: ${[...MAP_HOSTS, ...API_HOSTS].join(" ")}`,
   "worker-src 'self' blob:",
@@ -52,6 +52,7 @@ const securityHeaders = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  poweredByHeader: false,
   // ANALYZE_MAPS=1 npx next build: sourcemaps para que scripts/analyze-bundle.mjs atribuya bytes por paquete.
   productionBrowserSourceMaps: process.env.ANALYZE_MAPS === "1",
   // /api/admin/live reads data/static/** from disk (country outline, land cover): ship it with the function.

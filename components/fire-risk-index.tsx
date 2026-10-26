@@ -1,10 +1,28 @@
 import { Wind, Droplets, Thermometer } from "lucide-react";
 import { PatagoniaRiskMapLazy } from "@/components/ui/patagonia-risk-map-lazy";
+import {
+  RISK_RANK,
+  RISK_STYLE,
+  riskLabel,
+  type RiskLabel,
+} from "@/lib/landing-data/risk";
+import {
+  DataUnavailable,
+  FAINT,
+  GREEN_TEXT,
+  INK,
+  MUTED,
+  SectionShell,
+} from "@/components/data/data-section";
+
+// Licensing note (team decision, not made here): the free Open-Meteo API is
+// for non-commercial use only; a commercial site needs their paid plan and
+// CC BY 4.0 attribution (link kept in the footer note below).
 
 // ponytail: kept in sync with RISK_EXPLAIN in patagonia-risk-map.tsx —
 // duplicated rather than imported since that component is a client boundary
 // and re-exporting plain constants across it doesn't resolve reliably here.
-const RISK_EXPLAIN: Record<string, string> = {
+const RISK_EXPLAIN: Record<RiskLabel, string> = {
   Bajo: "Condiciones tranquilas, riesgo bajo de que un fuego se propague.",
   Moderado: "Vigilar: condiciones que podrían favorecer un incendio.",
   Alto: "Un incendio se propagaría rápido en estas condiciones.",
@@ -35,37 +53,10 @@ interface Reading {
   temperature: number;
   humidity: number;
   windSpeed: number;
+  time: string; // Open-Meteo local time of the reading, e.g. 2026-10-26T14:15
 }
 
-// ponytail: illustrative risk heuristic (temp+humidity+wind), not an official
-// fire-danger index (like the Canadian FWI) — labeled as "estimado" in the UI
-// so it doesn't read as more scientifically precise than it is.
-function riskLevel(r: Reading): { label: string; color: string } {
-  let score = 0;
-  if (r.temperature > 30) score += 3;
-  else if (r.temperature > 25) score += 2;
-  else if (r.temperature > 18) score += 1;
-
-  if (r.humidity < 20) score += 3;
-  else if (r.humidity < 35) score += 2;
-  else if (r.humidity < 50) score += 1;
-
-  if (r.windSpeed > 40) score += 3;
-  else if (r.windSpeed > 25) score += 2;
-  else if (r.windSpeed > 15) score += 1;
-
-  if (score >= 8) return { label: "Extremo", color: "#b83a3a" };
-  if (score >= 6) return { label: "Alto", color: "#f1b46b" };
-  if (score >= 3) return { label: "Moderado", color: "#f1e06b" };
-  return { label: "Bajo", color: "#0f7a4f" };
-}
-
-const RISK_RANK: Record<string, number> = {
-  Bajo: 0,
-  Moderado: 1,
-  Alto: 2,
-  Extremo: 3,
-};
+const ID = "riesgo-title";
 
 async function fetchReading(location: Location): Promise<Reading | null> {
   try {
@@ -78,262 +69,280 @@ async function fetchReading(location: Location): Promise<Reading | null> {
       temperature: data.current.temperature_2m,
       humidity: data.current.relative_humidity_2m,
       windSpeed: data.current.wind_speed_10m,
+      time: String(data.current.time ?? ""),
     };
   } catch {
     return null;
   }
 }
 
+function Badge({ label }: { label: RiskLabel }) {
+  const { color, text } = RISK_STYLE[label];
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-xs uppercase font-semibold tracking-wider"
+      style={{
+        background: `${color}25`,
+        border: `0.5px solid ${text}55`,
+        color: text,
+        fontFamily: "var(--font-sans)",
+      }}
+    >
+      <span
+        aria-hidden="true"
+        className="w-1.5 h-1.5 rounded-full"
+        style={{ background: color }}
+      />
+      {label}
+    </span>
+  );
+}
+
+const METRICS = [
+  { icon: Thermometer, name: "Temperatura", unit: "°C", key: "temperature" },
+  { icon: Droplets, name: "Humedad", unit: "%", key: "humidity" },
+  { icon: Wind, name: "Viento", unit: " km/h", key: "windSpeed" },
+] as const;
+
 export async function FireRiskIndex() {
   const readings = (await Promise.all(locations.map(fetchReading))).filter(
     (r): r is Reading => r !== null,
   );
 
-  if (readings.length === 0) return null;
+  if (readings.length === 0) {
+    return (
+      <DataUnavailable
+        id={ID}
+        title="Riesgo de incendio en la Patagonia."
+        what="La lectura meteorológica de Open-Meteo"
+        minHeight={520}
+        max="max-w-7xl"
+      />
+    );
+  }
 
-  const points = readings.map((r) => {
-    const risk = riskLevel(r);
-    return {
-      name: r.location.name,
-      province: r.location.province,
-      lat: r.location.lat,
-      lon: r.location.lon,
-      color: risk.color,
-      label: risk.label,
-      temperature: r.temperature,
-      humidity: r.humidity,
-      windSpeed: r.windSpeed,
-    };
-  });
-  const overall = points.reduce((worst, p) =>
-    RISK_RANK[p.label] > RISK_RANK[worst.label] ? p : worst,
-  );
+  const missing = locations.length - readings.length;
+  const rows = readings.map((r) => ({ r, label: riskLabel(r) }));
+  const points = rows.map(({ r, label }) => ({
+    name: r.location.name,
+    province: r.location.province,
+    lat: r.location.lat,
+    lon: r.location.lon,
+    color: RISK_STYLE[label].color,
+    label,
+    temperature: r.temperature,
+    humidity: r.humidity,
+    windSpeed: r.windSpeed,
+  }));
+  const overall = rows.reduce((w, x) =>
+    RISK_RANK[x.label] > RISK_RANK[w.label] ? x : w,
+  ).label;
+  const readingTime = readings[0].time.replace("T", " ").slice(0, 16);
 
   return (
-    <section
-      className="relative py-20 lg:py-24 overflow-hidden"
-      style={{ background: "#faf7f0" }}
-    >
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(15,122,79,0.05) 0%, transparent 70%)",
-        }}
-      />
-
-      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10">
-        <div className="flex items-center gap-2 mb-5">
-          <span
-            className="w-1.5 h-1.5 rounded-full"
-            style={{ background: "#0f7a4f", boxShadow: "0 0 8px #0f7a4f" }}
-          />
-          <p
-            className="text-[11px] tracking-[0.3em] uppercase"
-            style={{
-              fontFamily: "var(--font-sans)",
-              color: "rgba(26,24,18,0.3)",
-            }}
-          >
-            Datos en vivo
-          </p>
-        </div>
-        <div className="flex flex-wrap items-end gap-4 mb-4">
-          <h2
-            className="text-4xl sm:text-5xl lg:text-6xl"
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontWeight: 800,
-              color: "rgba(26,24,18,0.92)",
-              lineHeight: 1,
-            }}
-          >
-            Riesgo de incendio, <span style={{ color: "#0f7a4f" }}>hoy.</span>
-          </h2>
-          <div
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm mb-1"
-            style={{
-              background: `${overall.color}15`,
-              border: `0.5px solid ${overall.color}40`,
-            }}
-          >
-            <span
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ background: overall.color }}
-            />
-            <span
-              className="text-[11px] tracking-wide"
-              style={{ fontFamily: "var(--font-sans)", color: overall.color }}
-            >
-              Patagonia: {overall.label}
-            </span>
-          </div>
-        </div>
+    <SectionShell labelledBy={ID} minHeight={520} max="max-w-7xl">
+      <div className="flex items-center gap-2 mb-5">
+        <span
+          aria-hidden="true"
+          className="w-1.5 h-1.5 rounded-full"
+          style={{ background: "#0f7a4f", boxShadow: "0 0 8px #0f7a4f" }}
+        />
         <p
-          className="text-[13px] mb-10 max-w-xl"
-          style={{
-            fontFamily: "var(--font-sans)",
-            fontWeight: 300,
-            color: "rgba(26,24,18,0.4)",
-          }}
+          className="text-xs tracking-[0.2em] uppercase"
+          style={{ fontFamily: "var(--font-sans)", color: FAINT }}
         >
-          Índice estimado a partir de temperatura, humedad y viento en tiempo
-          real, la misma clase de variables que alimenta nuestros modelos de
-          detección.{" "}
-          <span style={{ color: "rgba(26,24,18,0.6)" }}>
-            {RISK_EXPLAIN[overall.label]}
-          </span>{" "}
-          Tocá un punto del mapa para ver el detalle de cada localidad.
-        </p>
-
-        <div
-          className="max-w-xl mx-auto mb-10 rounded-lg p-4"
-          style={{ border: "0.5px solid rgba(26,24,18,0.07)" }}
-        >
-          <PatagoniaRiskMapLazy points={points} />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {readings.map((r) => {
-            const risk = riskLevel(r);
-            return (
-              <div
-                key={r.location.name}
-                className="relative overflow-hidden rounded-lg border-[0.5px] border-[rgba(26,24,18,0.08)] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(26,24,18,0.14)]"
-                style={{
-                  background: "rgba(26,24,18,0.02)",
-                }}
-              >
-                <div
-                  className="absolute top-0 left-0 right-0 h-[2px]"
-                  style={{ background: risk.color, opacity: 0.6 }}
-                />
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <p
-                      className="text-[15px] mb-0.5 font-semibold"
-                      style={{
-                        fontFamily: "var(--font-heading)",
-                        color: "rgba(26,24,18,0.92)",
-                      }}
-                    >
-                      {r.location.name}
-                    </p>
-                    <p
-                      className="text-[11px]"
-                      style={{
-                        fontFamily: "var(--font-sans)",
-                        color: "rgba(26,24,18,0.35)",
-                      }}
-                    >
-                      {r.location.province}
-                    </p>
-                  </div>
-
-                  <div
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm"
-                    style={{
-                      background: `${risk.color}15`,
-                      border: `0.5px solid ${risk.color}35`,
-                    }}
-                  >
-                    <span
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ background: risk.color }}
-                    />
-                    <span
-                      className="text-[10px] uppercase font-medium tracking-wider"
-                      style={{
-                        fontFamily: "var(--font-sans)",
-                        color: risk.color,
-                      }}
-                    >
-                      {risk.label}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-2.5 pt-3 border-t border-[rgba(26,24,18,0.06)]">
-                  <div className="flex items-center justify-between text-[12px]">
-                    <span
-                      className="flex items-center gap-2"
-                      style={{
-                        fontFamily: "var(--font-sans)",
-                        color: "rgba(26,24,18,0.4)",
-                      }}
-                    >
-                      <Thermometer className="w-3.5 h-3.5 opacity-70" />
-                      Temperatura
-                    </span>
-                    <span
-                      className="font-medium tabular-nums"
-                      style={{
-                        fontFamily: "var(--font-sans)",
-                        color: "rgba(26,24,18,0.85)",
-                      }}
-                    >
-                      {Math.round(r.temperature)}°C
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-[12px]">
-                    <span
-                      className="flex items-center gap-2"
-                      style={{
-                        fontFamily: "var(--font-sans)",
-                        color: "rgba(26,24,18,0.4)",
-                      }}
-                    >
-                      <Droplets className="w-3.5 h-3.5 opacity-70" />
-                      Humedad
-                    </span>
-                    <span
-                      className="font-medium tabular-nums"
-                      style={{
-                        fontFamily: "var(--font-sans)",
-                        color: "rgba(26,24,18,0.85)",
-                      }}
-                    >
-                      {Math.round(r.humidity)}%
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-[12px]">
-                    <span
-                      className="flex items-center gap-2"
-                      style={{
-                        fontFamily: "var(--font-sans)",
-                        color: "rgba(26,24,18,0.4)",
-                      }}
-                    >
-                      <Wind className="w-3.5 h-3.5 opacity-70" />
-                      Viento
-                    </span>
-                    <span
-                      className="font-medium tabular-nums"
-                      style={{
-                        fontFamily: "var(--font-sans)",
-                        color: "rgba(26,24,18,0.85)",
-                      }}
-                    >
-                      {Math.round(r.windSpeed)} km/h
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <p
-          className="text-[10px] mt-6"
-          style={{
-            fontFamily: "var(--font-sans)",
-            color: "rgba(26,24,18,0.42)",
-          }}
-        >
-          Fuente: Open-Meteo. Índice ilustrativo, no reemplaza el sistema de
-          detección de Sentinel.
+          Lectura de {readingTime} (hora local)
         </p>
       </div>
-    </section>
+      <div className="flex flex-wrap items-end gap-4 mb-4">
+        <h2
+          id={ID}
+          className="text-4xl sm:text-5xl lg:text-6xl"
+          style={{
+            fontFamily: "var(--font-heading)",
+            fontWeight: 800,
+            color: INK,
+            lineHeight: 1,
+          }}
+        >
+          Riesgo de incendio, <span style={{ color: GREEN_TEXT }}>ahora.</span>
+        </h2>
+        <div className="mb-1 inline-flex items-center gap-2">
+          <span
+            className="text-xs"
+            style={{ fontFamily: "var(--font-sans)", color: MUTED }}
+          >
+            Patagonia:
+          </span>
+          <Badge label={overall} />
+        </div>
+      </div>
+      <p
+        className="text-sm mb-10 max-w-xl"
+        style={{ fontFamily: "var(--font-sans)", color: MUTED }}
+      >
+        Índice estimado a partir de temperatura, humedad y viento de la última
+        lectura, la misma clase de variables que alimenta nuestros modelos de
+        detección.{" "}
+        <strong style={{ color: INK, fontWeight: 500 }}>
+          {RISK_EXPLAIN[overall]}
+        </strong>{" "}
+        Tocá un punto del mapa para ver el detalle de cada localidad.
+        {missing > 0 &&
+          ` Sin datos de ${missing} de ${locations.length} localidades en este momento.`}
+      </p>
+
+      <div
+        role="group"
+        aria-label="Mapa de riesgo estimado por localidad de la Patagonia"
+        aria-describedby={`${ID}-desc`}
+        className="max-w-xl mx-auto mb-10 rounded-lg p-4"
+        style={{ border: "0.5px solid rgba(26,24,18,0.12)" }}
+      >
+        <p id={`${ID}-desc`} className="sr-only">
+          Mapa con las localidades monitoreadas. Los puntos del mapa no son
+          operables con teclado; la tabla o las tarjetas de abajo tienen el
+          mismo dato en texto.
+        </p>
+        <PatagoniaRiskMapLazy points={points} />
+      </div>
+
+      {/* Mobile: one compact table (~230 px) instead of four stacked cards. */}
+      <div className="sm:hidden overflow-x-auto">
+        <table
+          className="w-full text-left text-sm"
+          style={{ fontFamily: "var(--font-sans)", color: INK }}
+        >
+          <caption className="sr-only">
+            Riesgo estimado, temperatura, humedad y viento por localidad
+          </caption>
+          <thead>
+            <tr style={{ color: MUTED }} className="text-xs">
+              <th scope="col" className="py-2 pr-3 font-medium">
+                Localidad
+              </th>
+              <th scope="col" className="py-2 pr-3 font-medium">
+                Riesgo
+              </th>
+              <th scope="col" className="py-2 pr-3 font-medium">
+                Temp.
+              </th>
+              <th scope="col" className="py-2 pr-3 font-medium">
+                Hum.
+              </th>
+              <th scope="col" className="py-2 font-medium">
+                Viento
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(({ r, label }) => (
+              <tr
+                key={r.location.name}
+                style={{ borderTop: "0.5px solid rgba(26,24,18,0.14)" }}
+              >
+                <th scope="row" className="py-2.5 pr-3 font-semibold">
+                  {r.location.name}
+                  <span
+                    className="block text-xs font-normal"
+                    style={{ color: FAINT }}
+                  >
+                    {r.location.province}
+                  </span>
+                </th>
+                <td className="py-2.5 pr-3">
+                  <Badge label={label} />
+                </td>
+                <td className="py-2.5 pr-3 tabular-nums">
+                  {Math.round(r.temperature)}°C
+                </td>
+                <td className="py-2.5 pr-3 tabular-nums">
+                  {Math.round(r.humidity)}%
+                </td>
+                <td className="py-2.5 tabular-nums">
+                  {Math.round(r.windSpeed)} km/h
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {rows.map(({ r, label }) => (
+          <div
+            key={r.location.name}
+            className="relative overflow-hidden rounded-lg border-[0.5px] border-[rgba(26,24,18,0.14)] p-6"
+            style={{ background: "rgba(26,24,18,0.02)" }}
+          >
+            <div
+              aria-hidden="true"
+              className="absolute top-0 left-0 right-0 h-[2px]"
+              style={{ background: RISK_STYLE[label].text, opacity: 0.6 }}
+            />
+            <div className="flex items-start justify-between gap-2 mb-4">
+              <div>
+                <p
+                  className="text-[15px] mb-0.5 font-semibold"
+                  style={{ fontFamily: "var(--font-heading)", color: INK }}
+                >
+                  {r.location.name}
+                </p>
+                <p
+                  className="text-xs"
+                  style={{ fontFamily: "var(--font-sans)", color: FAINT }}
+                >
+                  {r.location.province}
+                </p>
+              </div>
+              <Badge label={label} />
+            </div>
+
+            <dl className="space-y-2.5 pt-3 border-t border-[rgba(26,24,18,0.1)]">
+              {METRICS.map(({ icon: Icon, name, unit, key }) => (
+                <div
+                  key={key}
+                  className="flex items-center justify-between text-xs"
+                  style={{ fontFamily: "var(--font-sans)" }}
+                >
+                  <dt
+                    className="flex items-center gap-2"
+                    style={{ color: MUTED }}
+                  >
+                    <Icon aria-hidden="true" className="w-3.5 h-3.5" />
+                    {name}
+                  </dt>
+                  <dd
+                    className="font-medium tabular-nums"
+                    style={{ color: INK }}
+                  >
+                    {Math.round(r[key])}
+                    {unit}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        ))}
+      </div>
+
+      <p
+        className="text-xs mt-6"
+        style={{ fontFamily: "var(--font-sans)", color: FAINT }}
+      >
+        Fuente:{" "}
+        <a
+          href="https://open-meteo.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline"
+        >
+          Open-Meteo
+        </a>{" "}
+        (CC BY 4.0), lectura actual de cada localidad, actualizada cada 15
+        minutos. Índice ilustrativo propio (no es el FWI oficial); no reemplaza
+        el sistema de detección de Sentinel.
+      </p>
+    </SectionShell>
   );
 }

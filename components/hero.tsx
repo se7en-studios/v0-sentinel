@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import SmoothScrollHero from "@/components/ui/smooth-scroll-hero";
 
 const stats = [
-  { target: 8, suffix: "min", label: "Tiempo detección" },
-  { target: 24, suffix: "h", label: "Monitoreo continuo" },
+  { target: 8, suffix: "min", label: "Objetivo de detección" },
+  { target: 24, suffix: "h", label: "Monitoreo satelital continuo" },
   { target: 98, suffix: "%", label: "Precisión objetivo" },
 ];
 
@@ -78,7 +78,7 @@ function AnimatedStat({
           fontWeight: 400,
           letterSpacing: "0.1em",
           textTransform: "uppercase",
-          color: "rgba(240,234,216,0.55)",
+          color: "rgba(240,234,216,0.85)",
         }}
       >
         {label}
@@ -91,7 +91,7 @@ export function Hero() {
   return (
     <div id="inicio">
       <SmoothScrollHero
-        scrollHeight={900}
+        scrollHeight={450}
         desktopImage="/hero-forest.avif"
         mobileImage="/hero-forest.avif"
         initialClipPercentage={0}
@@ -165,27 +165,27 @@ export function Hero() {
 
           <div className="flex flex-col sm:flex-row gap-3 mt-10">
             <a
-              href="#nosotros"
-              className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-[13px] font-medium transition-all bg-[#94f1be] text-[#0c0b09] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
+              href="#contacto"
+              className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-[13px] font-medium transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#94f1be] bg-[#94f1be] text-[#0c0b09] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
               style={{
                 fontFamily: "var(--font-sans)",
                 fontWeight: 500,
                 letterSpacing: "0.04em",
               }}
             >
-              Conocer la plataforma
+              Solicitar reunión
             </a>
 
             <a
-              href="#servicios"
-              className="inline-flex items-center justify-center px-7 py-3 rounded-full text-[13px] font-light transition-colors border border-[rgba(240,234,216,0.25)] hover:border-[rgba(240,234,216,0.5)]"
+              href="#recorrido"
+              className="inline-flex items-center justify-center px-7 py-3 rounded-full text-[13px] font-light transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#94f1be] border border-[rgba(240,234,216,0.25)] hover:border-[rgba(240,234,216,0.5)]"
               style={{
                 fontFamily: "var(--font-sans)",
                 fontWeight: 300,
                 color: "rgba(240,234,216,0.85)",
               }}
             >
-              Ver servicios
+              Ver el recorrido
             </a>
           </div>
         </div>

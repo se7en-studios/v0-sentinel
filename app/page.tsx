@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
 import { Navbar } from "@/components/navbar";
 import { Hero } from "@/components/hero";
+import { ForestJourney } from "@/components/forest-journey-lazy";
 import { FireRiskIndex } from "@/components/fire-risk-index";
 import { ActiveFires } from "@/components/active-fires";
 import { FireImpactStats } from "@/components/fire-impact-stats";
@@ -62,6 +63,7 @@ export default function Home() {
       <SectionDots />
       <main id="main-content" className="min-h-screen bg-[#faf7f0]">
         <Hero />
+        <ForestJourney />
         <Problem />
         <Features />
         <Capabilities />

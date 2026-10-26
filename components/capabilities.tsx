@@ -15,10 +15,10 @@ const capabilities = [
     icon: Thermometer,
     title: "Detección térmica con IA",
     description:
-      "Cámaras térmicas a bordo y modelos de visión computacional que identifican focos de calor antes de que se conviertan en incendios.",
+      "Datos satelitales y modelos de IA que identifican focos de calor antes de que se conviertan en incendios, con sensores térmicos sumándose de forma progresiva.",
     metrics: [
-      { value: "8 min", label: "Detección" },
-      { value: "98%", label: "Precisión" },
+      { value: "8 min", label: "Detección objetivo" },
+      { value: "98%", label: "Precisión objetivo" },
     ],
     grow: 2.4,
     dark: false,
@@ -26,7 +26,7 @@ const capabilities = [
   {
     icon: BellRing,
     title: "Alertas geolocalizadas",
-    description: "Coordenadas GPS exactas enviadas en segundos.",
+    description: "Ubicación aproximada del foco (píxel satelital) enviada apenas se verifica.",
     grow: 1,
     dark: false,
   },
@@ -108,7 +108,7 @@ export function Capabilities() {
             className="text-[11px] tracking-[0.3em] uppercase mb-5"
             style={{
               fontFamily: "var(--font-sans)",
-              color: "rgba(26,24,18,0.3)",
+              color: "rgba(26,24,18,0.62)",
             }}
           >
             La solución a incendios forestales
@@ -122,7 +122,7 @@ export function Capabilities() {
               lineHeight: 1,
             }}
           >
-            Todo lo que <span style={{ color: "#0f7a4f" }}>Sentinel</span> hace
+            Todo lo que <span style={{ color: "var(--green-aa)" }}>Sentinel</span> hace
             por vos.
           </h2>
           <p
@@ -130,10 +130,10 @@ export function Capabilities() {
             style={{
               fontFamily: "var(--font-sans)",
               fontWeight: 300,
-              color: "rgba(26,24,18,0.4)",
+              color: "rgba(26,24,18,0.62)",
             }}
           >
-            Pasá el mouse por cada capacidad para conocerla en detalle.
+            Pasá el mouse o navegá con el teclado para ver cada capacidad en detalle.
           </p>
         </div>
 
@@ -149,13 +149,16 @@ export function Capabilities() {
             return (
               <div
                 key={cap.title}
+                tabIndex={0}
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
-                className="group relative rounded-lg overflow-hidden transition-all duration-700 h-[300px] lg:h-[440px]"
+                onFocus={() => setHovered(i)}
+                onBlur={() => setHovered(null)}
+                className="group lg:grow-[var(--grow)] relative rounded-lg overflow-hidden min-h-[240px] lg:min-h-0 lg:h-[440px] lg:basis-0 outline-none focus-visible:ring-2 focus-visible:ring-[#0f7a4f] focus-visible:ring-offset-2 focus-visible:ring-offset-[#faf7f0]"
                 style={{
-                  flexGrow: growFactor,
-                  flexBasis: 0,
-                  transition: "flex-grow 0.5s cubic-bezier(0.16,1,0.3,1)",
+                  ["--grow" as string]: growFactor,
+                  transition:
+                    "flex-grow 0.5s cubic-bezier(0.16,1,0.3,1), opacity 0.7s, transform 0.7s",
                   background: cap.dark
                     ? "radial-gradient(circle at 85% 30%, rgba(15,122,79,0.08), transparent 60%), #0c0b09"
                     : "rgba(26,24,18,0.02)",
@@ -184,7 +187,7 @@ export function Capabilities() {
 
                 {!cap.dark && (
                   <div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none group-focus-visible:opacity-100"
                     style={{
                       background:
                         "radial-gradient(ellipse at 30% 20%, rgba(15,122,79,0.08), transparent 70%)",
@@ -211,7 +214,7 @@ export function Capabilities() {
                 <div className="relative z-10 h-full flex flex-col justify-between p-6">
                   <div className="relative">
                     <div
-                      className="relative w-11 h-11 rounded-full flex items-center justify-center mb-5 shrink-0 transition-transform duration-300 group-hover:scale-110"
+                      className="relative w-11 h-11 rounded-full flex items-center justify-center mb-5 shrink-0 transition-transform duration-300 group-hover:scale-110 group-focus-visible:scale-110"
                       style={{
                         background: cap.dark
                           ? "rgba(148,241,190,0.1)"
@@ -225,7 +228,7 @@ export function Capabilities() {
                         className="w-5 h-5"
                         style={{ color: cap.dark ? "#94f1be" : "#0f7a4f" }}
                       />
-                      {cap.dark && (
+                      {cap.dark && !reducedMotion && (
                         <span
                           className="absolute inline-flex h-2 w-2 rounded-full animate-ping"
                           style={{
@@ -238,16 +241,16 @@ export function Capabilities() {
                     </div>
 
                     <h3
-                      className="leading-snug"
+                      className="leading-snug hyphens-auto [overflow-wrap:anywhere]"
+                      lang="es"
                       style={{
                         fontFamily: "var(--font-heading)",
                         fontWeight: 800,
-                        fontSize: isHovered ? "22px" : "16px",
+                        fontSize: "clamp(15px, 1.35vw, 20px)",
                         color: cap.dark
                           ? "rgba(240,234,216,0.95)"
                           : "rgba(26,24,18,0.92)",
-                        transition: "font-size 0.4s",
-                      }}
+                                              }}
                     >
                       {cap.title}
                     </h3>
@@ -258,8 +261,8 @@ export function Capabilities() {
                         fontFamily: "var(--font-sans)",
                         fontWeight: 300,
                         color: cap.dark
-                          ? "rgba(240,234,216,0.55)"
-                          : "rgba(26,24,18,0.5)",
+                          ? "rgba(240,234,216,0.72)"
+                          : "rgba(26,24,18,0.68)",
                         maxWidth: "320px",
                       }}
                     >
@@ -285,7 +288,7 @@ export function Capabilities() {
                             className="text-[10px] uppercase tracking-wide"
                             style={{
                               fontFamily: "var(--font-sans)",
-                              color: "rgba(26,24,18,0.35)",
+                              color: "rgba(26,24,18,0.62)",
                             }}
                           >
                             {m.label}

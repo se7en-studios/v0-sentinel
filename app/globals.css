@@ -18,6 +18,7 @@
   --muted: #f1ede3;
   --muted-foreground: rgba(26, 24, 18, 0.66); /* AA (>= 4.5:1) on every light surface */
   --accent: #0f7a4f;
+  --green-aa: #0b6b44; /* brand green for text on tinted surfaces (>= 4.5:1) */
   --accent-foreground: #faf7f0;
   --destructive: #b83a3a;
   --destructive-foreground: #faf7f0;
@@ -676,3 +677,58 @@ html.admin-dark .admin-root :is(
 @media (prefers-reduced-motion: reduce) {
   .ignition-pulse { animation: none; }
 }
+
+
+/* Scroll journey (components/forest-journey.tsx) */
+:root {
+  --jn-ridge: #6f9a86;
+  --jn-far: #46765f;
+  --jn-mid: #244f3d;
+  --jn-near: #0a231a;
+}
+.jn-mist {
+  background: linear-gradient(to top, transparent, rgba(255, 238, 214, 0.28) 45%, transparent);
+  animation: jn-drift 18s ease-in-out infinite alternate;
+}
+.jn-bob { animation: jn-bob 3.6s ease-in-out infinite; }
+.jn-rotor { animation: jn-spin 0.16s linear infinite; transform-box: fill-box; transform-origin: center; }
+.jn-scan { animation: jn-scan 2.4s ease-in-out infinite; transform-origin: 80px 64px; }
+.jn-led { animation: jn-blink 1.2s steps(2, end) infinite; }
+.jn-led-b { animation-delay: 0.6s; }
+.jn-flame { animation: jn-flicker 0.9s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
+.jn-flame-b { animation-duration: 0.7s; animation-delay: -0.2s; }
+.jn-flame-c { animation-duration: 0.55s; animation-delay: -0.4s; }
+.jn-ember {
+  position: absolute;
+  bottom: 40%;
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: #ffb347;
+  box-shadow: 0 0 8px 2px rgba(255, 140, 40, 0.8);
+  animation: jn-ember 2.6s ease-out infinite;
+}
+@keyframes jn-ember { from { transform: translate(0, 0) scale(1); opacity: 1; } to { transform: translate(14px, -22vmin) scale(0.3); opacity: 0; } }
+.jn-sway { animation: jn-sway 5.5s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
+.jn-ray { animation: jn-ray 11s ease-in-out infinite alternate; }
+.jn-mote { position: absolute; border-radius: 9999px; background: rgba(255, 236, 190, 0.85); box-shadow: 0 0 6px 1px rgba(255, 226, 160, 0.6); animation: jn-mote 12s linear infinite; }
+.jn-wing { animation: jn-wing 0.55s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 70%; }
+.jn-smoke { position: absolute; bottom: 0; width: 70%; aspect-ratio: 1; border-radius: 9999px; background: radial-gradient(circle, rgba(60, 48, 44, 0.75), rgba(60, 48, 44, 0.25) 55%, transparent 72%); filter: blur(8px); animation: jn-smoke 8s ease-out infinite; }
+@keyframes jn-sway { from { transform: skewX(-1.2deg); } to { transform: skewX(1.6deg); } }
+@keyframes jn-ray { from { opacity: 0.55; } to { opacity: 1; } }
+@keyframes jn-mote { 0% { transform: translate(0, 0); opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translate(7vw, -12vh); opacity: 0; } }
+@keyframes jn-wing { from { transform: scaleY(1); } to { transform: scaleY(0.35); } }
+@keyframes jn-smoke { 0% { transform: translate(0, 0) scale(0.35); opacity: 0; } 15% { opacity: 1; } 100% { transform: translate(5vmin, -30vmin) scale(1.5); opacity: 0; } }
+@keyframes jn-drift { from { transform: translateX(-4%); } to { transform: translateX(4%); } }
+@keyframes jn-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes jn-spin { from { transform: scaleX(1); } 50% { transform: scaleX(0.55); } to { transform: scaleX(1); } }
+@keyframes jn-scan { 0%, 100% { transform: rotate(-9deg); opacity: 0.5; } 50% { transform: rotate(9deg); opacity: 1; } }
+@keyframes jn-blink { 50% { opacity: 0.15; } }
+@keyframes jn-flicker { from { transform: scale(1, 1) skewX(-2deg); } to { transform: scale(0.94, 1.08) skewX(3deg); } }
+#recorrido[data-paused="true"] * { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) {
+  .jn-mist, .jn-bob, .jn-rotor, .jn-scan, .jn-led, .jn-flame, .jn-ember, .jn-sway, .jn-ray, .jn-mote, .jn-wing, .jn-smoke { animation: none !important; }
+}
+
+/* Anclas: el navbar fijo mide 64px (móvil) / 80px (md+); 88px deja aire. */
+html { scroll-padding-top: 88px; }

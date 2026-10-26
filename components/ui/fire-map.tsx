@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { geoMercator, geoPath, geoCentroid, geoContains } from "d3-geo";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import countriesGeoJson from "@/data/latam-countries.json";
-import { MapTooltip } from "@/components/ui/map-tooltip";
+import { MapTooltip, mapPointProps } from "@/components/ui/map-tooltip";
 
 export interface FirePoint {
   lat: number;
@@ -178,6 +178,8 @@ export function FireMap({ points = [], pointColor = "#b83a3a" }: FireMapProps) {
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
           className="w-full h-full [mask-image:linear-gradient(to_bottom,transparent,white_4%,white_96%,transparent)]"
           onClick={() => setActivePoint(null)}
+          role="group"
+          aria-label={`Mapa de focos de calor detectados por satélite: ${visiblePoints.length} focos. Usá las flechas para recorrerlos y Enter para ver el detalle.`}
         >
           {countries.features.map((feature, i) => (
             <path
@@ -200,7 +202,7 @@ export function FireMap({ points = [], pointColor = "#b83a3a" }: FireMapProps) {
               y={label.y}
               textAnchor="middle"
               fontSize={selectedFeature ? 11 : 7}
-              fill="rgba(26,24,18,0.35)"
+              fill="rgba(26,24,18,0.66)"
               style={{ fontFamily: "var(--font-sans)" }}
             >
               {label.name}
@@ -210,15 +212,27 @@ export function FireMap({ points = [], pointColor = "#b83a3a" }: FireMapProps) {
           {visiblePoints.map((point, i) => {
             const [x, y] = project(point.lat, point.lng);
             const isActive = i === activePoint;
+            const toggle = () => setActivePoint(isActive ? null : i);
+            const label = [
+              "Foco de calor",
+              point.country,
+              frpIntensity(point.frp),
+              formatDate(point.acqDate, point.acqTime),
+            ]
+              .filter(Boolean)
+              .join(", ");
             return (
               <g
                 key={`fire-${i}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setActivePoint(isActive ? null : i);
+                  toggle();
                 }}
                 style={{ cursor: "pointer" }}
+                aria-pressed={isActive}
+                {...mapPointProps(label, toggle, i === (activePoint ?? 0))}
               >
+                <title>{label}</title>
                 {/* generous invisible hit target — the visible dot is tiny */}
                 <circle cx={x} cy={y} r={9} fill="transparent" />
                 <circle cx={x} cy={y} r={2.5} fill={pointColor} />
@@ -325,7 +339,7 @@ export function FireMap({ points = [], pointColor = "#b83a3a" }: FireMapProps) {
             border: `0.5px solid ${
               !selectedCountry ? "rgba(15,122,79,0.4)" : "rgba(26,24,18,0.15)"
             }`,
-            color: !selectedCountry ? "#0f7a4f" : "rgba(26,24,18,0.5)",
+            color: !selectedCountry ? "var(--green-aa)" : "var(--muted-foreground)",
           }}
         >
           Toda la región
@@ -351,7 +365,7 @@ export function FireMap({ points = [], pointColor = "#b83a3a" }: FireMapProps) {
                   : "rgba(26,24,18,0.15)"
               }`,
               color:
-                selectedCountry === name ? "#0f7a4f" : "rgba(26,24,18,0.5)",
+                selectedCountry === name ? "var(--green-aa)" : "var(--muted-foreground)",
             }}
           >
             {name} · {count}

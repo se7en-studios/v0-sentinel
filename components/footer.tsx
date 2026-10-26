@@ -1,7 +1,9 @@
 "use client";
 
-import { Mail, MapPin, MessageCircle, Instagram, Linkedin } from "lucide-react";
+import { Mail, MapPin, Share2, Instagram, Linkedin } from "lucide-react";
 import { SentinelLogo } from "@/components/sentinel-logo";
+import { ContactForm } from "@/components/contact-form";
+import { CONTACT_FALLBACK_EMAIL } from "@/lib/contact";
 
 const footerLinks = {
   Producto: [
@@ -15,9 +17,9 @@ const footerLinks = {
   ],
   Soporte: [
     { label: "Blog", href: "/blog" },
-    { label: "Panel de monitoreo", href: "/admin" },
     { label: "Contacto", href: "/#contacto" },
     { label: "FAQ", href: "/#faq" },
+    { label: "Privacidad", href: "/privacidad" },
   ],
 };
 
@@ -34,15 +36,14 @@ const socialLinks = [
   },
   {
     href: "https://linktr.ee/sentinelarg",
-    label: "WhatsApp",
-    icon: <MessageCircle className="w-4 h-4" />,
+    label: "Linktree",
+    icon: <Share2 className="w-4 h-4" />,
   },
 ];
 
 export function Footer() {
   return (
     <footer
-      id="contacto"
       className="relative overflow-hidden"
       style={{ background: "#0c0b09" }}
     >
@@ -89,32 +90,14 @@ export function Footer() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 pt-16 pb-10">
+        <div className="mb-16">
+          <ContactForm />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8 mb-14">
           {/* Brand */}
           <div className="lg:col-span-2">
             <div className="mb-4">
               <SentinelLogo className="h-6 w-auto" />
-            </div>
-
-            {/* Live status — the one honest, on-brand use of a status dot:
-                this company's whole promise is "always watching." */}
-            <div
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-6"
-              style={{
-                background: "rgba(148,241,190,0.08)",
-                border: "0.5px solid rgba(148,241,190,0.25)",
-              }}
-            >
-              <span
-                className="w-1.5 h-1.5 rounded-full animate-pulse-slow"
-                style={{ background: "#94f1be" }}
-              />
-              <span
-                className="text-[10px] tracking-[0.15em] uppercase"
-                style={{ fontFamily: "var(--font-sans)", color: "#94f1be" }}
-              >
-                Sentinel Cloud operativo
-              </span>
             </div>
 
             <p
@@ -125,13 +108,13 @@ export function Footer() {
                 color: "rgba(240,234,216,0.55)",
               }}
             >
-              Tecnología aérea e inteligencia artificial para la detección
-              temprana de incendios y el monitoreo ambiental.
+              Plataforma de detección temprana de incendios: datos satelitales,
+              inteligencia artificial y alertas para quienes cuidan el territorio.
             </p>
 
             <div className="space-y-2.5 mb-7">
               <a
-                href="mailto:sentinelproyecto@gmail.com"
+                href={`mailto:${CONTACT_FALLBACK_EMAIL}`}
                 className="flex items-center gap-2.5 w-fit transition-colors duration-200"
                 style={{ color: "rgba(240,234,216,0.6)" }}
                 onMouseEnter={(e) =>
@@ -149,7 +132,7 @@ export function Footer() {
                   className="text-[12px]"
                   style={{ fontFamily: "var(--font-sans)", fontWeight: 300 }}
                 >
-                  sentinelproyecto@gmail.com
+                  {CONTACT_FALLBACK_EMAIL}
                 </span>
               </a>
               <div className="flex items-center gap-2.5">

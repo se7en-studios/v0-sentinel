@@ -10,12 +10,12 @@ const steps = [
     title: "Identificación",
     tagline: "Vigilancia permanente desde el satélite",
     description:
-      "Datos satelitales, geoespaciales y de sensores en tiempo real. Cobertura 24/7 sobre territorios de difícil acceso, sumando sensores y drones de forma progresiva.",
+      "Datos satelitales (VIIRS, MODIS, GOES-19) y geoespaciales sobre territorios de difícil acceso, con sensores y drones sumándose de forma progresiva.",
     metrics: [
-      { label: "Cobertura", value: "24/7" },
+      { label: "Monitoreo", value: "Continuo" },
       { label: "Fuentes", value: "Satelital" },
     ],
-    readout: "> escaneando territorio... cobertura 24/7",
+    readout: "> procesando pasada satelital...",
   },
   {
     icon: Cpu,
@@ -23,12 +23,12 @@ const steps = [
     title: "Análisis IA",
     tagline: "Inteligencia que no descansa",
     description:
-      "Modelos de visión computacional procesan cada frame. La IA descarta falsos positivos y genera alertas geoespaciales verificadas en segundos.",
+      "Modelos de IA analizan cada pasada satelital, descartan falsos positivos y generan alertas geoespaciales verificadas.",
     metrics: [
-      { label: "Precisión", value: "98%" },
-      { label: "Latencia", value: "<3s" },
+      { label: "Precisión objetivo", value: "98%" },
+      { label: "Entrada", value: "Satelital" },
     ],
-    readout: "> confianza del modelo: 98.2%",
+    readout: "> foco candidato: verificando...",
   },
   {
     icon: Zap,
@@ -36,10 +36,10 @@ const steps = [
     title: "Respuesta",
     tagline: "De la detección a la acción",
     description:
-      "Brigadistas, municipios y organismos provinciales reciben alertas con coordenadas GPS exactas. Respuesta 60% más rápida que métodos tradicionales.",
+      "Brigadistas, municipios y organismos provinciales reciben alertas con la ubicación aproximada del foco, para decidir y actuar antes.",
     metrics: [
-      { label: "Velocidad respuesta", value: "+60%" },
-      { label: "Detección", value: "<8min" },
+      { label: "Detección objetivo", value: "<8 min" },
+      { label: "Destinatarios", value: "Brigadas" },
     ],
     readout: "> alerta enviada -> brigada zona norte",
   },
@@ -51,6 +51,7 @@ export function HowItWorks() {
   const [isVisible, setIsVisible] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
   // ponytail: starts false to match SSR (no `document` on the server) —
   // syncing the real value happens in the effect below, after hydration,
   // instead of in the initializer, which caused a hydration mismatch for
@@ -76,6 +77,12 @@ export function HowItWorks() {
   // flips isVisible back to false (one-shot reveal trigger), so there's no
   // existing "left viewport" signal to reuse without adding a second observer.
   useEffect(() => {
+    setReducedMotion(
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    );
+  }, []);
+
+  useEffect(() => {
     const handleVisibilityChange = () => setIsTabHidden(document.hidden);
     handleVisibilityChange();
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -84,13 +91,18 @@ export function HowItWorks() {
   }, []);
 
   useEffect(() => {
-    if (!isVisible || isPaused || isTabHidden) return;
+    if (!isVisible || isPaused || isTabHidden || reducedMotion) return;
     const timer = setInterval(() => {
       setActiveStep((s) => (s + 1) % 3);
       setProgressKey((k) => k + 1);
     }, STEP_DURATION);
     return () => clearInterval(timer);
-  }, [isVisible, isPaused, isTabHidden]);
+  }, [isVisible, isPaused, isTabHidden, reducedMotion]);
+
+  const selectStep = (i: number) => {
+    setActiveStep(i);
+    setProgressKey((k) => k + 1);
+  };
 
   return (
     <section
@@ -100,6 +112,8 @@ export function HowItWorks() {
       style={{ background: "#faf7f0" }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      onFocus={() => setIsPaused(true)}
+      onBlur={() => setIsPaused(false)}
     >
       <div
         className="absolute inset-0 pointer-events-none"
@@ -122,7 +136,7 @@ export function HowItWorks() {
             className="text-[11px] tracking-[0.3em] uppercase mb-4"
             style={{
               fontFamily: "var(--font-sans)",
-              color: "rgba(26,24,18,0.3)",
+              color: "rgba(26,24,18,0.62)",
             }}
           >
             Cómo funciona Sentinel Cloud
@@ -137,7 +151,7 @@ export function HowItWorks() {
               letterSpacing: "-1px",
             }}
           >
-            ¿Cómo <span style={{ color: "#0f7a4f" }}>lo hacemos?</span>
+            ¿Cómo <span style={{ color: "var(--green-aa)" }}>lo hacemos?</span>
           </h2>
         </div>
 
@@ -149,13 +163,34 @@ export function HowItWorks() {
               style={{ background: "rgba(26,24,18,0.08)" }}
             />
 
-            <div className="space-y-4">
+            <div className="space-y-4" role="tablist" aria-label="Pasos de Sentinel Cloud">
               {steps.map((step, i) => {
                 const isActive = activeStep === i;
                 return (
                   <div
                     key={step.number}
-                    className="relative flex gap-6 cursor-pointer transition-all duration-500"
+                    id={`hiw-tab-${i}`}
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-controls="hiw-panel"
+                    tabIndex={isActive ? 0 : -1}
+                    onKeyDown={(e) => {
+                      const d =
+                        e.key === "ArrowDown" || e.key === "ArrowRight"
+                          ? 1
+                          : e.key === "ArrowUp" || e.key === "ArrowLeft"
+                            ? -1
+                            : 0;
+                      let n = i;
+                      if (d) n = (i + d + steps.length) % steps.length;
+                      else if (e.key === "Home") n = 0;
+                      else if (e.key === "End") n = steps.length - 1;
+                      else if (e.key !== "Enter" && e.key !== " ") return;
+                      e.preventDefault();
+                      selectStep(n);
+                      document.getElementById(`hiw-tab-${n}`)?.focus();
+                    }}
+                    className="relative flex gap-6 cursor-pointer transition-opacity duration-500 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[#0f7a4f] focus-visible:ring-offset-4 focus-visible:ring-offset-[#faf7f0]"
                     style={{
                       opacity: isVisible ? 1 : 0,
                       transform: isVisible
@@ -163,10 +198,7 @@ export function HowItWorks() {
                         : "translateX(-20px)",
                       transitionDelay: `${i * 140}ms`,
                     }}
-                    onClick={() => {
-                      setActiveStep(i);
-                      setProgressKey((k) => k + 1);
-                    }}
+                    onClick={() => selectStep(i)}
                   >
                     {/* Step circle */}
                     <div
@@ -181,7 +213,7 @@ export function HowItWorks() {
                       <step.icon
                         className="w-5 h-5 transition-all duration-300"
                         style={{
-                          color: isActive ? "#0f7a4f" : "rgba(26,24,18,0.3)",
+                          color: isActive ? "var(--green-aa)" : "rgba(26,24,18,0.62)",
                         }}
                       />
                     </div>
@@ -195,7 +227,7 @@ export function HowItWorks() {
                           className="text-[10px] tracking-[0.25em] uppercase"
                           style={{
                             fontFamily: "var(--font-sans)",
-                            color: isActive ? "#0f7a4f" : "rgba(26,24,18,0.42)",
+                            color: isActive ? "var(--green-aa)" : "rgba(26,24,18,0.62)",
                           }}
                         >
                           {step.number}
@@ -218,7 +250,7 @@ export function HowItWorks() {
                         className="text-[11px] mt-0.5"
                         style={{
                           fontFamily: "var(--font-sans)",
-                          color: isActive ? "#0f7a4f" : "rgba(26,24,18,0.5)",
+                          color: isActive ? "var(--green-aa)" : "rgba(26,24,18,0.68)",
                           transition: "color 0.4s",
                           fontStyle: "italic",
                         }}
@@ -229,6 +261,7 @@ export function HowItWorks() {
                       {/* Expandable body */}
                       <div
                         className="overflow-hidden transition-all duration-500"
+                        aria-hidden={!isActive}
                         style={{
                           maxHeight: isActive ? "200px" : "0px",
                           opacity: isActive ? 1 : 0,
@@ -239,7 +272,7 @@ export function HowItWorks() {
                           style={{
                             fontFamily: "var(--font-sans)",
                             fontWeight: 300,
-                            color: "rgba(26,24,18,0.5)",
+                            color: "rgba(26,24,18,0.68)",
                           }}
                         >
                           {step.description}
@@ -262,7 +295,7 @@ export function HowItWorks() {
                                     fontFamily: "var(--font-heading)",
                                     fontWeight: 700,
                                     fontSize: "16px",
-                                    color: "#0f7a4f",
+                                    color: "var(--green-aa)",
                                     lineHeight: 1,
                                   }}
                                 >
@@ -272,7 +305,7 @@ export function HowItWorks() {
                                   className="text-[10px] tracking-wider uppercase mt-0.5"
                                   style={{
                                     fontFamily: "var(--font-sans)",
-                                    color: "rgba(26,24,18,0.42)",
+                                    color: "rgba(26,24,18,0.62)",
                                   }}
                                 >
                                   {m.label}
@@ -330,6 +363,9 @@ export function HowItWorks() {
           {/* Visual companion — mirrors whichever step is active instead of
             leaving the right half of the section empty on desktop. */}
           <div
+            id="hiw-panel"
+            role="tabpanel"
+            aria-labelledby={`hiw-tab-${activeStep}`}
             className="hidden lg:flex lg:col-span-2 flex-col items-center justify-center rounded-lg p-10 transition-all duration-700"
             style={{
               background: "#0c0b09",
@@ -354,7 +390,7 @@ export function HowItWorks() {
                     }}
                   >
                     <span
-                      className="absolute inset-0 rounded-full animate-ping"
+                      className="absolute inset-0 rounded-full motion-safe:animate-ping"
                       style={{
                         background: "rgba(148,241,190,0.15)",
                         animationDuration: "2.5s",
