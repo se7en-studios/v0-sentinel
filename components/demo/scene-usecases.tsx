@@ -32,7 +32,7 @@ const CASES: {
 ];
 
 // Same destinations as the landing's call to action (components/cta.tsx).
-const MEETING_URL = "https://linktr.ee/sentinelarg";
+const MEETING_URL = "/#contacto";
 const MESSAGE_URL = "/#contacto";
 
 /** Scene 6: where Sentinel applies (descriptions only) and the same contact destinations as the landing. */
@@ -67,8 +67,6 @@ export function SceneUseCases({
           <a
             className="d-btn"
             href={MEETING_URL}
-            target="_blank"
-            rel="noopener noreferrer"
           >
             {t("s6.ctaMeet")}
             <ArrowRight aria-hidden className="size-5" />

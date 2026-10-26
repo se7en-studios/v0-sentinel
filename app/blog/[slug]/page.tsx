@@ -256,9 +256,7 @@ export default async function BlogPostPage({
               ¿Querés monitoreo continuo en tu territorio?
             </p>
             <a
-              href="https://linktr.ee/sentinelarg"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/#contacto"
               className="inline-flex items-center gap-2 px-7 py-3 rounded-sm text-[13px] font-medium transition-all duration-200 hover:-translate-y-0.5"
               style={{
                 fontFamily: "var(--font-sans)",
