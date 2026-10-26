@@ -2,6 +2,7 @@
 
 import { parseLocale } from "./i18n";
 import { cleanRules } from "./rules";
+import { parseGoal } from "./goals";
 import { cleanAckMap, type AlertAck } from "./alert-ack";
 import { cleanIncidentMeta, type IncidentMeta } from "./incident-meta";
 import { EMPTY_OPS, cleanOps, type OpsState } from "./resources";
@@ -184,6 +185,13 @@ export function parseWorkspace(input: unknown): Workspace {
         thresholds: { ...DEFAULT_SETTINGS.thresholds, ...st.thresholds },
         notify: { ...DEFAULT_SETTINGS.notify, ...st.notify },
         rules: cleanRules(st.rules),
+        goal: parseGoal(st.goal),
+        // someone who already drew zones or set alerts has been using the panel: do not quiz them
+        onboarded:
+          typeof st.onboarded === "boolean"
+            ? st.onboarded
+            : features.length > 0 || cleanRules(st.rules).length > 0,
+        simpleMode: st.simpleMode === true,
       },
     };
   } catch {

@@ -225,18 +225,19 @@ export function IncidentsView({
         {!inc ? (
           <EmptyState
             icon={<Flame className="size-5" />}
-            title="Sin incidentes"
+            title={ctx.t("inc.empty.title")}
             action={
               scope === "region" && all.length > 0 ? (
                 <Btn onClick={() => setScope("ar")}>
-                  Ver {all.length} en Argentina
+                  {ctx.t("inc.empty.goAr", { n: all.length })}
                 </Btn>
               ) : undefined
             }
           >
+            {ctx.t("inc.empty.what")}{" "}
             {scope === "region"
-              ? `No hay grupos de 5 o más focos a menos de ${REGION_KM} km de la región en vista.`
-              : "No hay grupos de 5 o más focos cercanos en la ventana actual."}
+              ? ctx.t("inc.empty.region", { km: REGION_KM })
+              : ctx.t("inc.empty.ar")}
           </EmptyState>
         ) : (
           <div className="grid gap-4 lg:grid-cols-[280px_1fr]">

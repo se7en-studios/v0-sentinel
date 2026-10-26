@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 
 const TAGS = ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"];
 
@@ -7,6 +7,7 @@ async function openAdmin(page: Page, dark: boolean) {
   await page.addInitScript((d) => {
     try {
       localStorage.clear();
+      localStorage.setItem("sentinel-admin-workspace-v1", '{"settings":{"onboarded":true}}'); // first-run question already answered
       localStorage.setItem("sentinel-admin-theme", d ? "dark" : "light");
     } catch {}
   }, dark);

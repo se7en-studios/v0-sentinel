@@ -383,7 +383,7 @@ export function EmptyState({
       </div>
       <div className="text-[13px] font-semibold">{title}</div>
       {children && (
-        <p className="max-w-[26ch] text-[11.5px] leading-snug text-foreground/50">
+        <p className="max-w-[34ch] text-[11.5px] leading-snug text-foreground/60">
           {children}
         </p>
       )}

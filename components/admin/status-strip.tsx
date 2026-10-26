@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { riskLabel, type Translate } from "@/lib/admin/i18n";
 import type { Ctx } from "./ctx";
 import { scrollToSources } from "./scroll-to-sources";
+import { STALE_MIN } from "@/lib/admin/brief";
 
 type Tone = "ok" | "warn" | "bad" | "idle";
 
@@ -15,7 +16,6 @@ const DOT: Record<Tone, string> = {
 };
 
 /** A day-old feed looks identical to a quiet day unless the age is on screen. */
-const STALE_MIN = 6 * 60;
 
 /** Above this the satellite pass itself is the bottleneck, not our pipeline (VIIRS NRT is usually ~3 h). */
 const LATENCY_WARN_MIN = 240;

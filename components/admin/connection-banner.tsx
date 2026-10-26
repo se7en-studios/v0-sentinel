@@ -9,6 +9,7 @@ import {
   subscribeConnection,
 } from "@/lib/admin/connection";
 import type { Translate } from "@/lib/admin/i18n";
+import { ageText } from "@/lib/admin/age";
 
 const subscribeOnline = (cb: () => void) => {
   window.addEventListener("online", cb);
@@ -18,16 +19,6 @@ const subscribeOnline = (cb: () => void) => {
     window.removeEventListener("offline", cb);
   };
 };
-
-function ageText(t: Translate, since: number, now: number) {
-  const min = Math.floor(Math.max(0, now - since) / 60_000);
-  if (min < 1) return t("conn.justNow");
-  if (min < 60) return t("age.min", { n: min });
-  const h = Math.floor(min / 60);
-  return h < 48
-    ? t("age.hour", { n: h })
-    : t("age.day", { n: Math.floor(h / 24) });
-}
 
 const btn =
   "shrink-0 rounded-md px-2 py-0.5 font-semibold underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";

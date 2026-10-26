@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MODE_ROLE } from "@/lib/admin/types";
+import { STEP_TAB, goalById, stepDone, stepsFor } from "@/lib/admin/goals";
 import type { Ctx, Tab } from "./ctx";
 import { Btn } from "./ui";
 import { guideSeen, openGuide } from "./guide-state";
@@ -26,35 +26,13 @@ export function Onboarding({
     }
   }, []);
 
-  const roles = ctx.ws.features.map(
-    (f) => MODE_ROLE[String(f.properties.mode)],
-  );
-  const steps = [
-    {
-      done: roles.includes("zone"),
-      label: ctx.t("onb.zone"),
-      go: () => goTab("zonas"),
-    },
-    {
-      done: roles.includes("route"),
-      label: ctx.t("onb.route"),
-      go: () => goTab("drones"),
-    },
-    {
-      done: roles.includes("sensor"),
-      label: ctx.t("onb.sensor"),
-      go: () => goTab("drones"),
-    },
-    {
-      done: Boolean(
-        ctx.ws.settings.notify.email || ctx.ws.settings.notify.whatsapp,
-      ),
-      label: ctx.t("onb.contact"),
-      go: () => goTab("config"),
-    },
-  ];
+  const steps = stepsFor(goalById(ctx.ws.settings.goal)).map((id) => ({
+    done: stepDone(id, ctx.ws),
+    label: ctx.t(`onb.${id}`),
+    go: () => goTab(STEP_TAB[id]),
+  }));
   const doneCount = steps.filter((s) => s.done).length;
-  if (hidden || doneCount === steps.length) return null;
+  if (hidden || steps.length === 0 || doneCount === steps.length) return null;
 
   const dismiss = () => {
     setHidden(true);

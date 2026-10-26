@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import { openTab } from "./tab";
 
 // Integrations card in Settings. /api/admin/health and /api/admin/notify are simulated with page.route,
@@ -8,6 +8,7 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     try {
       localStorage.clear();
+      localStorage.setItem("sentinel-admin-workspace-v1", '{"settings":{"onboarded":true}}'); // first-run question already answered
     } catch {
       /* private mode */
     }

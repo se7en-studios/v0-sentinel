@@ -1,4 +1,5 @@
 import { chromium, type FullConfig } from "@playwright/test";
+import { skipFirstRun } from "./fixtures";
 
 // `next dev` compiles each view the first time the browser asks for it (10-40 s on a cold start), which
 // made the first test to touch a view time out. Walking every view once here pays that cost up front,
@@ -11,6 +12,7 @@ export default async function globalSetup(config: FullConfig) {
   try {
     const page = await browser.newPage({ baseURL });
     page.setDefaultTimeout(120_000);
+    await skipFirstRun(page);
     await page.goto("/admin");
     const nav = page.getByRole("navigation", { name: "Modos" });
     await nav.waitFor();

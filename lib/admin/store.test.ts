@@ -62,3 +62,24 @@ test("parseWorkspace keeps minScore inside 0-90 and defaults it to no filter", (
   expect(parseWorkspace({ settings: { minScore: -3 } }).settings.minScore).toBe(0);
   expect(parseWorkspace({ settings: { minScore: "x" } }).settings.minScore).toBe(0);
 });
+
+test("first-run flags: a workspace that already has zones or rules counts as set up", () => {
+  expect(parseWorkspace({}).settings.onboarded).toBe(false);
+  expect(parseWorkspace({ features: [zone] }).settings.onboarded).toBe(true);
+  expect(parseWorkspace({ settings: { rules: [{ id: "r", enabled: true, kind: "activity", focos: 100 }] } }).settings.onboarded).toBe(true);
+});
+
+test("first-run flags: an explicit answer is respected, even with zones", () => {
+  expect(parseWorkspace({ features: [zone], settings: { onboarded: false } }).settings.onboarded).toBe(false);
+  expect(parseWorkspace({ settings: { onboarded: true } }).settings.onboarded).toBe(true);
+  // not a boolean: fall back to what the workspace shows
+  expect(parseWorkspace({ settings: { onboarded: "yes" } }).settings.onboarded).toBe(false);
+});
+
+test("goal and simpleMode from storage are validated", () => {
+  expect(parseWorkspace({ settings: { goal: "forestry" } }).settings.goal).toBe("forestry");
+  expect(parseWorkspace({ settings: { goal: "<script>" } }).settings.goal).toBeNull();
+  expect(parseWorkspace({ settings: { goal: 7 } }).settings.goal).toBeNull();
+  expect(parseWorkspace({ settings: { simpleMode: true } }).settings.simpleMode).toBe(true);
+  expect(parseWorkspace({ settings: { simpleMode: "true" } }).settings.simpleMode).toBe(false);
+});

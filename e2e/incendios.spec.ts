@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 // Smoke test of the "Incendios" tab. The reconstructed case (Puerto Patriada) is a static package in
 // public/data, so nothing here depends on FIRMS or any third-party API answering.
@@ -14,6 +14,7 @@ test("el enlace directo abre Incendios y el caso reconstruido carga", async ({
   await page.addInitScript(() => {
     try {
       localStorage.clear();
+      localStorage.setItem("sentinel-admin-workspace-v1", '{"settings":{"onboarded":true}}'); // first-run question already answered
     } catch {
       /* private mode */
     }

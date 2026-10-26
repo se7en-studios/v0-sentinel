@@ -173,7 +173,7 @@ export function Topbar({ a }: { a: A }) {
 
       {/* phone: the tabs get their own full-width row under the logo and icons instead of ~110 px between them */}
       <span className="flex-1 md:hidden" aria-hidden />
-      <TabStrip tab={a.tab} goTab={a.goTab} badge={badge} t={ctx.t} />
+      <TabStrip tab={a.tab} goTab={a.goTab} badge={badge} t={ctx.t} simple={a.s.simpleMode} />
 
       <div className="hidden items-center md:flex">
         <DropdownMenu>

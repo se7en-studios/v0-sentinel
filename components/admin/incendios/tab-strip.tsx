@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { Tab } from "../ctx";
 import { TABS } from "../tabs";
+import { layoutTabs } from "@/lib/admin/tab-layout";
 
 export interface TabBadge {
   n: number;
@@ -26,40 +27,43 @@ export interface TabBadge {
 const MORE_W = 74; // the "Más" button
 const BTN = "h-8 max-lg:h-11 max-md:h-9";
 
+interface Measure {
+  widths: Record<string, number>;
+  avail: number;
+}
+
+const sameMeasure = (a: Measure, b: Measure) =>
+  a.avail === b.avail && TABS.every((x) => a.widths[x.id] === b.widths[x.id]);
+
 export function TabStrip({
   tab,
   goTab,
   badge,
   t,
+  simple = false,
 }: {
   tab: Tab;
   goTab: (t: Tab) => void;
   badge: (id: Tab) => TabBadge | null;
   t: Translate;
+  /** only the essential tabs in the bar; the rest under "Más" */
+  simple?: boolean;
 }) {
   const box = useRef<HTMLDivElement>(null);
   const ghost = useRef<HTMLDivElement>(null);
-  const [fit, setFit] = useState(TABS.length);
+  // before the first measurement everything is assumed to fit, so the server render shows the full bar
+  const [m, setM] = useState<Measure>({ widths: {}, avail: Number.POSITIVE_INFINITY });
 
   useLayoutEffect(() => {
     const el = box.current;
     const g = ghost.current;
     if (!el || !g) return;
     const measure = () => {
-      const widths = [...g.children].map(
-        (c) => (c as HTMLElement).offsetWidth + 2,
-      );
-      const avail = el.clientWidth;
-      if (widths.reduce((s, w) => s + w, 0) <= avail)
-        return setFit(TABS.length);
-      let used = MORE_W;
-      let n = 0;
-      for (const w of widths) {
-        if (used + w > avail) break;
-        used += w;
-        n++;
-      }
-      setFit(Math.max(1, n));
+      const next: Measure = {
+        widths: Object.fromEntries(TABS.map((x, i) => [x.id, ((g.children[i] as HTMLElement | undefined)?.offsetWidth ?? 0) + 2])),
+        avail: el.clientWidth,
+      };
+      setM((prev) => (sameMeasure(prev, next) ? prev : next));
     };
     measure();
     // the twin changes width without the box changing (language switch, web font arriving): watch both
@@ -74,17 +78,16 @@ export function TabStrip({
     };
   }, []);
 
-  let visible = TABS.slice(0, fit);
-  let hidden = TABS.slice(fit);
-  if (hidden.some((x) => x.id === tab)) {
-    // the active tab trades places with the last visible one
-    const last = visible[visible.length - 1];
-    visible = [...visible.slice(0, -1), TABS.find((x) => x.id === tab)!];
-    hidden = TABS.filter(
-      (x) =>
-        (x.id === last.id || hidden.some((h) => h.id === x.id)) && x.id !== tab,
-    );
-  }
+  const { visible: visibleIds, hidden: hiddenIds } = layoutTabs({
+    tabs: TABS,
+    simple,
+    widths: m.widths,
+    avail: m.avail,
+    moreW: MORE_W,
+    active: tab,
+  });
+  const visible = visibleIds.map((id) => TABS.find((x) => x.id === id)!);
+  const hidden = hiddenIds.map((id) => TABS.find((x) => x.id === id)!);
 
   // a render helper, not a component: a component declared here is a new type on every render, so React
   // would remount every button each time (lost focus and hover, and a button that moves under a click)

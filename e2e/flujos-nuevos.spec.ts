@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { openTab } from "./tab";
 
 // Flows added with GOES-19, MODIS, terrain and the language switch. Every external answer is simulated
@@ -11,6 +11,7 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     try {
       localStorage.clear();
+      localStorage.setItem("sentinel-admin-workspace-v1", '{"settings":{"onboarded":true}}'); // first-run question already answered
     } catch {
       /* private mode */
     }

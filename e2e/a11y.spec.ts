@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { appendFileSync } from "node:fs";
-import { expect, test, type Page } from "@playwright/test";
+import { WORKSPACE_KEY, expect, test, type Page } from "./fixtures";
 import { openTab } from "./tab";
 
 // WCAG 2.2 AA over every admin tab (demo mode), light/dark, phone and desktop.
@@ -26,12 +26,17 @@ const TAGS = ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"];
 const EXCLUDE = [".maplibregl-canvas", ".maplibregl-ctrl-attrib"];
 
 async function openAdmin(page: Page, dark: boolean) {
-  await page.addInitScript((d) => {
-    try {
-      localStorage.clear();
-      localStorage.setItem("sentinel-admin-theme", d ? "dark" : "light");
-    } catch {}
-  }, dark);
+  await page.addInitScript(
+    ([d, key]) => {
+      try {
+        localStorage.clear();
+        localStorage.setItem("sentinel-admin-theme", d ? "dark" : "light");
+        // the first-run question has its own checks below; here the panel opens on its content
+        localStorage.setItem(key, JSON.stringify({ settings: { onboarded: true } }));
+      } catch {}
+    },
+    [dark, WORKSPACE_KEY] as const,
+  );
   await page.goto("/admin");
   await expect(page.getByRole("navigation", { name: "Modos" })).toBeVisible();
 }

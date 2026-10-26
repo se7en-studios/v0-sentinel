@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import { openTab } from "./tab";
 
 // Resilience of the admin shell: API down then back, expired session, slow API, no network, and a view
@@ -54,6 +54,7 @@ test.beforeEach(async ({ page }) => {
     try {
       if (!sessionStorage.getItem("seeded")) {
         localStorage.clear();
+        localStorage.setItem("sentinel-admin-workspace-v1", '{"settings":{"onboarded":true}}'); // first-run question already answered
         sessionStorage.setItem("seeded", "1");
       }
     } catch {

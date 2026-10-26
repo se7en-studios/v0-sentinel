@@ -3,6 +3,8 @@
 import { useRef, type ReactNode } from "react";
 import { toast } from "sonner";
 import { LOCALES, parseLocale } from "@/lib/admin/i18n";
+import { essentialTabsText } from "@/lib/admin/goals";
+import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
 import { parseWorkspace } from "@/lib/admin/store";
 import { buildBackup, MAX_BACKUP_BYTES, readBackup } from "@/lib/admin/backup";
 import { MAX_IMPORT_BYTES, parseGeoJson } from "@/lib/admin/geojson-io";
@@ -246,6 +248,22 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
                 ))}
               </select>
             </Field>
+          </Card>
+
+          <Card title={t("goal.settings.title")}>
+            <p className="text-[13px] font-medium">{s.goal ? t(`goal.${s.goal}`) : t("goal.settings.none")}</p>
+            <p className="mt-1 text-[11.5px] leading-snug text-foreground/60">{t("goal.settings.hint")}</p>
+            <Btn className="mt-2 max-md:min-h-11" onClick={() => setSettings({ onboarded: false })}>
+              {t("goal.settings.change")}
+            </Btn>
+            <div className="mt-3 border-t border-[var(--hairline)] pt-2">
+              <Toggle
+                checked={s.simpleMode}
+                onChange={(v) => setSettings({ simpleMode: v })}
+                label={t("simple.title")}
+                hint={t("simple.hint", { tabs: essentialTabsText(t, NUM_LOCALE[s.locale]) })}
+              />
+            </div>
           </Card>
         </div>
       </Group>

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { tab } from "./tab";
 
 // "Ver incidente" in a fire popup must land on THAT incident, not on the first one of the list.
@@ -18,6 +18,7 @@ test("el popup de un foco abre el incidente que lo contiene", async ({ page }) =
   await page.addInitScript(() => {
     try {
       localStorage.clear();
+      localStorage.setItem("sentinel-admin-workspace-v1", '{"settings":{"onboarded":true}}'); // first-run question already answered
     } catch {
       /* private mode */
     }

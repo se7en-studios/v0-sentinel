@@ -19,6 +19,8 @@ import { ShortcutsHelp, useShortcuts } from "./shortcuts";
 import { storeLocale } from "./use-stored-t";
 import { ViewSkeleton } from "./ui";
 import { GuidedTour } from "./tour";
+import { FirstRun } from "./first-run";
+import { HomeBrief } from "./home-brief";
 import { StatusStrip } from "./status-strip";
 import { BackupNotice } from "./backup-notice";
 import { ConnectionBanner } from "./connection-banner";
@@ -100,6 +102,7 @@ export function AdminApp({
         <header className="h-11 shrink-0 border-b border-[var(--hairline)] bg-card" />
       )}
       {a.mounted && <StatusStrip ctx={ctx} />}
+      {a.mounted && <HomeBrief ctx={ctx} />}
       {a.mounted && <BackupNotice ctx={ctx} />}
       {a.mounted && (
         <ConnectionBanner
@@ -112,6 +115,7 @@ export function AdminApp({
       )}
       <Toaster position="bottom-center" />
       {a.tour && <GuidedTour a={a} />}
+      <FirstRun key={String(a.s.onboarded)} a={a} />
       {a.mounted && (
         <ShortcutsHelp open={a.shortcutsOpen} setOpen={a.setShortcutsOpen} t={ctx.t} />
       )}

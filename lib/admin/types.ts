@@ -3,6 +3,7 @@ import type { EarlyDetection } from "./early";
 import type { Locale } from "./i18n";
 import type { AckMap } from "./alert-ack";
 import type { IncidentMetaMap } from "./incident-meta";
+import type { GoalId } from "./goals";
 export type Role = "zone" | "line" | "route" | "sensor";
 export type SensorType = "temp" | "humidity" | "smoke" | "wind";
 export type BaseLayer = "esri" | "s2" | "viirs" | "light" | "topo";
@@ -63,6 +64,12 @@ export interface Settings {
   opacity: Record<OpacityKey, number>;
   thresholds: { temp: number; humidity: number; smoke: number; wind: number };
   rules: AlertRule[];
+  /** what the person said they want to watch (see goals.ts); null until they answer or skip */
+  goal: GoalId | null;
+  /** the first-run question was answered or skipped, so it is not asked again */
+  onboarded: boolean;
+  /** only the essential tabs in the bar, the rest under "Más" */
+  simpleMode: boolean;
   notify: {
     email: string;
     whatsapp: string;
@@ -254,6 +261,9 @@ export const DEFAULT_SETTINGS: Settings = {
   },
   thresholds: { temp: 45, humidity: 20, smoke: 150, wind: 50 },
   rules: [],
+  goal: null,
+  onboarded: false,
+  simpleMode: false,
   notify: {
     email: "",
     whatsapp: "",

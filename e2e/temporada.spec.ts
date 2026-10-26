@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import { openTab } from "./tab";
 
 // "Temporada" card in Metrics. /api/admin/history is simulated with page.route.
@@ -23,6 +23,7 @@ async function openMetrics(page: Page) {
   await page.addInitScript(() => {
     try {
       localStorage.clear();
+      localStorage.setItem("sentinel-admin-workspace-v1", '{"settings":{"onboarded":true}}'); // first-run question already answered
     } catch {
       /* private mode */
     }

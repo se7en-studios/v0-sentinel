@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { loadBuffer } from "@/lib/admin/buffer";
 import circle from "@turf/circle";
-import { Crosshair, Download, Pencil, Trash2, Video, Wand2 } from "lucide-react";
+import { Crosshair, Download, MapPin, Pencil, Trash2, Video, Wand2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { areaHa, centerOf, fmtArea, fmtKm, lengthKm, patrolRing, sweepPath } from "@/lib/admin/geo";
 import { toKml } from "@/lib/admin/kml";
@@ -21,7 +21,7 @@ import {
 } from "@/lib/admin/types";
 import type { Ctx } from "./ctx";
 import { ZoneDetail } from "./zone-detail";
-import { Badge, Btn, Card, Field, KV, Sparkline, Stat, inputCls } from "./ui";
+import { Badge, Btn, Card, EmptyState, Field, KV, Sparkline, Stat, inputCls } from "./ui";
 
 const roleOf = (f: Feat): Role =>
   MODE_ROLE[String(f.properties.mode)] ?? "zone";
@@ -259,14 +259,18 @@ function ItemList({
 }: {
   ctx: Ctx;
   roles: Role[];
-  empty: string;
+  empty: ReactNode;
 }) {
   const { t } = ctx;
   const loc = NUM_LOCALE[ctx.ws.settings.locale];
   const items = ctx.ws.features.filter((f) => roles.includes(roleOf(f)));
   const u = ctx.ws.settings.units;
   if (items.length === 0)
-    return <p className="text-[12px] text-foreground/45">{empty}</p>;
+    return typeof empty === "string" ? (
+      <p className="text-[12px] text-foreground/45">{empty}</p>
+    ) : (
+      <>{empty}</>
+    );
   return (
     <ul className="space-y-0.5">
       {items.map((f) => {
@@ -382,18 +386,26 @@ export function ZonesPanel({ ctx }: { ctx: Ctx }) {
 
       <SelectedCard ctx={ctx} />
 
-      <Card bare
-        title={t("drw.zonesLines")}
-        right={
-          ctx.ws.features.length === 0 ? (
-            <Btn onClick={ctx.loadDemo}>{t("drw.loadDemo")}</Btn>
-          ) : undefined
-        }
-      >
+      <Card bare title={t("drw.zonesLines")}>
         <ItemList
           ctx={ctx}
           roles={["zone", "line"]}
-          empty={t("drw.emptyList")}
+          empty={
+            <EmptyState
+              icon={<MapPin className="size-5" />}
+              title={t("drw.empty.title")}
+              action={
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Btn variant="solid" onClick={() => ctx.setTool("zone-polygon")}>
+                    {t("drw.empty.draw")}
+                  </Btn>
+                  <Btn onClick={ctx.loadDemo}>{t("drw.empty.demo")}</Btn>
+                </div>
+              }
+            >
+              {t("drw.empty.body")}
+            </EmptyState>
+          }
         />
       </Card>
     </div>

@@ -6,6 +6,7 @@ import { enIncidents, esIncidents, ptIncidents } from "./i18n-incidents";
 import { enResilience, esResilience, ptResilience } from "./i18n-resilience";
 import { enHistory, esHistory, ptHistory } from "./i18n-history";
 import { enGuide, esGuide, ptGuide } from "./i18n-guide";
+import { enGoals, esGoals, ptGoals } from "./i18n-goals";
 import { esFires } from "./i18n-fires";
 import { enFires } from "./i18n-fires-en";
 import { ptFires } from "./i18n-fires-pt";
@@ -109,6 +110,7 @@ const es = {
   ...esResilience,
   ...esHistory,
   ...esGuide,
+  ...esGoals,
   ...esFires,
 } as const;
 
@@ -123,6 +125,7 @@ const en: Record<MsgKey, string> = {
   ...enResilience,
   ...enHistory,
   ...enGuide,
+  ...enGoals,
   ...enFires,
   "tab.general": "Overview",
   "tab.incendios": "Fires",
@@ -216,6 +219,7 @@ const pt: Record<MsgKey, string> = {
   ...ptResilience,
   ...ptHistory,
   ...ptGuide,
+  ...ptGoals,
   ...ptFires,
   "tab.general": "Visão geral",
   "tab.incendios": "Incêndios",
