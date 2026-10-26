@@ -1,6 +1,5 @@
-"use client";
-
-import { Marquee } from "@/components/ui/marquee";
+import Image from "next/image";
+import { Chapter, Eyebrow } from "@/components/ui/chapter";
 
 const logos = [
   { id: "uba", description: "UBA", image: "/uba-logo.png" },
@@ -23,73 +22,41 @@ const logos = [
   { id: "utn", description: "UTN", image: "/utn.png" },
 ];
 
+export function PartnersBlock() {
+  return (
+    <div>
+      <h3 className="t-h3 mb-2">
+        Programas y entidades en las que participamos
+      </h3>
+      <p className="t-small mb-6 max-w-2xl opacity-80">
+        Universidades de origen, organizadores de competencias y programas de
+        los que Sentinel formó parte. No implica convenio ni respaldo comercial.
+      </p>
+      <ul className="flex flex-wrap items-center gap-x-8 gap-y-5">
+        {logos.map((l) => (
+          <li key={l.id} className="flex h-10 items-center">
+            <Image
+              src={l.image}
+              alt={l.description}
+              width={100}
+              height={36}
+              loading="lazy"
+              className="max-h-9 w-auto max-w-[100px] object-contain opacity-70"
+              style={{ filter: "grayscale(100%) brightness(0)" }}
+            />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// Compatibilidad: el capítulo completo vive en Proof.
 export function Partners() {
   return (
-    <section
-      className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "#faf7f0" }}
-    >
-      <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10 text-center mb-14">
-        <h2
-          className="text-3xl sm:text-4xl mb-4"
-          style={{
-            fontFamily: "var(--font-heading)",
-            fontWeight: 800,
-            color: "rgba(26,24,18,0.92)",
-            lineHeight: 1.1,
-          }}
-        >
-          Programas y entidades con las{" "}
-          <span style={{ color: "var(--green-aa)" }}>que participamos.</span>
-        </h2>
-        <p
-          className="text-[13px] max-w-lg mx-auto"
-          style={{
-            fontFamily: "var(--font-sans)",
-            fontWeight: 300,
-            color: "rgba(26,24,18,0.62)",
-          }}
-        >
-          Universidades de origen, organizadores de competencias y programas de
-          los que Sentinel formó parte en su camino de idea universitaria a
-          piloto. No implica convenio ni respaldo comercial.
-        </p>
-      </div>
-
-      <div className="relative">
-        <Marquee pauseOnHover repeat={3} className="[--duration:35s]">
-          {logos.map((logo) => (
-            <div
-              key={logo.id}
-              className="flex items-center justify-center h-16 w-[140px] shrink-0"
-            >
-              <img
-                src={logo.image}
-                alt={logo.description}
-                title={logo.description}
-                width={100}
-                height={36}
-                loading="lazy"
-                className="max-h-9 max-w-[100px] w-auto object-contain transition-all duration-300 hover:scale-105 opacity-60 hover:opacity-100"
-                style={{ filter: "grayscale(100%) brightness(0)" }}
-              />
-            </div>
-          ))}
-        </Marquee>
-        {/* edge fade so logos don't hard-cut against the page background */}
-        <div
-          className="pointer-events-none absolute inset-y-0 left-0 w-24 sm:w-40"
-          style={{
-            background: "linear-gradient(to right, #faf7f0, transparent)",
-          }}
-        />
-        <div
-          className="pointer-events-none absolute inset-y-0 right-0 w-24 sm:w-40"
-          style={{
-            background: "linear-gradient(to left, #faf7f0, transparent)",
-          }}
-        />
-      </div>
-    </section>
+    <Chapter>
+      <Eyebrow>Entidades</Eyebrow>
+      <PartnersBlock />
+    </Chapter>
   );
 }

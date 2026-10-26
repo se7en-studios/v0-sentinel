@@ -41,7 +41,7 @@ async function fetchChunkCount(
   ).length;
 }
 
-interface Impact {
+export interface Impact {
   total: number;
   coveredDays: number;
   failedChunks: number;
@@ -51,7 +51,7 @@ interface Impact {
   at: Date;
 }
 
-async function fetchImpact(): Promise<Impact | null> {
+export async function fetchImpact(): Promise<Impact | null> {
   const key = process.env.NASA_FIRMS_KEY;
   if (!key) return null;
 

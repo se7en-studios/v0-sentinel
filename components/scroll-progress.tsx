@@ -1,37 +1,35 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
 export function ScrollProgress() {
-  const [progress, setProgress] = useState(0);
+  const bar = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // ponytail: rAF-throttled + passive so this runs at most once per frame
-    // instead of on every raw scroll event (was causing layout reads + a
-    // setState on every pixel of scroll).
+    // Escribe directo al DOM (sin setState) y como máximo una vez por frame.
     let ticking = false;
-    const updateProgress = () => {
+    const update = () => {
       ticking = false;
-      const scrollHeight =
-        document.documentElement.scrollHeight - window.innerHeight;
-      const scrollTop = window.scrollY;
-      setProgress(scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0);
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const p = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+      if (bar.current) bar.current.style.transform = `scaleX(${p})`;
     };
-    const handleScroll = () => {
+    const onScroll = () => {
       if (ticking) return;
       ticking = true;
-      requestAnimationFrame(updateProgress);
+      requestAnimationFrame(update);
     };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] h-1 bg-transparent">
+    <div aria-hidden className="fixed top-0 left-0 right-0 z-[100] h-1">
       <div
-        className="h-full bg-gradient-to-r from-[#0f7a4f] to-[#178f52] transition-all duration-150"
-        style={{ width: `${progress}%` }}
+        ref={bar}
+        className="h-full origin-left bg-leaf will-change-transform"
+        style={{ transform: "scaleX(0)" }}
       />
     </div>
   );

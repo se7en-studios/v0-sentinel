@@ -1,8 +1,6 @@
-"use client";
-
 import Image from "next/image";
-import { motion } from "framer-motion";
-import { Linkedin, Users } from "lucide-react";
+import { Linkedin } from "lucide-react";
+import { Chapter, Eyebrow } from "@/components/ui/chapter";
 
 const teamMembers = [
   {
@@ -39,109 +37,47 @@ const teamMembers = [
   },
 ];
 
+export function TeamBlock() {
+  return (
+    <ul className="grid grid-cols-2 gap-x-4 gap-y-10 lg:grid-cols-4 lg:gap-x-6">
+      {teamMembers.map((m) => (
+        <li key={m.name}>
+          <div className="relative aspect-[4/5] overflow-hidden rounded-sm bg-ash">
+            <Image
+              src={m.image}
+              alt={`${m.name}, ${m.role}`}
+              fill
+              sizes="(max-width: 1024px) 46vw, 270px"
+              loading="lazy"
+              className="object-cover"
+            />
+          </div>
+          <p className="t-label mt-4 text-[#0b6b44]">{m.role}</p>
+          <h3 className="t-h3 mt-1">{m.name}</h3>
+          <p className="t-small mt-1 opacity-75">{m.degree}</p>
+          <p className="t-small mt-2 opacity-90">{m.bio}</p>
+          <a
+            href={m.linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`LinkedIn de ${m.name} (abre en pestaña nueva)`}
+            className="mt-3 inline-flex h-11 w-11 items-center justify-center rounded-full border border-foreground/20 text-foreground/80 transition-colors hover:border-primary hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            <Linkedin className="h-4 w-4" aria-hidden />
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// Compatibilidad: el capítulo completo vive en Proof.
 export function Team() {
   return (
-    <section
-      id="equipo"
-      className="relative w-full overflow-hidden py-24 lg:py-32 bg-[#faf7f0]"
-    >
-      <div className="relative z-10 mx-auto max-w-6xl px-6 lg:px-10">
-        
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mx-auto mb-16 flex max-w-2xl flex-col items-center text-center"
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase mb-4 bg-emerald-900/10 text-emerald-800 border border-emerald-700/20">
-            <Users className="w-3.5 h-3.5 text-emerald-700" />
-            <span>Fundadores & Equipo Técnico</span>
-          </div>
-
-          <h2
-            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#1a1812]"
-            style={{
-              fontFamily: "var(--font-heading)",
-              lineHeight: 1.1,
-            }}
-          >
-            Las personas detrás de Sentinel
-          </h2>
-          
-          <p
-            className="mt-4 text-[15px] sm:text-[16px] text-[#1a1812]/70 font-light max-w-xl"
-            style={{
-              fontFamily: "var(--font-sans)",
-            }}
-          >
-            Cuatro ingenieros de la Patagonia con un objetivo común: que ningún incendio forestal pase desapercibido.
-          </p>
-        </motion.div>
-
-        {/* Team Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {teamMembers.map((m, i) => (
-            <motion.div
-              key={m.name}
-              initial={{ opacity: 0, y: 25 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-            >
-              <a
-                href={m.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative block overflow-hidden rounded-2xl bg-[#0c0b09] shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
-              >
-                <div className="relative aspect-[3/4] w-full overflow-hidden">
-                  <Image
-                    src={m.image}
-                    width={480}
-                    height={640}
-                    alt={m.name}
-                    className="h-full w-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0c0b09] via-black/30 to-transparent" />
-                </div>
-
-                {/* Info Card Overlay */}
-                <div
-                  className="absolute inset-x-0 bottom-0 p-5 text-white"
-                  style={{ fontFamily: "var(--font-sans)" }}
-                >
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <span className="text-[10px] font-mono tracking-wider uppercase text-emerald-400 font-semibold">
-                      {m.role}
-                    </span>
-                    <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-white/80 group-hover:bg-emerald-500 group-hover:text-black transition-all">
-                      <Linkedin className="w-3.5 h-3.5" />
-                    </div>
-                  </div>
-
-                  <h3
-                    className="text-lg font-bold text-white group-hover:text-emerald-300 transition-colors"
-                    style={{ fontFamily: "var(--font-heading)" }}
-                  >
-                    {m.name}
-                  </h3>
-
-                  <p className="text-[11px] text-white/70 font-mono mt-0.5">
-                    {m.degree}
-                  </p>
-
-                  <p className="text-[12px] text-white/60 font-light mt-2 line-clamp-2 leading-snug">
-                    {m.bio}
-                  </p>
-                </div>
-              </a>
-            </motion.div>
-          ))}
-        </div>
-
-      </div>
-    </section>
+    <Chapter id="equipo">
+      <Eyebrow>Equipo</Eyebrow>
+      <h2 className="t-h2 mb-12 max-w-3xl">Cuatro ingenieros con un objetivo: llegar antes al fuego.</h2>
+      <TeamBlock />
+    </Chapter>
   );
 }

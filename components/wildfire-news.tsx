@@ -15,7 +15,7 @@ import {
 // hotlinked from third-party publishers; confirm rights before launch.
 
 const QUERY = "incendios forestales Argentina";
-const MAX_ITEMS = 6; // same single GNews request as before
+export const MAX_ITEMS = 6; // same single GNews request as before
 const MIN_USEFUL = 1;
 const ID = "noticias-title";
 const TITLE = "Noticias sobre incendios forestales en Argentina.";
@@ -29,7 +29,7 @@ interface GNewsArticle {
   source: { name: string };
 }
 
-async function fetchWildfireNews(): Promise<NewsItem[] | null> {
+export async function fetchWildfireNews(): Promise<NewsItem[] | null> {
   const key = process.env.GNEWS_API_KEY;
   if (!key) return null;
 
@@ -53,7 +53,7 @@ async function fetchWildfireNews(): Promise<NewsItem[] | null> {
   }
 }
 
-function relativeTime(publishedAt: string, now: number): string {
+export function relativeTime(publishedAt: string, now: number): string {
   const then = new Date(publishedAt).getTime();
   if (Number.isNaN(then)) return "";
   const hours = Math.max(1, Math.round((now - then) / 3_600_000));

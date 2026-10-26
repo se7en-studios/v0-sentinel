@@ -25,6 +25,7 @@ import {
   Satellite,
   type LayerKind,
 } from "./forest-art";
+import { CLAIMS } from "@/lib/claims";
 import { Birds, Clouds, DustMotes, FilmFinish, Smoke, SunRays } from "./forest-effects";
 
 type P = MotionValue<number>;
@@ -51,7 +52,7 @@ const CHAPTERS = [
   {
     kicker: "04 · Detección",
     title: "Foco detectado en minutos, no en horas",
-    body: "La anomalía térmica se cruza con terreno, clima y combustible para separar un foco real de un falso positivo.",
+    body: "La anomalía térmica se cruza con terreno, clima y combustible para filtrar falsos positivos y priorizar el foco real.",
     range: [0.62, 0.82],
   },
   {
@@ -138,23 +139,16 @@ function Chapter({ p, i, children }: { p: P; i: number; children: ReactNode }) {
 
 function ChapterText({ i }: { i: number }) {
   const c = CHAPTERS[i];
+  const Title = i === 0 ? "h2" : "h3";
   return (
-    <div className="max-w-xl [text-shadow:0_2px_16px_rgba(0,0,0,0.55)]">
-      <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.18em] text-[#94f1be]">
-        {c.kicker}
-      </p>
-      <h2
-        className="text-[1.9rem] font-extrabold leading-[1.05] tracking-[-0.03em] text-[#f6f1e2] sm:text-5xl"
-        style={{ fontFamily: "var(--font-heading)" }}
-      >
-        {c.title}
-      </h2>
-      <p className="mt-4 max-w-md text-[15px] leading-relaxed text-[#f6f1e2]/80">
-        {c.body}
-      </p>
+    // Scrim propio: el texto nunca depende de lo que haya detrás en el cielo.
+    <div className="max-w-xl rounded-2xl bg-charcoal/80 p-5 text-[#f4efe2] sm:p-7">
+      <p className="t-label mb-3 text-leaf-bright">{c.kicker}</p>
+      <Title className="t-h2 text-[1.9rem] text-balance sm:text-5xl">{c.title}</Title>
+      <p className="t-body mt-4 max-w-md text-[#f4efe2]/90">{c.body}</p>
       {i === 3 && (
-        <p className="mt-5 inline-flex items-baseline gap-2 rounded-full border border-[#94f1be]/30 bg-black/30 px-4 py-1.5 text-[12px] text-[#f6f1e2]/80 backdrop-blur">
-          <span className="text-lg font-bold text-[#94f1be]">8 min</span> tiempo
+        <p className="t-small mt-5 inline-flex items-baseline gap-2 rounded-full border border-leaf-bright/40 px-4 py-1.5">
+          <span className="text-lg font-bold text-leaf-bright">{CLAIMS.detectionMinutes} min</span> tiempo
           de detección objetivo
         </p>
       )}
@@ -162,13 +156,13 @@ function ChapterText({ i }: { i: number }) {
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <a
             href="/demo"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#94f1be] px-7 py-3 text-[13px] font-medium tracking-wide text-[#0c0b09] transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-leaf-bright px-7 py-3 text-base font-semibold text-charcoal transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
             Ver el panel en vivo <ArrowRight className="size-4" aria-hidden />
           </a>
           <a
             href="#nosotros"
-            className="inline-flex items-center justify-center rounded-full border border-[#f6f1e2]/30 px-7 py-3 text-[13px] text-[#f6f1e2]/90 transition-colors hover:border-[#f6f1e2]/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            className="inline-flex items-center justify-center rounded-full border border-[#f4efe2]/40 px-7 py-3 text-base text-[#f4efe2] transition-colors hover:border-[#f4efe2] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
             Conocer la plataforma
           </a>
@@ -220,8 +214,8 @@ function FireFront({ p, animate }: { p: P; animate: boolean }) {
           <span key={i} aria-hidden className="jn-ember" style={{ left: `${24 + i * 10}%`, animationDelay: `${i * 0.5}s` }} />
         ))}
       </motion.div>
-      <motion.div className="absolute inset-x-[10%] inset-y-[4%] border border-[#94f1be]/80" style={{ opacity: reticle, scale: reticleScale }}>
-        <span className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-black/55 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-[#94f1be]">
+      <motion.div className="absolute inset-x-[10%] inset-y-[4%] border border-leaf-bright/80" style={{ opacity: reticle, scale: reticleScale }}>
+        <span className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded t-label bg-charcoal/85 px-2 py-0.5 text-leaf-bright">
           Anomalía térmica
         </span>
       </motion.div>
@@ -234,12 +228,12 @@ function Scene({ p, reduce }: { p: P; reduce: boolean }) {
   const top = useTransform(
     p,
     [0, 0.5, 0.7, 1],
-    ["#16352f", "#1c3a35", "#3a2420", "#2a1a1a"],
+    ["#12110e", "#1d1b17", "#3a2016", "#2a1510"],
   );
   const bottom = useTransform(
     p,
     [0, 0.5, 0.7, 1],
-    ["#f0c892", "#e8a76d", "#d9703a", "#a8442a"],
+    ["#e9dcc0", "#d9a874", "#e8732a", "#9a3a1a"],
   );
   const sky = useMotionTemplate`linear-gradient(to bottom, ${top} 0%, ${bottom} 100%)`;
   const heat = useTransform(p, [0.6, 0.72, 1], [0, 0.55, 0.7]);
@@ -310,21 +304,21 @@ function Scene({ p, reduce }: { p: P; reduce: boolean }) {
       <FilmFinish />
 
       <motion.div
-        className="absolute right-4 top-24 w-[min(78vw,300px)] rounded-2xl border border-white/15 bg-black/55 p-4 text-[#f6f1e2] shadow-2xl backdrop-blur-md sm:right-10 sm:top-1/3"
+        className="absolute right-4 top-24 w-[min(78vw,300px)] rounded-2xl border border-white/15 bg-charcoal/90 p-4 text-[#f4efe2] shadow-2xl sm:right-10 sm:top-1/3"
         style={{ opacity: notice, y: noticeY }}
         inert={!noticeOn}
         aria-hidden={!noticeOn}
       >
-        <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-[#94f1be]">
+        <div className="flex items-center gap-2 t-label text-leaf-bright">
           <BellRing className="size-3.5" aria-hidden /> Sentinel · Alerta
         </div>
-        <p className="mt-2 text-sm font-medium">
+        <p className="t-small mt-2 font-medium">
           Foco confirmado a 3,2 km del Lote 14
         </p>
-        <p className="mt-1 text-xs text-[#f6f1e2]/65">
+        <p className="t-small mt-1 text-[#f4efe2]/80">
           Viento 28 km/h del oeste · riesgo de propagación alto
         </p>
-        <p className="mt-3 text-[10px] uppercase tracking-wider text-[#f6f1e2]/40">
+        <p className="t-label mt-3 text-[#f4efe2]/70">
           Ejemplo ilustrativo
         </p>
       </motion.div>
@@ -332,7 +326,8 @@ function Scene({ p, reduce }: { p: P; reduce: boolean }) {
   );
 }
 
-const REDUCED = "(prefers-reduced-motion: reduce)";
+// Versión estática también en pantallas angostas: el recorrido pineado cuesta demasiado en mobile.
+const REDUCED = "(prefers-reduced-motion: reduce), (max-width: 767px)";
 const readReduced = () => window.matchMedia(REDUCED).matches;
 function subscribeReduced(cb: () => void) {
   const m = window.matchMedia(REDUCED);
@@ -362,7 +357,7 @@ export function ForestJourney() {
       id="recorrido"
       data-paused={!onScreen}
       aria-label="Cómo Sentinel detecta un incendio"
-      className="relative bg-[#16352f]"
+      className="relative overflow-x-clip bg-charcoal"
       style={reduce ? undefined : { height: "480svh" }}
     >
       <a
@@ -393,7 +388,7 @@ export function ForestJourney() {
         {!reduce && <Ticks p={p} />}
       </div>
       {reduce && (
-        <div className="mx-auto grid max-w-6xl gap-10 bg-[#0c1b16] px-5 py-14 sm:px-10 md:grid-cols-2">
+        <div className="mx-auto grid max-w-6xl gap-10 bg-charcoal px-5 py-14 sm:px-10 md:grid-cols-2">
           {CHAPTERS.map((_, i) => (
             <ChapterText key={i} i={i} />
           ))}
@@ -431,7 +426,7 @@ function Tick({ p, range }: { p: P; range: readonly [number, number] }) {
   );
   return (
     <motion.span
-      className="h-1 rounded-full bg-[#94f1be]"
+      className="h-1 rounded-full bg-leaf-bright"
       style={{ opacity, width }}
     />
   );

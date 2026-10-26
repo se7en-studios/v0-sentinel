@@ -2,11 +2,6 @@ import dynamic from "next/dynamic";
 import { Navbar } from "@/components/navbar";
 import { Hero } from "@/components/hero";
 import { ForestJourney } from "@/components/forest-journey-lazy";
-import { FireRiskIndex } from "@/components/fire-risk-index";
-import { ActiveFires } from "@/components/active-fires";
-import { FireImpactStats } from "@/components/fire-impact-stats";
-import { WildfireNews } from "@/components/wildfire-news";
-import { Press } from "@/components/press";
 import { ScrollProgress } from "@/components/scroll-progress";
 import { SectionDots } from "@/components/ui/section-dots";
 import { WhatsAppButton } from "@/components/whatsapp-button";
@@ -21,28 +16,19 @@ import { WhatsAppButton } from "@/components/whatsapp-button";
 const Problem = dynamic(() =>
   import("@/components/problem").then((m) => m.Problem),
 );
-const Features = dynamic(() =>
-  import("@/components/features").then((m) => m.Features),
-);
-const Capabilities = dynamic(() =>
-  import("@/components/capabilities").then((m) => m.Capabilities),
-);
-const HowItWorks = dynamic(() =>
-  import("@/components/how-it-works").then((m) => m.HowItWorks),
+const Platform = dynamic(() =>
+  import("@/components/platform").then((m) => m.Platform),
 );
 const Stats = dynamic(() => import("@/components/stats").then((m) => m.Stats));
-const Team = dynamic(() => import("@/components/team").then((m) => m.Team));
-const Awards = dynamic(() =>
-  import("@/components/awards").then((m) => m.Awards),
+const LiveChapter = dynamic(() =>
+  import("@/components/live").then((m) => m.LiveChapter),
 );
-const Partners = dynamic(() =>
-  import("@/components/partners").then((m) => m.Partners),
+const Audiences = dynamic(() =>
+  import("@/components/audiences").then((m) => m.Audiences),
 );
-const InstagramFeed = dynamic(() =>
-  import("@/components/instagram").then((m) => m.InstagramFeed),
-);
-const BlogTeaser = dynamic(() =>
-  import("@/components/blog-teaser").then((m) => m.BlogTeaser),
+const Proof = dynamic(() => import("@/components/proof").then((m) => m.Proof));
+const ContentStrip = dynamic(() =>
+  import("@/components/content-strip").then((m) => m.ContentStrip),
 );
 const FAQ = dynamic(() => import("@/components/faq").then((m) => m.FAQ));
 const CTA = dynamic(() => import("@/components/cta").then((m) => m.CTA));
@@ -65,20 +51,12 @@ export default function Home() {
         <Hero />
         <ForestJourney />
         <Problem />
-        <Features />
-        <Capabilities />
-        <HowItWorks />
+        <Platform />
         <Stats />
-        <FireRiskIndex />
-        <ActiveFires />
-        <FireImpactStats />
-        <WildfireNews />
-        <Team />
-        <Awards />
-        <Press />
-        <Partners />
-        <InstagramFeed />
-        <BlogTeaser />
+        <LiveChapter />
+        <Audiences />
+        <Proof />
+        <ContentStrip />
         <FAQ />
         <CTA />
       </main>

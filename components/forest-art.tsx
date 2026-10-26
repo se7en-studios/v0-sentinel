@@ -215,14 +215,11 @@ export function Satellite() {
 export function Flame({ animate = true, id = "a" }: { animate?: boolean; id?: string }) {
   const f = `jn-turb-${id}`;
   return (
-    <svg aria-hidden viewBox="0 0 120 150" className="h-full w-full overflow-visible">
+    <svg aria-hidden viewBox="0 0 120 150" className={`h-full w-full overflow-visible ${animate ? "jn-flame" : ""}`}>
       <defs>
         <filter id={f} x="-30%" y="-20%" width="160%" height="150%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.014 0.045" numOctaves="2" seed={id.charCodeAt(0)}>
-            {animate && (
-              <animate attributeName="baseFrequency" dur="2.4s" values="0.014 0.045;0.02 0.062;0.014 0.045" repeatCount="indefinite" />
-            )}
-          </feTurbulence>
+          {/* ponytail: turbulencia estática; animar baseFrequency re-filtraba la llama en cada frame. El parpadeo es un transform CSS (jn-flame). */}
+          <feTurbulence type="fractalNoise" baseFrequency="0.014 0.045" numOctaves="2" seed={id.charCodeAt(0)} />
           <feDisplacementMap in="SourceGraphic" scale="16" />
         </filter>
         <linearGradient id={`${f}-o`} x1="0" y1="1" x2="0" y2="0">

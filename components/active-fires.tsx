@@ -35,13 +35,13 @@ const MAP_REST = 100; // ...plus the strongest N elsewhere in the region
 const LIST_ROWS = 10;
 const ID = "focos-activos-title";
 
-interface FiresResult {
+export interface FiresResult {
   inArgentina: FirePoint[];
   elsewhere: FirePoint[];
   at: Date;
 }
 
-async function fetchActiveFires(): Promise<FiresResult | null> {
+export async function fetchActiveFires(): Promise<FiresResult | null> {
   const key = process.env.NASA_FIRMS_KEY;
   if (!key) return null;
 

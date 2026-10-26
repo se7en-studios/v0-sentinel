@@ -2,219 +2,114 @@
 
 import { useRef } from "react";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Newspaper } from "lucide-react";
-import { pressMentions } from "@/lib/press-mentions";
+import { pressMentions, type PressMention } from "@/lib/press-mentions";
 import { formatDate } from "@/lib/format-date";
+import { Chapter, Eyebrow } from "@/components/ui/chapter";
 
-export function Press() {
-  const trackRef = useRef<HTMLDivElement>(null);
+const btn =
+  "flex h-11 w-11 items-center justify-center rounded-full border border-foreground/20 text-foreground/80 transition-colors hover:border-primary hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
 
-  const scrollByCard = (dir: 1 | -1) => {
-    trackRef.current?.scrollBy({ left: dir * 380, behavior: "smooth" });
-  };
+export function PressBlock() {
+  const trackRef = useRef<HTMLUListElement>(null);
+  const scrollByCard = (dir: 1 | -1) =>
+    trackRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
 
   return (
-    <section
-      id="prensa"
-      className="relative py-20 lg:py-24 overflow-hidden"
-      style={{ background: "#faf7f0" }}
-    >
-      <div className="max-w-6xl mx-auto px-6 lg:px-10">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-10">
-          <div>
-            <h2
-              className="text-3xl sm:text-4xl lg:text-5xl mb-4 max-w-2xl flex items-center gap-3"
-              style={{
-                fontFamily: "var(--font-heading)",
-                fontWeight: 800,
-                color: "rgba(26,24,18,0.92)",
-                lineHeight: 1.1,
-              }}
-            >
-              <Newspaper
-                className="w-7 h-7 shrink-0 hidden sm:block"
-                style={{ color: "var(--green-aa)" }}
-              />
-              Dónde{" "}
-              <span style={{ color: "var(--green-aa)" }}>salimos en los medios.</span>
-            </h2>
-            <p
-              className="text-[13px] max-w-xl"
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontWeight: 300,
-                color: "rgba(26,24,18,0.7)",
-              }}
-            >
-              Medios y organizaciones que ya cubrieron el proyecto.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => scrollByCard(-1)}
-              aria-label="Notas anteriores"
-              className="w-11 h-11 rounded-full flex items-center justify-center transition-all hover:-translate-y-0.5 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f7a4f]"
-              style={{
-                border: "0.5px solid rgba(26,24,18,0.15)",
-                color: "rgba(26,24,18,0.8)",
-              }}
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollByCard(1)}
-              aria-label="Notas siguientes"
-              className="w-11 h-11 rounded-full flex items-center justify-center transition-all hover:-translate-y-0.5 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f7a4f]"
-              style={{
-                border: "0.5px solid rgba(26,24,18,0.15)",
-                color: "rgba(26,24,18,0.8)",
-              }}
-            >
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
+    <div>
+      <div className="mb-5 flex items-center justify-between gap-4">
+        <p className="t-small max-w-md opacity-80">
+          Medios y organizaciones que cubrieron el proyecto o las competencias
+          donde participamos.
+        </p>
+        <div className="flex shrink-0 gap-2">
+          <button
+            type="button"
+            onClick={() => scrollByCard(-1)}
+            aria-label="Notas anteriores"
+            className={btn}
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden />
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollByCard(1)}
+            aria-label="Notas siguientes"
+            className={btn}
+          >
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </button>
         </div>
       </div>
-
-      <div className="relative">
-        <div
-          ref={trackRef}
-          role="region"
-          aria-label="Notas de prensa"
-          tabIndex={0}
-          className="scrollbar-hide focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0f7a4f] flex gap-4 overflow-x-auto px-6 lg:px-10"
-          style={{
-            scrollSnapType: "x mandatory",
-            scrollPadding: "0 24px",
-          }}
-        >
-          {pressMentions.map((m, i) => (
-            <PressCard key={i} mention={m} featured={i === 0} />
-          ))}
-          {/* trailing spacer so the last card can snap fully into view */}
-          <div className="shrink-0 w-2 lg:w-6" aria-hidden />
-        </div>
-
-        <div
-          className="pointer-events-none absolute inset-y-0 left-0 w-10 sm:w-24"
-          style={{
-            background: "linear-gradient(to right, #faf7f0, transparent)",
-          }}
-        />
-        <div
-          className="pointer-events-none absolute inset-y-0 right-0 w-10 sm:w-24"
-          style={{
-            background: "linear-gradient(to left, #faf7f0, transparent)",
-          }}
-        />
-      </div>
-    </section>
+      <ul
+        ref={trackRef}
+        aria-label="Notas de prensa"
+        className="scrollbar-hide -mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 md:-mx-8 md:px-8"
+      >
+        {pressMentions.map((m) => (
+          <li
+            key={m.url}
+            className="w-[78vw] max-w-[300px] shrink-0 snap-start"
+          >
+            <PressCard mention={m} />
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
-function PressCard({
-  mention,
-  featured = false,
-}: {
-  mention: (typeof pressMentions)[number];
-  featured?: boolean;
-}) {
+function PressCard({ mention }: { mention: PressMention }) {
   return (
     <a
       href={mention.url}
       target="_blank"
-      rel="noopener noreferrer"
-      className="group relative shrink-0 flex flex-col overflow-hidden rounded-lg border-[0.5px] border-[rgba(26,24,18,0.08)] transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(15,122,79,0.3)] focus-visible:border-[#0f7a4f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f7a4f]"
-      style={{
-        background: "rgba(26,24,18,0.02)",
-        width: featured ? "min(85vw, 460px)" : "min(75vw, 320px)",
-        scrollSnapAlign: "start",
-      }}
+      rel="noopener noreferrer"
+      className="group flex h-full flex-col overflow-hidden rounded-sm border border-foreground/15 transition-colors hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
     >
-      <div
-        className="relative w-full overflow-hidden"
-        style={{
-          aspectRatio: featured ? "16/10" : "4/3",
-          background:
-            "linear-gradient(135deg, rgba(15,122,79,0.1), rgba(26,24,18,0.05))",
-        }}
-      >
+      <div className="relative aspect-[4/3] w-full bg-ash/10">
         {mention.image ? (
+          // og:image de cada medio, hotlinkeada: next/image exigiría whitelist de dominios.
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={encodeURI(mention.image)}
             alt=""
-            width={featured ? 460 : 320}
-            height={featured ? 288 : 240}
+            width={300}
+            height={225}
             loading="lazy"
             decoding="async"
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="absolute inset-0 h-full w-full object-cover"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Newspaper
-              className="w-8 h-8"
-              style={{ color: "rgba(15,122,79,0.25)" }}
-            />
-          </div>
-        )}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(12,11,9,0.95) 0%, rgba(12,11,9,0.2) 55%, transparent 100%)",
-          }}
-        />
-        <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-between">
-          <span
-            className="px-2 py-0.5 rounded-sm text-[11px] tracking-wider uppercase font-medium"
-            style={{
-              fontFamily: "var(--font-sans)",
-              color: "#94f1be",
-              background: "rgba(20,74,52,0.8)",
-              border: "0.5px solid rgba(148,241,190,0.3)",
-              backdropFilter: "blur(4px)",
-            }}
-          >
-            {mention.outlet}
-          </span>
-          <ArrowUpRight
-            className="w-4 h-4 flex-shrink-0 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-            style={{ color: "rgba(255,255,255,0.85)" }}
+          <Newspaper
+            className="absolute inset-0 m-auto h-8 w-8 opacity-30"
+            aria-hidden
           />
-        </div>
+        )}
       </div>
-
-      <div className="p-4 flex-1 flex flex-col justify-between">
-        <p
-          className={
-            featured
-              ? "text-[16px] leading-snug line-clamp-3"
-              : "text-[13px] leading-snug line-clamp-2"
-          }
-          style={{
-            fontFamily: "var(--font-heading)",
-            fontWeight: 700,
-            color: "rgba(26,24,18,0.9)",
-          }}
-        >
+      <div className="flex flex-1 flex-col justify-between gap-3 p-4">
+        <p className="t-label flex items-center justify-between text-[#0b6b44]">
+          {mention.outlet}
+          <ArrowUpRight className="h-4 w-4" aria-hidden />
+        </p>
+        <p className="t-small line-clamp-3 font-semibold">
           {mention.title}
           <span className="sr-only"> (abre en pestaña nueva)</span>
         </p>
         {mention.date && (
-          <p
-            className="text-[11px] mt-3"
-            style={{
-              fontFamily: "var(--font-sans)",
-              color: "rgba(26,24,18,0.65)",
-            }}
-          >
-            {formatDate(mention.date)}
-          </p>
+          <p className="t-small opacity-70">{formatDate(mention.date)}</p>
         )}
       </div>
     </a>
+  );
+}
+
+// Compatibilidad: el capítulo completo vive en Proof.
+export function Press() {
+  return (
+    <Chapter id="prensa">
+      <Eyebrow>Prensa</Eyebrow>
+      <h2 className="t-h2 mb-10 max-w-3xl">Dónde salimos en los medios.</h2>
+      <PressBlock />
+    </Chapter>
   );
 }

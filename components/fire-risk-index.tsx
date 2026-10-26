@@ -29,14 +29,14 @@ const RISK_EXPLAIN: Record<RiskLabel, string> = {
   Extremo: "Alerta: condiciones muy peligrosas para incendios forestales.",
 };
 
-interface Location {
+export interface Location {
   name: string;
   province: string;
   lat: number;
   lon: number;
 }
 
-const locations: Location[] = [
+export const locations: Location[] = [
   { name: "Bariloche", province: "Río Negro", lat: -41.1335, lon: -71.3103 },
   { name: "El Bolsón", province: "Río Negro", lat: -41.9667, lon: -71.5333 },
   {
@@ -48,7 +48,7 @@ const locations: Location[] = [
   { name: "Esquel", province: "Chubut", lat: -42.9083, lon: -71.3197 },
 ];
 
-interface Reading {
+export interface Reading {
   location: Location;
   temperature: number;
   humidity: number;
@@ -58,7 +58,7 @@ interface Reading {
 
 const ID = "riesgo-title";
 
-async function fetchReading(location: Location): Promise<Reading | null> {
+export async function fetchReading(location: Location): Promise<Reading | null> {
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${location.lat}&longitude=${location.lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m&timezone=auto`;
     const res = await fetch(url, { next: { revalidate: 900 } });

@@ -3,45 +3,55 @@
 import { useEffect, useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { whatsappUrl } from "@/lib/contact";
+import { useActiveSection } from "@/hooks/use-active-section";
+import { SECTIONS } from "@/lib/sections";
+
+const NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
 
 // Opcional: si no hay número confirmado, el botón lleva al formulario (#contacto).
-const WA_URL = whatsappUrl(
-  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER,
-  "Hola Sentinel, quiero más información sobre la plataforma de detección temprana de incendios.",
-);
-
 export function WhatsAppButton() {
   const [hidden, setHidden] = useState(false);
+  const active = useActiveSection();
 
-  // Ocultar mientras el formulario/footer está visible.
+  // Ocultar mientras el cierre (formulario) está en pantalla: ya tiene su propio WhatsApp.
   useEffect(() => {
     const target = document.getElementById("contacto");
     if (!target) return;
-    const io = new IntersectionObserver(([e]) => setHidden(e.isIntersecting), { threshold: 0.05 });
+    const io = new IntersectionObserver(([e]) => setHidden(e.isIntersecting), {
+      threshold: 0.05,
+    });
     io.observe(target);
     return () => io.disconnect();
   }, []);
 
   if (hidden) return null;
 
-  const external = WA_URL !== null;
+  const section = SECTIONS.find((s) => s.id === active)?.label;
+  const url = whatsappUrl(
+    NUMBER,
+    `Hola Sentinel, quiero más información sobre la detección temprana de incendios${
+      section ? ` (estoy viendo la sección "${section}" de la web)` : ""
+    }.`,
+  );
+  const external = url !== null;
+
   return (
-    <aside aria-label="Contacto rápido" className="fixed bottom-6 right-6 z-50">
+    <aside
+      aria-label="Contacto rápido"
+      className="fixed bottom-4 right-4 z-50 md:bottom-6 md:right-6"
+    >
       <a
-        href={WA_URL ?? "#contacto"}
+        href={url ?? "#contacto"}
         {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-        className="group relative flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-[#0c0b09] text-[#faf7f0] border border-emerald-500/30 hover:border-emerald-400 shadow-xl shadow-black/25 transition-all duration-300 hover:scale-105 active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f7a4f]"
-        aria-label={external ? "Escribir al equipo de Sentinel por WhatsApp" : "Ir al formulario de contacto"}
+        className="flex h-12 items-center justify-center gap-2 rounded-full bg-charcoal px-3.5 text-[#f4efe2] shadow-lg shadow-black/25 ring-1 ring-white/20 transition hover:ring-leaf-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright md:px-4"
+        aria-label={
+          external
+            ? "Escribir al equipo de Sentinel por WhatsApp"
+            : "Ir al formulario de contacto"
+        }
       >
-        <span className="relative flex h-2.5 w-2.5">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400" />
-        </span>
-        <MessageCircle className="w-4 h-4 text-emerald-300 transition-transform duration-300 group-hover:rotate-12" />
-        <span
-          className="text-[12px] font-medium tracking-wide text-white/90 group-hover:text-white"
-          style={{ fontFamily: "var(--font-sans)" }}
-        >
+        <MessageCircle aria-hidden className="h-5 w-5 text-leaf-bright" />
+        <span className="t-small hidden font-medium md:inline">
           {external ? "WhatsApp" : "Contacto"}
         </span>
       </a>

@@ -41,7 +41,7 @@ export function SunRays({ p }: { p: P }) {
   );
 }
 
-const MOTES = Array.from({ length: 26 }, (_, i) => ({
+const MOTES = Array.from({ length: 12 }, (_, i) => ({
   x: (i * 37) % 100,
   y: 50 + ((i * 53) % 38),
   s: 1.5 + ((i * 7) % 4) * 0.8,

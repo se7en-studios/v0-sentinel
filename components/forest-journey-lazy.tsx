@@ -6,5 +6,5 @@ import dynamic from "next/dynamic";
 // stay out of the HTML; the placeholder keeps the section's height so nothing below jumps when it loads.
 export const ForestJourney = dynamic(
   () => import("./forest-journey").then((m) => m.ForestJourney),
-  { ssr: false, loading: () => <div aria-hidden className="h-[480svh] bg-[#16352f] motion-reduce:h-[78svh]" /> },
+  { ssr: false, loading: () => <div aria-hidden className="h-[480svh] bg-charcoal max-md:h-[78svh] motion-reduce:h-[78svh]" /> },
 );
