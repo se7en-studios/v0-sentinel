@@ -1,10 +1,17 @@
-import { ArrowRight } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, Landmark, Siren, Sprout } from "lucide-react";
 import { Chapter, Eyebrow } from "@/components/ui/chapter";
 
+// Acento sutil por público, todo dentro de la paleta; `ink` cumple AA sobre crema.
 const AUDIENCES = [
   {
     perfil: "municipio",
     who: "Municipios y Defensa Civil",
+    icon: Landmark,
+    photo: "/problem-a2.jpg",
+    focus: "50% 62%",
+    ink: "#0b6b44",
+    tint: "#0f7a4f",
     problem:
       "Se enteran del fuego por un llamado, cuando ya avanzó. Coordinar recursos con poca información cuesta tiempo.",
     gets: "Consola con focos verificados, ubicación y contexto de propagación, más alertas para activar protocolos.",
@@ -12,6 +19,11 @@ const AUDIENCES = [
   {
     perfil: "brigada",
     who: "Brigadas y bomberos",
+    icon: Siren,
+    photo: "/problem-a3.jpg",
+    focus: "50% 55%",
+    ink: "#9a4a06",
+    tint: "#c2680f",
     problem:
       "Llegar sin saber dónde está el frente, hacia dónde va el viento ni cómo acceder al lugar.",
     gets: "Alerta geolocalizada por WhatsApp con coordenadas, viento y terreno, directo al celular del equipo.",
@@ -19,6 +31,11 @@ const AUDIENCES = [
   {
     perfil: "campo",
     who: "Campos, forestales y aseguradoras",
+    icon: Sprout,
+    photo: "/problem-a4.jpg",
+    focus: "50% 6%",
+    ink: "#0d6b66",
+    tint: "#14877f",
     problem:
       "Un foco cercano que nadie ve a tiempo puede costar cosechas, plantaciones y pólizas.",
     gets: "Aviso temprano sobre tus lotes y un registro de eventos para decidir y documentar.",
@@ -27,31 +44,93 @@ const AUDIENCES = [
 
 export function Audiences() {
   return (
-    <Chapter id="para-quien">
-      <Eyebrow>Para quién</Eyebrow>
-      <h2 className="t-h2 max-w-3xl">
-        Tres públicos, un mismo problema: llegar antes
-      </h2>
-      <div className="mt-12 grid gap-6 lg:grid-cols-3">
-        {AUDIENCES.map(({ perfil, who, problem, gets }) => (
-          <article
-            key={perfil}
-            className="flex flex-col rounded-2xl border border-foreground/15 p-7 md:p-8"
-          >
-            <h3 className="t-h3">{who}</h3>
-            <p className="t-label mt-6 text-[#0b6b44]">El problema</p>
-            <p className="t-body mt-2">{problem}</p>
-            <p className="t-label mt-6 text-[#0b6b44]">Qué recibís</p>
-            <p className="t-body mt-2">{gets}</p>
-            <a
-              href={`/?perfil=${perfil}#contacto`}
-              className="mt-auto inline-flex items-center gap-2 self-start rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-            >
-              Solicitar un piloto <ArrowRight className="size-4" aria-hidden />
-            </a>
-            <p className="t-small mt-3 opacity-70">Piloto abierto</p>
-          </article>
-        ))}
+    <Chapter id="para-quien" className="overflow-hidden">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-32 left-[-10%] size-[36rem] rounded-full bg-leaf/10 blur-[110px]"
+      />
+      <div className="relative">
+        <Eyebrow>Para quién</Eyebrow>
+        <h2 className="t-h2 max-w-3xl">
+          Tres públicos, un mismo problema:{" "}
+          <span className="font-display font-normal text-leaf">llegar antes</span>
+        </h2>
+        <div className="mt-12 grid gap-6 lg:grid-cols-12 md:mt-16">
+          {AUDIENCES.map((a, i) => {
+            const featured = i === 0;
+            const Icon = a.icon;
+            return (
+              <article
+                key={a.perfil}
+                className={`glass-light group flex flex-col overflow-hidden rounded-[20px] transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-28px_rgb(26_24_18/0.5)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${
+                  featured
+                    ? "lg:col-span-5 lg:row-span-2"
+                    : "sm:flex-row lg:col-span-7"
+                }`}
+              >
+                <div
+                  className={`relative shrink-0 overflow-hidden ${
+                    featured
+                      ? "h-56 lg:h-80"
+                      : "h-44 sm:h-auto sm:w-2/5"
+                  }`}
+                >
+                  <Image
+                    src={a.photo}
+                    alt=""
+                    fill
+                    sizes={
+                      featured
+                        ? "(min-width: 1024px) 40vw, 100vw"
+                        : "(min-width: 1024px) 28vw, (min-width: 640px) 40vw, 100vw"
+                    }
+                    style={{ objectPosition: a.focus }}
+                    className="object-cover saturate-[.7] transition-transform duration-700 group-hover:scale-105 motion-reduce:transition-none"
+                  />
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 mix-blend-soft-light opacity-70"
+                    style={{ background: a.tint }}
+                  />
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 bg-linear-to-t from-charcoal/70 via-charcoal/10 to-transparent"
+                  />
+                  <span
+                    className="absolute bottom-4 left-4 grid size-11 place-items-center rounded-xl bg-[#faf7f0] shadow-lg"
+                    style={{ color: a.ink }}
+                  >
+                    <Icon className="size-5" aria-hidden />
+                  </span>
+                </div>
+                <div
+                  className={`flex flex-1 flex-col p-6 md:p-8 ${featured ? "" : "sm:p-7"}`}
+                  style={{ borderTop: `3px solid ${a.tint}` }}
+                >
+                  <h3 className="t-h3">{a.who}</h3>
+                  <p className="t-label mt-5" style={{ color: a.ink }}>
+                    El problema
+                  </p>
+                  <p className="t-body mt-2">{a.problem}</p>
+                  <p className="t-label mt-5" style={{ color: a.ink }}>
+                    Qué recibís
+                  </p>
+                  <p className="t-body mt-2">{a.gets}</p>
+                  <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-7">
+                    <a
+                      href={`/?perfil=${a.perfil}#contacto`}
+                      className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    >
+                      Solicitar un piloto{" "}
+                      <ArrowRight className="size-4" aria-hidden />
+                    </a>
+                    <span className="t-small opacity-70">Piloto abierto</span>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
       </div>
     </Chapter>
   );

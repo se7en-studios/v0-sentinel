@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { ScrollProgress } from "@/components/scroll-progress";
@@ -27,6 +28,7 @@ export default function BlogIndex() {
   const posts = [...blogPosts].sort(
     (a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt),
   );
+  const [featured, ...rest] = posts;
 
   return (
     <>
@@ -35,165 +37,104 @@ export default function BlogIndex() {
         <Navbar />
       </header>
 
-      <main id="main-content" className="min-h-screen bg-[#faf7f0]">
-        <section className="relative pt-40 pb-20 lg:pt-48 lg:pb-28 px-6 lg:px-10 bg-[#faf7f0]">
-          <div className="max-w-5xl mx-auto">
-            {/* Breadcrumb */}
+      <main id="main-content" className="min-h-screen bg-background">
+        <section className="relative isolate overflow-hidden bg-charcoal px-6 pb-24 pt-36 text-[#f4efe2] lg:pb-32 lg:pt-44">
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_80%_0%,rgb(15_122_79/0.45),transparent_60%),linear-gradient(to_bottom,transparent_60%,var(--color-background))]"
+          />
+          <div
+            aria-hidden
+            className="bg-noise absolute inset-0 -z-10 opacity-[0.06] mix-blend-overlay"
+          />
+          <div className="mx-auto max-w-6xl">
             <nav
               aria-label="Ruta de navegación"
-              className="flex items-center gap-2 mb-6 text-[12px]"
-              style={{
-                fontFamily: "var(--font-sans)",
-                color: "rgba(26,24,18,0.45)",
-              }}
+              className="t-small mb-8 flex items-center gap-2 text-[#f4efe2]/75"
             >
-              <Link href="/" className="hover:text-[#0f7a4f] transition-colors">
+              <Link
+                href="/"
+                className="transition-colors hover:text-leaf-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright"
+              >
                 Inicio
               </Link>
-              <span className="text-[10px] opacity-40">/</span>
-              <span
-                className="font-light"
-                style={{ color: "rgba(26,24,18,0.75)" }}
-              >
+              <span aria-hidden>/</span>
+              <span aria-current="page" className="text-[#f4efe2]">
                 Blog
               </span>
             </nav>
-
-            <p
-              className="text-[11px] tracking-[0.3em] uppercase mb-5"
-              style={{
-                fontFamily: "var(--font-sans)",
-                color: "rgba(26,24,18,0.3)",
-              }}
-            >
-              Artículos y Publicaciones
+            <p className="t-label mb-5 text-leaf-bright">
+              Artículos y publicaciones
             </p>
-            <h1
-              className="text-4xl sm:text-5xl lg:text-6xl mb-16"
-              style={{
-                fontFamily: "var(--font-heading)",
-                fontWeight: 800,
-                color: "rgba(26,24,18,0.92)",
-                lineHeight: 1,
-              }}
-            >
-              Ideas sobre{" "}
-              <span style={{ color: "#0f7a4f" }}>monitoreo forestal</span> e
-              inteligencia territorial.
+            <h1 className="t-display max-w-4xl">
+              Ideas sobre <span className="text-leaf-bright">monitoreo forestal</span>{" "}
+              e inteligencia territorial.
             </h1>
+          </div>
+        </section>
 
-            {/* Featured — most recent post gets real weight instead of
-                sitting in the grid as just another identical tile. */}
-            {posts[0] && (
+        <section className="relative -mt-12 px-6 pb-28 lg:-mt-16">
+          <div className="mx-auto max-w-6xl">
+            {featured && (
               <Link
-                href={`/blog/${posts[0].slug}`}
-                className="group grid sm:grid-cols-2 gap-6 sm:gap-10 items-center rounded-lg overflow-hidden mb-14 transition-all duration-300"
-                style={{
-                  background: "rgba(26,24,18,0.02)",
-                  border: "0.5px solid rgba(26,24,18,0.08)",
-                }}
+                href={`/blog/${featured.slug}`}
+                className="group glass-light mb-8 grid overflow-hidden rounded-[20px] transition duration-300 hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0f7a4f] lg:grid-cols-[1.3fr_1fr]"
               >
-                <div
-                  className="relative w-full overflow-hidden"
-                  style={{ aspectRatio: "16/11" }}
-                >
+                <div className="relative aspect-[16/10] overflow-hidden lg:aspect-auto lg:min-h-[26rem]">
                   <Image
-                    src={posts[0].coverImage}
-                    alt={posts[0].title}
+                    src={featured.coverImage}
+                    alt={featured.title}
                     fill
-                    sizes="(max-width: 640px) 100vw, 50vw"
+                    sizes="(max-width: 1024px) 100vw, 60vw"
                     priority
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="object-cover saturate-[0.85] transition-transform duration-700 group-hover:scale-105"
                   />
+                  <div className="absolute inset-0 bg-[linear-gradient(135deg,rgb(232_115_42/0.12),transparent_50%,rgb(15_122_79/0.2))]" />
                 </div>
-                <div className="p-6 sm:p-0 sm:pr-10">
-                  <p
-                    className="text-[11px] mb-3 font-normal"
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      color: "rgba(15,122,79,0.8)",
-                    }}
-                  >
-                    Última nota · {formatDate(posts[0].publishedAt, "long")}
+                <div className="flex flex-col justify-center p-7 lg:p-10">
+                  <p className="t-label mb-4 text-[#0b6b44]">
+                    Última nota · {formatDate(featured.publishedAt, "long")}
                   </p>
-                  <h2
-                    className="text-2xl sm:text-3xl mb-4 leading-snug font-bold transition-colors duration-200 group-hover:text-[#0f7a4f]"
-                    style={{
-                      fontFamily: "var(--font-heading)",
-                      color: "rgba(26,24,18,0.92)",
-                    }}
-                  >
-                    {posts[0].title}
+                  <h2 className="t-h2 !text-3xl lg:!text-4xl group-hover:text-[#0b6b44]">
+                    {featured.title}
                   </h2>
-                  <p
-                    className="text-[14px] leading-relaxed line-clamp-3"
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      fontWeight: 300,
-                      color: "rgba(26,24,18,0.5)",
-                    }}
-                  >
-                    {posts[0].excerpt}
+                  <p className="t-body mt-4 line-clamp-4 text-foreground/75">
+                    {featured.excerpt}
                   </p>
+                  <span className="t-small mt-6 inline-flex items-center gap-1.5 font-semibold text-[#0b6b44]">
+                    Leer la nota <ArrowRight aria-hidden className="h-4 w-4" />
+                  </span>
                 </div>
               </Link>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {posts.slice(1).map((post) => (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {rest.map((post) => (
                 <Link
                   key={post.slug}
                   href={`/blog/${post.slug}`}
-                  className="group flex flex-col rounded-lg overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(15,122,79,0.3)]"
-                  style={{
-                    background: "rgba(26,24,18,0.02)",
-                    border: "0.5px solid rgba(26,24,18,0.08)",
-                  }}
+                  className="group glass-light flex flex-col overflow-hidden rounded-[20px] transition duration-300 hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0f7a4f]"
                 >
-                  <div
-                    className="relative w-full overflow-hidden"
-                    style={{ aspectRatio: "4/3" }}
-                  >
+                  <div className="relative aspect-[4/3] overflow-hidden">
                     <Image
                       src={post.coverImage}
                       alt={post.title}
                       fill
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover saturate-[0.85] transition-transform duration-700 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-[linear-gradient(to_top,rgb(18_17_14/0.35),transparent_60%)]" />
                   </div>
-                  <div className="p-6 flex-1 flex flex-col justify-between">
-                    <div>
-                      <p
-                        className="text-[11px] mb-2 font-normal"
-                        style={{
-                          fontFamily: "var(--font-sans)",
-                          color: "rgba(15,122,79,0.8)",
-                        }}
-                      >
-                        {formatDate(post.publishedAt, "long")}
-                      </p>
-                      <h2
-                        className="text-lg mb-3 leading-snug font-bold transition-colors duration-200 group-hover:text-[#0f7a4f]"
-                        style={{
-                          fontFamily: "var(--font-heading)",
-                          color: "rgba(26,24,18,0.92)",
-                        }}
-                      >
-                        {post.title}
-                      </h2>
-                      <p
-                        className="text-[13px] leading-relaxed line-clamp-3"
-                        style={{
-                          fontFamily: "var(--font-sans)",
-                          fontWeight: 300,
-                          color: "rgba(26,24,18,0.5)",
-                        }}
-                      >
-                        {post.excerpt}
-                      </p>
-                    </div>
+                  <div className="flex flex-1 flex-col p-6">
+                    <p className="t-label mb-3 text-[#0b6b44]">
+                      {formatDate(post.publishedAt, "long")}
+                    </p>
+                    <h2 className="t-h3 mb-3 group-hover:text-[#0b6b44]">
+                      {post.title}
+                    </h2>
+                    <p className="t-small line-clamp-3 text-foreground/75">
+                      {post.excerpt}
+                    </p>
                   </div>
                 </Link>
               ))}

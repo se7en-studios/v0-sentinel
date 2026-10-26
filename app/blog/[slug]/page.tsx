@@ -108,10 +108,10 @@ export default async function BlogPostPage({
       <ScrollProgress />
       <Navbar />
 
-      <article className="relative pt-32 lg:pt-36">
+      <article className="relative pt-16">
         <div
-          className="relative w-full"
-          style={{ height: "clamp(260px, 45vw, 480px)" }}
+          className="relative isolate w-full"
+          style={{ height: "clamp(300px, 48vw, 520px)" }}
         >
           <Image
             src={post.coverImage}
@@ -119,106 +119,59 @@ export default async function BlogPostPage({
             fill
             priority
             sizes="100vw"
-            className="object-cover"
-            style={{ filter: "brightness(0.85) saturate(0.9)" }}
+            className="object-cover saturate-[0.8]"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#faf7f0] via-[#faf7f0]/70 to-transparent" />
+          <div className="absolute inset-0 bg-[linear-gradient(115deg,rgb(232_115_42/0.18),transparent_50%,rgb(15_122_79/0.3))]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-charcoal/50" />
         </div>
 
-        <div className="max-w-3xl mx-auto px-6 lg:px-10 -mt-16 relative z-10">
-          {/* Breadcrumbs */}
+        <div className="relative z-10 mx-auto -mt-24 max-w-3xl px-6 lg:px-10">
           <nav
-            className="flex items-center gap-2 mb-6 text-[12px]"
-            style={{
-              fontFamily: "var(--font-sans)",
-              color: "rgba(26,24,18,0.45)",
-            }}
+            aria-label="Ruta de navegación"
+            className="t-small mb-6 flex items-center gap-2 text-foreground/70"
           >
-            <Link href="/" className="hover:text-[#0f7a4f] transition-colors">
+            <Link
+              href="/"
+              className="transition-colors hover:text-[#0f7a4f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f7a4f]"
+            >
               Inicio
             </Link>
-            <span className="text-[10px] opacity-40">/</span>
+            <span aria-hidden>/</span>
             <Link
               href="/blog"
-              className="hover:text-[#0f7a4f] transition-colors"
+              className="transition-colors hover:text-[#0f7a4f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f7a4f]"
             >
               Blog
             </Link>
-            <span className="text-[10px] opacity-40">/</span>
+            <span aria-hidden>/</span>
             <span
-              className="truncate max-w-[180px] sm:max-w-xs font-light"
-              style={{ color: "rgba(26,24,18,0.75)" }}
+              aria-current="page"
+              className="max-w-[180px] truncate text-foreground sm:max-w-xs"
             >
               {post.title}
             </span>
           </nav>
 
-          <p
-            className="text-[11px] mb-4"
-            style={{
-              fontFamily: "var(--font-sans)",
-              color: "rgba(26,24,18,0.35)",
-            }}
-          >
-            {formatDate(post.publishedAt, "long")}
-            {" · "}
-            {minutes} min de lectura
+          <p className="t-label mb-4 text-[#0b6b44]">
+            {formatDate(post.publishedAt, "long")} · {minutes} min de lectura
           </p>
 
-          <h1
-            className="text-3xl sm:text-4xl lg:text-5xl mb-12"
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontWeight: 800,
-              color: "rgba(26,24,18,0.95)",
-              lineHeight: 1.15,
-            }}
-          >
-            {post.title}
-          </h1>
+          <h1 className="t-h2 mb-12">{post.title}</h1>
 
           <div className="space-y-10 pb-20">
             {post.body.map((block, i) => (
               <div key={i}>
                 {block.heading && (
-                  <h2
-                    className="text-xl sm:text-2xl mb-4 font-semibold"
-                    style={{
-                      fontFamily: "var(--font-heading)",
-                      color: "rgba(26,24,18,0.92)",
-                    }}
-                  >
-                    {block.heading}
-                  </h2>
+                  <h2 className="t-h3 mb-4 !text-2xl">{block.heading}</h2>
                 )}
                 {block.paragraphs.map((p, j) => (
-                  <p
-                    key={j}
-                    className="text-[15px] leading-relaxed mb-4"
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      fontWeight: 300,
-                      color: "rgba(26,24,18,0.65)",
-                    }}
-                  >
+                  <p key={j} className="t-body mb-4 text-foreground/85 sm:text-[1.0625rem]">
                     {p}
                   </p>
                 ))}
                 {i === 0 && (
-                  <blockquote
-                    className="my-6 pl-6 py-2 rounded-r-lg"
-                    style={{
-                      borderLeft: "2px solid #0f7a4f",
-                      background: "rgba(15,122,79,0.03)",
-                    }}
-                  >
-                    <p
-                      className="text-xl sm:text-2xl leading-snug font-medium italic"
-                      style={{
-                        fontFamily: "var(--font-heading)",
-                        color: "rgba(26,24,18,0.9)",
-                      }}
-                    >
+                  <blockquote className="glass-light my-8 rounded-[20px] border-l-4 !border-l-[#0f7a4f] px-6 py-6">
+                    <p className="t-h3 !text-2xl leading-snug sm:!text-3xl">
                       {post.pullQuote}
                     </p>
                   </blockquote>
@@ -229,89 +182,41 @@ export default async function BlogPostPage({
 
           <Link
             href={post.relatedLink.href}
-            className="inline-flex items-center gap-2 mb-16 text-[13px] font-normal transition-colors hover:text-[#0f7a4f]"
-            style={{
-              fontFamily: "var(--font-sans)",
-              color: "rgba(15,122,79,0.85)",
-            }}
+            className="t-small mb-16 inline-flex items-center gap-2 font-semibold text-[#0b6b44] transition-colors hover:text-[#09593a] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0f7a4f]"
           >
             {post.relatedLink.label}
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight aria-hidden className="h-4 w-4" />
           </Link>
 
-          <div
-            className="rounded-lg p-8 mb-20 text-center"
-            style={{
-              background: "rgba(26,24,18,0.02)",
-              border: "0.5px solid rgba(15,122,79,0.25)",
-            }}
-          >
-            <p
-              className="text-lg mb-5 font-semibold"
-              style={{
-                fontFamily: "var(--font-heading)",
-                color: "rgba(26,24,18,0.92)",
-              }}
-            >
-              ¿Querés monitoreo continuo en tu territorio?
-            </p>
-            <a
+          <div className="relative isolate mb-20 overflow-hidden rounded-[20px] bg-charcoal p-8 text-center text-[#f4efe2] shadow-[0_30px_80px_-30px_rgb(0_0_0/0.6)] md:p-10">
+            <div
+              aria-hidden
+              className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_0%,rgb(15_122_79/0.5),transparent_70%)]"
+            />
+            <p className="t-h3 mb-6">¿Querés monitoreo continuo en tu territorio?</p>
+            <Link
               href="/#contacto"
-              className="inline-flex items-center gap-2 px-7 py-3 rounded-sm text-[13px] font-medium transition-all duration-200 hover:-translate-y-0.5"
-              style={{
-                fontFamily: "var(--font-sans)",
-                background: "rgba(15,122,79,0.12)",
-                border: "0.5px solid rgba(15,122,79,0.35)",
-                color: "#0f7a4f",
-              }}
+              className="glow-leaf inline-flex min-h-12 items-center gap-2 rounded-full bg-leaf-bright px-7 text-base font-semibold text-charcoal transition hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               Solicitar una reunión
-              <ArrowRight className="w-3.5 h-3.5" />
-            </a>
+              <ArrowRight aria-hidden className="h-4 w-4" />
+            </Link>
           </div>
 
           {related.length > 0 && (
             <div className="pb-24">
-              <p
-                className="text-[11px] tracking-[0.25em] uppercase mb-6"
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  color: "rgba(26,24,18,0.3)",
-                }}
-              >
-                Seguí leyendo
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <p className="t-label mb-6 text-[#0b6b44]">Seguí leyendo</p>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {related.map((r) => (
                   <Link
                     key={r.slug}
                     href={`/blog/${r.slug}`}
-                    className="group rounded-lg p-5 transition-all duration-300 hover:-translate-y-0.5"
-                    style={{
-                      background: "rgba(26,24,18,0.02)",
-                      border: "0.5px solid rgba(26,24,18,0.07)",
-                    }}
+                    className="group glass-light rounded-[20px] p-6 transition duration-300 hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0f7a4f]"
                   >
-                    <p
-                      className="text-[14px] mb-2"
-                      style={{
-                        fontFamily: "var(--font-heading)",
-                        fontWeight: 700,
-                        color: "rgba(26,24,18,0.85)",
-                      }}
-                    >
+                    <p className="t-h3 mb-2 !text-lg group-hover:text-[#0b6b44]">
                       {r.title}
                     </p>
-                    <p
-                      className="text-[12px] leading-relaxed"
-                      style={{
-                        fontFamily: "var(--font-sans)",
-                        fontWeight: 300,
-                        color: "rgba(26,24,18,0.4)",
-                      }}
-                    >
-                      {r.excerpt}
-                    </p>
+                    <p className="t-small text-foreground/75">{r.excerpt}</p>
                   </Link>
                 ))}
               </div>

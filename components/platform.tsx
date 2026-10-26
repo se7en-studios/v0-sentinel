@@ -19,26 +19,44 @@ const SUPPORT = [
 
 export function Platform() {
   return (
-    <Chapter id="plataforma" tone="dark">
-      <Eyebrow tone="dark">La plataforma</Eyebrow>
-      <h2 className="t-h2 max-w-3xl">
-        Del satélite a la brigada, en cuatro pasos
-      </h2>
-      <p className="t-lead mt-4 max-w-2xl opacity-80">
-        Recorré una alerta de ejemplo: cada paso muestra qué ve Sentinel y qué
-        recibe quien tiene que actuar.
-      </p>
-      <div className="mt-12">
-        <PlatformDemo />
-      </div>
-      <dl className="mt-16 grid gap-8 border-t border-white/15 pt-10 md:grid-cols-3">
-        {SUPPORT.map(({ title, text }) => (
-          <div key={title}>
-            <dt className="t-h3">{title}</dt>
-            <dd className="t-body mt-2 opacity-80">{text}</dd>
+    <>
+      {/* Degradé de entrada: se monta sobre el pie del capítulo anterior. */}
+      <div
+        aria-hidden
+        className="divider-fade-down pointer-events-none relative z-10 -mt-20 h-20"
+      />
+      <Chapter id="plataforma" tone="dark" className="overflow-hidden">
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-24 right-[-10%] size-[42rem] rounded-full bg-leaf/25 blur-[120px]" />
+          <div className="absolute bottom-[-12rem] left-[-12%] size-[34rem] rounded-full bg-leaf-bright/10 blur-[120px]" />
+          <div className="bg-noise absolute inset-0 opacity-[0.06]" />
+        </div>
+        <div className="relative">
+          <Eyebrow tone="dark">La plataforma</Eyebrow>
+          <h2 className="t-h2 max-w-3xl">
+            Del satélite a la brigada, en{" "}
+            <span className="font-display font-normal text-leaf-bright">
+              cuatro pasos
+            </span>
+          </h2>
+          <p className="t-lead mt-4 max-w-2xl opacity-80">
+            Recorré una alerta de ejemplo sobre el panel real: cada paso acerca
+            la imagen a lo que ve Sentinel y muestra qué recibe quien tiene que
+            actuar.
+          </p>
+          <div className="mt-12 md:mt-16">
+            <PlatformDemo />
           </div>
-        ))}
-      </dl>
-    </Chapter>
+          <dl className="mt-20 grid gap-8 border-t border-white/15 pt-10 md:mt-24 md:grid-cols-3">
+            {SUPPORT.map(({ title, text }) => (
+              <div key={title}>
+                <dt className="t-h3">{title}</dt>
+                <dd className="t-body mt-2 opacity-80">{text}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </Chapter>
+    </>
   );
 }

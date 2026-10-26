@@ -43,7 +43,7 @@ export function WhatsAppButton() {
       <a
         href={url ?? "#contacto"}
         {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-        className="flex h-12 items-center justify-center gap-2 rounded-full bg-charcoal px-3.5 text-[#f4efe2] shadow-lg shadow-black/25 ring-1 ring-white/20 transition hover:ring-leaf-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright md:px-4"
+        className="glass flex h-11 items-center justify-center gap-2 rounded-full px-3.5 text-[#f4efe2] transition-colors hover:border-leaf-bright/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright md:px-4"
         aria-label={
           external
             ? "Escribir al equipo de Sentinel por WhatsApp"

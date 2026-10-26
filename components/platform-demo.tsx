@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, type KeyboardEvent } from "react";
+import Image from "next/image";
 import {
   Flame,
   Radar,
@@ -12,30 +13,46 @@ import {
 } from "lucide-react";
 import { CLAIMS } from "@/lib/claims";
 
+const STEP_MS = 6000;
+
+// `focus` encuadra la captura (origen + escala); `ring` es dónde queda el punto
+// de interés DESPUÉS del zoom: origen + escala × (punto − origen), en % del marco.
 const STEPS = [
   {
     icon: Flame,
     label: "Detectar",
     title: "Anomalías térmicas desde órbita",
     desc: `Leemos ${CLAIMS.satellites} y marcamos cada punto caliente nuevo sobre el territorio.`,
+    focus: { x: 75, y: 15, scale: 1.5 },
+    ring: { x: 85.5, y: 19.5, fire: true },
+    is3d: false,
   },
   {
     icon: Radar,
     label: "Verificar",
     title: "La IA descarta lo que no es fuego",
     desc: `Chimeneas, reflejos y nubes calientes se filtran antes de molestar a nadie. Precisión objetivo: ${CLAIMS.accuracyPct}%.`,
+    focus: { x: 100, y: 50, scale: 2.2 },
+    ring: { x: 65, y: 38, fire: false },
+    is3d: false,
   },
   {
     icon: Satellite,
     label: "Contextualizar",
     title: "Viento, pendiente y combustible",
     desc: "Cruzamos el foco con clima, relieve y vegetación para estimar hacia dónde avanza y qué tiene cerca.",
+    focus: { x: 40, y: 55, scale: 1.15 },
+    ring: { x: 53, y: 43.5, fire: false },
+    is3d: true,
   },
   {
     icon: BellRing,
     label: "Alertar",
     title: "A quien tiene que actuar",
     desc: `Notificación geolocalizada por WhatsApp y consola web. Objetivo de detección: ${CLAIMS.detectionMinutes} minutos.`,
+    focus: { x: 60, y: 100, scale: 1.9 },
+    ring: { x: 79, y: 82, fire: true },
+    is3d: false,
   },
 ] as const;
 
@@ -45,108 +62,15 @@ const RECIPIENTS = [
   { icon: Users, name: "Propietario del Lote 14", via: "WhatsApp" },
 ];
 
-function DemoMap({ step }: { step: number }) {
-  return (
-    <svg
-      viewBox="0 0 400 240"
-      role="img"
-      aria-label="Mapa de ejemplo con un foco de incendio y el Lote 14"
-      className="h-auto w-full"
-    >
-      <defs>
-        <pattern
-          id="pd-grid"
-          width="40"
-          height="40"
-          patternUnits="userSpaceOnUse"
-        >
-          <path
-            d="M40 0H0V40"
-            fill="none"
-            stroke="#f4efe2"
-            strokeOpacity="0.1"
-          />
-        </pattern>
-      </defs>
-      <rect width="400" height="240" fill="#14130f" />
-      <rect width="400" height="240" fill="url(#pd-grid)" />
-      <g fill="none" stroke="#4ade80" strokeOpacity="0.35">
-        <path d="M0 190C80 170 130 200 210 175S340 140 400 160" />
-        <path d="M0 150C90 120 150 160 230 130S350 90 400 110" />
-        <path d="M0 105C100 70 170 110 250 80S350 45 400 60" />
-      </g>
-      <polygon
-        points="70,150 135,140 150,190 80,200"
-        fill="#4ade80"
-        fillOpacity="0.15"
-        stroke="#4ade80"
-        strokeWidth="1.5"
-      />
-      <text x="82" y="224" fill="#f4efe2" fillOpacity="0.85" fontSize="14">
-        Lote 14
-      </text>
-      {step >= 2 && (
-        <>
-          <path
-            d="M275 90C245 100 215 125 180 150C160 168 150 170 150 170"
-            fill="none"
-            stroke="#f4efe2"
-            strokeOpacity="0.7"
-            strokeDasharray="5 5"
-          />
-          <text x="195" y="120" fill="#f4efe2" fontSize="14">
-            3,2 km
-          </text>
-          <path
-            d="M275 90 L335 60 L355 100 L330 130 Z"
-            fill="#ff5a36"
-            fillOpacity="0.18"
-            stroke="#ff5a36"
-            strokeOpacity="0.6"
-            strokeDasharray="4 4"
-          />
-          <path
-            d="M300 215H350M350 215l-9-6m9 6l-9 6"
-            stroke="#f4efe2"
-            strokeWidth="1.5"
-            fill="none"
-          />
-          <text x="296" y="200" fill="#f4efe2" fillOpacity="0.85" fontSize="14">
-            Viento NE
-          </text>
-        </>
-      )}
-      {step >= 1 && (
-        <circle
-          cx="275"
-          cy="90"
-          r="16"
-          fill="none"
-          stroke="#ff5a36"
-          strokeWidth="1.5"
-        />
-      )}
-      <circle cx="275" cy="90" r="6" fill="#ff5a36" />
-      <circle
-        cx="275"
-        cy="90"
-        r="6"
-        fill="#ff5a36"
-        className="animate-ping motion-reduce:hidden"
-        style={{ transformBox: "fill-box", transformOrigin: "center" }}
-      />
-    </svg>
-  );
-}
-
 function Details({ step }: { step: number }) {
   if (step === 0) {
     return (
-      <p className="t-small">
-        <span className="t-label text-ember">Anomalía térmica</span>
-        <br />
-        VIIRS, pasada 14:32 · potencia radiativa alta · pendiente de verificar
-      </p>
+      <>
+        <p className="t-label text-ember">Anomalía térmica · VIIRS</p>
+        <p className="t-small mt-2">
+          Pasada 14:32 · potencia radiativa alta · pendiente de verificar
+        </p>
+      </>
     );
   }
   if (step === 1) {
@@ -154,22 +78,27 @@ function Details({ step }: { step: number }) {
       <ul className="t-small space-y-1">
         <li>Fuera de zonas industriales conocidas</li>
         <li>Persiste en dos pasadas consecutivas</li>
-        <li className="text-leaf-bright">Resultado: foco confirmado</li>
+        <li className="font-semibold text-leaf-bright">
+          Resultado: foco confirmado
+        </li>
       </ul>
     );
   }
   if (step === 2) {
     return (
       <p className="t-small">
-        Pendiente 18 % hacia el Lote 14 · viento NE 28 km/h · vegetación seca.
-        Propagación estimada hacia el sudoeste.
+        Pendiente 18 % hacia el Lote 14 · viento 28 km/h del oeste · vegetación
+        seca. Riesgo de propagación alto.
       </p>
     );
   }
   return (
-    <div>
-      <p className="font-semibold text-ember">
+    <>
+      <p className="font-semibold leading-snug text-ember">
         Foco confirmado a 3,2 km del Lote 14
+      </p>
+      <p className="t-small mt-1">
+        Viento 28 km/h del oeste · riesgo de propagación alto
       </p>
       <ul className="mt-3 space-y-2">
         {RECIPIENTS.map(({ icon: Icon, name, via }) => (
@@ -180,26 +109,146 @@ function Details({ step }: { step: number }) {
           </li>
         ))}
       </ul>
-    </div>
+    </>
   );
 }
 
 export function PlatformDemo() {
   const [step, setStep] = useState(0);
+  const [auto, setAuto] = useState(true);
+
+  useEffect(() => {
+    if (!auto || window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      return;
+    const id = setInterval(
+      () => setStep((s) => (s + 1) % STEPS.length),
+      STEP_MS,
+    );
+    return () => clearInterval(id);
+  }, [auto]);
+
+  const select = (i: number) => {
+    setAuto(false);
+    setStep(i);
+  };
+
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    const dir =
+      e.key === "ArrowRight" || e.key === "ArrowDown"
+        ? 1
+        : e.key === "ArrowLeft" || e.key === "ArrowUp"
+          ? -1
+          : 0;
+    if (!dir) return;
+    e.preventDefault();
+    const next = (step + dir + STEPS.length) % STEPS.length;
+    select(next);
+    document.getElementById(`pd-tab-${next}`)?.focus();
+  };
+
+  const { focus, ring, is3d } = STEPS[step];
+
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-14">
-      <ol className="space-y-2" aria-label="Flujo de Sentinel">
-        {STEPS.map(({ icon: Icon, label, title, desc }, i) => {
-          const active = i === step;
-          return (
-            <li key={label}>
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,4fr)] lg:items-center lg:gap-10">
+      <style>{`@keyframes pd-fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}`}</style>
+
+      <figure className="relative lg:-ml-6 xl:-ml-16">
+        <div
+          role="tabpanel"
+          id="pd-panel"
+          aria-labelledby={`pd-tab-${step}`}
+          className="browser-frame glow-leaf"
+        >
+          <div className="relative aspect-[16/10] bg-ash">
+            <div
+              className="absolute inset-0 transition-transform duration-[1400ms] ease-[cubic-bezier(.22,.8,.24,1)] motion-reduce:transition-none md:[transform:scale(var(--s))]"
+              style={
+                {
+                  transformOrigin: `${focus.x}% ${focus.y}%`,
+                  "--s": focus.scale,
+                } as React.CSSProperties
+              }
+            >
+              <Image
+                src="/product/panel-2d.webp"
+                alt="Panel de Sentinel en vista 2D: mapa satelital de la Patagonia con focos, capas de detección, línea de tiempo y eventos clave"
+                fill
+                sizes="(min-width: 1024px) 1400px, 100vw"
+                className={`object-cover transition-opacity duration-700 ${is3d ? "opacity-0" : "opacity-100"}`}
+              />
+              <Image
+                src="/product/panel-3d.webp"
+                alt=""
+                aria-hidden
+                fill
+                sizes="(min-width: 1024px) 1400px, 100vw"
+                className={`object-cover transition-opacity duration-700 ${is3d ? "opacity-100" : "opacity-0"}`}
+              />
+            </div>
+            <span
+              aria-hidden
+              className="pointer-events-none absolute z-10 hidden size-14 -translate-x-1/2 -translate-y-1/2 transition-[left,top] duration-[1400ms] ease-[cubic-bezier(.22,.8,.24,1)] motion-reduce:transition-none md:block md:size-20"
+              style={{ left: `${ring.x}%`, top: `${ring.y}%` }}
+            >
+              <span
+                className={`absolute inset-0 rounded-full border-2 ${ring.fire ? "border-ember" : "border-leaf-bright"}`}
+              />
+              <span
+                className={`absolute inset-0 animate-ping rounded-full border ${ring.fire ? "border-ember" : "border-leaf-bright"} motion-reduce:hidden`}
+              />
+              <span
+                className={`absolute left-1/2 top-[-18%] h-[136%] w-px ${ring.fire ? "bg-ember" : "bg-leaf-bright"} opacity-70`}
+              />
+              <span
+                className={`absolute top-1/2 left-[-18%] h-px w-[136%] ${ring.fire ? "bg-ember" : "bg-leaf-bright"} opacity-70`}
+              />
+            </span>
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-linear-to-t from-charcoal/40 via-transparent to-charcoal/10"
+            />
+          </div>
+        </div>
+
+        <div
+          aria-live="polite"
+          className="glass bg-charcoal/85! mt-3 rounded-xl p-4 text-[#f4efe2] md:absolute md:right-4 md:bottom-4 md:mt-0 md:w-80 md:rounded-[20px] md:p-5 lg:-right-10 lg:-bottom-8"
+        >
+          <p className="t-label mb-3 inline-block rounded-full border border-white/25 px-2 py-0.5 opacity-90">
+            Ejemplo
+          </p>
+          <Details step={step} />
+        </div>
+
+        <figcaption className="t-small mt-4 max-w-md opacity-70 md:mt-6 lg:mt-8">
+          Captura del panel de Sentinel (datos satelitales reales). Las tarjetas
+          sobre la imagen son ejemplos ilustrativos.
+        </figcaption>
+      </figure>
+
+      <div>
+        <div
+          role="tablist"
+          aria-label="Flujo de Sentinel"
+          aria-orientation="vertical"
+          onKeyDown={onKeyDown}
+          className="-mx-5 flex snap-x gap-2 overflow-x-auto px-5 pb-1 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0"
+        >
+          {STEPS.map(({ icon: Icon, label, title, desc }, i) => {
+            const active = i === step;
+            return (
               <button
+                key={label}
                 type="button"
-                onClick={() => setStep(i)}
-                aria-current={active ? "step" : undefined}
-                className={`w-full rounded-xl border px-4 py-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright ${
+                role="tab"
+                id={`pd-tab-${i}`}
+                aria-selected={active}
+                aria-controls="pd-panel"
+                tabIndex={active ? 0 : -1}
+                onClick={() => select(i)}
+                className={`relative shrink-0 snap-start overflow-hidden rounded-xl border px-4 py-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright lg:w-full lg:py-4 ${
                   active
-                    ? "border-leaf-bright/50 bg-white/[0.06]"
+                    ? "border-leaf-bright/50 bg-white/[0.07]"
                     : "border-white/10 hover:border-white/25"
                 }`}
               >
@@ -209,31 +258,37 @@ export function PlatformDemo() {
                   <span className="t-h3">{label}</span>
                 </span>
                 {active && (
-                  <span className="mt-3 block">
+                  <span className="mt-3 hidden lg:block">
                     <span className="t-body block font-medium">{title}</span>
                     <span className="t-small mt-1 block opacity-80">
                       {desc}
                     </span>
                   </span>
                 )}
+                <span
+                  aria-hidden
+                  className="absolute inset-x-0 bottom-0 h-0.5 bg-white/10"
+                >
+                  {active && (
+                    <span
+                      className="block h-full origin-left bg-leaf-bright motion-reduce:!animate-none"
+                      style={{
+                        animation: auto
+                          ? `pd-fill ${STEP_MS}ms linear forwards`
+                          : undefined,
+                      }}
+                    />
+                  )}
+                </span>
               </button>
-            </li>
-          );
-        })}
-      </ol>
-
-      <figure className="overflow-hidden rounded-2xl border border-white/10 bg-ash">
-        <div className="flex items-center justify-between border-b border-white/10 px-4 py-2">
-          <span className="t-label opacity-80">Panel Sentinel</span>
-          <span className="t-label rounded-full border border-ember/60 px-2 py-0.5 text-ember">
-            Datos de ejemplo
-          </span>
+            );
+          })}
         </div>
-        <DemoMap step={step} />
-        <figcaption className="border-t border-white/10 p-4" aria-live="polite">
-          <Details step={step} />
-        </figcaption>
-      </figure>
+        <div className="mt-4 lg:hidden">
+          <p className="t-body font-medium">{STEPS[step].title}</p>
+          <p className="t-small mt-1 opacity-80">{STEPS[step].desc}</p>
+        </div>
+      </div>
     </div>
   );
 }

@@ -73,9 +73,8 @@ function forestPath(seed: number, count: number, min: number, max: number, broad
   return d;
 }
 
-function ridgePath(seed: number, base: number, amp: number) {
+function ridgePath(seed: number, base: number, amp: number, step = 120) {
   const rnd = mulberry32(seed);
-  const step = 120;
   let d = `M0 ${LAYER_H}V${base}`;
   let y = base;
   for (let x = step; x <= LAYER_W + step; x += step) {
@@ -98,9 +97,10 @@ function grassPath(seed: number, count: number, min: number, max: number) {
   return d;
 }
 
-export type LayerKind = "ridge" | "far" | "mid" | "near" | "grass";
+export type LayerKind = "peaks" | "ridge" | "far" | "mid" | "near" | "grass";
 
 const LAYERS: Record<LayerKind, { d: string; top: string; bottom: string; blur: number }> = {
+  peaks: { d: ridgePath(3, 380, 330, 70), top: "#a9bccb", bottom: "#dbe4e0", blur: 1.8 },
   ridge: { d: ridgePath(7, 340, 200), top: "#86ad9b", bottom: "#c9d8cd", blur: 1.4 },
   far: { d: forestPath(11, 120, 80, 170, 0.3), top: "#5d8a76", bottom: "#a9c4b6", blur: 0.9 },
   mid: { d: forestPath(23, 60, 150, 290, 0.2), top: "#1d4838", bottom: "#4c7a66", blur: 0.3 },

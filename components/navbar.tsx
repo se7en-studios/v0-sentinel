@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Menu, X, ArrowRight } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { SentinelLogo } from "@/components/sentinel-logo";
+import { SentinelLogo, SentinelMark } from "@/components/sentinel-logo";
+import Link from "next/link";
 import { SECTIONS } from "@/lib/sections";
 import { useActiveSection } from "@/hooks/use-active-section";
 
@@ -19,18 +20,33 @@ export function Navbar() {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const [isScrolled, setIsScrolled] = useState(false);
+  const [overHero, setOverHero] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const topRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const activeSection = useActiveSection();
 
+  // Dos observers en vez de un listener de scroll: uno detecta "salí del tope"
+  // (activa el vidrio) y otro "la barra ya no está sobre el hero oscuro".
   useEffect(() => {
-    // setState con el mismo valor no re-renderiza: barato aunque dispare seguido.
-    const onScroll = () => setIsScrolled(window.scrollY > 50);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+    const top = topRef.current;
+    if (!top) return;
+    const io = new IntersectionObserver(([e]) => setIsScrolled(!e.isIntersecting));
+    io.observe(top);
+    const hero = isHome ? document.querySelector("[data-nav-dark]") : null;
+    // 80px = alto de la barra en md+: el hero cuenta mientras cubra la barra.
+    const heroIo = hero
+      ? new IntersectionObserver(([e]) => setOverHero(e.isIntersecting), {
+          rootMargin: "-80px 0px 0px 0px",
+        })
+      : null;
+    if (hero) heroIo?.observe(hero);
+    return () => {
+      io.disconnect();
+      heroIo?.disconnect();
+    };
+  }, [isHome]);
 
   // Menú abierto: Escape cierra, Tab queda atrapado, el fondo no scrollea.
   useEffect(() => {
@@ -65,13 +81,17 @@ export function Navbar() {
     };
   }, [isOpen]);
 
-  // Solo la home tiene hero oscuro bajo la barra transparente (texto crema).
-  const onDark = (isHome && !isScrolled) || isOpen;
+  // Solo la home tiene hero oscuro bajo la barra (texto crema): transparente en
+  // el tope, vidrio oscuro al bajar, y crema opaca cuando el hero ya pasó.
+  const heroBehind = isHome && overHero;
+  const onDark = heroBehind || isOpen;
   const barBg = isOpen
     ? "bg-charcoal"
-    : isHome && !isScrolled
-      ? "bg-transparent"
-      : "bg-[#faf7f0]/95 backdrop-blur-xl border-b border-black/5";
+    : heroBehind
+      ? isScrolled
+        ? "bg-charcoal/55 backdrop-blur-xl border-b border-white/10"
+        : "bg-transparent"
+      : "bg-[#faf7f0]/90 backdrop-blur-xl border-b border-black/5";
   const cta = isHome ? "#contacto" : "/#contacto";
 
   const isCurrent = (id: string) => isHome && activeSection === id;
@@ -83,21 +103,27 @@ export function Navbar() {
     : "text-[#1a1812]/80 hover:text-[#0b6b45] aria-[current]:text-[#0b6b45]";
 
   return (
+    <>
+    <div ref={topRef} aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-6" />
     <nav
       ref={navRef}
       aria-label="Navegación principal"
       className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${barBg}`}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:h-20 md:px-8">
-        <a
+        <Link
           href="/#inicio"
-          className={`flex items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-leaf-bright ${
-            onDark ? "text-[#f4efe2]" : "text-[#1a1812]"
-          }`}
+          className="flex items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-leaf-bright"
           onClick={() => setIsOpen(false)}
         >
-          <SentinelLogo className="h-5 w-auto" />
-        </a>
+          <span className="flex items-center gap-2">
+            <SentinelMark className="size-7 md:size-8" />
+            <SentinelLogo
+              className="h-5 w-auto md:h-6"
+              fill={onDark ? "#f4efe2" : "var(--primary)"}
+            />
+          </span>
+        </Link>
 
         <div className="hidden items-center gap-7 md:flex">
           {navLinks.map((l) => (
@@ -112,10 +138,10 @@ export function Navbar() {
           ))}
           <a
             href={cta}
-            className={`t-small inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright ${
+            className={`inline-flex items-center gap-2 rounded-full px-6 py-3 text-[0.9375rem] font-semibold transition-[transform,box-shadow,background-color] hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright ${
               onDark
-                ? "bg-leaf-bright text-charcoal hover:brightness-95"
-                : "bg-charcoal text-[#faf7f0] hover:bg-leaf"
+                ? "bg-leaf-bright text-charcoal shadow-[0_8px_30px_-6px_rgb(95_227_161/0.55)] hover:shadow-[0_12px_36px_-6px_rgb(95_227_161/0.7)]"
+                : "bg-charcoal text-[#faf7f0] shadow-[0_8px_24px_-8px_rgb(15_122_79/0.5)] hover:bg-leaf"
             }`}
           >
             Solicitar un piloto
@@ -172,5 +198,6 @@ export function Navbar() {
         </a>
       </div>
     </nav>
+    </>
   );
 }

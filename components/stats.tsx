@@ -1,22 +1,50 @@
 import { CLAIMS } from "@/lib/claims";
 
 const STATS = [
-  { value: `${CLAIMS.accuracyPct} %`, label: "Precisión objetivo en detección" },
+  {
+    value: `${CLAIMS.accuracyPct} %`,
+    label: "Precisión objetivo en detección",
+  },
   { value: "689+", label: "Propuestas superadas en certámenes" },
   { value: "11", label: "Reconocimientos y programas" },
 ];
 
+// Continúa el tono oscuro de Plataforma y se desvanece hacia el capítulo siguiente.
 export function Stats() {
   return (
-    <section aria-label="Cifras" className="bg-background py-12 text-foreground md:py-16">
-      <dl className="mx-auto grid max-w-6xl gap-8 px-5 md:grid-cols-3 md:px-8">
-        {STATS.map(({ value, label }) => (
-          <div key={label} className="flex flex-col-reverse justify-end border-t border-foreground/20 pt-4">
-            <dt className="t-small mt-1 opacity-80">{label}</dt>
-            <dd className="t-h2 text-leaf">{value}</dd>
-          </div>
-        ))}
-      </dl>
-    </section>
+    <>
+      <section
+        aria-label="Cifras"
+        className="relative overflow-hidden bg-linear-to-b from-charcoal via-ash to-charcoal py-16 text-[#f4efe2] md:py-24"
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-1/2 mx-auto h-64 max-w-3xl -translate-y-1/2 rounded-full bg-leaf/20 blur-[110px]"
+        />
+        <div
+          aria-hidden
+          className="bg-noise pointer-events-none absolute inset-0 opacity-[0.05]"
+        />
+        <dl className="relative mx-auto grid max-w-6xl gap-10 px-5 md:grid-cols-3 md:gap-0 md:px-8">
+          {STATS.map(({ value, label }, i) => (
+            <div
+              key={label}
+              className={`flex flex-col-reverse justify-end gap-3 md:px-8 md:first:pl-0 md:last:pr-0 ${
+                i > 0 ? "md:border-l md:border-white/15" : ""
+              }`}
+            >
+              <dt className="t-small max-w-[16rem] opacity-80">{label}</dt>
+              <dd className="font-display text-[clamp(3.5rem,8vw,6.5rem)] leading-none tracking-tight text-leaf-bright">
+                {value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+      <div
+        aria-hidden
+        className="divider-fade-up pointer-events-none relative z-10 -mb-16 h-16"
+      />
+    </>
   );
 }

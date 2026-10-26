@@ -41,7 +41,7 @@ export function SunRays({ p }: { p: P }) {
   );
 }
 
-const MOTES = Array.from({ length: 12 }, (_, i) => ({
+const MOTES = Array.from({ length: 18 }, (_, i) => ({
   x: (i * 37) % 100,
   y: 50 + ((i * 53) % 38),
   s: 1.5 + ((i * 7) % 4) * 0.8,
@@ -125,14 +125,7 @@ function Bird({ p, win, top, size, delay }: { p: P; win: [number, number]; top: 
 export function FilmFinish() {
   return (
     <>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.09] mix-blend-overlay"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
-        }}
-      />
+      <div aria-hidden className="bg-noise pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-overlay" />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"

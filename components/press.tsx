@@ -43,12 +43,12 @@ export function PressBlock() {
       <ul
         ref={trackRef}
         aria-label="Notas de prensa"
-        className="scrollbar-hide relative -mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 md:-mx-8 md:px-8"
+        className="scrollbar-hide relative -mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-8 pt-1 md:-mx-8 md:px-8"
       >
         {pressMentions.map((m) => (
           <li
             key={m.url}
-            className="w-[78vw] max-w-[300px] shrink-0 snap-start"
+            className="w-[72vw] max-w-[280px] shrink-0 snap-start"
           >
             <PressCard mention={m} />
           </li>
@@ -64,39 +64,46 @@ function PressCard({ mention }: { mention: PressMention }) {
       href={mention.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex h-full flex-col overflow-hidden rounded-sm border border-foreground/15 transition-colors hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      className="group relative flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-[20px] bg-charcoal shadow-[0_24px_50px_-24px_rgba(18,17,14,0.55)] ring-1 ring-foreground/10 transition-all duration-300 hover:-translate-y-1 hover:ring-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
     >
-      <div className="relative aspect-[4/3] w-full bg-ash/10">
-        {mention.image ? (
-          // og:image de cada medio, hotlinkeada: next/image exigiría whitelist de dominios.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={encodeURI(mention.image)}
-            alt=""
-            width={300}
-            height={225}
-            loading="lazy"
-            decoding="async"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-        ) : (
-          <Newspaper
-            className="absolute inset-0 m-auto h-8 w-8 opacity-30"
-            aria-hidden
-          />
-        )}
-      </div>
-      <div className="flex flex-1 flex-col justify-between gap-3 p-4">
-        <p className="t-label flex items-center justify-between text-[#0b6b44]">
-          {mention.outlet}
-          <ArrowUpRight className="h-4 w-4" aria-hidden />
-        </p>
-        <p className="t-small line-clamp-3 font-semibold">
+      {mention.image ? (
+        // og:image de cada medio, hotlinkeada: next/image exigiría whitelist de dominios.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={encodeURI(mention.image)}
+          alt=""
+          width={300}
+          height={375}
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover saturate-[0.8] transition-transform duration-500 group-hover:scale-105 group-hover:saturate-100"
+        />
+      ) : (
+        <Newspaper
+          className="absolute inset-0 m-auto h-8 w-8 text-[#f4efe2]/30"
+          aria-hidden
+        />
+      )}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/70 via-45% to-charcoal/10"
+      />
+      <p className="t-label glass absolute left-3 top-3 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[#f4efe2]">
+        {mention.outlet}
+      </p>
+      <ArrowUpRight
+        className="absolute right-4 top-4 h-5 w-5 text-[#f4efe2]/80 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+        aria-hidden
+      />
+      <div className="relative p-4">
+        <p className="line-clamp-3 font-heading text-lg font-semibold leading-snug tracking-tight text-[#f4efe2]">
           {mention.title}
           <span className="sr-only"> (abre en pestaña nueva)</span>
         </p>
         {mention.date && (
-          <p className="t-small opacity-70">{formatDate(mention.date)}</p>
+          <p className="t-small mt-2 text-[#f4efe2]/75">
+            {formatDate(mention.date)}
+          </p>
         )}
       </div>
     </a>

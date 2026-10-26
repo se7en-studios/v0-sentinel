@@ -748,3 +748,47 @@ html { scroll-padding-top: 88px; }
 .t-body { font-size: 1rem; line-height: 1.65; }
 .t-small { font-size: 0.875rem; line-height: 1.55; }
 .t-label { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; }
+
+/* Lenguaje visual v3: superficies con profundidad (usar en vez de cajas planas). */
+.bg-noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+.glass {
+  background: rgb(18 17 14 / 0.55);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border: 1px solid rgb(244 239 226 / 0.12);
+  box-shadow: 0 1px 0 rgb(244 239 226 / 0.06) inset, 0 20px 60px -20px rgb(0 0 0 / 0.6);
+}
+.glass-light {
+  background: rgb(250 247 240 / 0.7);
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  border: 1px solid rgb(26 24 18 / 0.08);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.6) inset, 0 20px 50px -24px rgb(26 24 18 / 0.35);
+}
+.glow-leaf { box-shadow: 0 0 0 1px rgb(95 227 161 / 0.25), 0 0 60px -10px rgb(95 227 161 / 0.35); }
+.glow-ember { box-shadow: 0 0 0 1px rgb(232 115 42 / 0.3), 0 0 70px -10px rgb(232 115 42 / 0.4); }
+/* Marco de navegador para capturas del producto real (public/product/*.webp). */
+.browser-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #1d1b17;
+  border: 1px solid rgb(244 239 226 / 0.14);
+  box-shadow: 0 40px 120px -30px rgb(0 0 0 / 0.7), 0 0 0 1px rgb(0 0 0 / 0.4);
+}
+.browser-frame::before {
+  content: "";
+  display: block;
+  height: 28px;
+  background:
+    radial-gradient(circle at 16px 14px, #ff5f57 4px, transparent 5px),
+    radial-gradient(circle at 34px 14px, #febc2e 4px, transparent 5px),
+    radial-gradient(circle at 52px 14px, #28c840 4px, transparent 5px),
+    #26241f;
+  border-bottom: 1px solid rgb(244 239 226 / 0.08);
+}
+.divider-fade-down { background: linear-gradient(to bottom, transparent, var(--color-charcoal)); }
+.divider-fade-up { background: linear-gradient(to top, transparent, var(--color-charcoal)); }

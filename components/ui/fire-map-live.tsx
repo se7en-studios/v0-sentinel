@@ -52,10 +52,15 @@ const backdrop = countries.features.filter((f) =>
   ].includes(f.properties.name),
 );
 const graticule = geoGraticule().step([4, 4])();
+const graticuleFine = geoGraticule().step([1, 1])();
+const MAX_FRP = 150;
+// Halo radius grows with radiative power: a visual cue of intensity, not a measurement.
+const haloR = (frp: number) => 7 + Math.min(frp / MAX_FRP, 1) * 15;
 
 const VIEWS = {
   argentina: {
     label: "Argentina",
+    coords: ["74°O · 21,5°S", "53°O · 55,5°S"],
     corners: [
       [-74, -55.5],
       [-53, -21.5],
@@ -63,6 +68,7 @@ const VIEWS = {
   },
   patagonia: {
     label: "Patagonia",
+    coords: ["73,5°O · 37°S", "66°O · 50°S"],
     corners: [
       [-73.5, -50],
       [-66, -37],
@@ -155,6 +161,7 @@ export function FireMapLive({
         acc[key] = {
           land: backdrop.map((f) => path(f) ?? ""),
           grid: path(graticule) ?? "",
+          fine: path(graticuleFine) ?? "",
           fires: fires.map((f) => at(f.lat, f.lng)),
           places: places.map((p) => at(p.lat, p.lon)),
         };
@@ -165,6 +172,7 @@ export function FireMapLive({
         {
           land: string[];
           grid: string;
+          fine: string;
           fires: [number, number][];
           places: [number, number][];
         }
@@ -183,10 +191,10 @@ export function FireMapLive({
     <div
       ref={boxRef}
       data-live="1"
-      className="lv relative overflow-hidden rounded-2xl border border-white/10"
+      className="lv relative overflow-hidden rounded-[20px] border border-white/12 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)]"
       style={{
         background:
-          "radial-gradient(ellipse at 50% 35%, #1d1b17 0%, #12110e 75%)",
+          "radial-gradient(ellipse at 50% 38%, #22251f 0%, #161512 55%, #0d0c0a 100%)",
       }}
     >
       <style>{`
@@ -204,21 +212,52 @@ export function FireMapLive({
           role="group"
           aria-label={`Mapa de ${fires.length} focos de calor y ${places.length} localidades de la Patagonia. Con el teclado, usá las flechas para recorrer los puntos y Enter para ver el detalle.`}
         >
+          <defs>
+            <radialGradient id="lv-halo">
+              <stop offset="0" stopColor="#ff9a4d" stopOpacity="0.75" />
+              <stop offset="0.35" stopColor="#e8732a" stopOpacity="0.35" />
+              <stop offset="1" stopColor="#e8732a" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <path
+            d={g.fine}
+            fill="none"
+            stroke="rgba(244,239,226,0.035)"
+            strokeWidth={0.4}
+          />
           <path
             d={g.grid}
             fill="none"
-            stroke="rgba(244,239,226,0.06)"
+            stroke="rgba(95,227,161,0.12)"
             strokeWidth={0.6}
+            strokeDasharray="2 4"
           />
           {g.land.map((d, i) => (
             <path
               key={i}
               d={d}
-              fill="rgba(244,239,226,0.05)"
-              stroke="rgba(244,239,226,0.28)"
+              fill="rgba(244,239,226,0.06)"
+              stroke="rgba(244,239,226,0.32)"
               strokeWidth={0.8}
             />
           ))}
+
+          <g aria-hidden="true" pointerEvents="none">
+            {fires.map((f, i) => {
+              const [x, y] = g.fires[i];
+              if (!onMap(g.fires[i])) return null;
+              return (
+                <circle
+                  key={`h${i}`}
+                  cx={x}
+                  cy={y}
+                  r={haloR(f.frp)}
+                  fill="url(#lv-halo)"
+                  opacity={0.35 + Math.min(f.frp / MAX_FRP, 1) * 0.65}
+                />
+              );
+            })}
+          </g>
 
           {fires.map((f, i) => {
             const [x, y] = g.fires[i];
@@ -255,8 +294,8 @@ export function FireMapLive({
                 <circle
                   cx={x}
                   cy={y}
-                  r={isSel ? 5 : 3}
-                  fill="#e8732a"
+                  r={isSel ? 5 : 2.5 + Math.min(f.frp / MAX_FRP, 1) * 1.5}
+                  fill="#ff8a3d"
                   stroke={isSel ? "#f4efe2" : "none"}
                   strokeWidth={1.5}
                 />
@@ -301,6 +340,37 @@ export function FireMapLive({
           })}
         </svg>
 
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse at center, transparent 55%, rgba(8,8,6,0.75) 100%)",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="bg-noise pointer-events-none absolute inset-0 opacity-[0.07] mix-blend-overlay"
+        />
+        {[
+          "left-2 top-2 border-l-2 border-t-2 rounded-tl-lg",
+          "right-2 top-2 border-r-2 border-t-2 rounded-tr-lg",
+          "left-2 bottom-2 border-b-2 border-l-2 rounded-bl-lg",
+          "right-2 bottom-2 border-b-2 border-r-2 rounded-br-lg",
+        ].map((c) => (
+          <span
+            key={c}
+            aria-hidden="true"
+            className={`pointer-events-none absolute size-5 border-[#5fe3a1]/60 ${c}`}
+          />
+        ))}
+        <p
+          aria-hidden="true"
+          className="t-label pointer-events-none absolute bottom-4 right-10 hidden tabular-nums text-[#f4efe2]/65 sm:block"
+        >
+          {VIEWS[view].coords[0]} → {VIEWS[view].coords[1]}
+        </p>
+
         {view === "patagonia" &&
           places.map((p, i) =>
             onMap(g.places[i]) ? (
@@ -320,7 +390,7 @@ export function FireMapLive({
           )}
 
         <div
-          className="absolute left-3 top-3 flex gap-1.5"
+          className="absolute left-5 top-5 flex gap-1.5"
           role="group"
           aria-label="Encuadre del mapa"
         >
@@ -330,7 +400,7 @@ export function FireMapLive({
               type="button"
               onClick={() => chooseView(k)}
               aria-pressed={view === k}
-              className={`t-label min-h-11 rounded-md border px-3 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5fe3a1] ${
+              className={`t-label min-h-11 rounded-lg border px-3.5 backdrop-blur transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5fe3a1] ${
                 view === k
                   ? "border-[#5fe3a1]/60 bg-[#5fe3a1]/15 text-[#5fe3a1]"
                   : "border-white/20 bg-[#12110e]/70 text-[#f4efe2]/80 hover:text-[#f4efe2]"
@@ -341,26 +411,26 @@ export function FireMapLive({
           ))}
         </div>
 
-        <ul className="absolute right-3 top-3 hidden gap-3 rounded-md bg-[#12110e]/70 px-3 py-2 text-xs text-[#f4efe2]/80 sm:flex list-none m-0">
-          <li className="flex items-center gap-1.5">
+        <ul className="glass absolute right-5 top-5 m-0 hidden list-none flex-col gap-1.5 rounded-xl px-3.5 py-2.5 text-xs text-[#f4efe2]/85 sm:flex">
+          <li className="flex items-center gap-2">
             <span
               aria-hidden="true"
-              className="size-2 rounded-full bg-[#e8732a]"
+              className="size-2.5 rounded-full bg-[#ff8a3d] shadow-[0_0_10px_3px_rgba(232,115,42,0.6)]"
             />
-            Foco de calor
+            Foco de calor (más halo = más intenso)
           </li>
-          <li className="flex items-center gap-1.5">
+          <li className="flex items-center gap-2">
             <span
               aria-hidden="true"
-              className="size-2 rotate-45 border-2 border-[#5fe3a1]"
+              className="ml-0.5 size-2 rotate-45 border-2 border-[#5fe3a1]"
             />
-            Localidad
+            Localidad (color = riesgo)
           </li>
         </ul>
 
         <div
           aria-live="polite"
-          className="absolute inset-x-3 bottom-3 rounded-xl border border-white/15 bg-[#12110e]/92 p-4 text-sm leading-relaxed text-[#f4efe2] backdrop-blur sm:right-auto sm:max-w-sm"
+          className="glass absolute inset-x-5 bottom-5 rounded-xl p-4 text-sm leading-relaxed text-[#f4efe2] sm:right-auto sm:max-w-sm"
         >
           <Detail
             sel={sel}

@@ -19,8 +19,9 @@ const PERFIL_TO_INTEREST: Record<string, string> = {
 };
 
 const field =
-  "w-full rounded-md border border-white/25 bg-white/[0.06] px-3.5 py-3 text-base text-[#f4efe2] placeholder:text-[#f4efe2]/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright aria-[invalid=true]:border-[#ff9b8a]";
-const label = "t-small block mb-1.5 font-medium text-[#f4efe2]";
+  "min-h-12 w-full rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-base text-[#f4efe2] shadow-[inset_0_1px_2px_rgb(0_0_0/0.35)] transition placeholder:text-[#f4efe2]/55 hover:border-white/35 focus-visible:border-leaf-bright focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-leaf-bright/30 aria-[invalid=true]:border-[#ff9b8a] aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-[#ff9b8a]/25";
+const label = "t-small block mb-2 font-medium text-[#f4efe2]";
+const card = "glass rounded-[20px] p-6 md:p-8";
 
 function FieldError({ id, msg }: { id: string; msg?: string }) {
   return msg ? (
@@ -81,10 +82,7 @@ export function ContactForm() {
 
   if (status === "ok") {
     return (
-      <div
-        role="status"
-        className="rounded-xl border border-leaf-bright/40 bg-white/[0.04] p-6 md:p-8"
-      >
+      <div role="status" className={`${card} glow-leaf`}>
         <p className="t-h3 text-leaf-bright">Recibimos tu mensaje.</p>
         <p className="t-body mt-2 text-[#f4efe2]/85">
           Te respondemos en 24 h hábiles. Si es urgente, escribinos a {mail}.
@@ -97,7 +95,7 @@ export function ContactForm() {
     <form
       onSubmit={onSubmit}
       noValidate
-      className="grid gap-5 rounded-xl border border-white/15 bg-white/[0.04] p-6 md:p-8 sm:grid-cols-2"
+      className={`${card} relative grid gap-5 sm:grid-cols-2`}
     >
       {/* honeypot */}
       <div
@@ -198,7 +196,7 @@ export function ContactForm() {
         <button
           type="submit"
           disabled={status === "sending"}
-          className="inline-flex min-h-12 items-center rounded-full bg-leaf-bright px-7 text-base font-semibold text-charcoal transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-60"
+          className="glow-leaf inline-flex min-h-14 items-center rounded-full bg-leaf-bright px-9 text-base font-semibold text-charcoal transition hover:-translate-y-0.5 hover:brightness-105 active:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:translate-y-0 disabled:cursor-wait disabled:opacity-60"
         >
           {status === "sending" ? "Enviando…" : "Solicitar un piloto"}
         </button>

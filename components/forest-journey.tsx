@@ -5,7 +5,7 @@
 // everything through motion values, so scrolling never re-renders React. With reduced motion the scene
 // is a still frame and the chapters become a plain list.
 
-import { useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { Fragment, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import {
   motion,
   useMotionTemplate,
@@ -32,31 +32,31 @@ type P = MotionValue<number>;
 
 const CHAPTERS = [
   {
-    kicker: "01 · El territorio",
+    kicker: "El territorio",
     title: "Millones de hectáreas. Nadie puede mirarlas todas.",
     body: "Un incendio empieza con una chispa en un lugar al que nadie llega a tiempo.",
     range: [0, 0.2],
   },
   {
-    kicker: "02 · Sensores y drones",
+    kicker: "Sensores y drones",
     title: "Ojos en el aire, sumándose de a poco",
     body: "Los drones y sensores propios se integran de forma progresiva a la plataforma. Hoy la base es satelital; mañana el territorio tiene presencia permanente.",
     range: [0.2, 0.42],
   },
   {
-    kicker: "03 · Satélites",
+    kicker: "Satélites",
     title: "El calor se ve desde el espacio",
     body: "VIIRS, MODIS y GOES-19 cruzan el territorio varias veces por hora. Sentinel procesa cada pasada apenas llega.",
     range: [0.42, 0.62],
   },
   {
-    kicker: "04 · Detección",
+    kicker: "Detección",
     title: "Foco detectado en minutos, no en horas",
     body: "La anomalía térmica se cruza con terreno, clima y combustible para filtrar falsos positivos y priorizar el foco real.",
     range: [0.62, 0.82],
   },
   {
-    kicker: "05 · Alerta",
+    kicker: "Alerta",
     title: "Quien tiene que actuar, lo sabe primero",
     body: "Municipios, brigadas y propietarios reciben el aviso con ubicación y riesgo de propagación.",
     range: [0.82, 1.01],
@@ -66,6 +66,7 @@ const CHAPTERS = [
 
 /** Layers: [kind, height % of the stage, how much of its travel it covers at the end]. */
 const LAYERS: [LayerKind, number, number][] = [
+  ["peaks", 74, 0.05],
   ["ridge", 62, 0.12],
   ["far", 52, 0.3],
 ];
@@ -137,32 +138,63 @@ function Chapter({ p, i, children }: { p: P; i: number; children: ReactNode }) {
   );
 }
 
-function ChapterText({ i }: { i: number }) {
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/** «01 / 05» + barra fina: en el recorrido avanza con el scroll del capítulo; en la lista marca la posición. */
+function ChapterCounter({ i, p }: { i: number; p?: P }) {
+  return (
+    <div className="flex items-center gap-4">
+      <span className="t-label tabular-nums text-[#f4efe2]">
+        {pad(i + 1)} <span className="text-[#f4efe2]/60">/ {pad(CHAPTERS.length)}</span>
+      </span>
+      <span className="relative block h-[2px] w-32 overflow-hidden rounded-full bg-[#f4efe2]/25 sm:w-52">
+        {p ? (
+          <ChapterFill p={p} range={CHAPTERS[i].range} />
+        ) : (
+          <span className="absolute inset-y-0 left-0 bg-leaf-bright" style={{ width: `${((i + 1) / CHAPTERS.length) * 100}%` }} />
+        )}
+      </span>
+    </div>
+  );
+}
+
+function ChapterFill({ p, range }: { p: P; range: readonly [number, number] }) {
+  const scaleX = useTransform(p, [range[0], Math.min(range[1], 1)], [0, 1], { clamp: true });
+  return <motion.span className="absolute inset-0 origin-left bg-leaf-bright" style={{ scaleX }} />;
+}
+
+function ChapterText({ i, p }: { i: number; p?: P }) {
   const c = CHAPTERS[i];
   const Title = i === 0 ? "h2" : "h3";
+  const stage = Boolean(p);
   return (
-    // Scrim propio: el texto nunca depende de lo que haya detrás en el cielo.
-    <div className="max-w-xl rounded-2xl bg-charcoal/80 p-5 text-[#f4efe2] sm:p-7">
-      <p className="t-label mb-3 text-leaf-bright">{c.kicker}</p>
-      <Title className="t-h2 text-[1.9rem] text-balance sm:text-5xl">{c.title}</Title>
-      <p className="t-body mt-4 max-w-md text-[#f4efe2]/90">{c.body}</p>
+    <div className={`text-[#f4efe2] ${stage ? "max-w-3xl [text-shadow:0_2px_28px_rgba(0,0,0,0.55)]" : ""}`}>
+      <ChapterCounter i={i} p={p} />
+      <p className="t-label mt-6 text-leaf-bright">{c.kicker}</p>
+      <Title
+        className="t-display mt-3 text-balance"
+        style={{ fontSize: stage ? "clamp(2.25rem, 5.2vw, 4.5rem)" : "clamp(1.9rem, 6.4vw, 2.6rem)" }}
+      >
+        {c.title}
+      </Title>
+      <p className="t-lead mt-5 max-w-xl text-[#f4efe2]/90">{c.body}</p>
       {i === 3 && (
-        <p className="t-small mt-5 inline-flex items-baseline gap-2 rounded-full border border-leaf-bright/40 px-4 py-1.5">
+        <p className="t-small mt-5 inline-flex items-baseline gap-2 rounded-full border border-leaf-bright/40 bg-charcoal/40 px-4 py-1.5">
           <span className="text-lg font-bold text-leaf-bright">{CLAIMS.detectionMinutes} min</span> tiempo
           de detección objetivo
         </p>
       )}
       {"cta" in c && (
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-7 flex flex-col gap-3 sm:flex-row">
           <a
             href="/demo"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-leaf-bright px-7 py-3 text-base font-semibold text-charcoal transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-leaf-bright px-7 py-3 text-base font-semibold text-charcoal shadow-[0_10px_40px_-10px_rgba(95,227,161,0.55)] transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
             Ver el panel en vivo <ArrowRight className="size-4" aria-hidden />
           </a>
           <a
             href="#nosotros"
-            className="inline-flex items-center justify-center rounded-full border border-[#f4efe2]/40 px-7 py-3 text-base text-[#f4efe2] transition-colors hover:border-[#f4efe2] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            className="glass inline-flex items-center justify-center rounded-full px-7 py-3 text-base text-[#f4efe2] transition-colors hover:border-[#f4efe2]/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
             Conocer la plataforma
           </a>
@@ -223,6 +255,19 @@ function FireFront({ p, animate }: { p: P; animate: boolean }) {
   );
 }
 
+/** Etalonaje por capítulo: del frío del amanecer al ámbar/ember. Capas fijas que solo cambian de opacidad (CSS), sin trabajo por frame. */
+const GRADES = [
+  "radial-gradient(120% 90% at 62% 18%, rgba(110,170,205,0.55), transparent 70%)",
+  "radial-gradient(120% 90% at 55% 25%, rgba(120,190,170,0.5), transparent 70%)",
+  "radial-gradient(120% 90% at 50% 30%, rgba(240,200,120,0.5), transparent 70%)",
+  "radial-gradient(130% 100% at 50% 85%, rgba(255,120,40,0.55), transparent 72%)",
+  "radial-gradient(130% 100% at 50% 80%, rgba(220,70,30,0.6), transparent 74%)",
+];
+const chapterOf = (v: number) => {
+  const k = CHAPTERS.findIndex((c) => v < c.range[1]);
+  return k < 0 ? CHAPTERS.length - 1 : k;
+};
+
 /** The whole scene, driven by `p` (0..1). */
 function Scene({ p, reduce }: { p: P; reduce: boolean }) {
   const top = useTransform(
@@ -238,6 +283,11 @@ function Scene({ p, reduce }: { p: P; reduce: boolean }) {
   const sky = useMotionTemplate`linear-gradient(to bottom, ${top} 0%, ${bottom} 100%)`;
   const heat = useTransform(p, [0.6, 0.72, 1], [0, 0.55, 0.7]);
   const sunY = useTransform(p, [0, 1], ["0%", "-14%"]);
+  const [chap, setChap] = useState(() => chapterOf(p.get()));
+  useMotionValueEvent(p, "change", (v) => {
+    const k = chapterOf(v);
+    setChap((prev) => (prev === k ? prev : k));
+  });
 
   const midTravel = useTransform(p, (v) => travel(v));
 
@@ -264,8 +314,17 @@ function Scene({ p, reduce }: { p: P; reduce: boolean }) {
       />
       <Birds p={p} />
 
-      {LAYERS.map(([kind, h, f]) => (
-        <ParallaxLayer key={kind} p={p} kind={kind} height={h} factor={f} />
+      {LAYERS.map(([kind, h, f], idx) => (
+        <Fragment key={kind}>
+          <ParallaxLayer p={p} kind={kind} height={h} factor={f} />
+          {idx < 2 && (
+            <div
+              aria-hidden
+              className="jn-mist pointer-events-none absolute inset-x-0 h-[20%] opacity-80"
+              style={{ bottom: idx === 0 ? "46%" : "34%" }}
+            />
+          )}
+        </Fragment>
       ))}
 
       <SunRays p={p} />
@@ -301,10 +360,18 @@ function Scene({ p, reduce }: { p: P; reduce: boolean }) {
       <ParallaxLayer p={p} kind="grass" height={82} factor={1} sway />
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent" />
       <DustMotes />
+      {GRADES.map((g, k) => (
+        <div
+          key={k}
+          aria-hidden
+          className="pointer-events-none absolute inset-0 mix-blend-soft-light transition-opacity duration-[1400ms] ease-out"
+          style={{ background: g, opacity: chap === k ? 1 : 0 }}
+        />
+      ))}
       <FilmFinish />
 
       <motion.div
-        className="absolute right-4 top-24 w-[min(78vw,300px)] rounded-2xl border border-white/15 bg-charcoal/90 p-4 text-[#f4efe2] shadow-2xl sm:right-10 sm:top-1/3"
+        className="glass absolute right-4 top-24 w-[min(78vw,300px)] rounded-[20px] p-4 text-[#f4efe2] sm:right-10 sm:top-1/3"
         style={{ opacity: notice, y: noticeY }}
         inert={!noticeOn}
         aria-hidden={!noticeOn}
@@ -369,65 +436,49 @@ export function ForestJourney() {
       <div
         className={
           reduce
-            ? "relative h-[78svh] overflow-hidden"
+            ? "relative h-[64svh] min-h-[380px] overflow-hidden"
             : "sticky top-0 h-[100svh] overflow-hidden"
         }
       >
         <Scene p={p} reduce={reduce} />
+        {/* Bordes que funden con el hero (arriba) y con «Problema» (abajo): sin corte duro. */}
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-[6] h-32 bg-gradient-to-b from-charcoal via-charcoal/60 to-transparent" />
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-[6] h-40 bg-gradient-to-t from-charcoal via-charcoal/70 to-transparent" />
         {!reduce && (
-          <div className="absolute inset-x-0 bottom-0 z-10 mx-auto h-[50svh] max-w-6xl px-5 pb-16 sm:px-10 sm:pb-12">
-            <div className="relative h-full">
-              {CHAPTERS.map((_, i) => (
-                <Chapter key={i} p={p} i={i}>
-                  <ChapterText i={i} />
-                </Chapter>
-              ))}
+          <>
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 z-[5]"
+              style={{
+                background:
+                  "linear-gradient(to top, rgba(18,17,14,0.92) 0%, rgba(18,17,14,0.7) 28%, transparent 64%), linear-gradient(to right, rgba(18,17,14,0.62) 0%, transparent 60%)",
+              }}
+            />
+            <div className="absolute inset-x-0 bottom-0 z-10 mx-auto h-[66svh] max-w-6xl px-5 pb-12 sm:px-10 sm:pb-16">
+              <div className="relative h-full">
+                {CHAPTERS.map((_, i) => (
+                  <Chapter key={i} p={p} i={i}>
+                    <ChapterText i={i} p={p} />
+                  </Chapter>
+                ))}
+              </div>
             </div>
-          </div>
+          </>
         )}
-        {!reduce && <Ticks p={p} />}
       </div>
       {reduce && (
-        <div className="mx-auto grid max-w-6xl gap-10 bg-charcoal px-5 py-14 sm:px-10 md:grid-cols-2">
-          {CHAPTERS.map((_, i) => (
-            <ChapterText key={i} i={i} />
-          ))}
+        <div className="relative bg-charcoal">
+          <div aria-hidden className="bg-noise pointer-events-none absolute inset-0 opacity-[0.05] mix-blend-overlay" />
+          <ol className="relative mx-auto grid max-w-6xl gap-x-16 px-5 pb-20 sm:px-10 md:grid-cols-2">
+            {CHAPTERS.map((_, i) => (
+              <li key={i} className="border-t border-[#f4efe2]/10 py-9">
+                <ChapterText i={i} />
+              </li>
+            ))}
+          </ol>
         </div>
       )}
       <div id="fin-recorrido" aria-hidden />
     </section>
-  );
-}
-
-function Ticks({ p }: { p: P }) {
-  return (
-    <div
-      aria-hidden
-      className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-2"
-    >
-      {CHAPTERS.map((c, i) => (
-        <Tick key={i} p={p} range={c.range} />
-      ))}
-    </div>
-  );
-}
-
-function Tick({ p, range }: { p: P; range: readonly [number, number] }) {
-  const [a, b] = range;
-  const opacity = useTransform(
-    p,
-    [a - 0.01, a + 0.02, b - 0.02, b + 0.01],
-    [0.3, 1, 1, 0.3],
-  );
-  const width = useTransform(
-    p,
-    [a - 0.01, a + 0.02, b - 0.02, b + 0.01],
-    [10, 28, 28, 10],
-  );
-  return (
-    <motion.span
-      className="h-1 rounded-full bg-leaf-bright"
-      style={{ opacity, width }}
-    />
   );
 }
