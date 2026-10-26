@@ -19,12 +19,13 @@ const jetbrains = JetBrains_Mono({
   weight: ["400", "500", "600"],
   subsets: ["latin"],
   variable: "--font-mono",
+  // ponytail: solo etiquetas y cifras; sin preload no compite con el CSS por el ancho de banda del primer paint
+  preload: false,
 });
 
 // Solo para titulares emocionales grandes (capítulos del relato); el resto usa Jakarta.
 const display = Instrument_Serif({
   weight: "400",
-  style: ["normal", "italic"],
   subsets: ["latin"],
   variable: "--font-display",
 });
