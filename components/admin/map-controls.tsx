@@ -148,7 +148,12 @@ function Chips({ a }: { a: A }) {
     : 0;
   const high = f.filter((p) => p[3] === 2).length;
   const items = [
-    { k: t("mc.chip.fires"), v: f.length.toLocaleString(loc), c: "#c2540a" },
+    {
+      k: t("mc.chip.fires"),
+      v: f.length.toLocaleString(loc),
+      // 5.6:1 on the light glass; the dark theme gets a lighter orange
+      cls: "text-[#a84508] [.admin-dark_&]:text-[#ff8a4c]",
+    },
     { k: t("mc.chip.frp"), v: `${avg} MW`, c: "#8a6a00" },
     {
       k: t("mc.chip.conf"),
@@ -171,7 +176,7 @@ function Chips({ a }: { a: A }) {
               aria-hidden
             />
           )}
-          <b className="font-semibold" style={{ color: c.c }}>
+          <b className={cn("font-semibold", c.cls)} style={c.c ? { color: c.c } : undefined}>
             {c.v}
           </b>
           <span className="text-foreground/50">

@@ -163,7 +163,8 @@ function AnalysisTab({ ctx }: { ctx: Ctx }) {
                       "shrink-0 text-[10px] font-semibold uppercase tracking-wide",
                       c.level === "bajo" && "text-primary",
                       c.level === "moderado" && "text-[#8a6a00]",
-                      c.level === "alto" && "text-[#c2540a]",
+                      c.level === "alto" &&
+                        "text-[#a84508] [.admin-dark_&]:text-[#ff8a4c]",
                       c.level === "extremo" && "text-[#b83a3a]",
                     )}
                   >
