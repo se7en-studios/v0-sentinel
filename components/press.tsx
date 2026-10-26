@@ -43,7 +43,7 @@ export function PressBlock() {
       <ul
         ref={trackRef}
         aria-label="Notas de prensa"
-        className="scrollbar-hide -mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 md:-mx-8 md:px-8"
+        className="scrollbar-hide relative -mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 md:-mx-8 md:px-8"
       >
         {pressMentions.map((m) => (
           <li
