@@ -1,10 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
+import { openTab } from "./tab";
 
 // Integrations card in Settings. /api/admin/health and /api/admin/notify are simulated with page.route,
 // so nothing real is probed or sent.
-
-const tab = (page: Page, name: string) =>
-  page.getByRole("navigation", { name: "Modos" }).getByRole("button", { name });
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -46,7 +44,7 @@ const healthJson = {
 
 async function openCard(page: Page) {
   await page.goto("/admin");
-  await tab(page, "Configuración").click();
+  await openTab(page, "Configuración");
   await expect(
     page.getByRole("heading", { name: "Estado de las fuentes" }),
   ).toBeVisible({ timeout: 20_000 });

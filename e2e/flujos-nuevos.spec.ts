@@ -1,11 +1,10 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { openTab } from "./tab";
 
 // Flows added with GOES-19, MODIS, terrain and the language switch. Every external answer is simulated
 // with page.route, so none of these depend on live fire data.
 
 const MIN = 60_000;
-const tab = (page: Page, name: string) =>
-  page.getByRole("navigation", { name: "Modos" }).getByRole("button", { name });
 const today = () => new Date().toISOString().slice(0, 10);
 
 test.beforeEach(async ({ page }) => {
@@ -53,7 +52,7 @@ test("el terreno bajo un incidente se muestra desde /api/admin/terrain", async (
     });
   });
   await page.goto("/admin");
-  await tab(page, "Incidentes").click();
+  await openTab(page, "Incidentes");
   await expect(page.getByText("Terreno y combustible")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByText(/Bosque/).first()).toBeVisible();
   expect(calls.length).toBeGreaterThan(0);
@@ -64,7 +63,7 @@ test("si el terreno falla, el incidente lo dice sin romperse", async ({ page }) 
   await page.route("**/api/admin/fires", (r) => r.fulfill({ json: firesPayload(Date.now()) }));
   await page.route("**/api/admin/terrain**", (r) => r.fulfill({ status: 502, json: { error: "x" } }));
   await page.goto("/admin");
-  await tab(page, "Incidentes").click();
+  await openTab(page, "Incidentes");
   await expect(page.getByText("No se pudo consultar el terreno ahora.")).toBeVisible({
     timeout: 20_000,
   });
@@ -73,13 +72,13 @@ test("si el terreno falla, el incidente lo dice sin romperse", async ({ page }) 
 test("la opción de MODIS se apaga y se mantiene al cambiar de vista", async ({ page }) => {
   await page.route("**/api/admin/fires", (r) => r.fulfill({ json: firesPayload(Date.now()) }));
   await page.goto("/admin");
-  await tab(page, "Configuración").click();
+  await openTab(page, "Configuración");
   const modis = page.getByRole("checkbox", { name: /Incluir MODIS/ });
   await modis.uncheck({ force: true });
   await expect(modis).not.toBeChecked();
   // the setting survives leaving and coming back to the view
-  await tab(page, "Pronóstico").click();
-  await tab(page, "Configuración").click();
+  await openTab(page, "Pronóstico");
+  await openTab(page, "Configuración");
   await expect(page.getByRole("checkbox", { name: /Incluir MODIS/ })).not.toBeChecked();
 });
 
@@ -90,7 +89,7 @@ test("sin alertas tempranas el panel no avisa nada y el servidor caído no lo ro
   await page.goto("/admin");
   await expect(page.getByRole("navigation", { name: "Modos" })).toBeVisible();
   await expect(page.getByText("sin confirmar")).toHaveCount(0);
-  await tab(page, "Métricas").click();
+  await openTab(page, "Métricas");
   await expect(page.getByRole("heading", { level: 1, name: "Métricas" })).toBeVisible();
 });
 

@@ -1,12 +1,14 @@
 import AxeBuilder from "@axe-core/playwright";
 import { appendFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
+import { openTab } from "./tab";
 
 // WCAG 2.2 AA over every admin tab (demo mode), light/dark, phone and desktop.
 // Fails on serious/critical; moderate/minor are only logged.
 // [full label (desktop), short label (< lg)]
 const TABS: [string, string][] = [
   ["Vista general", "General"],
+  ["Incendios", "Incendios"],
   ["Zonas", "Zonas"],
   ["Drones y sensores", "Drones"],
   ["Recursos", "Recursos"],
@@ -43,11 +45,11 @@ for (const size of SIZES) {
       await page.emulateMedia({ reducedMotion: "reduce" });
       await openAdmin(page, dark);
       await page.getByRole("button", { name: "O probá con datos de ejemplo" }).click().catch(() => {});
-      const nav = page.getByRole("navigation", { name: "Modos" });
       const failures: string[] = [];
       for (const [full, short] of TABS) {
-        const tab = size.width >= 1024 ? full : short;
-        await nav.getByRole("button", { name: new RegExp(`^${tab}`) }).click();
+        const tab = full;
+        // the strip shows short labels on narrow screens, the "Más" menu always the full one
+        await openTab(page, new RegExp(`^(${full}|${short})`));
         await page.waitForTimeout(800);
         const { violations } = await new AxeBuilder({ page })
           .withTags(TAGS)

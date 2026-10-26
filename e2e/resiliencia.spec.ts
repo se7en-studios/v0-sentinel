@@ -1,10 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
+import { openTab } from "./tab";
 
 // Resilience of the admin shell: API down then back, expired session, slow API, no network, and a view
 // that fails to render. /api/admin/fires and /early are simulated with page.route (no real data needed).
 
-const tab = (page: Page, name: string) =>
-  page.getByRole("navigation", { name: "Modos" }).getByRole("button", { name });
 const banner = (page: Page) => page.getByTestId("connection-banner");
 
 const today = new Date().toISOString().slice(0, 10);
@@ -99,7 +98,7 @@ test("sesión vencida (401): no reintenta, avisa y conserva lo local", async ({
   await page.waitForTimeout(6000); // a retrying client would have hit the API again by now
   expect(api.fires).toBe(burst.fires);
   expect(api.early).toBe(burst.early);
-  await tab(page, "Zonas").click();
+  await openTab(page, "Zonas");
   await expect(page.getByText("Sector Norte").first()).toBeVisible(); // local edits survive
 });
 
@@ -111,7 +110,7 @@ test("respuesta lenta: lo cargado sigue usable y no aparece aviso falso", async 
   await expect(
     page.getByRole("list", { name: "Estado general" }),
   ).toBeVisible();
-  await tab(page, "Métricas").click();
+  await openTab(page, "Métricas");
   await expect(
     page.getByRole("heading", { level: 1, name: "Métricas" }),
   ).toBeVisible();
@@ -129,7 +128,7 @@ test("sin red: aviso con el último dato, la pantalla sigue y se va al volver", 
     page.getByRole("list", { name: "Estado general" }),
   ).toBeVisible();
   await expect(banner(page)).toBeHidden();
-  await tab(page, "Pronóstico").click(); // let the first good data land before cutting the network
+  await openTab(page, "Pronóstico"); // let the first good data land before cutting the network
   await expect(
     page.getByRole("heading", { level: 1, name: "Pronóstico de riesgo" }),
   ).toBeVisible();
@@ -158,12 +157,12 @@ test("respuesta malformada: error de carga acotado, el panel sigue usable", asyn
   );
   await page.route("**/api/admin/early", (r) => r.fulfill({ json: earlyOk }));
   await page.goto("/admin");
-  await tab(page, "Métricas").click();
+  await openTab(page, "Métricas");
   await expect(page.getByTestId("view-error")).toBeHidden();
   await expect(page.getByText("Algo falló en el panel")).toBeHidden();
   // the bad body is reported as a load error instead of reaching the charts
   await expect(page.getByText("Respuesta de focos inválida").first()).toBeVisible();
-  await tab(page, "Configuración").click();
+  await openTab(page, "Configuración");
   await expect(page.getByRole("heading", { level: 1, name: "Configuración" })).toBeVisible();
 });
 
@@ -185,7 +184,7 @@ test("una vista que falla al renderizar cae sola y se puede reintentar", async (
     };
     w.__boom = true;
   });
-  await tab(page, "Métricas").click();
+  await openTab(page, "Métricas");
   await expect(page.getByTestId("view-error")).toContainText(
     "No se pudo mostrar Métricas",
   );
@@ -193,7 +192,7 @@ test("una vista que falla al renderizar cae sola y se puede reintentar", async (
     () => ((window as unknown as { __boom?: boolean }).__boom = false),
   );
   // the rest of the panel keeps working
-  await tab(page, "Incidentes").click();
+  await openTab(page, "Incidentes");
   await expect(
     page.getByRole("heading", { level: 1, name: "Incidentes" }),
   ).toBeVisible();
@@ -202,7 +201,7 @@ test("una vista que falla al renderizar cae sola y se puede reintentar", async (
   await page.evaluate(
     () => ((window as unknown as { __boom?: boolean }).__boom = true),
   );
-  await tab(page, "Métricas").click();
+  await openTab(page, "Métricas");
   await expect(page.getByTestId("view-error")).toBeVisible();
   await page.evaluate(
     () => ((window as unknown as { __boom?: boolean }).__boom = false),

@@ -1,9 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
+import { openTab } from "./tab";
 
 // "Temporada" card in Metrics. /api/admin/history is simulated with page.route.
-
-const tab = (page: Page, name: string) =>
-  page.getByRole("navigation", { name: "Modos" }).getByRole("button", { name });
 
 const flat = (v: number) => Array(10).fill(v);
 const end = new Date().toISOString().slice(0, 10);
@@ -30,7 +28,7 @@ async function openMetrics(page: Page) {
     }
   });
   await page.goto("/admin");
-  await tab(page, "Métricas").click();
+  await openTab(page, "Métricas");
   await expect(page.getByRole("heading", { name: "Temporada" })).toBeVisible({
     timeout: 30_000,
   });

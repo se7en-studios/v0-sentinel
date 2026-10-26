@@ -19,6 +19,7 @@ export interface TabBadge {
 }
 
 const MORE_W = 74; // the "Más" button
+const BTN = "h-8 max-lg:h-11 max-md:h-9";
 
 export function TabStrip({ tab, goTab, badge, t }: { tab: Tab; goTab: (t: Tab) => void; badge: (id: Tab) => TabBadge | null; t: Translate }) {
   const box = useRef<HTMLDivElement>(null);
@@ -67,7 +68,7 @@ export function TabStrip({ tab, goTab, badge, t }: { tab: Tab; goTab: (t: Tab) =
         onClick={ghostly ? undefined : () => goTab(id)}
         aria-current={on ? "page" : undefined}
         className={cn(
-          "relative flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          `relative flex ${BTN} shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`,
           on ? "bg-primary text-primary-foreground" : "text-foreground/60 hover:bg-foreground/[0.06] hover:text-foreground",
         )}
       >
@@ -83,14 +84,14 @@ export function TabStrip({ tab, goTab, badge, t }: { tab: Tab; goTab: (t: Tab) =
   };
 
   return (
-    <div ref={box} className="relative mx-1 flex min-w-0 flex-1 items-center justify-center gap-0.5" role="navigation" aria-label={t("top.modes")}>
+    <div ref={box} className="relative mx-1 flex min-w-0 flex-1 items-center justify-center gap-0.5 max-md:order-last max-md:mx-0 max-md:basis-full max-md:flex-none max-md:border-t max-md:border-[var(--hairline)] max-md:py-1" role="navigation" aria-label={t("top.modes")}>
       {visible.map((x) => (
         <Item key={x.id} id={x.id} />
       ))}
       {hidden.length > 0 && (
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex h-8 shrink-0 items-center gap-1 rounded-lg px-2.5 text-[12px] font-medium text-foreground/60 transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-foreground/[0.06] data-[state=open]:text-foreground">
-            {t("top.more")} <ChevronDown className="size-3 opacity-50" aria-hidden />
+          <DropdownMenuTrigger className={`flex ${BTN} shrink-0 items-center gap-1 rounded-lg px-2.5 text-[12px] font-medium text-foreground/60 transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-foreground/[0.06] data-[state=open]:text-foreground`}>
+            {t("tab.more")} <ChevronDown className="size-3 opacity-50" aria-hidden />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52 rounded-xl border-[var(--hairline)] p-1.5 shadow-[var(--shadow-2)]">
             {hidden.map((x) => {
@@ -110,10 +111,12 @@ export function TabStrip({ tab, goTab, badge, t }: { tab: Tab; goTab: (t: Tab) =
         </DropdownMenu>
       )}
       {/* hidden twin, only to measure how wide each tab wants to be */}
-      <div ref={ghost} aria-hidden className="invisible absolute left-0 top-0 flex gap-0.5">
-        {TABS.map((x) => (
-          <Item key={x.id} id={x.id} ghostly />
-        ))}
+      <div aria-hidden className="pointer-events-none invisible absolute inset-x-0 top-0 h-0 overflow-hidden">
+        <div ref={ghost} className="flex w-max gap-0.5">
+          {TABS.map((x) => (
+            <Item key={x.id} id={x.id} ghostly />
+          ))}
+        </div>
       </div>
     </div>
   );

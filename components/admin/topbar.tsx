@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-
 import {
   Box,
   Play,
@@ -44,7 +42,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { useAdmin } from "./use-admin";
-import { TABS } from "./tabs";
+import { TabStrip } from "./incendios/tab-strip";
 import { IconBtn } from "./ui";
 
 type A = ReturnType<typeof useAdmin>;
@@ -103,13 +101,6 @@ function SyncBadge({ a }: { a: A }) {
 
 export function Topbar({ a }: { a: A }) {
   const { ctx, s, region } = a;
-  const nav = useRef<HTMLElement>(null);
-  // on narrow screens the strip scrolls: keep the active mode visible
-  useEffect(() => {
-    nav.current
-      ?.querySelector('[aria-current="page"]')
-      ?.scrollIntoView({ inline: "center", block: "nearest" });
-  }, [ctx.tab]);
   const airborne = ctx.drones.filter((d) => d.track).length;
   const badge = (id: string) =>
     id === "zonas"
@@ -182,43 +173,7 @@ export function Topbar({ a }: { a: A }) {
 
       {/* phone: the tabs get their own full-width row under the logo and icons instead of ~110 px between them */}
       <span className="flex-1 md:hidden" aria-hidden />
-      <nav
-        ref={nav}
-        className="no-scrollbar mx-1 flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto max-md:order-last max-md:mx-0 max-md:basis-full max-md:flex-none max-md:snap-x max-md:border-t max-md:border-[var(--hairline)] max-md:py-1 [&>*:first-child]:ml-auto [&>*:last-child]:mr-auto max-md:[&>*:first-child]:ml-0 max-md:[&>*:last-child]:mr-0"
-        aria-label={t("top.modes")}
-      >
-        {TABS.map((t) => {
-          const b = badge(t.id);
-          const on = a.tab === t.id;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => a.goTab(t.id)}
-              aria-current={on ? "page" : undefined}
-              className={cn(
-                "relative flex h-8 max-lg:h-11 max-md:h-9 max-md:snap-center shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                on
-                  ? "bg-primary text-primary-foreground"
-                  : "text-foreground/60 hover:bg-foreground/[0.06] hover:text-foreground",
-              )}
-            >
-              <span className="hidden lg:inline">{ctx.t(`tab.${t.id}`)}</span>
-              <span className="lg:hidden">{ctx.t(`tab.${t.id}.short`)}</span>
-              {b && b.n > 0 && (
-                <span
-                  className={cn(
-                    "num grid min-w-4 place-items-center rounded-full px-1 text-[9.5px] font-bold leading-4",
-                    b.tone === "fire" ? "bg-[#c8321e] text-white" : "bg-primary text-primary-foreground",
-                  )}
-                >
-                  {b.n}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </nav>
+      <TabStrip tab={a.tab} goTab={a.goTab} badge={badge} t={ctx.t} />
 
       <div className="hidden items-center md:flex">
         <DropdownMenu>

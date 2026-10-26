@@ -1,12 +1,10 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { tab } from "./tab";
 
 // "Ver incidente" in a fire popup must land on THAT incident, not on the first one of the list.
 // Fires and terrain are simulated, so nothing here depends on live data.
 
 const today = () => new Date().toISOString().slice(0, 10);
-const tab = (page: Page, name: string) =>
-  page.getByRole("navigation", { name: "Modos" }).getByRole("button", { name });
-
 // default region (Patagonia Andina) is centred on [-71.5, -41.6]
 const CENTER = { lat: -41.6, lng: -71.5 };
 

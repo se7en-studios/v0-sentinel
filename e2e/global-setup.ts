@@ -15,7 +15,13 @@ export default async function globalSetup(config: FullConfig) {
     const nav = page.getByRole("navigation", { name: "Modos" });
     await nav.waitFor();
     for (const name of VIEWS) {
-      await nav.getByRole("button", { name }).click();
+      // the 1280 px default viewport pushes the last modes into the "Más" menu
+      const btn = nav.getByRole("button", { name });
+      if (await btn.isVisible()) await btn.click();
+      else {
+        await nav.getByRole("button", { name: "Más" }).click();
+        await page.getByRole("menuitem", { name }).click();
+      }
       await page.getByRole("heading", { level: 1 }).first().waitFor();
     }
   } catch (e) {

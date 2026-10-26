@@ -1,10 +1,8 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { openTab } from "./tab";
 
 // Smoke tests of the admin shell in demo mode. They must not depend on live fire data
 // or on third-party APIs answering, so they only assert on the UI the app owns.
-
-const tab = (page: Page, name: string) =>
-  page.getByRole("navigation", { name: "Modos" }).getByRole("button", { name });
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -34,7 +32,7 @@ test("recorre las vistas de ancho completo sin romperse", async ({ page }) => {
     ["Configuración", "Configuración"],
   ];
   for (const [button, heading] of views) {
-    await tab(page, button).click();
+    await openTab(page, button);
     await expect(
       page.getByRole("heading", { level: 1, name: heading }),
     ).toBeVisible();
@@ -45,7 +43,7 @@ test("los datos de ejemplo cargan zonas y drones", async ({ page }) => {
   await page
     .getByRole("button", { name: "O probá con datos de ejemplo" })
     .click();
-  await tab(page, "Zonas").click();
+  await openTab(page, "Zonas");
   await expect(page.getByText("Sector Norte").first()).toBeVisible();
 });
 
@@ -167,7 +165,7 @@ test("GOES-19: la alerta temprana aparece en Alertas y las fuentes en Métricas"
   const list = page.getByRole("list", { name: "Alertas tempranas abiertas" });
   await expect(list.getByText(/12 escaneos/)).toBeVisible();
   await expect(list.getByText("NASA + INPE")).toBeVisible();
-  await tab(page, "Métricas").click();
+  await openTab(page, "Métricas");
   const table = page.getByRole("table", {
     name: "Estado de cada fuente satelital",
   });
@@ -181,7 +179,7 @@ test("GOES-19: la alerta temprana aparece en Alertas y las fuentes en Métricas"
 
 test("GOES y MODIS se pueden apagar en Configuración", async ({ page }) => {
   await page.goto("/admin");
-  await tab(page, "Configuración").click();
+  await openTab(page, "Configuración");
   const toggle = page.getByRole("checkbox", { name: /Alertas tempranas/ });
   await expect(toggle).toBeChecked();
   await toggle.uncheck({ force: true });
@@ -195,7 +193,7 @@ test("cambiar el idioma traduce las pestañas y la franja de estado", async ({
   page,
 }) => {
   await page.goto("/admin");
-  await tab(page, "Configuración").click();
+  await openTab(page, "Configuración");
   await page.getByLabel("Idioma").selectOption("en");
   // the landmark label is translated too (Modos / Modes)
   const nav = page.getByRole("navigation", { name: /^(Modos|Modes)$/ });
@@ -222,14 +220,15 @@ test.describe("en un teléfono", () => {
     ).toBeVisible();
   });
 
-  test("la barra de pestañas se desplaza sin barra visible", async ({
-    page,
-  }) => {
+  test("las pestañas que no entran van al menú Más", async ({ page }) => {
     const nav = page.getByRole("navigation", { name: "Modos" });
     await expect(nav).toBeVisible();
-    const noScrollbar = await nav.evaluate(
-      (el) => getComputedStyle(el).scrollbarWidth,
-    );
-    expect(noScrollbar).toBe("none");
+    // nothing clips: the strip never scrolls sideways, the overflow goes to the menu
+    expect(await nav.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+    const more = nav.getByRole("button", { name: "Más" });
+    await expect(more).toBeVisible();
+    await more.click();
+    await page.getByRole("menuitem", { name: "Configuración" }).click();
+    await expect(page.getByRole("heading", { name: "Configuración" })).toBeVisible();
   });
 });
