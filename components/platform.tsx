@@ -1,21 +1,6 @@
 import { Chapter, Eyebrow } from "@/components/ui/chapter";
 import { PlatformDemo } from "@/components/platform-demo";
-
-// Apoyo del flujo: lo que rodea a Detectar → Alertar, sin repetirlo.
-const SUPPORT = [
-  {
-    title: "Integración con brigadas",
-    text: "Las alertas llegan por los canales que ya usan: WhatsApp y consola web.",
-  },
-  {
-    title: "Reportes y analítica",
-    text: "Historial de focos, tiempos de respuesta y zonas recurrentes para planificar la temporada.",
-  },
-  {
-    title: "Cobertura satelital",
-    text: "Lectura continua las 24 h sobre la región. Drones y sensores en territorio se suman de forma progresiva.",
-  },
-];
+import { PlatformBento } from "@/components/bento";
 
 export function Platform() {
   return (
@@ -47,14 +32,7 @@ export function Platform() {
           <div className="mt-12 md:mt-16">
             <PlatformDemo />
           </div>
-          <dl className="mt-20 grid gap-8 border-t border-white/15 pt-10 md:mt-24 md:grid-cols-3">
-            {SUPPORT.map(({ title, text }) => (
-              <div key={title}>
-                <dt className="t-h3">{title}</dt>
-                <dd className="t-body mt-2 opacity-80">{text}</dd>
-              </div>
-            ))}
-          </dl>
+          <PlatformBento />
         </div>
       </Chapter>
     </>

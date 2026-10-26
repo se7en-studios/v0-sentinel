@@ -1,7 +1,10 @@
 import { Suspense } from "react";
 import Image from "next/image";
-import { Check, Mail, MessageCircle } from "lucide-react";
+import { Check, Clock, Mail, MessageCircle } from "lucide-react";
 import { Eyebrow } from "@/components/ui/chapter";
+import { Magnetic } from "@/components/ui/magnetic";
+import { Reveal } from "@/components/ui/reveal";
+import { CtaStickyBar } from "@/components/cta-sticky-bar";
 import { ContactForm } from "@/components/contact-form";
 import { CONTACT_FALLBACK_EMAIL, whatsappUrl } from "@/lib/contact";
 
@@ -16,11 +19,15 @@ const WA_URL = whatsappUrl(
   "Hola Sentinel, quiero coordinar un piloto de detección temprana de incendios.",
 );
 
+const primary =
+  "inline-flex min-h-12 items-center gap-2.5 rounded-full bg-leaf-bright px-6 text-base font-semibold text-charcoal shadow-[0_12px_32px_-10px_rgb(95_227_161/0.55)] transition hover:bg-[#7aefb5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright";
+
 const quick =
   "glass inline-flex min-h-12 items-center gap-2.5 rounded-full px-5 text-base font-medium text-[#f4efe2] transition hover:-translate-y-0.5 hover:border-leaf-bright/60 hover:text-leaf-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright";
 
 export function CTA() {
   return (
+    <>
     <section
       id="contacto"
       className="relative isolate scroll-mt-20 overflow-hidden bg-charcoal py-24 text-[#f4efe2] md:py-36"
@@ -44,7 +51,7 @@ export function CTA() {
       />
       {/* Panel real del producto, desenfocado: solo decorativo. */}
       <Image
-        src="/product/panel-3d.webp"
+        src="/product/panel-3d-hero.webp"
         alt=""
         width={2000}
         height={1250}
@@ -63,7 +70,7 @@ export function CTA() {
 
       <div className="mx-auto w-full max-w-6xl px-5 md:px-8">
         <div className="grid gap-12 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-16">
-          <div>
+          <Reveal className="min-w-0">
             <Eyebrow tone="dark">Contacto</Eyebrow>
             <h2 className="t-display">Empecemos con un piloto</h2>
             <p className="t-lead mt-6 max-w-xl text-[#f4efe2]/85">
@@ -84,24 +91,38 @@ export function CTA() {
                 </li>
               ))}
             </ul>
-            <div className="mt-10 flex flex-wrap gap-3">
+            <div className="mt-10 flex flex-wrap items-center gap-3">
+              <Magnetic>
+                {WA_URL ? (
+                  <a
+                    href={WA_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={primary}
+                  >
+                    <MessageCircle aria-hidden className="h-5 w-5" />
+                    Escribinos por WhatsApp
+                    <span className="sr-only"> (abre en pestaña nueva)</span>
+                  </a>
+                ) : (
+                  <a href={`mailto:${CONTACT_FALLBACK_EMAIL}`} className={primary}>
+                    <Mail aria-hidden className="h-5 w-5" />
+                    Escribinos por email
+                  </a>
+                )}
+              </Magnetic>
               {WA_URL && (
-                <a
-                  href={WA_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={quick}
-                >
-                  <MessageCircle aria-hidden className="h-5 w-5" />
-                  Escribinos por WhatsApp
+                <a href={`mailto:${CONTACT_FALLBACK_EMAIL}`} className={quick}>
+                  <Mail aria-hidden className="h-5 w-5 shrink-0" />
+                  <span className="min-w-0 break-all">{CONTACT_FALLBACK_EMAIL}</span>
                 </a>
               )}
-              <a href={`mailto:${CONTACT_FALLBACK_EMAIL}`} className={quick}>
-                <Mail aria-hidden className="h-5 w-5" />
-                {CONTACT_FALLBACK_EMAIL}
-              </a>
             </div>
-          </div>
+            <p className="t-small mt-5 flex items-center gap-2 text-[#f4efe2]/80">
+              <Clock aria-hidden className="h-4 w-4 shrink-0 text-leaf-bright" />
+              Te respondemos en 24 h hábiles
+            </p>
+          </Reveal>
           <Suspense
             fallback={<div className="glass min-h-[28rem] rounded-[20px]" />}
           >
@@ -110,5 +131,7 @@ export function CTA() {
         </div>
       </div>
     </section>
+    <CtaStickyBar />
+    </>
   );
 }

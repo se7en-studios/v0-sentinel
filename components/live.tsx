@@ -1,7 +1,11 @@
 import { ArrowUpRight } from "lucide-react";
 import { Chapter, Eyebrow } from "@/components/ui/chapter";
-import { FireMapLiveLazy } from "@/components/ui/fire-map-live-lazy";
-import { Updated } from "@/components/data/data-section";
+import { LiveExplorer } from "@/components/locality-check";
+import { LiveCounter } from "@/components/live-counter";
+import { localityStats } from "@/components/locality-stats";
+import { Reveal } from "@/components/ui/reveal";
+import { Spotlight } from "@/components/ui/spotlight";
+import { Updated, formatUpdated } from "@/components/data/data-section";
 import { FIRMS_LABEL } from "@/lib/firms";
 import { RISK_RANK, riskLabel, type RiskLabel } from "@/lib/landing-data/risk";
 import { topByFrp } from "@/lib/landing-data/firms";
@@ -76,7 +80,10 @@ export async function LiveChapter() {
             "radial-gradient(60% 50% at 85% 10%, rgba(232,115,42,0.14), transparent 70%), radial-gradient(50% 40% at 5% 60%, rgba(95,227,161,0.07), transparent 70%)",
         }}
       />
-      <div className="bg-noise pointer-events-none absolute inset-0 -z-10 opacity-[0.05]" aria-hidden="true" />
+      <div
+        className="bg-noise pointer-events-none absolute inset-0 -z-10 opacity-[0.05]"
+        aria-hidden="true"
+      />
 
       <div className="grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
         <div>
@@ -85,7 +92,7 @@ export async function LiveChapter() {
             {hasFires && fires ? (
               <>
                 <span className="t-display block text-ember">
-                  {nf(fires.inArgentina.length)}
+                  <LiveCounter to={fires.inArgentina.length} />
                 </span>
                 <span className="t-h3 mt-3 block text-[#f4efe2]">
                   focos de calor en Argentina · últimas 24 horas
@@ -98,8 +105,8 @@ export async function LiveChapter() {
             )}
           </h2>
           <p className="t-body mt-5 max-w-2xl text-[#f4efe2]/80">
-            Son focos de calor, no necesariamente incendios forestales: la
-            misma clase de dato satelital que Sentinel procesa y verifica. Los
+            Son focos de calor, no necesariamente incendios forestales: la misma
+            clase de dato satelital que Sentinel procesa y verifica. Los
             satélites reportan con una demora de horas.
           </p>
         </div>
@@ -133,11 +140,14 @@ export async function LiveChapter() {
 
       <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
         {fires ? (
-          <FireMapLiveLazy
+          <LiveExplorer
             fires={mapFires}
             places={places}
             readingTime={readingTime}
             sourceLabel={FIRMS_LABEL}
+            stats={localityStats(fires.inArgentina)}
+            totalFires={fires.inArgentina.length}
+            firesAt={formatUpdated(fires.at)}
           />
         ) : (
           <div
@@ -153,119 +163,126 @@ export async function LiveChapter() {
         )}
 
         <div className="flex flex-col gap-6">
-          <section
-            aria-labelledby="live-riesgo"
-            className="glass rounded-[20px] p-6"
-          >
-            <h3 id="live-riesgo" className="t-label text-[#f4efe2]/85">
-              Riesgo por localidad
-            </h3>
-            {overall && (
-              <p
-                className="t-h3 mt-2"
-                style={{ color: RISK_ON_DARK[overall] }}
-              >
-                Patagonia: {overall}
-              </p>
-            )}
-            {rows.length > 0 ? (
-              <ul className="mt-4 list-none divide-y divide-white/10 p-0">
-                {rows.map(({ r, label }) => (
-                  <li
-                    key={r.location.name}
-                    className="flex items-center justify-between gap-3 py-3"
+          <Reveal>
+            <Spotlight className="glass rounded-[20px] p-6">
+              <section aria-labelledby="live-riesgo">
+                <h3 id="live-riesgo" className="t-label text-[#f4efe2]/85">
+                  Riesgo por localidad
+                </h3>
+                {overall && (
+                  <p
+                    className="t-h3 mt-2"
+                    style={{ color: RISK_ON_DARK[overall] }}
                   >
-                    <span className="min-w-0">
-                      <span className="block font-semibold">
-                        {r.location.name}
-                      </span>
-                      <span className="t-small block tabular-nums text-[#f4efe2]/70">
-                        {Math.round(r.temperature)} °C ·{" "}
-                        {Math.round(r.humidity)}% · {Math.round(r.windSpeed)}{" "}
-                        km/h
-                      </span>
-                    </span>
-                    <span className="flex shrink-0 flex-col items-end gap-1.5">
-                      <span
-                        className="t-label"
-                        style={{ color: RISK_ON_DARK[label] }}
+                    Patagonia: {overall}
+                  </p>
+                )}
+                {rows.length > 0 ? (
+                  <ul className="mt-4 list-none divide-y divide-white/10 p-0">
+                    {rows.map(({ r, label }) => (
+                      <li
+                        key={r.location.name}
+                        className="flex items-center justify-between gap-3 py-3"
                       >
-                        {label}
-                      </span>
-                      <RiskMeter rank={RISK_RANK[label]} color={RISK_ON_DARK[label]} />
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p role="status" className="t-small mt-3 text-[#f4efe2]/80">
-                La lectura de Open-Meteo no está disponible en este momento.
-              </p>
-            )}
-            <p className="t-small mt-4 text-[#f4efe2]/70">
-              {readingTime && `Lectura ${readingTime} (hora local). `}
-              Índice ilustrativo propio (temperatura, humedad y viento), no es
-              el FWI oficial. Fuente:{" "}
-              <a
-                href="https://open-meteo.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={link}
-              >
-                Open-Meteo
-              </a>{" "}
-              (CC BY 4.0).
-            </p>
-          </section>
+                        <span className="min-w-0">
+                          <span className="block font-semibold">
+                            {r.location.name}
+                          </span>
+                          <span className="t-small block tabular-nums text-[#f4efe2]/70">
+                            {Math.round(r.temperature)} °C ·{" "}
+                            {Math.round(r.humidity)}% ·{" "}
+                            {Math.round(r.windSpeed)} km/h
+                          </span>
+                        </span>
+                        <span className="flex shrink-0 flex-col items-end gap-1.5">
+                          <span
+                            className="t-label"
+                            style={{ color: RISK_ON_DARK[label] }}
+                          >
+                            {label}
+                          </span>
+                          <RiskMeter
+                            rank={RISK_RANK[label]}
+                            color={RISK_ON_DARK[label]}
+                          />
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p role="status" className="t-small mt-3 text-[#f4efe2]/80">
+                    La lectura de Open-Meteo no está disponible en este momento.
+                  </p>
+                )}
+                <p className="t-small mt-4 text-[#f4efe2]/70">
+                  {readingTime && `Lectura ${readingTime} (hora local). `}
+                  Índice ilustrativo propio (temperatura, humedad y viento), no
+                  es el FWI oficial. Fuente:{" "}
+                  <a
+                    href="https://open-meteo.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={link}
+                  >
+                    Open-Meteo
+                  </a>{" "}
+                  (CC BY 4.0).
+                </p>
+              </section>
+            </Spotlight>
+          </Reveal>
 
-          <section
-            aria-labelledby="live-cifras"
-            className="glass rounded-[20px] p-6"
-          >
-            <h3 id="live-cifras" className="t-label text-[#f4efe2]/85">
-              Cifras de focos en Argentina
-            </h3>
-            <dl className="mt-4 grid grid-cols-2 gap-5">
-              <div className="flex flex-col-reverse gap-1">
-                <dt className="t-small text-[#f4efe2]/80">últimas 24 h</dt>
-                <dd className="t-h2 tabular-nums text-ember">
-                  {fires ? nf(fires.inArgentina.length) : "—"}
-                </dd>
-              </div>
-              <div className="flex flex-col-reverse gap-1">
-                <dt className="t-small text-[#f4efe2]/80">últimos 90 días</dt>
-                <dd className="t-h2 tabular-nums text-ember">
-                  {impact
-                    ? `${impact.failedChunks > 0 ? "≥ " : ""}${nf(impact.total)}`
-                    : "—"}
-                </dd>
-              </div>
-            </dl>
-            <p className="t-small mt-4 text-[#f4efe2]/70">
-              {impact?.failedChunks
-                ? `Dato parcial: ${impact.failedChunks} de ${impact.totalChunks} períodos no respondieron; es un mínimo. `
-                : ""}
-              Fuente:{" "}
-              <a
-                href="https://firms.modaps.eosdis.nasa.gov/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={link}
-              >
-                NASA FIRMS
-              </a>{" "}
-              ({FIRMS_LABEL}), confianza media o alta, dato preliminar sin
-              verificar en campo.
-              {impact && (
-                <>
-                  {" "}
-                  <Updated at={impact.at} />.
-                </>
-              )}{" "}
-              El contorno de Argentina está simplificado: puede errar cerca de
-              la frontera.
-            </p>
-          </section>
+          <Reveal delay={120}>
+            <Spotlight className="glass rounded-[20px] p-6">
+              <section aria-labelledby="live-cifras">
+                <h3 id="live-cifras" className="t-label text-[#f4efe2]/85">
+                  Cifras de focos en Argentina
+                </h3>
+                <dl className="mt-4 grid grid-cols-2 gap-5">
+                  <div className="flex flex-col-reverse gap-1">
+                    <dt className="t-small text-[#f4efe2]/80">últimas 24 h</dt>
+                    <dd className="t-h2 tabular-nums text-ember">
+                      {fires ? nf(fires.inArgentina.length) : "—"}
+                    </dd>
+                  </div>
+                  <div className="flex flex-col-reverse gap-1">
+                    <dt className="t-small text-[#f4efe2]/80">
+                      últimos 90 días
+                    </dt>
+                    <dd className="t-h2 tabular-nums text-ember">
+                      {impact
+                        ? `${impact.failedChunks > 0 ? "≥ " : ""}${nf(impact.total)}`
+                        : "—"}
+                    </dd>
+                  </div>
+                </dl>
+                <p className="t-small mt-4 text-[#f4efe2]/70">
+                  {impact?.failedChunks
+                    ? `Dato parcial: ${impact.failedChunks} de ${impact.totalChunks} períodos no respondieron; es un mínimo. `
+                    : ""}
+                  Fuente:{" "}
+                  <a
+                    href="https://firms.modaps.eosdis.nasa.gov/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={link}
+                  >
+                    NASA FIRMS
+                  </a>{" "}
+                  ({FIRMS_LABEL}), confianza media o alta, dato preliminar sin
+                  verificar en campo.
+                  {impact && (
+                    <>
+                      {" "}
+                      <Updated at={impact.at} />.
+                    </>
+                  )}{" "}
+                  El contorno de Argentina está simplificado: puede errar cerca
+                  de la frontera.
+                </p>
+              </section>
+            </Spotlight>
+          </Reveal>
         </div>
       </div>
 
@@ -276,7 +293,9 @@ export async function LiveChapter() {
           </h3>
           <ul className="mt-4 flex list-none flex-col gap-4 p-0 md:flex-row">
             {news.map((item, i) => (
-              <li
+              <Reveal
+                as="li"
+                delay={i * 100}
                 key={item.link}
                 className={`min-w-0 ${i === 0 ? "md:flex-[1.4]" : "md:flex-1"}`}
               >
@@ -313,7 +332,7 @@ export async function LiveChapter() {
                     />
                   </span>
                 </a>
-              </li>
+              </Reveal>
             ))}
           </ul>
           <p className="t-small mt-4 text-[#f4efe2]/70">

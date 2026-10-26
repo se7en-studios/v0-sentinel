@@ -1,6 +1,9 @@
 import Image from "next/image";
 import { Linkedin } from "lucide-react";
 import { Chapter, Eyebrow } from "@/components/ui/chapter";
+import { Spotlight } from "@/components/ui/spotlight";
+import { Reveal } from "@/components/ui/reveal";
+import { TeamTilt } from "@/components/team-tilt";
 
 // position: ajuste de encuadre por persona para que las cabezas queden a la misma altura.
 const teamMembers = [
@@ -45,8 +48,10 @@ const teamMembers = [
 export function TeamBlock() {
   return (
     <ul className="grid grid-cols-2 gap-x-4 gap-y-10 lg:grid-cols-4 lg:gap-x-6">
-      {teamMembers.map((m) => (
-        <li key={m.name} className="group">
+      {teamMembers.map((m, i) => (
+        <Reveal as="li" key={m.name} delay={i * 80} className="min-w-0">
+        <Spotlight className="group -m-2 rounded-[28px] p-2">
+          <TeamTilt>
           <div className="relative aspect-[4/5] overflow-hidden rounded-[20px] bg-charcoal shadow-[0_24px_50px_-24px_rgba(18,17,14,0.55)] ring-1 ring-foreground/10 transition-transform duration-500 group-hover:-translate-y-1">
             <Image
               src={m.image}
@@ -83,9 +88,11 @@ export function TeamBlock() {
               <h3 className="t-h3 text-[#f4efe2]">{m.name}</h3>
             </div>
           </div>
+          </TeamTilt>
           <p className="t-small mt-4 font-medium opacity-80">{m.degree}</p>
           <p className="t-small mt-1 opacity-80">{m.bio}</p>
-        </li>
+        </Spotlight>
+        </Reveal>
       ))}
     </ul>
   );

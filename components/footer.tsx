@@ -1,5 +1,6 @@
 import { SentinelLogo, SentinelMark } from "@/components/sentinel-logo";
 import { Mail, MapPin, Share2, Instagram, Linkedin } from "lucide-react";
+import { FooterClock } from "@/components/footer-clock";
 import { CONTACT_FALLBACK_EMAIL } from "@/lib/contact";
 
 const footerLinks = {
@@ -111,7 +112,8 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-8 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <FooterClock />
           <p className="t-small text-[#f4efe2]/65">
             © {new Date().getFullYear()} Sentinel. Todos los derechos
             reservados.

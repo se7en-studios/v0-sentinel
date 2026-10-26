@@ -1,6 +1,9 @@
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { Chapter, Eyebrow } from "@/components/ui/chapter";
+import { Reveal } from "@/components/ui/reveal";
+import { ViewCountUp } from "@/components/problem-counter";
+import { CLAIMS } from "@/lib/claims";
 
 // Sin cifras: ninguna de las que tenía el sitio (-70%, 100+, 10x) tenía fuente.
 const IMPACTS = [
@@ -92,16 +95,34 @@ export function Problem() {
 
       <div className="relative grid items-center gap-14 lg:grid-cols-12">
         <div className="lg:col-span-7">
-          <Eyebrow tone="dark">El costo de llegar tarde</Eyebrow>
-          <h2 className="t-display text-balance [text-shadow:0_2px_30px_rgba(0,0,0,0.5)]">
-            Hoy la Patagonia duele.
-          </h2>
-          <p className="t-lead mt-6 max-w-xl text-[#f4efe2]/90">
-            Cada temporada se repite lo mismo: incendios que avanzan antes de
-            que alguien pueda dar la alarma. Detrás de cada hectárea hay un
-            hogar, un trabajo y una biodiversidad que no vuelve en lo que dura
-            una vida.
-          </p>
+          <Reveal>
+            <Eyebrow tone="dark">El costo de llegar tarde</Eyebrow>
+            <h2 className="t-display text-balance [text-shadow:0_2px_30px_rgba(0,0,0,0.5)]">
+              Hoy la Patagonia duele.
+            </h2>
+          </Reveal>
+          <Reveal delay={120}>
+            <p className="t-lead mt-6 max-w-xl text-[#f4efe2]/90">
+              Cada temporada se repite lo mismo: incendios que avanzan antes de
+              que alguien pueda dar la alarma. Detrás de cada hectárea hay un
+              hogar, un trabajo y una biodiversidad que no vuelve en lo que dura
+              una vida.
+            </p>
+          </Reveal>
+          <Reveal delay={240}>
+            <p className="glass mt-8 inline-flex max-w-xl items-center gap-4 rounded-[20px] px-5 py-4 text-[#f4efe2] sm:gap-5 sm:px-6">
+              <span className="t-display text-6xl leading-none tabular-nums text-ember-soft sm:text-7xl">
+                <ViewCountUp to={CLAIMS.detectionMinutes} />
+                <span className="ml-1 text-3xl sm:text-4xl">min</span>
+              </span>
+              <span className="t-small min-w-0 text-[#f4efe2]/85">
+                <span className="block font-semibold text-[#f4efe2]">
+                  Los primeros minutos deciden
+                </span>
+                Es el objetivo de detección de Sentinel, no un resultado medido.
+              </span>
+            </p>
+          </Reveal>
         </div>
 
         <div
@@ -123,8 +144,9 @@ export function Problem() {
 
       <dl className="relative mt-16 grid gap-5 md:mt-24 md:grid-cols-3 md:gap-6">
         {IMPACTS.map((i, idx) => (
-          <div
+          <Reveal
             key={i.value}
+            delay={idx * 140}
             className={`glass relative flex flex-col overflow-hidden rounded-[20px] p-7 md:p-8 ${idx === 1 ? "md:mt-10" : ""} ${idx === 2 ? "md:mt-20" : ""}`}
           >
             <span
@@ -137,11 +159,11 @@ export function Problem() {
             <dd className="t-body relative order-2 mt-4 text-[#f4efe2]/85">
               {i.body}
             </dd>
-          </div>
+          </Reveal>
         ))}
       </dl>
 
-      <div className="relative mt-16 max-w-3xl md:mt-24">
+      <Reveal className="relative mt-16 max-w-3xl md:mt-24">
         <p className="t-display text-balance text-[clamp(1.9rem,4.2vw,3.25rem)]">
           Llegar a tiempo cambia todo lo que viene después.
         </p>
@@ -156,12 +178,12 @@ export function Problem() {
           Sumar mi municipio o campo{" "}
           <ArrowRight className="size-4" aria-hidden />
         </a>
-      </div>
+      </Reveal>
 
       {/* Funde hacia el capítulo claro siguiente en vez de cortar en seco. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-background md:h-52"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-charcoal md:h-52"
       />
     </Chapter>
   );

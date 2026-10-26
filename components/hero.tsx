@@ -4,6 +4,9 @@ import { CLAIMS } from "@/lib/claims";
 import { CountUp } from "@/components/count-up";
 import { FireTimeline } from "@/components/fire-timeline";
 import { HeroPanel } from "@/components/hero-panel";
+import { HeroThermalLazy } from "@/components/hero-thermal-lazy";
+import { Magnetic } from "@/components/ui/magnetic";
+import { Reveal } from "@/components/ui/reveal";
 
 export { FireTimeline };
 
@@ -22,6 +25,9 @@ const AUDIENCES = [
 // Retícula fina: la capa de datos de «Patagonia a la lupa», solo un susurro.
 const GRID =
   "linear-gradient(rgba(244,239,226,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(244,239,226,0.05) 1px, transparent 1px)";
+
+// Entrada escalonada solo en CSS; el h1 queda fuera para no demorar el LCP.
+const RISE = "motion-safe:animate-[hero-rise_0.8s_cubic-bezier(0.2,0.7,0.2,1)_both]";
 
 export function Hero() {
   return (
@@ -62,14 +68,22 @@ export function Hero() {
           style={{ backgroundImage: GRID, backgroundSize: "72px 72px" }}
         />
 
-        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-5 pb-6 pt-28 md:px-8 lg:pb-14 lg:pt-32">
-          <div className="lg:max-w-[34rem]">
-            <p className="t-label mb-5 text-leaf-bright">Sentinel Cloud · detección temprana de incendios</p>
-            <h1 className="t-display text-balance lg:text-[clamp(3rem,5.2vw,5rem)]!">El aviso llega antes que el humo.</h1>
-            <p className="t-lead mt-6 max-w-xl text-[#f4efe2]/90">
-              Cruzamos satélites ({CLAIMS.satellites}), terreno e IA. Avisamos a quien tiene que actuar, apenas aparece un foco térmico.
-            </p>
+        <style>{`@keyframes hero-rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}`}</style>
+        <HeroThermalLazy />
 
+        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-5 pb-6 pt-32 md:px-8 lg:pb-14">
+          <div className="lg:max-w-[30rem] xl:max-w-[34rem]">
+            <Reveal className={RISE}>
+              <p className="t-label mb-5 text-leaf-bright">Sentinel Cloud · detección temprana de incendios</p>
+            </Reveal>
+            <h1 className="t-display text-balance lg:text-[clamp(3rem,5.2vw,5rem)]!">El aviso llega antes que el humo.</h1>
+            <Reveal delay={100} className={`${RISE} [animation-delay:120ms]`}>
+              <p className="t-lead mt-6 max-w-xl text-[#f4efe2]/90">
+                Cruzamos satélites ({CLAIMS.satellites}), terreno e IA. Avisamos a quien tiene que actuar, apenas aparece un foco térmico.
+              </p>
+            </Reveal>
+
+            <Reveal delay={200} className={`${RISE} [animation-delay:240ms]`}>
             <dl className="mt-8 grid max-w-md grid-cols-3 gap-4 border-y border-[#f4efe2]/15 py-5">
               {STATS.map((s) => (
                 <div key={s.label} className="flex flex-col">
@@ -81,21 +95,24 @@ export function Hero() {
                 </div>
               ))}
             </dl>
+            </Reveal>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a
-                href="#contacto"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-leaf-bright px-8 py-3.5 text-base font-semibold text-charcoal shadow-[0_10px_40px_-8px_rgb(95_227_161/0.55)] transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >
-                Solicitar un piloto <ArrowRight className="size-4" aria-hidden />
-              </a>
+            <Reveal delay={300} className={`${RISE} [animation-delay:360ms] mt-8 flex flex-col gap-3 sm:flex-row sm:items-center`}>
+              <Magnetic>
+                <a
+                  href="#contacto"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-leaf-bright px-8 py-3.5 text-base font-semibold text-charcoal shadow-[0_10px_40px_-8px_rgb(95_227_161/0.55)] transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                >
+                  Solicitar un piloto <ArrowRight className="size-4" aria-hidden />
+                </a>
+              </Magnetic>
               <a
                 href="/demo"
                 className="glass inline-flex items-center justify-center rounded-full px-8 py-3.5 text-base text-[#f4efe2] transition-colors hover:border-[#f4efe2]/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
                 Ver el panel en vivo
               </a>
-            </div>
+            </Reveal>
           </div>
         </div>
 

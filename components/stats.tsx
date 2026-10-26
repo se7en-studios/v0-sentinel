@@ -1,12 +1,15 @@
 import { CLAIMS } from "@/lib/claims";
+import { Reveal } from "@/components/ui/reveal";
+import { StatCounter } from "@/components/stats-counter";
 
 const STATS = [
   {
-    value: `${CLAIMS.accuracyPct} %`,
+    to: CLAIMS.accuracyPct,
+    suffix: " %",
     label: "Precisión objetivo en detección",
   },
-  { value: "689+", label: "Propuestas superadas en certámenes" },
-  { value: "11", label: "Reconocimientos y programas" },
+  { to: 689, suffix: "+", label: "Propuestas superadas en certámenes" },
+  { to: 11, label: "Reconocimientos y programas" },
 ];
 
 // Continúa el tono oscuro de Plataforma y se desvanece hacia el capítulo siguiente.
@@ -26,18 +29,19 @@ export function Stats() {
           className="bg-noise pointer-events-none absolute inset-0 opacity-[0.05]"
         />
         <dl className="relative mx-auto grid max-w-6xl gap-10 px-5 md:grid-cols-3 md:gap-0 md:px-8">
-          {STATS.map(({ value, label }, i) => (
-            <div
+          {STATS.map(({ to, suffix, label }, i) => (
+            <Reveal
               key={label}
+              delay={i * 120}
               className={`flex flex-col-reverse justify-end gap-3 md:px-8 md:first:pl-0 md:last:pr-0 ${
                 i > 0 ? "md:border-l md:border-white/15" : ""
               }`}
             >
               <dt className="t-small max-w-[16rem] opacity-80">{label}</dt>
               <dd className="font-display text-[clamp(3.5rem,8vw,6.5rem)] leading-none tracking-tight text-leaf-bright">
-                {value}
+                <StatCounter to={to} suffix={suffix} />
               </dd>
-            </div>
+            </Reveal>
           ))}
         </dl>
       </section>

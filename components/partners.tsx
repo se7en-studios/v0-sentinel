@@ -1,5 +1,7 @@
 import Image from "next/image";
 import { Chapter, Eyebrow } from "@/components/ui/chapter";
+import { Spotlight } from "@/components/ui/spotlight";
+import { Reveal } from "@/components/ui/reveal";
 
 // mono: logo oscuro de origen, se queda blanco también al hover (sobre charcoal no se leería).
 const logos = [
@@ -24,25 +26,12 @@ const logos = [
   { id: "utn", description: "UTN", image: "/utn.png", mono: true },
 ];
 
-const STRIP_CSS = `
-@keyframes pt-marquee{to{transform:translateX(-50%)}}
-.pt-track{display:flex;width:max-content;animation:pt-marquee 60s linear infinite}
-.pt-strip:hover .pt-track{animation-play-state:paused}
-@media (prefers-reduced-motion:reduce){.pt-track{animation:none}.pt-strip{overflow-x:auto}}
-`;
-
-function LogoItem({
-  l,
-  decorative,
-}: {
-  l: (typeof logos)[number];
-  decorative?: boolean;
-}) {
+function LogoItem({ l }: { l: (typeof logos)[number] }) {
   return (
-    <li className="flex h-16 shrink-0 items-center px-6">
+    <li className="flex h-20 min-w-0 items-center justify-center rounded-xl px-4 transition-colors duration-300 hover:bg-white/[0.06]">
       <Image
         src={l.image}
-        alt={decorative ? "" : l.description}
+        alt={l.description}
         width={100}
         height={36}
         loading="lazy"
@@ -64,27 +53,19 @@ export function PartnersBlock() {
         Universidades de origen, organizadores de competencias y programas de
         los que Sentinel formó parte. No implica convenio ni respaldo comercial.
       </p>
-      <style>{STRIP_CSS}</style>
-      <div className="pt-strip relative overflow-hidden rounded-[20px] bg-charcoal py-3 shadow-[0_24px_50px_-24px_rgba(18,17,14,0.55)] ring-1 ring-foreground/10">
-        <div
-          className="bg-noise pointer-events-none absolute inset-0 opacity-[0.05]"
-          aria-hidden="true"
-        />
-        <div className="relative [mask-image:linear-gradient(to_right,transparent,#000_10%,#000_90%,transparent)]">
-          <div className="pt-track">
-            <ul className="m-0 flex list-none p-0">
-              {logos.map((l) => (
-                <LogoItem key={l.id} l={l} />
-              ))}
-            </ul>
-            <ul aria-hidden="true" className="m-0 flex list-none p-0">
-              {logos.map((l) => (
-                <LogoItem key={l.id} l={l} decorative />
-              ))}
-            </ul>
-          </div>
-        </div>
-      </div>
+      <Reveal>
+        <Spotlight className="relative overflow-hidden rounded-[20px] bg-charcoal p-3 shadow-[0_24px_50px_-24px_rgba(18,17,14,0.55)] ring-1 ring-foreground/10">
+          <div
+            className="bg-noise pointer-events-none absolute inset-0 opacity-[0.05]"
+            aria-hidden="true"
+          />
+          <ul className="relative m-0 grid list-none grid-cols-2 gap-1 p-0 sm:grid-cols-3 lg:grid-cols-7">
+            {logos.map((l) => (
+              <LogoItem key={l.id} l={l} />
+            ))}
+          </ul>
+        </Spotlight>
+      </Reveal>
     </div>
   );
 }

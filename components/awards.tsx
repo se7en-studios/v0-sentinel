@@ -1,4 +1,8 @@
+"use client";
+
+import { useRef, useState, type KeyboardEvent } from "react";
 import { Chapter, Eyebrow } from "@/components/ui/chapter";
+import { Reveal } from "@/components/ui/reveal";
 import { pressMentions } from "@/lib/press-mentions";
 
 type Achievement = { title: string; badge: string; detail: string; href?: string };
@@ -73,7 +77,7 @@ const yearOf = (title: string) => title.match(/20\d{2}/)?.[0];
 function Track({ label, items }: { label: string; items: Achievement[] }) {
   return (
     <div className="min-w-0">
-      <h3 className="t-label mb-5 text-[#0b6b44]">{label}</h3>
+      
       {/* Vertical en mobile (línea a la izquierda); desde lg, línea de tiempo horizontal con scroll.
           El wrapper deja aire arriba/abajo para que nodos y sombras no se recorten. */}
       <div
@@ -141,12 +145,64 @@ function Track({ label, items }: { label: string; items: Achievement[] }) {
   );
 }
 
+type TabId = "all" | "comp" | "intl";
+
+const TABS: { id: TabId; label: string; items: Achievement[] }[] = [
+  { id: "all", label: "Todos", items: [...competitions, ...international] },
+  { id: "comp", label: "Competencias", items: competitions },
+  { id: "intl", label: "Internacional", items: international },
+];
+
 export function AwardsBlock() {
+  const [tab, setTab] = useState<TabId>("all");
+  const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const current = TABS.find((t) => t.id === tab) ?? TABS[0];
+
+  // Patrón WAI-ARIA tabs: flechas mueven foco y selección; solo la pestaña activa entra en el tab order.
+  const onKey = (e: KeyboardEvent, i: number) => {
+    const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+    const to = e.key === "Home" ? 0 : e.key === "End" ? TABS.length - 1 : (i + step + TABS.length) % TABS.length;
+    if (!step && e.key !== "Home" && e.key !== "End") return;
+    e.preventDefault();
+    setTab(TABS[to].id);
+    refs.current[to]?.focus();
+  };
+
   return (
-    <div className="grid grid-cols-1 gap-12">
-      <Track label="Competencias nacionales" items={competitions} />
-      <Track label="Selección internacional y primer apoyo" items={international} />
-    </div>
+    <Reveal>
+      <div role="tablist" aria-label="Filtrar logros" className="mb-6 inline-flex max-w-full flex-wrap gap-2">
+        {TABS.map((t, i) => {
+          const on = t.id === tab;
+          return (
+            <button
+              key={t.id}
+              ref={(el) => {
+                refs.current[i] = el;
+              }}
+              type="button"
+              role="tab"
+              id={`logros-tab-${t.id}`}
+              aria-selected={on}
+              aria-controls="logros-panel"
+              tabIndex={on ? 0 : -1}
+              onClick={() => setTab(t.id)}
+              onKeyDown={(e) => onKey(e, i)}
+              className={`min-h-11 rounded-full px-4 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                on
+                  ? "bg-primary text-white"
+                  : "border border-foreground/15 text-foreground/80 hover:border-primary hover:text-primary"
+              }`}
+            >
+              {t.label}
+              <span className="ml-1.5 tabular-nums opacity-80">{t.items.length}</span>
+            </button>
+          );
+        })}
+      </div>
+      <div id="logros-panel" role="tabpanel" aria-labelledby={`logros-tab-${tab}`}>
+        <Track key={tab} label={`Logros: ${current.label}`} items={current.items} />
+      </div>
+    </Reveal>
   );
 }
 

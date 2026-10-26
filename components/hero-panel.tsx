@@ -15,7 +15,7 @@ const CHIPS = [
   {
     text: `Alerta enviada a brigada · ${CLAIMS.detectionMinutes} min objetivo`,
     dot: "bg-leaf-bright",
-    pos: "right-[10%] top-[56%]",
+    pos: "right-[12%] top-[56%]",
     depth: 30,
   },
 ];
@@ -58,7 +58,7 @@ export function HeroPanel() {
   return (
     <div
       ref={ref}
-      className="relative mt-10 lg:absolute lg:right-[-7vw] lg:top-[15%] lg:mt-0 lg:w-[64vw] lg:max-w-[1180px]"
+      className="relative mt-10 lg:absolute lg:right-[-6vw] lg:top-[15%] lg:mt-0 lg:w-[54vw] lg:max-w-[1080px]"
     >
       <div
         className="max-h-[300px] overflow-hidden px-5 [mask-image:linear-gradient(to_bottom,#000_55%,transparent)] sm:max-h-[420px] lg:max-h-none lg:overflow-visible lg:px-0 lg:[mask-image:none]"
@@ -68,15 +68,15 @@ export function HeroPanel() {
           className="lg:[mask-composite:intersect] lg:[-webkit-mask-composite:source-in] lg:[mask-image:linear-gradient(to_bottom,#000_58%,transparent_96%),linear-gradient(to_right,transparent,#000_22%)] lg:[perspective:1800px]"
         >
           <div
-            className="w-[118%] max-w-none transition-transform duration-200 ease-out will-change-transform sm:w-full lg:[transform:rotateY(calc(-11deg_+_var(--px,0)_*_3deg))_rotateX(calc(5deg_-_var(--py,0)_*_2.5deg))_scale(1.02)]"
+            className="w-[118%] max-w-none transition-transform duration-200 ease-out will-change-transform sm:w-full lg:[transform:rotateY(calc(-9deg_+_var(--px,0)_*_3deg))_rotateX(calc(5deg_-_var(--py,0)_*_2.5deg))_scale(1.02)]"
           >
             <div className="browser-frame">
               <Image
-                src="/product/panel-3d.webp"
+                src="/product/panel-3d-hero.webp"
                 alt="Captura del panel de Sentinel: mapa satelital en 3D de la Patagonia con focos térmicos, indicadores y línea de tiempo."
                 width={2000}
                 height={1250}
-                sizes="(min-width: 1024px) 64vw, 118vw"
+                sizes="(min-width: 1024px) 54vw, 118vw"
                 className="block h-auto w-full"
               />
             </div>

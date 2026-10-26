@@ -5,6 +5,7 @@ import { geoGraticule, geoMercator, geoPath } from "d3-geo";
 import type { FeatureCollection, Geometry } from "geojson";
 import countriesGeoJson from "@/data/latam-countries.json";
 import { mapPointProps } from "@/components/ui/map-tooltip";
+import { haversineKm } from "@/components/locality-stats";
 
 export interface LiveFire {
   lat: number;
@@ -31,6 +32,9 @@ interface Props {
   places: LivePlace[];
   readingTime: string;
   sourceLabel: string;
+  /** Localidad elegida en el buscador: el mapa se acerca y dibuja anillos de 50 y 100 km. */
+  focus?: { lat: number; lng: number } | null;
+  onFocusClear?: () => void;
 }
 
 const W = 600;
@@ -122,6 +126,8 @@ export function FireMapLive({
   places,
   readingTime,
   sourceLabel,
+  focus = null,
+  onFocusClear,
 }: Props) {
   const [view, setView] = useState<ViewKey>("argentina");
   const [sel, setSel] = useState<Sel>(null);
@@ -159,6 +165,14 @@ export function FireMapLive({
           return [r(p[0]), r(p[1])] as [number, number];
         };
         acc[key] = {
+          at,
+          kmPx: (lat: number, lng: number, km: number) => {
+            const a = proj([lng, lat]) ?? [0, 0];
+            const b =
+              proj([lng + km / (111.32 * Math.cos(lat * (Math.PI / 180))), lat]) ??
+              a;
+            return Math.hypot(b[0] - a[0], b[1] - a[1]);
+          },
           land: backdrop.map((f) => path(f) ?? ""),
           grid: path(graticule) ?? "",
           fine: path(graticuleFine) ?? "",
@@ -170,6 +184,8 @@ export function FireMapLive({
       {} as Record<
         ViewKey,
         {
+          at: (lat: number, lng: number) => [number, number];
+          kmPx: (lat: number, lng: number, km: number) => number;
           land: string[];
           grid: string;
           fine: string;
@@ -180,11 +196,36 @@ export function FireMapLive({
     );
   }, [fires, places]);
 
-  const g = geo[view];
+  // Con una localidad elegida el encuadre es siempre el de Argentina, ampliado
+  // con una transformación CSS (barata, animable) y no recalculando proyecciones.
+  const g = geo[focus ? "argentina" : view];
+  const fc = focus ? geo.argentina.at(focus.lat, focus.lng) : null;
+  const k = focus
+    ? Math.min(
+        60,
+        Math.max(1, 120 / geo.argentina.kmPx(focus.lat, focus.lng, 50)),
+      )
+    : 1;
+  const near50 = useMemo(
+    () =>
+      new Set(
+        focus
+          ? fires.flatMap((f, i) =>
+              haversineKm(focus.lat, focus.lng, f.lat, f.lng) <= 50 ? [i] : [],
+            )
+          : [],
+      ),
+    [focus, fires],
+  );
+  const camera =
+    fc && focus
+      ? `translate(${W / 2 - k * fc[0]}px, ${H / 2 - k * fc[1]}px) scale(${k})`
+      : "translate(0px, 0px) scale(1)";
   const onMap = ([x, y]: [number, number]) => x > 0 && x < W && y > 0 && y < H;
   const chooseView = (v: ViewKey) => {
     setView(v);
     setSel(null);
+    onFocusClear?.();
   };
 
   return (
@@ -201,7 +242,8 @@ export function FireMapLive({
         @keyframes lv-ping{0%{transform:scale(1);opacity:.55}100%{transform:scale(4.5);opacity:0}}
         .lv-pulse{transform-box:fill-box;transform-origin:center;animation:lv-ping 2.4s ease-out infinite}
         .lv[data-live="0"] .lv-pulse{animation-play-state:paused}
-        @media (prefers-reduced-motion:reduce){.lv-pulse{animation:none;opacity:.25;transform:scale(2.2)}}
+        .lv-camera{transition:transform 1s cubic-bezier(.22,.8,.24,1)}
+        @media (prefers-reduced-motion:reduce){.lv-camera{transition:none}.lv-pulse{animation:none;opacity:.25;transform:scale(2.2)}}
       `}</style>
 
       <div className="relative w-full aspect-[600/760] lg:aspect-auto lg:h-[min(84vh,840px)]">
@@ -219,11 +261,13 @@ export function FireMapLive({
               <stop offset="1" stopColor="#e8732a" stopOpacity="0" />
             </radialGradient>
           </defs>
+          <g className="lv-camera" style={{ transform: camera }}>
           <path
             d={g.fine}
             fill="none"
             stroke="rgba(244,239,226,0.035)"
             strokeWidth={0.4}
+            vectorEffect="non-scaling-stroke"
           />
           <path
             d={g.grid}
@@ -231,6 +275,7 @@ export function FireMapLive({
             stroke="rgba(95,227,161,0.12)"
             strokeWidth={0.6}
             strokeDasharray="2 4"
+            vectorEffect="non-scaling-stroke"
           />
           {g.land.map((d, i) => (
             <path
@@ -239,6 +284,7 @@ export function FireMapLive({
               fill="rgba(244,239,226,0.06)"
               stroke="rgba(244,239,226,0.32)"
               strokeWidth={0.8}
+              vectorEffect="non-scaling-stroke"
             />
           ))}
 
@@ -251,7 +297,7 @@ export function FireMapLive({
                   key={`h${i}`}
                   cx={x}
                   cy={y}
-                  r={haloR(f.frp)}
+                  r={haloR(f.frp) / k}
                   fill="url(#lv-halo)"
                   opacity={0.35 + Math.min(f.frp / MAX_FRP, 1) * 0.65}
                 />
@@ -280,13 +326,13 @@ export function FireMapLive({
                   toggle();
                 }}
               >
-                <circle cx={x} cy={y} r={14} fill="transparent" />
+                <circle cx={x} cy={y} r={14 / k} fill="transparent" />
                 {i < PULSING && (
                   <circle
                     className="lv-pulse"
                     cx={x}
                     cy={y}
-                    r={3}
+                    r={3 / k}
                     fill="#e8732a"
                     style={{ animationDelay: `${(i % 8) * 0.3}s` }}
                   />
@@ -294,11 +340,22 @@ export function FireMapLive({
                 <circle
                   cx={x}
                   cy={y}
-                  r={isSel ? 5 : 2.5 + Math.min(f.frp / MAX_FRP, 1) * 1.5}
+                  r={(isSel ? 5 : 2.5 + Math.min(f.frp / MAX_FRP, 1) * 1.5) / k}
                   fill="#ff8a3d"
                   stroke={isSel ? "#f4efe2" : "none"}
-                  strokeWidth={1.5}
+                  strokeWidth={1.5 / k}
                 />
+                {near50.has(i) && (
+                  <circle
+                    cx={x}
+                    cy={y}
+                    r={8 / k}
+                    fill="none"
+                    stroke="#f4efe2"
+                    strokeWidth={1.5}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                )}
               </g>
             );
           })}
@@ -324,20 +381,40 @@ export function FireMapLive({
                   toggle();
                 }}
               >
-                <circle cx={x} cy={y} r={16} fill="transparent" />
+                <circle cx={x} cy={y} r={16 / k} fill="transparent" />
                 <rect
-                  x={x - 5}
-                  y={y - 5}
-                  width={10}
-                  height={10}
+                  x={x - 5 / k}
+                  y={y - 5 / k}
+                  width={10 / k}
+                  height={10 / k}
                   transform={`rotate(45 ${x} ${y})`}
                   fill="#12110e"
                   stroke={color}
-                  strokeWidth={isSel ? 3 : 2}
+                  strokeWidth={(isSel ? 3 : 2) / k}
                 />
               </g>
             );
           })}
+
+          {focus && fc && (
+            <g aria-hidden="true" pointerEvents="none">
+              {[100, 50].map((km) => (
+                <circle
+                  key={km}
+                  cx={fc[0]}
+                  cy={fc[1]}
+                  r={geo.argentina.kmPx(focus.lat, focus.lng, km)}
+                  fill={km === 50 ? "rgba(95,227,161,0.07)" : "none"}
+                  stroke="#5fe3a1"
+                  strokeWidth={1.5}
+                  strokeDasharray={km === 50 ? undefined : "6 6"}
+                  vectorEffect="non-scaling-stroke"
+                />
+              ))}
+              <circle cx={fc[0]} cy={fc[1]} r={4 / k} fill="#5fe3a1" />
+            </g>
+          )}
+          </g>
         </svg>
 
         <div
@@ -371,7 +448,7 @@ export function FireMapLive({
           {VIEWS[view].coords[0]} → {VIEWS[view].coords[1]}
         </p>
 
-        {view === "patagonia" &&
+        {view === "patagonia" && !focus &&
           places.map((p, i) =>
             onMap(g.places[i]) ? (
               <span
@@ -399,9 +476,9 @@ export function FireMapLive({
               key={k}
               type="button"
               onClick={() => chooseView(k)}
-              aria-pressed={view === k}
+              aria-pressed={!focus && view === k}
               className={`t-label min-h-11 rounded-lg border px-3.5 backdrop-blur transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5fe3a1] ${
-                view === k
+                !focus && view === k
                   ? "border-[#5fe3a1]/60 bg-[#5fe3a1]/15 text-[#5fe3a1]"
                   : "border-white/20 bg-[#12110e]/70 text-[#f4efe2]/80 hover:text-[#f4efe2]"
               }`}

@@ -5,7 +5,7 @@
 // everything through motion values, so scrolling never re-renders React. With reduced motion the scene
 // is a still frame and the chapters become a plain list.
 
-import { Fragment, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import {
   motion,
   useMotionTemplate,
@@ -393,6 +393,71 @@ function Scene({ p, reduce }: { p: P; reduce: boolean }) {
   );
 }
 
+/** Chapter index → scroll progress at which that chapter is fully shown (anchor target). */
+const anchorAt = (i: number) => (i === 0 ? 0.04 : (CHAPTERS[i].range[0] + Math.min(CHAPTERS[i].range[1], 1)) / 2);
+
+/** Indicador lateral: 5 anclas internas (a posiciones del scroll del recorrido). Re-renderiza solo al cambiar de capítulo. */
+function ChapterNav({ p }: { p: P }) {
+  const [active, setActive] = useState(() => chapterOf(p.get()));
+  useMotionValueEvent(p, "change", (v) => {
+    const k = chapterOf(v);
+    setActive((prev) => (prev === k ? prev : k));
+  });
+  return (
+    <nav aria-label="Capítulos del recorrido" className="absolute right-4 top-1/2 z-20 -translate-y-1/2 sm:right-8">
+      <ol className="flex flex-col items-end gap-3">
+        {CHAPTERS.map((c, i) => (
+          <li key={c.kicker}>
+            <a
+              href={`#recorrido-cap-${i + 1}`}
+              aria-current={active === i ? "step" : undefined}
+              className="group flex items-center gap-3 rounded-full py-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              <span
+                className={`glass t-label rounded-full px-3 py-1 text-[#f4efe2] transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 ${active === i ? "opacity-100" : "opacity-0"}`}
+              >
+                <span className="sr-only">Capítulo {i + 1}: </span>
+                {c.kicker}
+              </span>
+              <span
+                aria-hidden
+                className={`block rounded-full ring-1 ring-[#f4efe2]/60 transition-all ${active === i ? "h-6 w-2.5 bg-leaf-bright" : "size-2.5 bg-[#f4efe2]/30 group-hover:bg-[#f4efe2]/70"}`}
+              />
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  );
+}
+
+/** Parallax sutil con el mouse: solo puntero fino, un listener con rAF que escribe --mx/--my (-1..1). */
+function usePointerParallax(stage: React.RefObject<HTMLDivElement | null>, enabled: boolean) {
+  useEffect(() => {
+    const el = stage.current;
+    if (!enabled || !el || !window.matchMedia("(pointer: fine)").matches) return;
+    let raf = 0;
+    let x = 0;
+    let y = 0;
+    const flush = () => {
+      raf = 0;
+      el.style.setProperty("--mx", x.toFixed(3));
+      el.style.setProperty("--my", y.toFixed(3));
+    };
+    const move = (e: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      x = ((e.clientX - r.left) / r.width) * 2 - 1;
+      y = ((e.clientY - r.top) / r.height) * 2 - 1;
+      if (!raf) raf = requestAnimationFrame(flush);
+    };
+    el.addEventListener("pointermove", move, { passive: true });
+    return () => {
+      el.removeEventListener("pointermove", move);
+      cancelAnimationFrame(raf);
+    };
+  }, [stage, enabled]);
+}
+
 // Versión estática también en pantallas angostas: el recorrido pineado cuesta demasiado en mobile.
 const REDUCED = "(prefers-reduced-motion: reduce), (max-width: 767px)";
 const readReduced = () => window.matchMedia(REDUCED).matches;
@@ -417,6 +482,8 @@ export function ForestJourney() {
   });
   const still = useMotionValue(0.7);
   const p: P = reduce ? still : smooth;
+  const stageRef = useRef<HTMLDivElement>(null);
+  usePointerParallax(stageRef, !reduce && onScreen);
 
   return (
     <section
@@ -433,14 +500,34 @@ export function ForestJourney() {
       >
         Saltar el recorrido
       </a>
+      {!reduce &&
+        CHAPTERS.map((_, i) => (
+          <div
+            key={i}
+            id={`recorrido-cap-${i + 1}`}
+            aria-hidden
+            className="pointer-events-none absolute left-0 h-px w-px"
+            style={{ top: `calc(${anchorAt(i)} * (100% - 100svh))` }}
+          />
+        ))}
       <div
+        ref={stageRef}
         className={
           reduce
             ? "relative h-[64svh] min-h-[380px] overflow-hidden"
             : "sticky top-0 h-[100svh] overflow-hidden"
         }
       >
-        <Scene p={p} reduce={reduce} />
+        <div
+          className="absolute inset-0 will-change-transform"
+          style={
+            reduce
+              ? undefined
+              : { transform: "translate3d(calc(var(--mx, 0) * -10px), calc(var(--my, 0) * -6px), 0) scale(1.04)" }
+          }
+        >
+          <Scene p={p} reduce={reduce} />
+        </div>
         {/* Bordes que funden con el hero (arriba) y con «Problema» (abajo): sin corte duro. */}
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-[6] h-32 bg-gradient-to-b from-charcoal via-charcoal/60 to-transparent" />
         <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-[6] h-40 bg-gradient-to-t from-charcoal via-charcoal/70 to-transparent" />
@@ -454,7 +541,9 @@ export function ForestJourney() {
                   "linear-gradient(to top, rgba(18,17,14,0.92) 0%, rgba(18,17,14,0.7) 28%, transparent 64%), linear-gradient(to right, rgba(18,17,14,0.62) 0%, transparent 60%)",
               }}
             />
-            <div className="absolute inset-x-0 bottom-0 z-10 mx-auto h-[66svh] max-w-6xl px-5 pb-12 sm:px-10 sm:pb-16">
+            <ChapterNav p={p} />
+            <div
+              className="absolute inset-x-0 bottom-0 z-10 mx-auto h-[66svh] max-w-6xl px-5 pb-12 sm:px-10 sm:pb-16">
               <div className="relative h-full">
                 {CHAPTERS.map((_, i) => (
                   <Chapter key={i} p={p} i={i}>

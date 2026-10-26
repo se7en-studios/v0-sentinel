@@ -1,14 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Mail } from "lucide-react";
+import { Mail, Search } from "lucide-react";
 import { Chapter, Eyebrow } from "@/components/ui/chapter";
+import { Reveal } from "@/components/ui/reveal";
+import { Spotlight } from "@/components/ui/spotlight";
 import { CONTACT_FALLBACK_EMAIL } from "@/lib/contact";
 
 interface FaqItem {
   question: string;
   answer: string;
 }
+
+const norm = (t: string) =>
+  t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 // Acordeón de una pregunta abierta a la vez. Nombre histórico: ya no hay categorías.
 export function FaqSectionWithCategories({
@@ -19,6 +24,12 @@ export function FaqSectionWithCategories({
   items: FaqItem[];
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [query, setQuery] = useState("");
+  const q = norm(query.trim());
+  // Se conserva el índice original para que los ids de aria-controls no cambien al filtrar.
+  const visible = items
+    .map((faq, i) => ({ faq, i }))
+    .filter(({ faq }) => !q || norm(`${faq.question} ${faq.answer}`).includes(q));
 
   return (
     <Chapter id="faq" className="overflow-x-clip">
@@ -53,12 +64,44 @@ export function FaqSectionWithCategories({
           </div>
         </div>
 
-        <ul className="space-y-3 md:space-y-4">
-          {items.map((faq, i) => {
+        <div className="min-w-0">
+        <div className="relative mb-4">
+          <label htmlFor="faq-search" className="sr-only">
+            Buscar en las preguntas frecuentes
+          </label>
+          <Search
+            aria-hidden
+            className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-foreground/60"
+          />
+          <input
+            id="faq-search"
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-controls="faq-list"
+            placeholder="Buscá: precio, falsas alarmas, soporte…"
+            autoComplete="off"
+            className="min-h-12 w-full rounded-full border border-black/15 bg-white/70 pl-12 pr-4 text-base text-foreground placeholder:text-foreground/60 focus-visible:border-[#0f7a4f] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#0f7a4f]/25"
+          />
+          <p role="status" className="sr-only">
+            {q ? `${visible.length} de ${items.length} preguntas` : ""}
+          </p>
+        </div>
+        {visible.length === 0 && (
+          <p className="t-body glass-light rounded-[20px] p-6">
+            No encontramos esa pregunta.{" "}
+            <a href="#contacto" className="font-semibold underline underline-offset-4">
+              Escribinos y te respondemos
+            </a>
+            .
+          </p>
+        )}
+        <ul id="faq-list" className="space-y-3 md:space-y-4">
+          {visible.map(({ faq, i }, pos) => {
             const isOpen = openIndex === i;
             return (
-              <li
-                key={faq.question}
+              <Reveal as="li" key={faq.question} delay={pos * 60}>
+              <Spotlight
                 className={`glass-light rounded-[20px] transition-shadow duration-300 ${
                   isOpen ? "ring-1 ring-[#0f7a4f]/35" : ""
                 }`}
@@ -112,10 +155,12 @@ export function FaqSectionWithCategories({
                     </p>
                   </div>
                 </div>
-              </li>
+              </Spotlight>
+              </Reveal>
             );
           })}
         </ul>
+        </div>
       </div>
     </Chapter>
   );

@@ -85,13 +85,8 @@ export function Navbar() {
   // el tope, vidrio oscuro al bajar, y crema opaca cuando el hero ya pasó.
   const heroBehind = isHome && overHero;
   const onDark = heroBehind || isOpen;
-  const barBg = isOpen
-    ? "bg-charcoal"
-    : heroBehind
-      ? isScrolled
-        ? "bg-charcoal/55 backdrop-blur-xl border-b border-white/10"
-        : "bg-transparent"
-      : "bg-[#faf7f0]/90 backdrop-blur-xl border-b border-black/5";
+  const darkGlass = heroBehind && isScrolled && !isOpen;
+  const lightGlass = !heroBehind && !isOpen;
   const cta = isHome ? "#contacto" : "/#contacto";
 
   const isCurrent = (id: string) => isHome && activeSection === id;
@@ -108,9 +103,24 @@ export function Navbar() {
     <nav
       ref={navRef}
       aria-label="Navegación principal"
-      className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${barBg}`}
+      className="fixed top-0 left-0 right-0 z-50"
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:h-20 md:px-8">
+      {/* Tres capas de vidrio que se funden por opacidad: backdrop-filter no se anima, la opacidad sí. */}
+      <div
+        aria-hidden
+        className={`pointer-events-none absolute inset-0 -z-10 border-b border-white/10 bg-gradient-to-b from-charcoal/70 to-charcoal/40 backdrop-blur-xl backdrop-saturate-150 transition-opacity duration-500 ease-out ${darkGlass ? "opacity-100" : "opacity-0"}`}
+      />
+      <div
+        aria-hidden
+        className={`pointer-events-none absolute inset-0 -z-10 border-b border-black/5 bg-[#faf7f0]/85 shadow-[0_8px_30px_-14px_rgb(0_0_0/0.18)] backdrop-blur-xl backdrop-saturate-150 transition-opacity duration-500 ease-out ${lightGlass ? "opacity-100" : "opacity-0"}`}
+      />
+      <div
+        aria-hidden
+        className={`pointer-events-none absolute inset-0 -z-10 bg-charcoal transition-opacity duration-200 ${isOpen ? "opacity-100" : "opacity-0"}`}
+      />
+      <div
+        className={`mx-auto flex h-16 max-w-7xl items-center justify-between px-5 transition-[height] duration-500 ease-out md:px-8 ${isScrolled ? "md:h-[4.5rem]" : "md:h-20"}`}
+      >
         <Link
           href="/#inicio"
           className="flex items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-leaf-bright"

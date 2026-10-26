@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Instagram } from "lucide-react";
+import { Reveal } from "@/components/ui/reveal";
 import { blogPosts } from "@/lib/blog-posts";
 import { formatDate } from "@/lib/format-date";
 
@@ -26,7 +27,7 @@ export function ContentStrip() {
         className="absolute -right-40 top-0 -z-10 h-96 w-96 rounded-full bg-[radial-gradient(circle,rgb(15_122_79/0.25),transparent_70%)]"
       />
       <div className="mx-auto w-full max-w-6xl px-5 md:px-8">
-        <div className="mb-10 flex flex-wrap items-end justify-between gap-5">
+        <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
             <p className="t-label mb-4 text-leaf-bright">Notas</p>
             <h2 id="notas-titulo" className="t-h2 max-w-2xl">
@@ -51,12 +52,12 @@ export function ContentStrip() {
               <span className="sr-only">(abre Instagram en pestaña nueva)</span>
             </a>
           </div>
-        </div>
+        </Reveal>
         <ul className="grid gap-5 md:grid-cols-2 md:grid-rows-2 lg:grid-cols-[1.45fr_1fr] lg:gap-6">
           {posts.map((p, i) => {
             const featured = i === 0;
             return (
-              <li key={p.slug} className={featured ? "md:row-span-2" : ""}>
+              <Reveal as="li" key={p.slug} delay={i * 100} className={featured ? "md:row-span-2" : ""}>
                 <Link
                   href={`/blog/${p.slug}`}
                   className={`group relative block h-full min-h-[18rem] overflow-hidden rounded-[20px] border border-white/10 shadow-[0_30px_80px_-30px_rgb(0_0_0/0.8)] transition duration-300 hover:-translate-y-1 hover:border-leaf-bright/40 ${
@@ -97,7 +98,7 @@ export function ContentStrip() {
                     )}
                   </div>
                 </Link>
-              </li>
+              </Reveal>
             );
           })}
         </ul>

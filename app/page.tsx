@@ -16,6 +16,9 @@ import { WhatsAppButton } from "@/components/whatsapp-button";
 const Problem = dynamic(() =>
   import("@/components/problem").then((m) => m.Problem),
 );
+const Statement = dynamic(() =>
+  import("@/components/statement").then((m) => m.Statement),
+);
 const Platform = dynamic(() =>
   import("@/components/platform").then((m) => m.Platform),
 );
@@ -51,6 +54,10 @@ export default function Home() {
         <Hero />
         <ForestJourney />
         <Problem />
+        <Statement
+          text="Cada minuto que el fuego crece sin que nadie lo vea, se cuenta en hectáreas."
+          accent="se cuenta en hectáreas."
+        />
         <Platform />
         <Stats />
         <LiveChapter />
