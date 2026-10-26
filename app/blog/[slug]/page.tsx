@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { ScrollProgress } from "@/components/scroll-progress";
@@ -55,6 +54,9 @@ export async function generateMetadata({
   };
 }
 
+const focus =
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
+
 export default async function BlogPostPage({
   params,
 }: {
@@ -96,7 +98,7 @@ export default async function BlogPostPage({
   const minutes = readingTime(post);
 
   return (
-    <main className="min-h-screen bg-[#faf7f0]">
+    <main className="min-h-screen bg-paper text-ink">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
@@ -108,121 +110,108 @@ export default async function BlogPostPage({
       <ScrollProgress />
       <Navbar />
 
-      <article className="relative pt-16">
-        <div
-          className="relative isolate w-full"
-          style={{ height: "clamp(300px, 48vw, 520px)" }}
+      <article className="mx-auto max-w-3xl px-6 pb-20 pt-32 md:pt-40 lg:px-10">
+        <nav
+          aria-label="Ruta de navegación"
+          className="t-small mb-8 flex items-center gap-2 text-ink/70"
         >
+          <Link
+            href="/"
+            className={`underline-offset-4 hover:underline ${focus}`}
+          >
+            Inicio
+          </Link>
+          <span aria-hidden>/</span>
+          <Link
+            href="/blog"
+            className={`underline-offset-4 hover:underline ${focus}`}
+          >
+            Blog
+          </Link>
+        </nav>
+
+        <h1 className="t-display !text-4xl md:!text-6xl">{post.title}</h1>
+        <p className="t-caption mt-5">
+          {formatDate(post.publishedAt, "long")} · {minutes} min de lectura
+        </p>
+
+        <figure className="mt-10">
           <Image
             src={post.coverImage}
             alt={post.title}
-            fill
+            width={900}
+            height={600}
             priority
-            sizes="100vw"
-            className="object-cover saturate-[0.8]"
+            sizes="(max-width: 768px) 100vw, 768px"
+            className="h-auto w-full"
           />
-          <div className="absolute inset-0 bg-[linear-gradient(115deg,rgb(232_115_42/0.18),transparent_50%,rgb(15_122_79/0.3))]" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-charcoal/50" />
+        </figure>
+
+        <div className="mt-12 space-y-10">
+          {post.body.map((block, i) => (
+            <div key={i}>
+              {block.heading && (
+                <h2 className="t-h2 mb-4 !text-3xl">{block.heading}</h2>
+              )}
+              {block.paragraphs.map((p, j) => (
+                <p
+                  key={j}
+                  className="t-body mb-4 text-ink/85 sm:text-[1.0625rem]"
+                >
+                  {p}
+                </p>
+              ))}
+              {i === 0 && (
+                <blockquote className="my-10 border-l-2 border-brand pl-6">
+                  <p className="t-quote">{post.pullQuote}</p>
+                </blockquote>
+              )}
+            </div>
+          ))}
         </div>
 
-        <div className="relative z-10 mx-auto -mt-24 max-w-3xl px-6 lg:px-10">
-          <nav
-            aria-label="Ruta de navegación"
-            className="t-small mb-6 flex items-center gap-2 text-foreground/70"
-          >
-            <Link
-              href="/"
-              className="transition-colors hover:text-[#0f7a4f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f7a4f]"
-            >
-              Inicio
-            </Link>
-            <span aria-hidden>/</span>
-            <Link
-              href="/blog"
-              className="transition-colors hover:text-[#0f7a4f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f7a4f]"
-            >
-              Blog
-            </Link>
-            <span aria-hidden>/</span>
-            <span
-              aria-current="page"
-              className="max-w-[180px] truncate text-foreground sm:max-w-xs"
-            >
-              {post.title}
-            </span>
-          </nav>
-
-          <p className="t-label mb-4 text-[#0b6b44]">
-            {formatDate(post.publishedAt, "long")} · {minutes} min de lectura
-          </p>
-
-          <h1 className="t-h2 mb-12">{post.title}</h1>
-
-          <div className="space-y-10 pb-20">
-            {post.body.map((block, i) => (
-              <div key={i}>
-                {block.heading && (
-                  <h2 className="t-h3 mb-4 !text-2xl">{block.heading}</h2>
-                )}
-                {block.paragraphs.map((p, j) => (
-                  <p key={j} className="t-body mb-4 text-foreground/85 sm:text-[1.0625rem]">
-                    {p}
-                  </p>
-                ))}
-                {i === 0 && (
-                  <blockquote className="glass-light my-8 rounded-[20px] border-l-4 !border-l-[#0f7a4f] px-6 py-6">
-                    <p className="t-h3 !text-2xl leading-snug sm:!text-3xl">
-                      {post.pullQuote}
-                    </p>
-                  </blockquote>
-                )}
-              </div>
-            ))}
-          </div>
-
+        <p className="mt-12">
           <Link
             href={post.relatedLink.href}
-            className="t-small mb-16 inline-flex items-center gap-2 font-semibold text-[#0b6b44] transition-colors hover:text-[#09593a] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0f7a4f]"
+            className={`t-body font-semibold text-brand underline underline-offset-4 ${focus}`}
           >
             {post.relatedLink.label}
-            <ArrowRight aria-hidden className="h-4 w-4" />
           </Link>
+        </p>
 
-          <div className="relative isolate mb-20 overflow-hidden rounded-[20px] bg-charcoal p-8 text-center text-[#f4efe2] shadow-[0_30px_80px_-30px_rgb(0_0_0/0.6)] md:p-10">
-            <div
-              aria-hidden
-              className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_0%,rgb(15_122_79/0.5),transparent_70%)]"
-            />
-            <p className="t-h3 mb-6">¿Querés monitoreo continuo en tu territorio?</p>
-            <Link
-              href="/#contacto"
-              className="glow-leaf inline-flex min-h-12 items-center gap-2 rounded-full bg-leaf-bright px-7 text-base font-semibold text-charcoal transition hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-            >
-              Solicitar una reunión
-              <ArrowRight aria-hidden className="h-4 w-4" />
-            </Link>
-          </div>
+        <div className="mt-16 border-t rule pt-8">
+          <p className="t-h3">¿Querés monitoreo continuo en tu territorio?</p>
+          <p className="t-body mt-2 text-ink/80">
+            Contanos qué zona cuidás y vemos si un piloto tiene sentido.
+          </p>
+          <Link
+            href="/#contacto"
+            className="mt-5 inline-flex min-h-12 items-center rounded-sm bg-brand px-7 text-base font-semibold text-paper transition hover:bg-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          >
+            Solicitar una reunión
+          </Link>
+        </div>
 
-          {related.length > 0 && (
-            <div className="pb-24">
-              <p className="t-label mb-6 text-[#0b6b44]">Seguí leyendo</p>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {related.map((r) => (
+        {related.length > 0 && (
+          <div className="mt-20">
+            <h2 className="t-h3 mb-4">Seguí leyendo</h2>
+            <ul className="border-b rule">
+              {related.map((r) => (
+                <li key={r.slug} className="border-t rule">
                   <Link
-                    key={r.slug}
                     href={`/blog/${r.slug}`}
-                    className="group glass-light rounded-[20px] p-6 transition duration-300 hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0f7a4f]"
+                    className={`group block py-5 ${focus}`}
                   >
-                    <p className="t-h3 mb-2 !text-lg group-hover:text-[#0b6b44]">
+                    <p className="font-serif text-xl leading-snug group-hover:underline group-hover:underline-offset-4">
                       {r.title}
                     </p>
-                    <p className="t-small text-foreground/75">{r.excerpt}</p>
+                    <p className="t-small mt-1 text-ink/75">{r.excerpt}</p>
                   </Link>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </article>
 
       <Footer />

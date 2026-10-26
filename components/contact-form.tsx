@@ -19,13 +19,12 @@ const PERFIL_TO_INTEREST: Record<string, string> = {
 };
 
 const field =
-  "min-h-12 w-full rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-base text-[#f4efe2] shadow-[inset_0_1px_2px_rgb(0_0_0/0.35)] transition placeholder:text-[#f4efe2]/55 hover:border-white/35 focus-visible:border-leaf-bright focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-leaf-bright/30 aria-[invalid=true]:border-[#ff9b8a] aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-[#ff9b8a]/25";
-const label = "t-small block mb-2 font-medium text-[#f4efe2]";
-const card = "glass rounded-[20px] p-6 md:p-8";
+  "min-h-11 w-full rounded-none border-0 border-b border-ink/50 bg-transparent px-0 py-2 text-base text-ink transition placeholder:text-ink/55 hover:border-ink focus-visible:border-brand focus-visible:outline-none focus-visible:ring-0 aria-[invalid=true]:border-signal";
+const label = "t-small mb-1 block font-semibold text-ink";
 
 function FieldError({ id, msg }: { id: string; msg?: string }) {
   return msg ? (
-    <p id={id} className="t-small mt-1.5 text-[#ffb4a6]">
+    <p id={id} className="t-small mt-1.5 text-signal">
       {msg}
     </p>
   ) : null;
@@ -82,9 +81,9 @@ export function ContactForm() {
 
   if (status === "ok") {
     return (
-      <div role="status" className={`${card} glow-leaf`}>
-        <p className="t-h3 text-leaf-bright">Recibimos tu mensaje.</p>
-        <p className="t-body mt-2 text-[#f4efe2]/85">
+      <div role="status" className="border-t rule pt-6">
+        <p className="t-h3 text-brand">Recibimos tu mensaje.</p>
+        <p className="t-body mt-2 text-ink/85">
           Te respondemos en 24 h hábiles. Si es urgente, escribinos a {mail}.
         </p>
       </div>
@@ -95,7 +94,7 @@ export function ContactForm() {
     <form
       onSubmit={onSubmit}
       noValidate
-      className={`${card} relative grid gap-5 sm:grid-cols-2`}
+      className="relative grid gap-x-6 gap-y-6 sm:grid-cols-2"
     >
       {/* honeypot */}
       <div
@@ -164,11 +163,11 @@ export function ContactForm() {
           defaultValue={defaultInterest}
           className={field}
         >
-          <option value="" className="text-black">
+          <option value="">
             Elegí una opción
           </option>
           {INTEREST_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value} className="text-black">
+            <option key={o.value} value={o.value}>
               {o.label}
             </option>
           ))}
@@ -196,15 +195,15 @@ export function ContactForm() {
         <button
           type="submit"
           disabled={status === "sending"}
-          className="glow-leaf inline-flex min-h-14 items-center rounded-full bg-leaf-bright px-9 text-base font-semibold text-charcoal transition hover:-translate-y-0.5 hover:brightness-105 active:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:translate-y-0 disabled:cursor-wait disabled:opacity-60"
+          className="inline-flex min-h-12 items-center rounded-sm bg-brand px-8 text-base font-semibold text-paper transition hover:bg-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-wait disabled:opacity-60"
         >
           {status === "sending" ? "Enviando…" : "Solicitar un piloto"}
         </button>
-        <p className="t-small text-[#f4efe2]/75">
+        <p className="t-small text-ink/75">
           Te respondemos en 24 h hábiles.
         </p>
       </div>
-      <p className="t-small sm:col-span-2 text-[#f4efe2]/65">
+      <p className="t-small sm:col-span-2 text-ink/70">
         Al enviar aceptás nuestra{" "}
         <a href="/privacidad" className="underline underline-offset-2">
           política de privacidad
@@ -214,12 +213,12 @@ export function ContactForm() {
 
       <div className="sm:col-span-2" aria-live="polite">
         {status === "error" && (
-          <p role="alert" className="t-small text-[#ffb4a6]">
+          <p role="alert" className="t-small text-signal">
             No pudimos enviar tu mensaje. Probá de nuevo o escribinos a {mail}.
           </p>
         )}
         {status === "unavailable" && (
-          <p role="alert" className="t-small text-[#ffd9a0]">
+          <p role="alert" className="t-small text-signal">
             El envío en línea no está disponible por ahora: escribinos a {mail}.
           </p>
         )}

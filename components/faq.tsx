@@ -4,40 +4,40 @@ import { CLAIMS } from "@/lib/claims";
 const faqs = [
   {
     question: "¿Cómo funciona Sentinel Cloud?",
-    answer: `Cruza datos satelitales (${CLAIMS.satellites}), información geoespacial e inteligencia artificial para identificar focos de calor probables y enviar una alerta geolocalizada. Tenemos como objetivo de diseño una precisión del ${CLAIMS.accuracyPct}%: es una meta, todavía no un resultado medido en campo. Sensores y drones se suman de forma progresiva.`,
+    answer: `Cruzamos datos satelitales (${CLAIMS.satellites}) con información del terreno y un modelo de inteligencia artificial para marcar focos de calor probables, y mandamos una alerta con la ubicación estimada. Apuntamos a una precisión del ${CLAIMS.accuracyPct}%, pero es una meta de diseño: todavía no la medimos en campo. Los sensores y los drones se suman de a poco.`,
   },
   {
     question: "¿Y si la IA se equivoca y salta una falsa alarma?",
-    answer: `Puede pasar, y es la primera pregunta de cualquier brigada: una alerta falsa cuesta tiempo y recursos. Por eso el modelo cruza varias fuentes antes de alertar, y esa es la base de nuestro objetivo de precisión del ${CLAIMS.accuracyPct}%, que debemos validar en pilotos junto a cada cliente.`,
+    answer: `Puede pasar, y es la primera pregunta que nos hace cualquier brigada: una alarma falsa cuesta tiempo y gente. Por eso el modelo contrasta varias fuentes antes de avisar. Esa es la base de la meta del ${CLAIMS.accuracyPct}% de precisión, que tenemos que validar en pilotos junto a cada cliente.`,
   },
   {
-    question: "¿Cuánto cuesta implementar Sentinel?",
+    question: "¿Cuánto cuesta?",
     answer:
-      "No hay inversión inicial en equipos (CAPEX): el modelo apunta a una suscripción a Sentinel Cloud sobre la cobertura que necesitás. El precio se define según el territorio. Arrancamos con un piloto acotado para validar resultados antes de un contrato mayor.",
+      "No hay inversión inicial en equipos. El modelo es una suscripción a Sentinel Cloud según el territorio que quieras cubrir, y el precio depende de esa superficie. Empezamos con un piloto acotado para ver si funciona antes de firmar algo más grande.",
   },
   {
-    question: "¿Cuánto tarda en estar operativo en mi territorio?",
+    question: "¿Cuánto tarda en estar andando en mi territorio?",
     answer:
-      "Nuestra meta para un piloto es generar alertas en 4 a 8 semanas desde el inicio (estimación interna, a confirmar según el territorio). La plataforma es cloud: no hay obra ni infraestructura que instalar de tu lado, solo definir la zona a cubrir y tener acceso a internet.",
+      "Nos proponemos tener alertas en 4 a 8 semanas desde el inicio del piloto. Es una estimación nuestra y puede cambiar según la zona. Es una plataforma en la nube: no hay obra ni instalación de tu lado, solo definimos el área y necesitás conexión a internet.",
   },
   {
-    question: "¿Necesito conocimientos técnicos para usar Sentinel?",
+    question: "¿Hace falta saber de tecnología para usarlo?",
     answer:
-      "No. Recibís alertas con la ubicación estimada del foco y podés decidir sin ser experto en tecnología ni en IA. Te acompañamos con el onboarding de tu equipo.",
+      "No. Recibís la alerta con la ubicación estimada del foco y decidís vos. Capacitamos a tu equipo al empezar.",
   },
   {
-    question: "¿Qué soporte ofrecen?",
-    answer: `En los pilotos acordamos con cada cliente el esquema de soporte (el objetivo es cubrir operaciones críticas las ${CLAIMS.monitoringHours} h), el onboarding y las actualizaciones de los modelos a medida que suman datos de tu territorio.`,
+    question: "¿Qué soporte dan?",
+    answer: `En cada piloto acordamos el esquema con el cliente. La idea es cubrir operaciones críticas las ${CLAIMS.monitoringHours} horas, con capacitación inicial y actualizaciones del modelo a medida que sumamos datos de tu zona.`,
   },
   {
-    question: "¿Quiénes pueden usar Sentinel?",
+    question: "¿Para quién es?",
     answer:
-      "Municipios, brigadas de bomberos, empresas forestales, productores agropecuarios y cualquier organización que gestione grandes superficies de terreno.",
+      "Para municipios, brigadas de bomberos, empresas forestales, productores agropecuarios y cualquier organización que cuide mucha superficie de terreno.",
   },
   {
-    question: "¿Los datos en vivo de la web son de la red de Sentinel?",
+    question: "¿Los datos en vivo de esta web son de la red de Sentinel?",
     answer:
-      "No, y queremos ser claros: el índice de riesgo y el mapa de focos usan fuentes públicas (Open-Meteo y NASA FIRMS) a modo ilustrativo, para mostrar el mismo tipo de variables que procesa nuestro sistema. Los datos de la implementación de un cliente no son públicos ni se muestran en la web.",
+      "No. El índice de riesgo y el mapa de focos usan fuentes públicas (Open-Meteo y NASA FIRMS) y están ahí para mostrar el tipo de variables que procesamos. Los datos de la implementación de un cliente no son públicos y no se muestran acá.",
   },
 ];
 
@@ -59,7 +59,7 @@ export function FAQ() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
       <FaqSectionWithCategories
-        title="Preguntas que nos hacen seguido"
+        title="Lo que nos preguntan seguido"
         items={faqs}
       />
     </>

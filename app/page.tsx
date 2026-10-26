@@ -1,7 +1,6 @@
 import dynamic from "next/dynamic";
 import { Navbar } from "@/components/navbar";
 import { Hero } from "@/components/hero";
-import { ForestJourney } from "@/components/forest-journey-lazy";
 import { ScrollProgress } from "@/components/scroll-progress";
 import { SectionDots } from "@/components/ui/section-dots";
 import { WhatsAppButton } from "@/components/whatsapp-button";
@@ -16,13 +15,9 @@ import { WhatsAppButton } from "@/components/whatsapp-button";
 const Problem = dynamic(() =>
   import("@/components/problem").then((m) => m.Problem),
 );
-const Statement = dynamic(() =>
-  import("@/components/statement").then((m) => m.Statement),
-);
 const Platform = dynamic(() =>
   import("@/components/platform").then((m) => m.Platform),
 );
-const Stats = dynamic(() => import("@/components/stats").then((m) => m.Stats));
 const LiveChapter = dynamic(() =>
   import("@/components/live").then((m) => m.LiveChapter),
 );
@@ -50,16 +45,10 @@ export default function Home() {
           order reaches the real nav before this fixed floating aid - it's
           visually independent of DOM position either way. */}
       <SectionDots />
-      <main id="main-content" className="min-h-screen bg-[#faf7f0]">
+      <main id="main-content" className="min-h-screen bg-paper text-ink">
         <Hero />
-        <ForestJourney />
         <Problem />
-        <Statement
-          text="Cada minuto que el fuego crece sin que nadie lo vea, se cuenta en hectáreas."
-          accent="se cuenta en hectáreas."
-        />
         <Platform />
-        <Stats />
         <LiveChapter />
         <Audiences />
         <Proof />

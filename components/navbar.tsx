@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Menu, X, ArrowRight } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { SentinelLogo, SentinelMark } from "@/components/sentinel-logo";
 import Link from "next/link";
@@ -15,38 +15,28 @@ const navLinks = SECTIONS.filter((s) => s.nav).map((s) => ({
 }));
 
 const FOCUSABLE = "a[href], button:not([disabled])";
+const BRAND = "#0b4f35";
 
 export function Navbar() {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const [isScrolled, setIsScrolled] = useState(false);
-  const [overHero, setOverHero] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const activeSection = useActiveSection();
 
-  // Dos observers en vez de un listener de scroll: uno detecta "salí del tope"
-  // (activa el vidrio) y otro "la barra ya no está sobre el hero oscuro".
+  // Un observer: detecta "salí del tope" para mostrar el filete inferior.
   useEffect(() => {
     const top = topRef.current;
     if (!top) return;
-    const io = new IntersectionObserver(([e]) => setIsScrolled(!e.isIntersecting));
+    const io = new IntersectionObserver(([e]) =>
+      setIsScrolled(!e.isIntersecting),
+    );
     io.observe(top);
-    const hero = isHome ? document.querySelector("[data-nav-dark]") : null;
-    // 80px = alto de la barra en md+: el hero cuenta mientras cubra la barra.
-    const heroIo = hero
-      ? new IntersectionObserver(([e]) => setOverHero(e.isIntersecting), {
-          rootMargin: "-80px 0px 0px 0px",
-        })
-      : null;
-    if (hero) heroIo?.observe(hero);
-    return () => {
-      io.disconnect();
-      heroIo?.disconnect();
-    };
-  }, [isHome]);
+    return () => io.disconnect();
+  }, []);
 
   // Menú abierto: Escape cierra, Tab queda atrapado, el fondo no scrollea.
   useEffect(() => {
@@ -81,133 +71,101 @@ export function Navbar() {
     };
   }, [isOpen]);
 
-  // Solo la home tiene hero oscuro bajo la barra (texto crema): transparente en
-  // el tope, vidrio oscuro al bajar, y crema opaca cuando el hero ya pasó.
-  const heroBehind = isHome && overHero;
-  const onDark = heroBehind || isOpen;
-  const darkGlass = heroBehind && isScrolled && !isOpen;
-  const lightGlass = !heroBehind && !isOpen;
   const cta = isHome ? "#contacto" : "/#contacto";
-
   const isCurrent = (id: string) => isHome && activeSection === id;
   const currentProps = (id: string) =>
     isCurrent(id) ? { "aria-current": "location" as const } : {};
 
-  const linkTone = onDark
-    ? "text-[#f4efe2]/85 hover:text-leaf-bright aria-[current]:text-leaf-bright"
-    : "text-[#1a1812]/80 hover:text-[#0b6b45] aria-[current]:text-[#0b6b45]";
-
   return (
     <>
-    <div ref={topRef} aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-6" />
-    <nav
-      ref={navRef}
-      aria-label="Navegación principal"
-      className="fixed top-0 left-0 right-0 z-50"
-    >
-      {/* Tres capas de vidrio que se funden por opacidad: backdrop-filter no se anima, la opacidad sí. */}
       <div
+        ref={topRef}
         aria-hidden
-        className={`pointer-events-none absolute inset-0 -z-10 border-b border-white/10 bg-gradient-to-b from-charcoal/70 to-charcoal/40 backdrop-blur-xl backdrop-saturate-150 transition-opacity duration-500 ease-out ${darkGlass ? "opacity-100" : "opacity-0"}`}
+        className="pointer-events-none absolute inset-x-0 top-0 h-6"
       />
-      <div
-        aria-hidden
-        className={`pointer-events-none absolute inset-0 -z-10 border-b border-black/5 bg-[#faf7f0]/85 shadow-[0_8px_30px_-14px_rgb(0_0_0/0.18)] backdrop-blur-xl backdrop-saturate-150 transition-opacity duration-500 ease-out ${lightGlass ? "opacity-100" : "opacity-0"}`}
-      />
-      <div
-        aria-hidden
-        className={`pointer-events-none absolute inset-0 -z-10 bg-charcoal transition-opacity duration-200 ${isOpen ? "opacity-100" : "opacity-0"}`}
-      />
-      <div
-        className={`mx-auto flex h-16 max-w-7xl items-center justify-between px-5 transition-[height] duration-500 ease-out md:px-8 ${isScrolled ? "md:h-[4.5rem]" : "md:h-20"}`}
-      >
-        <Link
-          href="/#inicio"
-          className="flex items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-leaf-bright"
-          onClick={() => setIsOpen(false)}
-        >
-          <span className="flex items-center gap-2">
-            <SentinelMark className="size-7 md:size-8" />
-            <SentinelLogo
-              className="h-5 w-auto md:h-6"
-              fill={onDark ? "#f4efe2" : "var(--primary)"}
-            />
-          </span>
-        </Link>
-
-        <div className="hidden items-center gap-7 md:flex">
-          {navLinks.map((l) => (
-            <a
-              key={l.id}
-              href={l.href}
-              {...currentProps(l.id)}
-              className={`t-small rounded-sm px-1 py-1 font-medium transition-colors aria-[current]:underline aria-[current]:underline-offset-8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright ${linkTone}`}
-            >
-              {l.label}
-            </a>
-          ))}
-          <a
-            href={cta}
-            className={`inline-flex items-center gap-2 rounded-full px-6 py-3 text-[0.9375rem] font-semibold transition-[transform,box-shadow,background-color] hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright ${
-              onDark
-                ? "bg-leaf-bright text-charcoal shadow-[0_8px_30px_-6px_rgb(95_227_161/0.55)] hover:shadow-[0_12px_36px_-6px_rgb(95_227_161/0.7)]"
-                : "bg-charcoal text-[#faf7f0] shadow-[0_8px_24px_-8px_rgb(15_122_79/0.5)] hover:bg-leaf"
-            }`}
-          >
-            Solicitar un piloto
-            <ArrowRight aria-hidden className="h-4 w-4" />
-          </a>
-        </div>
-
-        <button
-          ref={toggleRef}
-          type="button"
-          className={`-mr-2.5 rounded-sm p-2.5 md:hidden focus-visible:outline-2 focus-visible:outline-leaf-bright ${
-            onDark ? "text-[#f4efe2]" : "text-[#1a1812]"
-          }`}
-          onClick={() => setIsOpen((o) => !o)}
-          aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
-          aria-expanded={isOpen}
-          aria-controls="mobile-menu"
-        >
-          {isOpen ? (
-            <X aria-hidden className="h-6 w-6" />
-          ) : (
-            <Menu aria-hidden className="h-6 w-6" />
-          )}
-        </button>
-      </div>
-
-      <div
-        id="mobile-menu"
-        inert={!isOpen}
-        className={`fixed inset-x-0 bottom-0 top-16 overflow-y-auto bg-charcoal px-5 pb-8 pt-6 text-[#f4efe2] md:hidden ${
-          isOpen ? "block" : "hidden"
+      <nav
+        ref={navRef}
+        aria-label="Navegación principal"
+        className={`fixed inset-x-0 top-0 z-50 bg-paper transition-colors duration-200 ${
+          isScrolled || isOpen ? "border-b rule" : "border-b border-transparent"
         }`}
       >
-        <ul className="divide-y divide-white/10 border-y border-white/10">
-          {navLinks.map((l) => (
-            <li key={l.id}>
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:h-20 md:px-8">
+          <Link
+            href="/#inicio"
+            className="flex items-center gap-2 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
+            onClick={() => setIsOpen(false)}
+          >
+            <SentinelMark className="size-7 md:size-8" />
+            <SentinelLogo className="h-5 w-auto md:h-6" fill={BRAND} />
+          </Link>
+
+          <div className="hidden items-center gap-8 md:flex">
+            {navLinks.map((l) => (
               <a
+                key={l.id}
                 href={l.href}
                 {...currentProps(l.id)}
-                onClick={() => setIsOpen(false)}
-                className="t-h3 block py-4 aria-[current]:text-leaf-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright"
+                className="t-small rounded-sm px-1 py-1 font-medium text-ink transition-colors hover:text-brand aria-[current]:text-brand aria-[current]:underline aria-[current]:underline-offset-8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
               >
                 {l.label}
               </a>
-            </li>
-          ))}
-        </ul>
-        <a
-          href={cta}
-          onClick={() => setIsOpen(false)}
-          className="mt-8 flex min-h-12 items-center justify-center rounded-full bg-leaf-bright px-5 text-base font-semibold text-charcoal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            ))}
+            <a
+              href={cta}
+              className="inline-flex min-h-11 items-center rounded-sm bg-brand px-5 text-[0.9375rem] font-semibold text-paper transition-colors hover:bg-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+            >
+              Pedir un piloto
+            </a>
+          </div>
+
+          <button
+            ref={toggleRef}
+            type="button"
+            className="-mr-2.5 rounded-sm p-2.5 text-ink md:hidden focus-visible:outline-2 focus-visible:outline-brand"
+            onClick={() => setIsOpen((o) => !o)}
+            aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={isOpen}
+            aria-controls="mobile-menu"
+          >
+            {isOpen ? (
+              <X aria-hidden className="h-6 w-6" />
+            ) : (
+              <Menu aria-hidden className="h-6 w-6" />
+            )}
+          </button>
+        </div>
+
+        <div
+          id="mobile-menu"
+          inert={!isOpen}
+          className={`fixed inset-x-0 bottom-0 top-16 overflow-y-auto bg-paper px-5 pb-8 pt-6 text-ink md:hidden ${
+            isOpen ? "block" : "hidden"
+          }`}
         >
-          Solicitar un piloto
-        </a>
-      </div>
-    </nav>
+          <ul className="divide-y divide-ink/15 border-y rule">
+            {navLinks.map((l) => (
+              <li key={l.id}>
+                <a
+                  href={l.href}
+                  {...currentProps(l.id)}
+                  onClick={() => setIsOpen(false)}
+                  className="t-h3 block py-4 aria-[current]:text-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                >
+                  {l.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+          <a
+            href={cta}
+            onClick={() => setIsOpen(false)}
+            className="mt-8 flex min-h-12 items-center justify-center rounded-sm bg-brand px-5 text-base font-semibold text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          >
+            Pedir un piloto
+          </a>
+        </div>
+      </nav>
     </>
   );
 }

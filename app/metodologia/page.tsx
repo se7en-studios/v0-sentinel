@@ -59,17 +59,10 @@ const SOURCES = [
 ];
 
 const H2 = "t-h2 mb-5 mt-20 !text-3xl md:!text-4xl";
-const P = "t-body text-foreground/85";
-const LIST =
-  "t-body list-disc space-y-2 pl-6 text-foreground/85 marker:text-[#0b6b44]";
-const LINK = "font-medium text-[#0b6b44] underline underline-offset-2";
-const CELL = "bg-white/70 px-4 py-4 align-top border-y border-black/[0.08]";
-
-function chipTone(status: string) {
-  if (status === "Objetivo") return "bg-[#f3e6c4] text-[#5c3f04]";
-  if (status.startsWith("Medido")) return "bg-[#d3f0e1] text-[#064a2f]";
-  return "bg-black/[0.07] text-foreground/80";
-}
+const P = "t-body text-ink/85";
+const LIST = "t-body list-disc space-y-2 pl-6 text-ink/85 marker:text-brand";
+const LINK = "font-semibold text-brand underline underline-offset-4";
+const ROW = "border-t rule py-4 align-top";
 
 export default function MetodologiaPage() {
   return (
@@ -77,33 +70,20 @@ export default function MetodologiaPage() {
       <header>
         <Navbar />
       </header>
-      <main id="main-content" className="bg-background text-foreground">
-        <div className="relative isolate overflow-hidden bg-charcoal px-6 pb-24 pt-36 text-[#f4efe2] md:pb-32 md:pt-44">
-          <div
-            aria-hidden
-            className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_20%_0%,rgb(15_122_79/0.45),transparent_60%),linear-gradient(to_bottom,transparent_60%,var(--color-background))]"
-          />
-          <div
-            aria-hidden
-            className="bg-noise absolute inset-0 -z-10 opacity-[0.06] mix-blend-overlay"
-          />
-          <div className="mx-auto max-w-3xl">
-            <p className="t-label mb-5 text-leaf-bright">Metodología</p>
-            <h1 className="t-h2">
-              Cómo detectamos, qué verificamos y qué todavía no podemos afirmar.
-            </h1>
-            <p className="t-lead mt-6 text-[#f4efe2]/85">
-              Sentinel Cloud cruza datos satelitales ({CLAIMS.satellites}) con
-              información geoespacial e inteligencia artificial para avisar de
-              un posible foco en {CLAIMS.region}. Esta página separa lo que está
-              diseñado como objetivo de lo que está medido, y de dónde sale cada
-              dato.
-            </p>
-          </div>
-        </div>
+      <main id="main-content" className="bg-paper text-ink">
+        <div className="mx-auto max-w-3xl px-6 pb-28 pt-32 md:pt-40">
+          <h1 className="t-display !text-4xl md:!text-6xl">
+            Cómo detectamos, qué verificamos y qué todavía no podemos afirmar
+          </h1>
+          <p className="t-lead mt-6 text-ink/85">
+            Sentinel Cloud cruza datos satelitales ({CLAIMS.satellites}) con
+            información geoespacial e inteligencia artificial para avisar de un
+            posible foco en {CLAIMS.region}. Esta página separa lo que es un
+            objetivo de diseño de lo que está medido, y dice de dónde sale cada
+            dato.
+          </p>
 
-        <div className="mx-auto max-w-3xl px-6 pb-28 pt-4 md:pt-8">
-          <h2 className={`${H2} !mt-0`}>
+          <h2 className={`${H2} !mt-16`}>
             Qué cifras son objetivos y cuáles están medidas
           </h2>
           <p className={`${P} mb-6`}>
@@ -111,19 +91,19 @@ export default function MetodologiaPage() {
             tiempo y precisión que ves en la web son objetivos de diseño.
           </p>
           <div className="-mx-6 overflow-x-auto px-6 pb-4">
-            <table className="w-full min-w-[40rem] border-separate border-spacing-y-2 text-left text-[15px]">
+            <table className="w-full min-w-[40rem] border-collapse text-left text-[15px]">
               <caption className="sr-only">
                 Estado de cada cifra de Sentinel
               </caption>
               <thead>
-                <tr className="t-label text-foreground/70">
-                  <th scope="col" className="px-4 pb-1 font-medium">
+                <tr className="t-label text-ink/70">
+                  <th scope="col" className="pb-2 pr-4 font-medium">
                     Cifra
                   </th>
-                  <th scope="col" className="px-4 pb-1 font-medium">
+                  <th scope="col" className="pb-2 pr-4 font-medium">
                     Estado
                   </th>
-                  <th scope="col" className="px-4 pb-1 font-medium">
+                  <th scope="col" className="pb-2 font-medium">
                     Fuente
                   </th>
                 </tr>
@@ -131,24 +111,13 @@ export default function MetodologiaPage() {
               <tbody>
                 {FIGURES.map((f) => (
                   <tr key={f.figure}>
-                    <th
-                      scope="row"
-                      className={`${CELL} rounded-l-xl border-l font-semibold`}
-                    >
+                    <th scope="row" className={`${ROW} pr-4 font-semibold`}>
                       {f.figure}
                     </th>
-                    <td className={CELL}>
-                      <span
-                        className={`t-small inline-block rounded-full px-3 py-1 font-semibold ${chipTone(f.status)}`}
-                      >
-                        {f.status}
-                      </span>
+                    <td className={`${ROW} pr-4 font-semibold text-brand`}>
+                      {f.status}
                     </td>
-                    <td
-                      className={`${CELL} t-small rounded-r-xl border-r text-foreground/80`}
-                    >
-                      {f.source}
-                    </td>
+                    <td className={`${ROW} t-small text-ink/80`}>{f.source}</td>
                   </tr>
                 ))}
               </tbody>
@@ -162,13 +131,12 @@ export default function MetodologiaPage() {
             frecuencia distintas, valores aproximados publicados por sus
             operadores:
           </p>
-          <ul className="space-y-3">
+          <ul className="border-b rule">
             {SOURCES.map((s) => (
-              <li
-                key={s.name}
-                className="glass-light t-body rounded-[20px] p-5 text-foreground/85"
-              >
-                <strong className="block text-foreground">{s.name}</strong>
+              <li key={s.name} className="t-body border-t rule py-4 text-ink/85">
+                <strong className="block font-serif text-xl font-medium text-ink">
+                  {s.name}
+                </strong>
                 {s.detail}
               </li>
             ))}
@@ -208,9 +176,11 @@ export default function MetodologiaPage() {
           </ul>
 
           <h2 className={H2}>De dónde salen los datos en vivo</h2>
-          <ul className="space-y-3">
-            <li className="glass-light t-body rounded-[20px] p-5 text-foreground/85">
-              <strong className="block text-foreground">NASA FIRMS</strong>
+          <ul className="border-b rule">
+            <li className="t-body border-t rule py-4 text-ink/85">
+              <strong className="block font-serif text-xl font-medium text-ink">
+                NASA FIRMS
+              </strong>
               Focos activos de VIIRS en modo casi tiempo real. Los datos son
               abiertos, con pedido de reconocimiento a NASA FIRMS. Pueden llegar
               con hasta unas 3 horas de demora respecto de la observación. En la
@@ -225,8 +195,10 @@ export default function MetodologiaPage() {
                 firms.modaps.eosdis.nasa.gov
               </a>
             </li>
-            <li className="glass-light t-body rounded-[20px] p-5 text-foreground/85">
-              <strong className="block text-foreground">Open-Meteo</strong>
+            <li className="t-body border-t rule py-4 text-ink/85">
+              <strong className="block font-serif text-xl font-medium text-ink">
+                Open-Meteo
+              </strong>
               Datos meteorológicos bajo licencia CC BY 4.0, con atribución. Se
               consultan cada 15 minutos como máximo y son estimaciones de modelo
               para el punto elegido, no mediciones de una estación.{" "}

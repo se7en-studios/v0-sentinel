@@ -1,190 +1,124 @@
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
-import { Chapter, Eyebrow } from "@/components/ui/chapter";
 import { Reveal } from "@/components/ui/reveal";
-import { ViewCountUp } from "@/components/problem-counter";
+import { PHOTOS, type Photo } from "@/lib/photos";
 import { CLAIMS } from "@/lib/claims";
 
-// Sin cifras: ninguna de las que tenía el sitio (-70%, 100+, 10x) tenía fuente.
-const IMPACTS = [
-  {
-    value: "Décadas",
-    body: "Lo que tarda en regenerarse un bosque nativo que se pierde en horas.",
-  },
-  {
-    value: "Minutos",
-    body: "Lo que separa un conato controlado de una catástrofe. El aviso temprano se juega ahí.",
-  },
-  {
-    value: "Más riesgo",
-    body: "Cuando el fuego ya se ve desde una torre o por su columna de humo, combatirlo cuesta más y expone más a las brigadas.",
-  },
-];
-
-// Mismo grading para todas las fotos: desaturado leve + tinte verde→ember.
-const GRADE = "saturate-[0.6] contrast-[1.08] brightness-[0.9]";
-const TINT =
-  "bg-gradient-to-tr from-leaf/35 via-transparent to-ember/30 mix-blend-soft-light";
-
-function Photo({
-  src,
-  className,
+function Figure({
+  photo,
   sizes,
+  className = "",
 }: {
-  src: string;
-  className: string;
+  photo: Photo;
   sizes: string;
+  className?: string;
 }) {
   return (
-    <div
-      className={`absolute overflow-hidden rounded-[20px] border border-[#f4efe2]/15 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)] ${className}`}
-    >
+    <figure className={className}>
       <Image
-        src={src}
-        alt=""
-        fill
+        src={photo.src}
+        alt={photo.alt}
+        width={photo.width}
+        height={photo.height}
         sizes={sizes}
         loading="lazy"
-        className={`object-cover ${GRADE}`}
+        className="block h-auto w-full"
       />
-      <div aria-hidden className={`absolute inset-0 ${TINT}`} />
-      <div
-        aria-hidden
-        className="absolute inset-0 bg-gradient-to-t from-charcoal/55 via-transparent to-transparent"
-      />
-    </div>
+      <figcaption className="t-caption mt-2">{photo.caption}</figcaption>
+    </figure>
   );
 }
 
 export function Problem() {
   return (
-    <Chapter
-      id="problema"
-      tone="dark"
-      className="overflow-hidden pb-44 md:pb-56"
-    >
-      {/* Foto a sangre como atmósfera: se disuelve hacia abajo, nunca compite con el texto. */}
-      <div
-        aria-hidden
-        className="absolute inset-x-0 top-0 h-[70%]"
-        style={{
-          maskImage: "linear-gradient(to bottom, #000 25%, transparent 100%)",
-          WebkitMaskImage:
-            "linear-gradient(to bottom, #000 25%, transparent 100%)",
-        }}
-      >
-        <Image
-          src="/problem-a1.jpg"
-          alt=""
-          fill
-          sizes="100vw"
-          loading="lazy"
-          className={`object-cover ${GRADE}`}
-        />
-        <div className={`absolute inset-0 ${TINT}`} />
-        <div className="absolute inset-0 bg-gradient-to-r from-charcoal/90 via-charcoal/60 to-charcoal/30" />
-      </div>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-charcoal to-transparent"
-      />
-      <div
-        aria-hidden
-        className="bg-noise pointer-events-none absolute inset-0 opacity-[0.05] mix-blend-overlay"
-      />
-
-      <div className="relative grid items-center gap-14 lg:grid-cols-12">
-        <div className="lg:col-span-7">
+    <section id="problema" className="scroll-mt-20 text-ink">
+      <div className="bg-paper py-20 md:py-32">
+        <div className="mx-auto w-full max-w-6xl px-5 md:px-8">
           <Reveal>
-            <Eyebrow tone="dark">El costo de llegar tarde</Eyebrow>
-            <h2 className="t-display text-balance [text-shadow:0_2px_30px_rgba(0,0,0,0.5)]">
-              Hoy la Patagonia duele.
+            <h2 className="t-h2 max-w-4xl text-balance">
+              Un foco se corta con una cuadrilla o se convierte en un frente, y
+              la diferencia es cuánto tarda alguien en enterarse
             </h2>
           </Reveal>
-          <Reveal delay={120}>
-            <p className="t-lead mt-6 max-w-xl text-[#f4efe2]/90">
-              Cada temporada se repite lo mismo: incendios que avanzan antes de
-              que alguien pueda dar la alarma. Detrás de cada hectárea hay un
-              hogar, un trabajo y una biodiversidad que no vuelve en lo que dura
-              una vida.
-            </p>
-          </Reveal>
-          <Reveal delay={240}>
-            <p className="glass mt-8 inline-flex max-w-xl items-center gap-4 rounded-[20px] px-5 py-4 text-[#f4efe2] sm:gap-5 sm:px-6">
-              <span className="t-display text-6xl leading-none tabular-nums text-ember-soft sm:text-7xl">
-                <ViewCountUp to={CLAIMS.detectionMinutes} />
-                <span className="ml-1 text-3xl sm:text-4xl">min</span>
-              </span>
-              <span className="t-small min-w-0 text-[#f4efe2]/85">
-                <span className="block font-semibold text-[#f4efe2]">
-                  Los primeros minutos deciden
-                </span>
-                Es el objetivo de detección de Sentinel, no un resultado medido.
-              </span>
-            </p>
-          </Reveal>
-        </div>
-
-        <div
-          aria-hidden
-          className="relative h-[22rem] sm:h-[26rem] lg:col-span-5 lg:h-[30rem]"
-        >
-          <Photo
-            src="/problem-a2.jpg"
-            sizes="(min-width: 1024px) 28vw, 70vw"
-            className="right-0 top-0 h-[72%] w-[66%]"
-          />
-          <Photo
-            src="/problem-a3.jpg"
-            sizes="(min-width: 1024px) 22vw, 52vw"
-            className="bottom-0 left-0 h-[54%] w-[50%] border-[3px] border-charcoal"
-          />
         </div>
       </div>
 
-      <dl className="relative mt-16 grid gap-5 md:mt-24 md:grid-cols-3 md:gap-6">
-        {IMPACTS.map((i, idx) => (
-          <Reveal
-            key={i.value}
-            delay={idx * 140}
-            className={`glass relative flex flex-col overflow-hidden rounded-[20px] p-7 md:p-8 ${idx === 1 ? "md:mt-10" : ""} ${idx === 2 ? "md:mt-20" : ""}`}
-          >
-            <span
-              aria-hidden
-              className="t-display pointer-events-none absolute -right-2 -top-4 select-none text-[6.5rem] leading-none text-ember/20"
-            >
-              {String(idx + 1).padStart(2, "0")}
-            </span>
-            <dt className="t-h2 relative order-1 text-ember-soft">{i.value}</dt>
-            <dd className="t-body relative order-2 mt-4 text-[#f4efe2]/85">
-              {i.body}
-            </dd>
-          </Reveal>
-        ))}
-      </dl>
+      <div className="bg-ink py-12 text-paper md:py-20">
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-8 px-5 md:px-8 lg:grid-cols-12 lg:gap-10">
+          <div className="lg:col-span-7">
+            <Reveal>
+              <Image
+                src={PHOTOS.problemWide.src}
+                alt={PHOTOS.problemWide.alt}
+                width={PHOTOS.problemWide.width}
+                height={PHOTOS.problemWide.height}
+                sizes="(min-width: 1024px) 58vw, 100vw"
+                loading="lazy"
+                className="block h-auto w-full"
+              />
+            </Reveal>
+            <p className="t-caption mt-3">{PHOTOS.problemWide.caption}</p>
+          </div>
+          <blockquote className="lg:col-span-5 lg:self-center lg:pl-6">
+            <p className="t-quote text-balance">
+              Un foco chico se apaga con poca gente. Lo difícil es enterarse a
+              tiempo.
+            </p>
+            <footer className="t-caption mt-4">El equipo de Sentinel</footer>
+          </blockquote>
+        </div>
+      </div>
 
-      <Reveal className="relative mt-16 max-w-3xl md:mt-24">
-        <p className="t-display text-balance text-[clamp(1.9rem,4.2vw,3.25rem)]">
-          Llegar a tiempo cambia todo lo que viene después.
-        </p>
-        <p className="t-small mt-5 text-[#f4efe2]/70">
-          Lectura cualitativa del equipo. No publicamos cifras sin fuente
-          verificable.
-        </p>
-        <a
-          href="#contacto"
-          className="mt-8 inline-flex items-center gap-2 rounded-full bg-leaf-bright px-7 py-3.5 text-base font-semibold text-charcoal shadow-[0_10px_40px_-10px_rgba(95,227,161,0.55)] transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-        >
-          Sumar mi municipio o campo{" "}
-          <ArrowRight className="size-4" aria-hidden />
-        </a>
-      </Reveal>
+      <div className="bg-paper py-20 md:py-32">
+        <div className="mx-auto w-full max-w-6xl px-5 md:px-8">
+          <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">
+            <div className="t-body space-y-6 text-ink/90 lg:col-span-6 lg:text-[1.0625rem]">
+              <p>
+                En los primeros minutos un foco es chico: un árbol, una franja
+                de pasto seco, algo que una cuadrilla con mochilas y agua puede
+                cortar. Pero en la cordillera casi nunca tiene testigos. Está en
+                una ladera sin camino, en un campo sin gente o del otro lado de
+                un cerro.
+              </p>
+              <p>
+                Desde lejos no se ve. El humo recién se nota cuando el fuego ya
+                tomó forma, y para entonces el viento y la pendiente trabajan a
+                su favor. Alguien tiene que verlo, descartar que sea una quema,
+                encontrar a quién llamar y explicar dónde está. Cada paso suma
+                minutos.
+              </p>
+              <p>
+                Cuando la brigada llega, el trabajo ya cambió. Ya no se corta un
+                foco, se defiende un frente, con más gente, más agua y más
+                exposición para quienes están en el terreno. Esa demora no
+                figura en ninguna planilla, pero se paga en hectáreas y en
+                riesgo.
+              </p>
+              <p>
+                Nosotros atacamos un solo tramo de ese problema: ver el calor
+                desde el satélite apenas aparece y avisar a quien tiene que ir.
+                Nuestro objetivo es hacerlo en {CLAIMS.detectionMinutes}{" "}
+                minutos. Todavía es un objetivo y no una medición.
+              </p>
+            </div>
 
-      {/* Funde hacia el capítulo claro siguiente en vez de cortar en seco. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-charcoal md:h-52"
-      />
-    </Chapter>
+            <Reveal className="lg:col-span-4 lg:col-start-9">
+              <Figure
+                photo={PHOTOS.problemTall1}
+                sizes="(min-width: 1024px) 30vw, 100vw"
+              />
+            </Reveal>
+          </div>
+
+          <div className="mt-16 grid items-end gap-10 md:mt-24 lg:grid-cols-12">
+            <Reveal className="max-w-sm lg:col-span-4">
+              <Figure
+                photo={PHOTOS.problemTall2}
+                sizes="(min-width: 1024px) 28vw, 80vw"
+              />
+            </Reveal>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

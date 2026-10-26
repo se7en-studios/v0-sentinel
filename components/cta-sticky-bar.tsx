@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowRight } from "lucide-react";
 
 // Barra CTA solo mobile: aparece al dejar atrás el hero y se va cuando #contacto está a la vista.
-// Deja libre la esquina derecha (botón de WhatsApp, z-50) y queda por debajo del menú (z-50).
+// El botón deja libre la esquina derecha (botón de WhatsApp, z-50).
 export function CtaStickyBar() {
   const [pastHero, setPastHero] = useState(false);
   const [atContact, setAtContact] = useState(false);
@@ -21,7 +20,9 @@ export function CtaStickyBar() {
       ios.push(io);
     }
     if (contact) {
-      const io = new IntersectionObserver(([e]) => setAtContact(e.isIntersecting));
+      const io = new IntersectionObserver(([e]) =>
+        setAtContact(e.isIntersecting),
+      );
       io.observe(contact);
       ios.push(io);
     }
@@ -33,16 +34,17 @@ export function CtaStickyBar() {
   return (
     <div
       inert={!show}
-      className={`fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 right-[4.75rem] z-40 transition duration-300 md:hidden ${
-        show ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0"
+      className={`fixed inset-x-0 bottom-0 z-40 border-t border-ink/20 bg-paper pb-[max(0.75rem,env(safe-area-inset-bottom))] pl-4 pr-[4.75rem] pt-3 transition duration-300 md:hidden ${
+        show
+          ? "translate-y-0 opacity-100"
+          : "pointer-events-none translate-y-full opacity-0"
       }`}
     >
       <a
         href="#contacto"
-        className="flex min-h-12 items-center justify-between gap-3 rounded-full bg-leaf-bright px-5 text-base font-semibold text-charcoal shadow-[0_12px_32px_-8px_rgb(0_0_0/0.6)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright"
+        className="flex min-h-12 items-center justify-center rounded-sm bg-brand px-5 text-base font-semibold text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
       >
         Coordinar un piloto
-        <ArrowRight aria-hidden className="h-5 w-5 shrink-0" />
       </a>
     </div>
   );

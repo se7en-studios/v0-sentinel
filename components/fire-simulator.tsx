@@ -3,15 +3,7 @@
 // Simulador ilustrativo de los primeros 60 minutos. El slider escribe CSS variables por refs
 // (escala del fuego, humo); React solo re-renderiza cuando cambia el minuto ENTERO.
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  BellRing,
-  CloudFog,
-  Flame,
-  Pause,
-  Play,
-  ShieldCheck,
-  type LucideIcon,
-} from "lucide-react";
+import { Pause, Play } from "lucide-react";
 import { CLAIMS } from "@/lib/claims";
 
 const MAX_MIN = 60;
@@ -30,13 +22,6 @@ const WINDS: Record<Wind, { k: number; stretch: number }> = {
 
 type Kind = "spark" | "smoke" | "alert" | "call" | "response";
 type Step = { at: number; label: string; kind: Kind };
-const ICONS: Record<Kind, LucideIcon> = {
-  spark: Flame,
-  smoke: CloudFog,
-  alert: BellRing,
-  call: BellRing,
-  response: ShieldCheck,
-};
 
 // Minutos de "Sin Sentinel" = caso típico de ejemplo. El aviso de "Con Sentinel" es el objetivo de CLAIMS.
 const WITH: Step[] = [
@@ -85,6 +70,8 @@ function cssVars(m: number, wind: Wind): Record<string, string> {
   };
 }
 
+const LINE = "#14120e";
+
 function Scene({
   id,
   withSentinel,
@@ -92,7 +79,6 @@ function Scene({
   id: "with" | "without";
   withSentinel: boolean;
 }) {
-  const smokeTone = "#8a8473";
   return (
     <svg
       viewBox="0 0 320 180"
@@ -102,33 +88,30 @@ function Scene({
           ? "Escena ilustrativa: el foco crece poco y se rodea de brigada"
           : "Escena ilustrativa: el foco crece sin control hasta la respuesta"
       }
-      className="block h-auto w-full rounded-xl"
+      className="block h-auto w-full border border-ink/20 bg-paper"
     >
-      <defs>
-        <linearGradient id={`sky-${id}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#1d1b17" />
-          <stop offset="1" stopColor={withSentinel ? "#2c3a30" : "#3a2a1c"} />
-        </linearGradient>
-        <radialGradient id={`fire-${id}`}>
-          <stop offset="0" stopColor="#ffd48a" />
-          <stop offset="0.45" stopColor="#e8732a" />
-          <stop offset="1" stopColor="#e8732a" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <rect width="320" height="180" fill={`url(#sky-${id})`} />
       <path
-        d="M0 120 L50 85 L100 112 L160 78 L225 110 L275 88 L320 112 V180 H0Z"
-        fill="#14130f"
+        d="M0 120 L50 85 L100 112 L160 78 L225 110 L275 88 L320 112"
+        fill="none"
+        stroke={LINE}
+        strokeOpacity="0.5"
+        strokeWidth="1"
       />
       <path
-        d="M0 150 L70 128 L140 146 L210 126 L320 148 V180 H0Z"
-        fill="#0d0c09"
+        d="M0 150 L70 128 L140 146 L210 126 L320 148"
+        fill="none"
+        stroke={LINE}
+        strokeOpacity="0.85"
+        strokeWidth="1"
       />
       <g transform="translate(160 140)">
         <ellipse
           rx="100"
           ry="100"
-          fill={`url(#fire-${id})`}
+          fill="#b4441a"
+          fillOpacity="0.2"
+          stroke="#b4441a"
+          strokeWidth="1.25"
           style={{
             transform: `scale(calc(var(--s-${id}) * var(--stretch)), var(--s-${id}))`,
           }}
@@ -137,39 +120,22 @@ function Scene({
         <g
           style={{ opacity: `var(--smoke-${id})` }}
           className="motion-safe:transition-opacity"
+          fill="none"
+          stroke={LINE}
+          strokeOpacity="0.6"
+          strokeWidth="1"
         >
-          <ellipse
-            cx="6"
-            cy={withSentinel ? -34 : -50}
-            rx="24"
-            ry="14"
-            fill={smokeTone}
-            opacity="0.55"
-          />
-          <ellipse
-            cx="16"
-            cy={withSentinel ? -52 : -78}
-            rx="32"
-            ry="18"
-            fill={smokeTone}
-            opacity="0.4"
-          />
-          <ellipse
-            cx="30"
-            cy={withSentinel ? -66 : -108}
-            rx="40"
-            ry="20"
-            fill={smokeTone}
-            opacity="0.28"
-          />
+          <ellipse cx="6" cy={withSentinel ? -34 : -50} rx="24" ry="14" />
+          <ellipse cx="16" cy={withSentinel ? -52 : -78} rx="32" ry="18" />
+          <ellipse cx="30" cy={withSentinel ? -66 : -108} rx="40" ry="20" />
         </g>
         {withSentinel && (
           <circle
             r="104"
             fill="none"
-            stroke="#5fe3a1"
-            strokeWidth="2.5"
-            strokeDasharray="7 6"
+            stroke="#0b4f35"
+            strokeWidth="1.5"
+            strokeDasharray="5 5"
             style={{
               opacity: `var(--ring-${id})`,
               transform: `scale(calc(var(--s-${id}) * var(--stretch) + 0.12), calc(var(--s-${id}) + 0.12))`,
@@ -181,36 +147,24 @@ function Scene({
   );
 }
 
-function Hitos({
-  steps,
-  m,
-  withSentinel,
-}: {
-  steps: Step[];
-  m: number;
-  withSentinel: boolean;
-}) {
+function Hitos({ steps, m }: { steps: Step[]; m: number }) {
   return (
-    <ol className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3">
+    <ol className="mt-5 border-t rule">
       {steps.map((s) => {
-        const Icon = ICONS[s.kind];
         const on = m >= s.at;
-        const tone = withSentinel ? "text-leaf-bright" : "text-ember";
         return (
-          <li key={s.kind} data-on={on} className="flex items-start gap-2.5">
-            <Icon
-              aria-hidden
-              className={`mt-1 size-4 shrink-0 transition-colors ${on ? tone : "text-[#a8a290]"}`}
-            />
-            <span className={on ? "text-[#f4efe2]" : "text-[#a8a290]"}>
-              <span className="block text-lg font-semibold leading-tight tabular-nums">
-                {s.at} min
-              </span>
-              <span className="t-small">
-                {s.label}
-                <span className="sr-only">
-                  {on ? " (ya ocurrió)" : " (todavía no)"}
-                </span>
+          <li
+            key={s.kind}
+            data-on={on}
+            className={`flex items-baseline gap-4 border-b rule py-2.5 ${on ? "text-ink" : "text-ink/60"}`}
+          >
+            <span className="w-14 shrink-0 font-semibold tabular-nums">
+              {s.at} min
+            </span>
+            <span className="t-body">
+              {s.label}
+              <span className="sr-only">
+                {on ? " (ya ocurrió)" : " (todavía no)"}
               </span>
             </span>
           </li>
@@ -234,33 +188,25 @@ function Clock({
   ha: number;
 }) {
   return (
-    <div className="min-w-0 rounded-2xl border border-white/10 bg-black/20 p-4 md:p-5">
-      <h3 className="t-h3 flex items-center gap-2.5">
-        <span
-          aria-hidden
-          className={`size-2.5 rounded-full ${withSentinel ? "bg-leaf-bright" : "bg-ember"}`}
-        />
-        {withSentinel ? "Con Sentinel" : "Sin Sentinel"}
-      </h3>
-      <p className="t-small mt-1 text-[#f4efe2]/80">
+    <div className="min-w-0">
+      <h3 className="t-h3">{withSentinel ? "Con Sentinel" : "Sin Sentinel"}</h3>
+      <p className="t-body mt-1 text-ink/75">
         {withSentinel
           ? "El satélite ve el calor antes que el humo."
           : "Alguien ve la columna de humo y llama."}
       </p>
-      <div className="mt-4">
+      <div className="mt-5">
         <Scene id={id} withSentinel={withSentinel} />
       </div>
-      <p className="mt-4 flex flex-wrap items-baseline gap-x-2">
+      <p className="mt-5 flex flex-wrap items-baseline gap-x-3">
         <span
-          className={`t-display text-5xl leading-none tabular-nums md:text-6xl ${withSentinel ? "text-leaf-bright" : "text-ember-soft"}`}
+          className={`t-display tabular-nums ${withSentinel ? "text-brand" : "text-signal"}`}
         >
           {fmt(ha)}
         </span>
-        <span className="t-small text-[#f4efe2]/80">
-          ha comprometidas (ilustrativo)
-        </span>
+        <span className="t-body text-ink/75">ha comprometidas</span>
       </p>
-      <Hitos steps={steps} m={m} withSentinel={withSentinel} />
+      <Hitos steps={steps} m={m} />
     </div>
   );
 }
@@ -339,100 +285,86 @@ export function FireSimulator() {
   const diff = haWithout - haWith;
 
   return (
-    <div
-      ref={rootRef}
-      style={cssVars(START_MIN, "medio")}
-      className="relative overflow-hidden rounded-[20px] border border-white/10 bg-gradient-to-br from-[#26241f] via-[#1a1814] to-[#12110e] p-5 text-[#f4efe2] shadow-[0_40px_90px_-40px_rgb(18_17_14/0.7)] md:p-10"
-    >
-      <div
-        aria-hidden
-        className="bg-noise pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-overlay"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-24 -top-24 size-80 rounded-full bg-leaf/25 blur-3xl"
-      />
-
-      <div className="relative">
-        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
-          <label htmlFor="sim-minute" className="min-w-0">
-            <span className="t-label block text-leaf-bright">
-              Simulador · primeros 60 minutos
-            </span>
-            <span className="t-h3 mt-1 block">
-              Minuto del incendio:{" "}
-              <output htmlFor="sim-minute" className="tabular-nums">
-                {minute}
-              </output>
-            </span>
-          </label>
-          <div className="flex flex-wrap items-center gap-3">
-            <div
-              role="group"
-              aria-label="Viento (ejemplo)"
-              className="glass flex rounded-full p-1"
-            >
-              {(Object.keys(WINDS) as Wind[]).map((w) => (
-                <button
-                  key={w}
-                  type="button"
-                  aria-pressed={wind === w}
-                  onClick={() => pickWind(w)}
-                  className={`rounded-full px-3.5 py-1.5 text-sm font-medium capitalize transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${wind === w ? "bg-leaf-bright text-charcoal" : "text-[#f4efe2] hover:bg-white/10"}`}
-                >
-                  Viento {w}
-                </button>
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={playing ? stop : play}
-              className="inline-flex motion-reduce:hidden items-center gap-2 rounded-full bg-leaf-bright px-5 py-2 text-sm font-semibold text-charcoal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-            >
-              {playing ? (
-                <Pause className="size-4" aria-hidden />
-              ) : (
-                <Play className="size-4" aria-hidden />
-              )}
-              {playing ? "Pausar" : "Reproducir"}
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-6 px-1">
-          <input
-            ref={inputRef}
-            id="sim-minute"
-            type="range"
-            min={0}
-            max={MAX_MIN}
-            step={1}
-            defaultValue={START_MIN}
-            aria-valuetext={`Minuto ${minute} del incendio`}
-            onChange={(e) => {
-              if (playing) stop();
-              setTime(Number(e.target.value));
-            }}
-            className="block h-8 w-full cursor-pointer accent-[#5fe3a1] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-          />
-          <div aria-hidden className="relative mt-1 h-5">
-            {[0, 10, 20, 30, 40, 50, 60].map((t) => (
-              <span
-                key={t}
-                className={`t-label absolute -translate-x-1/2 text-[#f4efe2]/70 ${t % 20 !== 0 ? "hidden sm:block" : ""}`}
-                style={{
-                  left: `calc(${(t / MAX_MIN) * 100}% + ${8 - (t / MAX_MIN) * 16}px)`,
-                }}
+    <div ref={rootRef} style={cssVars(START_MIN, "medio")} className="text-ink">
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 border-t rule pt-6">
+        <label htmlFor="sim-minute" className="min-w-0">
+          <span className="t-body block text-ink/75">Minuto del incendio</span>
+          <output
+            htmlFor="sim-minute"
+            className="t-display block tabular-nums leading-none"
+          >
+            {minute}
+          </output>
+        </label>
+        <div className="flex flex-wrap items-center gap-3">
+          <div
+            role="group"
+            aria-label="Viento (ejemplo)"
+            className="flex border border-ink/30"
+          >
+            {(Object.keys(WINDS) as Wind[]).map((w) => (
+              <button
+                key={w}
+                type="button"
+                aria-pressed={wind === w}
+                onClick={() => pickWind(w)}
+                className={`px-3.5 py-2 text-sm font-medium capitalize transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${wind === w ? "bg-ink text-paper" : "text-ink hover:bg-ink/5"}`}
               >
-                {t}
-              </span>
+                Viento {w}
+              </button>
             ))}
           </div>
+          <button
+            type="button"
+            onClick={playing ? stop : play}
+            className="inline-flex items-center gap-2 bg-brand px-5 py-2 text-sm font-semibold text-paper hover:bg-brand/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-reduce:hidden"
+          >
+            {playing ? (
+              <Pause className="size-4" aria-hidden />
+            ) : (
+              <Play className="size-4" aria-hidden />
+            )}
+            {playing ? "Pausar" : "Reproducir"}
+          </button>
         </div>
+      </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">
+      <div className="mt-6">
+        <input
+          ref={inputRef}
+          id="sim-minute"
+          type="range"
+          min={0}
+          max={MAX_MIN}
+          step={1}
+          defaultValue={START_MIN}
+          aria-valuetext={`Minuto ${minute} del incendio`}
+          onChange={(e) => {
+            if (playing) stop();
+            setTime(Number(e.target.value));
+          }}
+          className="block h-8 w-full cursor-pointer accent-[#0b4f35] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
+        />
+        <div aria-hidden className="relative mt-1 h-5">
+          {[0, 10, 20, 30, 40, 50, 60].map((t) => (
+            <span
+              key={t}
+              className={`t-caption absolute -translate-x-1/2 tabular-nums ${t % 20 !== 0 ? "hidden sm:block" : ""}`}
+              style={{
+                left: `calc(${(t / MAX_MIN) * 100}% + ${8 - (t / MAX_MIN) * 16}px)`,
+              }}
+            >
+              {t}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-10 grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-0">
+        <div className="md:pr-10">
           <Clock id="with" withSentinel steps={WITH} m={minute} ha={haWith} />
+        </div>
+        <div className="rule md:border-l md:pl-10">
           <Clock
             id="without"
             withSentinel={false}
@@ -441,22 +373,19 @@ export function FireSimulator() {
             ha={haWithout}
           />
         </div>
-
-        <p className="t-display mt-8 text-balance text-[clamp(1.6rem,3.6vw,2.6rem)]">
-          La diferencia:{" "}
-          <span className="text-leaf-bright tabular-nums">
-            {fmt(Math.max(0, diff))} ha
-          </span>{" "}
-          menos
-          <span className="t-small ml-3 inline-block align-middle text-[#f4efe2]/75">
-            en el minuto {minute}
-          </span>
-        </p>
-        <p className="t-label mt-4 text-[#f4efe2]/75">
-          Simulación ilustrativa, no es un pronóstico · el aviso con Sentinel (
-          {CLAIMS.detectionMinutes} min) es un objetivo, no un resultado medido
-        </p>
       </div>
+
+      <p className="t-h2 rule mt-12 max-w-3xl text-balance border-t pt-8">
+        En el minuto {minute}, el foco con Sentinel es{" "}
+        <span className="tabular-nums">{fmt(Math.max(0, diff))} ha</span> más
+        chico.
+      </p>
+      <p className="t-caption mt-4 max-w-2xl">
+        Simulación ilustrativa, no es un pronóstico. Las hectáreas salen de un
+        modelo exponencial simple con valores de ejemplo, y el aviso con
+        Sentinel ({CLAIMS.detectionMinutes} min) es un objetivo, no un resultado
+        medido.
+      </p>
     </div>
   );
 }

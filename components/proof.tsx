@@ -1,55 +1,59 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { Chapter, Eyebrow } from "@/components/ui/chapter";
 import { TeamBlock } from "@/components/team";
 import { AwardsBlock } from "@/components/awards";
 import { PressBlock } from "@/components/press";
 import { PartnersBlock } from "@/components/partners";
 
-// Un solo capítulo de confianza. Los anclajes "noticias" y "prensa" siguen existiendo
-// porque lib/sections.ts (navbar y puntos laterales) todavía los referencia.
+// Quiénes somos, contado como una nota larga: equipo, logros, prensa y aliados.
 export function Proof() {
   return (
-    <Chapter id="equipo">
-      <span id="noticias" className="absolute" aria-hidden />
-      <Eyebrow>Quiénes somos</Eyebrow>
-      <h2 className="t-display max-w-4xl">
-        Cuatro ingenieros. Un objetivo: llegar antes al fuego.
-      </h2>
-      <p className="t-lead mt-6 max-w-2xl opacity-80">
-        Argentinos construyendo detección temprana para la Patagonia. Todavía
-        no hay pilotos cuantificados: lo que podemos mostrar hoy es quién lo
-        hace, qué reconocimientos tuvo el proyecto y cómo medimos lo que
-        afirmamos.
-      </p>
+    <section id="equipo" className="scroll-mt-20 bg-paper py-24 text-ink md:py-32">
+      <div className="mx-auto w-full max-w-6xl px-5 md:px-8">
+        <div className="grid gap-8 lg:grid-cols-12">
+          <h2 className="t-h2 lg:col-span-7">
+            Somos cuatro ingenieros de la Patagonia que quieren que el fuego se
+            vea antes de que sea tarde.
+          </h2>
+          <div className="t-lead space-y-4 lg:col-span-4 lg:col-start-9">
+            <p>
+              Empezamos en la universidad, en San Rafael, mirando cómo cada
+              verano los incendios del sur se veían tarde. Hoy construimos un
+              sistema que cruza datos satelitales con información del terreno
+              para avisar de un posible foco.
+            </p>
+            <p>
+              Todavía no hay pilotos con resultados medidos. Lo que podemos
+              mostrar es quiénes somos, qué reconocimientos tuvo el proyecto y
+              cómo medimos lo que afirmamos.
+            </p>
+          </div>
+        </div>
 
-      <div className="mt-14">
-        <TeamBlock />
+        <div className="mt-16 md:mt-20">
+          <TeamBlock />
+        </div>
+
+        <div className="mt-24 md:mt-32">
+          <AwardsBlock />
+        </div>
+
+        <div id="prensa" className="mt-24 scroll-mt-20 md:mt-32">
+          <PressBlock />
+        </div>
+
+        <div className="mt-24 md:mt-32">
+          <PartnersBlock />
+        </div>
+
+        <p className="t-body mt-16">
+          <Link
+            href="/metodologia"
+            className="font-semibold text-brand underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
+          >
+            Cómo medimos lo que afirmamos
+          </Link>
+        </p>
       </div>
-
-      <div className="mt-24">
-        <h3 className="t-h2 mb-8">Logros</h3>
-        <AwardsBlock />
-      </div>
-
-      <div id="prensa" className="mt-24 scroll-mt-20">
-        <h3 className="t-h2 mb-6">Dónde salimos en los medios</h3>
-        <PressBlock />
-      </div>
-
-      <div className="mt-24 pt-4">
-        <PartnersBlock />
-      </div>
-
-      <p className="t-body mt-12">
-        <Link
-          href="/metodologia"
-          className="inline-flex items-center gap-2 font-semibold underline decoration-foreground/30 underline-offset-4 hover:decoration-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-        >
-          Cómo medimos lo que afirmamos
-          <ArrowRight className="h-4 w-4" aria-hidden />
-        </Link>
-      </p>
-    </Chapter>
+    </section>
   );
 }

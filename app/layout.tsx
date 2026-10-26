@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Inter, JetBrains_Mono, Instrument_Serif } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter, JetBrains_Mono, Instrument_Serif, Newsreader } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
@@ -7,6 +7,7 @@ const plusJakarta = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700", "800"],
   subsets: ["latin"],
   variable: "--font-heading",
+  preload: false,
 });
 
 const inter = Inter({
@@ -28,6 +29,13 @@ const display = Instrument_Serif({
   weight: "400",
   subsets: ["latin"],
   variable: "--font-display",
+});
+
+// Titulares editoriales de la landing (serif de texto con carácter, no de display de moda).
+const serif = Newsreader({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  variable: "--font-serif",
 });
 
 const siteUrl = "https://www.sentineltech.com.ar";
@@ -175,7 +183,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${display.variable} ${inter.variable} ${plusJakarta.variable} ${jetbrains.variable} font-sans antialiased bg-[#faf7f0] text-[#1a1812]`}
+        className={`${serif.variable} ${display.variable} ${inter.variable} ${plusJakarta.variable} ${jetbrains.variable} font-sans antialiased bg-[#faf7f0] text-[#1a1812]`}
       >
         <a
           href="#main-content"
