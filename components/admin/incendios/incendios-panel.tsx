@@ -171,7 +171,7 @@ function SourceLine({ t, tr, loc }: { t: Tracking } & L) {
         })}
       </p>
       {origin === "snapshot" && (
-        <p className="mt-2 flex gap-1.5 rounded-lg bg-[#b9560a]/10 px-2.5 py-2 text-[11px] leading-snug text-[var(--state-warn-ink)]">
+        <p className="mt-2 flex gap-1.5 rounded-lg bg-[#b9560a]/10 px-2.5 py-2 text-[11px] leading-snug text-foreground">
           <RotateCcw className="mt-px size-3 shrink-0" />
           {t.note
             ? tr("trk.src.fallbackNote", { note: t.note })

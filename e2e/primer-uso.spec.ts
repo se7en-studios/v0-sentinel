@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import type { Locator } from "@playwright/test";
 import { expect, firstRunTest, test, type Page } from "./fixtures";
-import { openTab, tab } from "./tab";
+import { closeMenus, openTab, tab } from "./tab";
 
 // First use: the one question, what it sets up, and what happens since the last visit.
 // Firebase is blank (demo workspace), so a new browser has no saved answer.
@@ -56,7 +56,7 @@ for (const size of [
         await expect(
           page.getByRole("menuitem", { name: "Recursos" }),
         ).toBeVisible();
-        await page.keyboard.press("Escape");
+        await closeMenus(page);
 
         // the setup list is the goal's own (two steps), not the generic four
         await openTab(page, /^(Vista general|General)/);

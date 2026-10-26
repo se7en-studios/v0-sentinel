@@ -13,6 +13,7 @@ import {
 import type { Ctx, PanelSeg, SensorState, Tab } from "../ctx";
 import { earlyKey, isAcked, ruleKey, zoneKey } from "@/lib/admin/alert-ack";
 import { logActivity } from "./use-activity";
+import type { useAlertDelivery } from "./use-alert-delivery";
 import type { MapHandle } from "../map-view";
 
 interface Params {
@@ -40,6 +41,8 @@ interface Params {
   setPanelSeg: (s: PanelSeg) => void;
   setPaletteOpen: (f: (o: boolean) => boolean) => void;
   mapRef: RefObject<MapHandle | null>;
+  /** sends a rule that just fired by email / WhatsApp, within the person's limits */
+  deliver: ReturnType<typeof useAlertDelivery>;
 }
 
 /** ~5 km: a spot keeps its toast identity even when its first scan drifts a little between polls */
@@ -71,6 +74,7 @@ export function useNotifications({
   setPanelSeg,
   setPaletteOpen,
   mapRef,
+  deliver,
 }: Params) {
   // toasts fire from effects that must not re-run when the language changes: read it through a ref
   const tRef = useRef<Translate>((k, v) => translate(s.locale, k, v));
@@ -179,8 +183,10 @@ export function useNotifications({
           body: detail,
           tag: `rule-${id}`,
         });
+      const rule = s.rules.find((r) => r.id === id);
+      if (rule) void deliver(rule, detail);
     }
-  }, [ruleFirings, payload, s.notify.browser, ws.alertAck, goTab, setPanelSeg]);
+  }, [ruleFirings, payload, s.notify.browser, s.rules, ws.alertAck, goTab, setPanelSeg, deliver]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

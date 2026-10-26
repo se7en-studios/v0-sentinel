@@ -72,22 +72,43 @@ export function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-10">
         <div className="flex items-center justify-between h-16 md:h-20">
-          <a
-            href="/#inicio"
-            className={`flex items-center rounded-sm transition-colors duration-500 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0f7a4f] ${
-              isLight ? "text-[#faf7f0]" : "text-[#1a1812]"
-            }`}
-          >
-            <SentinelLogo className="h-5 w-auto" />
-          </a>
+          <div className="flex items-center gap-3">
+            <a
+              href="/#inicio"
+              className={`flex items-center rounded-sm transition-colors duration-500 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0f7a4f] ${
+                isLight ? "text-[#faf7f0]" : "text-[#1a1812]"
+              }`}
+            >
+              <SentinelLogo className="h-5 w-auto" />
+            </a>
 
-          <div className="hidden md:flex items-center gap-8">
+            {/* Live Telemetry Status Pill */}
+            <div
+              className={`hidden lg:inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[10px] font-mono tracking-wider transition-all duration-500 ${
+                isLight
+                  ? "bg-black/40 border border-emerald-500/30 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
+                  : "bg-emerald-50 border border-emerald-600/20 text-emerald-800"
+              }`}
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span>PATAGONIA MONITOREADA</span>
+            </div>
+          </div>
+
+          <div className="hidden md:flex items-center gap-7">
             {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
                 {...currentProps(link.id)}
-                className={`text-[13px] font-light rounded-sm underline-offset-8 transition-colors duration-300 aria-[current]:underline aria-[current]:decoration-2 focus-visible:underline focus-visible:outline-none ${linkTone}`}
+                className={`text-[13px] font-medium rounded-md px-2 py-1 transition-all duration-200 hover:-translate-y-0.5 aria-[current]:font-semibold focus-visible:outline-none ${
+                  isLight
+                    ? "text-[#faf7f0]/80 hover:text-emerald-300 aria-[current]:text-emerald-300 aria-[current]:shadow-[0_1px_0_0_#94f1be]"
+                    : "text-[#1a1812]/75 hover:text-[#0b6b45] aria-[current]:text-[#0b6b45] aria-[current]:shadow-[0_1px_0_0_#0b6b45]"
+                }`}
                 style={{ fontFamily: "var(--font-sans)" }}
               >
                 {link.label}
@@ -95,13 +116,22 @@ export function Navbar() {
             ))}
           </div>
 
-          <div className="hidden md:block">
+          <div className="hidden md:flex items-center gap-3">
             <a
               href={cta}
-              className="inline-block text-[12px] font-medium px-5 py-2.5 rounded-full text-[#faf7f0] bg-[#0c0b09] transition-all duration-200 hover:bg-[#0f7a4f] focus-visible:bg-[#0f7a4f] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f7a4f]"
+              className={`group relative inline-flex items-center justify-center text-[12px] font-medium px-5 py-2.5 rounded-full overflow-hidden transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] ${
+                isLight
+                  ? "text-[#0c0b09] bg-[#94f1be] hover:bg-[#82e2af] shadow-[0_0_20px_rgba(148,241,190,0.3)] hover:shadow-[0_0_25px_rgba(148,241,190,0.5)]"
+                  : "text-[#faf7f0] bg-[#0c0b09] hover:bg-[#0f7a4f] shadow-sm hover:shadow-[0_0_15px_rgba(15,122,79,0.3)]"
+              }`}
               style={{ fontFamily: "var(--font-sans)", letterSpacing: "0.04em" }}
             >
-              Solicitar reunión
+              <span className="relative z-10 flex items-center gap-1.5">
+                Solicitar reunión
+                <svg className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </span>
             </a>
           </div>
 

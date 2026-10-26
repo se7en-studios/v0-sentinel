@@ -1,114 +1,120 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight, CheckCircle2, Shield, Sparkles } from "lucide-react";
 
 export function CTA() {
-  const [isVisible, setIsVisible] = useState(false);
-  const sectionRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setIsVisible(true);
-      },
-      { threshold: 0.1, rootMargin: "0px 0px 200px 0px" },
-    );
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <section
-      ref={sectionRef}
-      className="relative py-28 lg:py-36 overflow-hidden"
-      style={{ background: "#faf7f0" }}
+      className="relative py-28 lg:py-36 overflow-hidden bg-[#faf7f0]"
     >
-      {/* Glow */}
+      {/* High-tech environmental protection dome glow */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse at 50% 100%, rgba(15,122,79,0.08) 0%, transparent 60%)",
+            "radial-gradient(ellipse 80% 60% at 50% 100%, rgba(15,122,79,0.12) 0%, rgba(148,241,190,0.04) 40%, transparent 70%)",
         }}
       />
 
+      {/* Decorative Grid Lines */}
+      <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#0f7a4f_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
+
       <div className="relative z-10 max-w-4xl mx-auto px-6 lg:px-10 text-center">
-        <h2
-          className={`text-4xl sm:text-5xl lg:text-6xl mb-6 mt-2 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+        
+        {/* Top Badge */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-mono tracking-wider uppercase mb-6 bg-emerald-900/10 text-emerald-800 border border-emerald-700/20"
+        >
+          <Shield className="w-3.5 h-3.5 text-emerald-700" />
+          <span>Protección Territorial Activa</span>
+        </motion.div>
+
+        {/* Heading */}
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7, delay: 0.1 }}
+          className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#1a1812] mb-6"
           style={{
             fontFamily: "var(--font-heading)",
-            fontWeight: 800,
-            color: "rgba(26,24,18,0.92)",
             lineHeight: 1.05,
           }}
         >
           Dejá que Sentinel vigile
           <br />
-          <span style={{ color: "var(--green-aa)" }}>para que vos puedas actuar.</span>
-        </h2>
+          <span className="text-[var(--green-aa)]">para que vos puedas actuar.</span>
+        </motion.h2>
 
-        <p
-          className={`text-[13px] mb-12 transition-all duration-700 delay-200 ${isVisible ? "opacity-100" : "opacity-0"}`}
-          style={{
-            fontFamily: "var(--font-sans)",
-            fontWeight: 300,
-            color: "rgba(26,24,18,0.62)",
-          }}
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7, delay: 0.2 }}
+          className="text-[15px] sm:text-[16px] max-w-2xl mx-auto mb-10 text-[#1a1812]/70 font-light leading-relaxed"
+          style={{ fontFamily: "var(--font-sans)" }}
         >
-          Satélites, geoespacial e IA para detectar incendios antes de que sea
-          demasiado tarde.
-        </p>
+          Satélites, geoespacial e inteligencia artificial para detectar incendios forestales antes de que superen la ventana de control.
+        </motion.p>
 
-        <div
-          className={`flex flex-wrap items-center justify-center gap-x-8 gap-y-3 mb-12 transition-all duration-700 delay-[250ms] ${isVisible ? "opacity-100" : "opacity-0"}`}
+        {/* Guarantees / Value props */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7, delay: 0.3 }}
+          className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mb-12"
         >
           {[
             "Sin inversión inicial (CAPEX)",
             "Piloto de 4 a 8 semanas",
-            "Para municipios, brigadas y grandes propietarios",
-          ].map((item, i) => (
-            <div key={item} className="flex items-center gap-8">
-              {i > 0 && (
-                <div
-                  className="hidden sm:block w-px h-3"
-                  style={{ background: "rgba(26,24,18,0.15)" }}
-                />
-              )}
-              <span
-                className="text-[12px]"
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  fontWeight: 400,
-                  color: "rgba(26,24,18,0.65)",
-                }}
-              >
-                {item}
-              </span>
+            "Para municipios, brigadas y propietarios",
+          ].map((item) => (
+            <div
+              key={item}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-black/5 shadow-sm text-[12px] text-[#1a1812]/80 font-medium"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span>{item}</span>
             </div>
           ))}
-        </div>
+        </motion.div>
 
-        <div
-          className={`flex flex-col sm:flex-row gap-4 justify-center transition-all duration-700 delay-300 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+        {/* Action Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7, delay: 0.4 }}
+          className="flex flex-col sm:flex-row gap-4 justify-center items-center"
         >
           <a
             href="#contacto"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-sm text-[13px] font-medium transition-all duration-200 bg-[#0f7a4f] text-[#faf7f0] hover:bg-[#0c6941] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
+            className="group relative overflow-hidden inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full text-[14px] font-semibold text-[#faf7f0] bg-emerald-800 transition-all duration-300 hover:bg-emerald-900 hover:scale-[1.04] active:scale-[0.98] shadow-lg shadow-emerald-900/20 hover:shadow-xl w-full sm:w-auto"
             style={{ fontFamily: "var(--font-sans)", letterSpacing: "0.03em" }}
           >
-            Solicitar reunión
-            <ArrowRight className="w-4 h-4" />
+            {/* Shimmer light beam */}
+            <span className="absolute inset-0 w-1/2 h-full bg-white/20 skew-x-[-20deg] -translate-x-[200%] group-hover:animate-[shimmer_1.5s_infinite]" />
+
+            <span>Solicitar reunión</span>
+            <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
           </a>
 
           <a
             href="#contacto"
-            className="inline-flex items-center justify-center px-8 py-4 rounded-sm text-[13px] font-light transition-all duration-200 border border-[rgba(26,24,18,0.12)] text-[rgba(26,24,18,0.65)] hover:border-[rgba(26,24,18,0.3)] hover:text-[rgba(26,24,18,0.9)] active:scale-[0.98]"
+            className="inline-flex items-center justify-center px-8 py-4 rounded-full text-[14px] font-medium transition-all duration-300 border border-black/15 text-[#1a1812]/75 hover:border-black/30 hover:text-[#1a1812] hover:bg-black/5 active:scale-[0.98] w-full sm:w-auto"
             style={{ fontFamily: "var(--font-sans)" }}
           >
             Enviar mensaje
           </a>
-        </div>
+        </motion.div>
+
       </div>
     </section>
   );

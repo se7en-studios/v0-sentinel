@@ -56,6 +56,20 @@ Se envía un `POST` JSON con `X-Sentinel-Timestamp` (segundos Unix) y `X-Sentine
 4. Variables: `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_TEMPLATE_NAME`; opcional `WHATSAPP_TEMPLATE_LANG` (por defecto `es_AR`) y `NOTIFY_WHATSAPP_TO` (E.164 separados por comas).
 5. Mientras la cuenta esté en modo de prueba solo se puede escribir a números registrados en la consola de Meta. Los destinatarios deben haber aceptado recibir avisos (Ley 25.326 y política de WhatsApp).
 
+## Avisos automáticos desde el panel (correo y WhatsApp)
+
+Configuración > Avisos > "Avisos por correo y WhatsApp". Cuando una **regla de aviso** pasa de no cumplirse a cumplirse, además del aviso en pantalla el panel manda un mensaje con `POST /api/admin/notify` (el mismo camino de arriba, nada nuevo en el servidor).
+
+- **Qué dice** (`lib/admin/alert-message.ts`, es/en/pt): *qué pasó*, *cuándo*, *qué hacer* y una línea para cambiar o apagar los avisos. La zona del mapa solo se nombra en las reglas que no nombran lugares (riesgo, FWI, actividad). El panel muestra la vista previa exacta (asunto, cuerpo del correo y la línea única de WhatsApp) antes de activar.
+- **Cuándo y cuánto** (`lib/admin/alert-delivery.ts`): empieza **apagado**. Máximo un mensaje por regla cada 15 min, 1 h, 6 h o 24 h (por defecto 1 h) y un tope diario entre todas las reglas (por defecto 10, máximo 50). Solo cuenta lo que el proveedor aceptó. Si un límite frena un mensaje, el panel lo dice (un solo aviso en pantalla, sin apilar).
+- **Quién lo recibe**: el correo y el WhatsApp cargados en "Notificaciones". Se envían solo si el servidor los acepta: **deben figurar en `NOTIFY_EMAIL_TO` / `NOTIFY_WHATSAPP_TO`** (lista permitida; evita que una sesión robada o un dato mal escrito mande mensajes a desconocidos). "Revisar si está listo" hace una simulación (`dryRun`) y dice, por canal, si está listo, si falta configurar el servidor o si el dato no está en la lista.
+- **Qué cargar** (la tarjeta lo lista cuando falta): correo `RESEND_API_KEY`, `NOTIFY_EMAIL_FROM`, `NOTIFY_EMAIL_TO`; WhatsApp `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_TEMPLATE_NAME` (con la plantilla aprobada por Meta, un solo parámetro `{{1}}`) y `NOTIFY_WHATSAPP_TO`.
+- **Límite conocido:** el mensaje sale **mientras el panel está abierto en algún navegador** (la regla se evalúa ahí). Los límites se guardan por navegador: dos navegadores abiertos a la vez llevan cuentas separadas. Para que salgan con el panel cerrado hace falta un evaluador en el servidor, que necesita leer los espacios de trabajo de cada organización (credencial de Firebase Admin y el modelo multi-organización de la Fase 3).
+
+## Reporte semanal en PDF
+
+"Descargar reporte semanal (PDF)" en el menú Compartir, en la paleta de comandos (Ctrl+K) y en la pestaña General. Arma un PDF real de una o dos hojas (`lib/admin/weekly-report.ts` junto a `lib/admin/weekly-pdf.ts`, con `pdf-lib`, que se carga solo al descargar): resumen en una frase, cuatro cifras, focos por día, tus zonas, los incendios más grandes, riesgo de los próximos días y estado de los datos. Está en es/en/pt. El renderizador es JavaScript puro y no depende del navegador, así que el mismo código puede correr en una tarea programada del servidor cuando exista el evaluador de arriba; hoy la descarga es manual.
+
 ## Fuentes de focos y respaldo
 
 | Fuente | Ruta | Clave |

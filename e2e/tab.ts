@@ -10,11 +10,20 @@ export const tab = (page: Page, name: string | RegExp) => nav(page).getByRole("b
 // every retry fail the same way. Long enough for a slow page, short enough to retry when a tab hops.
 const CLICK_MS = 8000;
 
+/** Closes any open menu and waits until it is gone: an open Radix menu hides the rest of the page from the accessibility tree. */
+export async function closeMenus(page: Page) {
+  await expect(async () => {
+    if (await page.getByRole("menu").first().isVisible()) await page.keyboard.press("Escape");
+    await expect(page.getByRole("menu")).toHaveCount(0, { timeout: 1500 });
+  }).toPass({ timeout: 10_000 });
+}
+
 /**
  * Opens a mode wherever the strip put it (visible button or "Más" menu). The strip re-measures
  * after layout changes, so a tab can hop between the two while we look: retry the whole step.
  */
 export async function openTab(page: Page, name: string | RegExp) {
+  await closeMenus(page);
   await expect(async () => {
     const btn = tab(page, name);
     if (await btn.isVisible()) return btn.click({ timeout: CLICK_MS });

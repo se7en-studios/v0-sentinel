@@ -1,454 +1,306 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Satellite, Cpu, Zap } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Satellite, Cpu, Zap, Radio, BellRing, CheckCircle2, ArrowRight } from "lucide-react";
 
 const steps = [
   {
     icon: Satellite,
     number: "01",
     title: "Identificación",
-    tagline: "Vigilancia permanente desde el satélite",
+    tagline: "Vigilancia permanente desde el espacio",
     description:
-      "Datos satelitales (VIIRS, MODIS, GOES-19) y geoespaciales sobre territorios de difícil acceso, con sensores y drones sumándose de forma progresiva.",
+      "Datos satelitales (VIIRS, MODIS, GOES-19) y capas geoespaciales sobre territorios remotos, con sensores y drones sumándose progresivamente.",
     metrics: [
-      { label: "Monitoreo", value: "Continuo" },
-      { label: "Fuentes", value: "Satelital" },
+      { label: "Monitoreo", value: "24/7" },
+      { label: "Fuentes", value: "Constelación LEO/GEO" },
     ],
-    readout: "> procesando pasada satelital...",
+    readout: "> pasadas satelitales procesadas en tiempo real",
+    telemetry: {
+      source: "VIIRS-SNPP & GOES-19 EAST",
+      coverage: "Andes Patagónicos",
+      status: "ESCANEANDO ANOMALÍAS TÉRMICAS",
+    },
   },
   {
     icon: Cpu,
     number: "02",
     title: "Análisis IA",
-    tagline: "Inteligencia que no descansa",
+    tagline: "Inteligencia artificial que no descansa",
     description:
-      "Modelos de IA analizan cada pasada satelital, descartan falsos positivos y generan alertas geoespaciales verificadas.",
+      "Modelos de visión neuronal analizan cada píxel térmico, descartan chimeneas, reflejos y nubes para clasificar el riesgo en segundos.",
     metrics: [
       { label: "Precisión objetivo", value: "98%" },
-      { label: "Entrada", value: "Satelital" },
+      { label: "Tiempo de inferencia", value: "<1.2s" },
     ],
-    readout: "> foco candidato: verificando...",
+    readout: "> foco candidato verificado: sin falsos positivos",
+    telemetry: {
+      source: "Red Neuronal Sentinel-V2",
+      coverage: "Filtro de Falsos Positivos",
+      status: "CONFIRMACIÓN TÉRMICA POSITIVA",
+    },
   },
   {
     icon: Zap,
     number: "03",
     title: "Respuesta",
-    tagline: "De la detección a la acción",
+    tagline: "De la detección satelital a la acción en campo",
     description:
-      "Brigadistas, municipios y organismos provinciales reciben alertas con la ubicación aproximada del foco, para decidir y actuar antes.",
+      "Brigadistas, defensas civiles y municipios reciben la alerta geolocalizada con radio de propagación estimada para intervenir a tiempo.",
     metrics: [
       { label: "Detección objetivo", value: "<8 min" },
-      { label: "Destinatarios", value: "Brigadas" },
+      { label: "Canales", value: "WhatsApp / App / API" },
     ],
-    readout: "> alerta enviada -> brigada zona norte",
+    readout: "> alerta despachada -> brigada local en alerta",
+    telemetry: {
+      source: "Dispatcher Multi-Canal",
+      coverage: "Cuadrante Bariloche - El Bolsón",
+      status: "BRIGADA NOTIFICADA CON ÉXITO",
+    },
   },
 ];
 
-const STEP_DURATION = 3200;
+const STEP_DURATION = 4200;
 
 export function HowItWorks() {
-  const [isVisible, setIsVisible] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
-  // ponytail: starts false to match SSR (no `document` on the server) —
-  // syncing the real value happens in the effect below, after hydration,
-  // instead of in the initializer, which caused a hydration mismatch for
-  // anyone who opened the page in a background tab.
-  const [isTabHidden, setIsTabHidden] = useState(false);
   const [progressKey, setProgressKey] = useState(0);
-  const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setIsVisible(true);
-      },
-      { threshold: 0.05, rootMargin: "0px 0px 200px 0px" },
-    );
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
-  }, []);
-
-  // Pause the auto-advance while the tab is backgrounded, so it doesn't burn
-  // cycles or jump several steps ahead when the user comes back.
-  // ponytail: doesn't also pause on scroll-out — the observer above never
-  // flips isVisible back to false (one-shot reveal trigger), so there's no
-  // existing "left viewport" signal to reuse without adding a second observer.
-  useEffect(() => {
-    setReducedMotion(
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    );
-  }, []);
-
-  useEffect(() => {
-    const handleVisibilityChange = () => setIsTabHidden(document.hidden);
-    handleVisibilityChange();
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () =>
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, []);
-
-  useEffect(() => {
-    if (!isVisible || isPaused || isTabHidden || reducedMotion) return;
+    if (isPaused) return;
     const timer = setInterval(() => {
-      setActiveStep((s) => (s + 1) % 3);
+      setActiveStep((prev) => (prev + 1) % steps.length);
       setProgressKey((k) => k + 1);
     }, STEP_DURATION);
     return () => clearInterval(timer);
-  }, [isVisible, isPaused, isTabHidden, reducedMotion]);
+  }, [isPaused]);
 
   const selectStep = (i: number) => {
     setActiveStep(i);
     setProgressKey((k) => k + 1);
   };
 
+  const currentStep = steps[activeStep];
+  const StepIcon = currentStep.icon;
+
   return (
     <section
-      ref={sectionRef}
       id="servicios"
-      className="relative py-20 lg:py-24 overflow-hidden"
-      style={{ background: "#faf7f0" }}
+      className="relative py-24 lg:py-32 bg-[#faf7f0] overflow-hidden"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      onFocus={() => setIsPaused(true)}
-      onBlur={() => setIsPaused(false)}
     >
+      {/* Background radial ambient glow */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 80% 60% at 50% 40%, rgba(20,74,52,0.15) 0%, transparent 70%)",
+            "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(20,74,52,0.08) 0%, transparent 70%)",
         }}
       />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10">
+        
         {/* Header */}
-        <div
-          className="mb-20 transition-all duration-700"
-          style={{
-            opacity: isVisible ? 1 : 0,
-            transform: isVisible ? "translateY(0)" : "translateY(16px)",
-          }}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="mb-16 text-center max-w-3xl mx-auto"
         >
-          <p
-            className="text-[11px] tracking-[0.3em] uppercase mb-4"
-            style={{
-              fontFamily: "var(--font-sans)",
-              color: "rgba(26,24,18,0.62)",
-            }}
-          >
-            Cómo funciona Sentinel Cloud
-          </p>
-          <h2
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontWeight: 800,
-              fontSize: "clamp(40px, 6vw, 64px)",
-              lineHeight: 0.95,
-              color: "rgba(26,24,18,0.92)",
-              letterSpacing: "-1px",
-            }}
-          >
-            ¿Cómo <span style={{ color: "var(--green-aa)" }}>lo hacemos?</span>
-          </h2>
-        </div>
-
-        <div className="grid lg:grid-cols-5 gap-10 items-start max-w-5xl mx-auto">
-          {/* Steps */}
-          <div className="relative lg:col-span-3">
-            <div
-              className="absolute left-[27px] top-8 bottom-8 w-px hidden lg:block"
-              style={{ background: "rgba(26,24,18,0.08)" }}
-            />
-
-            <div className="space-y-4" role="tablist" aria-label="Pasos de Sentinel Cloud">
-              {steps.map((step, i) => {
-                const isActive = activeStep === i;
-                return (
-                  <div
-                    key={step.number}
-                    id={`hiw-tab-${i}`}
-                    role="tab"
-                    aria-selected={isActive}
-                    aria-controls="hiw-panel"
-                    tabIndex={isActive ? 0 : -1}
-                    onKeyDown={(e) => {
-                      const d =
-                        e.key === "ArrowDown" || e.key === "ArrowRight"
-                          ? 1
-                          : e.key === "ArrowUp" || e.key === "ArrowLeft"
-                            ? -1
-                            : 0;
-                      let n = i;
-                      if (d) n = (i + d + steps.length) % steps.length;
-                      else if (e.key === "Home") n = 0;
-                      else if (e.key === "End") n = steps.length - 1;
-                      else if (e.key !== "Enter" && e.key !== " ") return;
-                      e.preventDefault();
-                      selectStep(n);
-                      document.getElementById(`hiw-tab-${n}`)?.focus();
-                    }}
-                    className="relative flex gap-6 cursor-pointer transition-opacity duration-500 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[#0f7a4f] focus-visible:ring-offset-4 focus-visible:ring-offset-[#faf7f0]"
-                    style={{
-                      opacity: isVisible ? 1 : 0,
-                      transform: isVisible
-                        ? "translateX(0)"
-                        : "translateX(-20px)",
-                      transitionDelay: `${i * 140}ms`,
-                    }}
-                    onClick={() => selectStep(i)}
-                  >
-                    {/* Step circle */}
-                    <div
-                      className="relative z-10 flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center transition-all duration-500"
-                      style={{
-                        background: isActive
-                          ? "rgba(15,122,79,0.12)"
-                          : "rgba(26,24,18,0.03)",
-                        border: `1.5px solid ${isActive ? "#0f7a4f" : "rgba(26,24,18,0.1)"}`,
-                      }}
-                    >
-                      <step.icon
-                        className="w-5 h-5 transition-all duration-300"
-                        style={{
-                          color: isActive ? "var(--green-aa)" : "rgba(26,24,18,0.62)",
-                        }}
-                      />
-                    </div>
-
-                    {/* Content — plain, no card boundary; the circle +
-                        connecting line already read as a timeline, a boxed
-                        background around the text was redundant framing. */}
-                    <div className="flex-1 pt-3 pb-2">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span
-                          className="text-[10px] tracking-[0.25em] uppercase"
-                          style={{
-                            fontFamily: "var(--font-sans)",
-                            color: isActive ? "var(--green-aa)" : "rgba(26,24,18,0.62)",
-                          }}
-                        >
-                          {step.number}
-                        </span>
-                      </div>
-                      <h3
-                        style={{
-                          fontFamily: "var(--font-heading)",
-                          fontWeight: 800,
-                          fontSize: "20px",
-                          color: isActive
-                            ? "rgba(26,24,18,0.95)"
-                            : "rgba(26,24,18,0.62)",
-                          transition: "color 0.4s",
-                        }}
-                      >
-                        {step.title}
-                      </h3>
-                      <p
-                        className="text-[11px] mt-0.5"
-                        style={{
-                          fontFamily: "var(--font-sans)",
-                          color: isActive ? "var(--green-aa)" : "rgba(26,24,18,0.68)",
-                          transition: "color 0.4s",
-                          fontStyle: "italic",
-                        }}
-                      >
-                        {step.tagline}
-                      </p>
-
-                      {/* Expandable body */}
-                      <div
-                        className="overflow-hidden transition-all duration-500"
-                        aria-hidden={!isActive}
-                        style={{
-                          maxHeight: isActive ? "200px" : "0px",
-                          opacity: isActive ? 1 : 0,
-                        }}
-                      >
-                        <p
-                          className="text-[13px] leading-relaxed mb-4 mt-3"
-                          style={{
-                            fontFamily: "var(--font-sans)",
-                            fontWeight: 300,
-                            color: "rgba(26,24,18,0.68)",
-                          }}
-                        >
-                          {step.description}
-                        </p>
-                        <div className="flex items-center gap-5">
-                          {step.metrics.map((m, mi) => (
-                            <div
-                              key={m.label}
-                              className="flex items-center gap-5"
-                            >
-                              {mi > 0 && (
-                                <div
-                                  className="w-px h-8"
-                                  style={{ background: "rgba(15,122,79,0.15)" }}
-                                />
-                              )}
-                              <div>
-                                <div
-                                  style={{
-                                    fontFamily: "var(--font-heading)",
-                                    fontWeight: 700,
-                                    fontSize: "16px",
-                                    color: "var(--green-aa)",
-                                    lineHeight: 1,
-                                  }}
-                                >
-                                  {m.value}
-                                </div>
-                                <div
-                                  className="text-[10px] tracking-wider uppercase mt-0.5"
-                                  style={{
-                                    fontFamily: "var(--font-sans)",
-                                    color: "rgba(26,24,18,0.62)",
-                                  }}
-                                >
-                                  {m.label}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Progress bar — resets each cycle with progressKey */}
-            <div
-              className="mt-8 ml-[70px] h-px rounded-full overflow-hidden transition-all duration-700"
-              style={{
-                background: "rgba(26,24,18,0.06)",
-                opacity: isVisible ? 1 : 0,
-              }}
-            >
-              <div
-                key={progressKey}
-                className="h-full w-full rounded-full"
-                style={{
-                  background: "#0f7a4f",
-                  transformOrigin: "left",
-                  // ponytail: pause via the animation shorthand's play-state
-                  // (freezes in place) instead of toggling animation-name to
-                  // "none" — removing the animation entirely dropped the
-                  // inline transform too, so hovering to pause snapped the
-                  // bar to full width instead of holding its progress.
-                  // Play-state is folded into the shorthand rather than set
-                  // via the separate animationPlayState property, since React
-                  // warns about mixing a shorthand with its longhand.
-                  animation: isVisible
-                    ? `progressBar ${STEP_DURATION}ms linear forwards ${
-                        isPaused || isTabHidden ? "paused" : "running"
-                      }`
-                    : "none",
-                  transform: isVisible ? undefined : "scaleX(0)",
-                }}
-              />
-            </div>
-            <style>{`
-            @keyframes progressBar {
-              from { transform: scaleX(0); }
-              to   { transform: scaleX(1); }
-            }
-          `}</style>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase mb-4 bg-emerald-900/10 text-emerald-800 border border-emerald-700/20">
+            <Radio className="w-3.5 h-3.5 text-emerald-700" />
+            <span>Flujo Operativo de Sentinel</span>
           </div>
 
-          {/* Visual companion — mirrors whichever step is active instead of
-            leaving the right half of the section empty on desktop. */}
-          <div
-            id="hiw-panel"
-            role="tabpanel"
-            aria-labelledby={`hiw-tab-${activeStep}`}
-            className="hidden lg:flex lg:col-span-2 flex-col items-center justify-center rounded-lg p-10 transition-all duration-700"
-            style={{
-              background: "#0c0b09",
-              border: "0.5px solid rgba(148,241,190,0.15)",
-              minHeight: "360px",
-              opacity: isVisible ? 1 : 0,
-              transform: isVisible ? "translateY(0)" : "translateY(16px)",
-            }}
+          <h2
+            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#1a1812]"
+            style={{ fontFamily: "var(--font-heading)", lineHeight: 1.05 }}
           >
-            {(() => {
-              const step = steps[activeStep];
+            ¿Cómo <span className="text-[var(--green-aa)]">lo hacemos?</span>
+          </h2>
+          
+          <p
+            className="mt-4 text-[15px] sm:text-[16px] text-[#1a1812]/70 font-light max-w-xl mx-auto"
+            style={{ fontFamily: "var(--font-sans)" }}
+          >
+            Del espacio al territorio en menos de 8 minutos: una cadena coordinada de telemetría y respuesta rápida.
+          </p>
+        </motion.div>
+
+        {/* 2-Column Interactive Workspace */}
+        <div className="grid lg:grid-cols-12 gap-8 items-center max-w-5xl mx-auto">
+          
+          {/* Left Column: Interactive Steps Timeline */}
+          <div className="lg:col-span-7 space-y-4">
+            {steps.map((step, i) => {
+              const Icon = step.icon;
+              const isActive = activeStep === i;
+
               return (
                 <div
                   key={step.number}
-                  className="animate-fade-in-up flex flex-col items-center text-center"
+                  onClick={() => selectStep(i)}
+                  className={`cursor-pointer rounded-2xl p-6 transition-all duration-300 border ${
+                    isActive
+                      ? "bg-white border-emerald-600/40 shadow-xl shadow-emerald-900/10 scale-[1.01]"
+                      : "bg-white/50 border-black/5 hover:bg-white hover:border-black/10"
+                  }`}
                 >
-                  <div
-                    className="relative w-28 h-28 rounded-full flex items-center justify-center mb-6"
-                    style={{
-                      background: "rgba(148,241,190,0.08)",
-                      border: "1px solid rgba(148,241,190,0.3)",
-                    }}
-                  >
-                    <span
-                      className="absolute inset-0 rounded-full motion-safe:animate-ping"
-                      style={{
-                        background: "rgba(148,241,190,0.15)",
-                        animationDuration: "2.5s",
-                      }}
-                    />
-                    <step.icon
-                      className="relative w-11 h-11"
-                      style={{ color: "#94f1be" }}
-                    />
-                  </div>
-                  <p
-                    className="text-[11px] tracking-[0.25em] uppercase mb-2"
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      color: "#94f1be",
-                    }}
-                  >
-                    {step.number} / 03
-                  </p>
-                  <h3
-                    style={{
-                      fontFamily: "var(--font-heading)",
-                      fontWeight: 800,
-                      fontSize: "24px",
-                      color: "rgba(240,234,216,0.95)",
-                    }}
-                  >
-                    {step.title}
-                  </h3>
-
-                  {/* live readout — reads as the system reporting status
-                      for this step, not a static caption */}
-                  <div
-                    className="mt-5 px-3 py-2 rounded-sm"
-                    style={{
-                      background: "rgba(148,241,190,0.06)",
-                      border: "0.5px solid rgba(148,241,190,0.2)",
-                    }}
-                  >
-                    <span
-                      key={step.number}
-                      className="animate-typewriter text-[12px]"
-                      style={
-                        {
-                          fontFamily: "var(--font-mono, monospace)",
-                          color: "#94f1be",
-                          "--typewriter-width": `${step.readout.length}ch`,
-                          "--typewriter-steps": step.readout.length,
-                        } as React.CSSProperties
-                      }
+                  <div className="flex items-start gap-4">
+                    <div
+                      className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
+                        isActive
+                          ? "bg-emerald-900 text-emerald-300 shadow-md shadow-emerald-900/20 scale-105"
+                          : "bg-emerald-50 text-emerald-800"
+                      }`}
                     >
-                      {step.readout}
-                    </span>
+                      <Icon className="w-6 h-6" />
+                    </div>
+
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-mono tracking-wider uppercase text-emerald-800 font-semibold">
+                          PASO {step.number}
+                        </span>
+                        {isActive && (
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                          </span>
+                        )}
+                      </div>
+
+                      <h3
+                        className="text-lg font-bold text-[#1a1812]"
+                        style={{ fontFamily: "var(--font-heading)" }}
+                      >
+                        {step.title}
+                      </h3>
+                      
+                      <p className="text-[12px] font-medium text-emerald-800 mb-2 italic">
+                        {step.tagline}
+                      </p>
+
+                      <p className="text-[13px] text-[#1a1812]/75 font-light leading-relaxed">
+                        {step.description}
+                      </p>
+
+                      {/* Expandable metrics on active */}
+                      {isActive && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          transition={{ duration: 0.3 }}
+                          className="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-black/5 text-xs font-mono"
+                        >
+                          {step.metrics.map((m) => (
+                            <div key={m.label} className="p-2 rounded-lg bg-emerald-50/60 border border-emerald-600/10">
+                              <span className="text-[10px] text-emerald-900/60 uppercase block">{m.label}</span>
+                              <span className="text-emerald-900 font-bold text-[13px]">{m.value}</span>
+                            </div>
+                          ))}
+                        </motion.div>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Active Progress Bar */}
+                  {isActive && (
+                    <div className="mt-4 h-1 rounded-full bg-emerald-100 overflow-hidden">
+                      <motion.div
+                        key={progressKey}
+                        initial={{ width: "0%" }}
+                        animate={{ width: isPaused ? "100%" : "100%" }}
+                        transition={{
+                          duration: STEP_DURATION / 1000,
+                          ease: "linear",
+                        }}
+                        className="h-full bg-gradient-to-r from-emerald-600 to-[#94f1be]"
+                      />
+                    </div>
+                  )}
                 </div>
               );
-            })()}
+            })}
           </div>
+
+          {/* Right Column: High-Tech Telemetry Companion Card */}
+          <div className="lg:col-span-5">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentStep.number}
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.35 }}
+                className="relative rounded-3xl p-8 bg-[#0c0b09] border border-emerald-500/30 text-white shadow-2xl overflow-hidden flex flex-col justify-between min-h-[440px]"
+              >
+                {/* Rotating radar background */}
+                <div className="absolute -right-20 -top-20 w-72 h-72 rounded-full border border-emerald-500/15 pointer-events-none animate-radar">
+                  <div className="w-1/2 h-1/2 bg-gradient-to-br from-emerald-400/20 to-transparent rounded-tl-full" />
+                </div>
+
+                {/* Top Telemetry Header */}
+                <div className="relative z-10 flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+                    </span>
+                    <span className="font-mono text-xs uppercase tracking-wider text-emerald-400 font-semibold">
+                      TELEMETRÍA · FASE {currentStep.number}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-white/40">
+                    LATENCIA &lt;8 MIN
+                  </span>
+                </div>
+
+                {/* Center Icon & Headline */}
+                <div className="relative z-10 flex flex-col items-center text-center my-auto py-4">
+                  <div className="w-20 h-20 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-300 shadow-[0_0_30px_rgba(16,185,129,0.25)] mb-5">
+                    <StepIcon className="w-10 h-10" />
+                  </div>
+
+                  <h4
+                    className="text-2xl font-bold text-white mb-2"
+                    style={{ fontFamily: "var(--font-heading)" }}
+                  >
+                    {currentStep.title}
+                  </h4>
+                  
+                  <p className="text-[13px] text-white/70 font-light max-w-xs leading-relaxed mb-4">
+                    {currentStep.tagline}
+                  </p>
+
+                  <div className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-emerald-300 font-mono text-xs text-left">
+                    {currentStep.readout}
+                  </div>
+                </div>
+
+                {/* Bottom Telemetry Box */}
+                <div className="relative z-10 pt-4 border-t border-white/10 space-y-1.5 text-[11px] font-mono">
+                  <div className="flex justify-between text-white/60">
+                    <span>MÓDULO:</span>
+                    <span className="text-white font-semibold">{currentStep.telemetry.source}</span>
+                  </div>
+                  <div className="flex justify-between text-white/60">
+                    <span>ZONA:</span>
+                    <span className="text-white font-semibold">{currentStep.telemetry.coverage}</span>
+                  </div>
+                  <div className="flex justify-between text-white/60">
+                    <span>ESTADO:</span>
+                    <span className="text-emerald-400 font-bold">{currentStep.telemetry.status}</span>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
         </div>
       </div>
     </section>

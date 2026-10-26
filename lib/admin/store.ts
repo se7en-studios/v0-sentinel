@@ -3,6 +3,7 @@
 import { parseLocale } from "./i18n";
 import { cleanRules } from "./rules";
 import { parseGoal } from "./goals";
+import { cleanNotify } from "./alert-delivery";
 import { cleanAckMap, type AlertAck } from "./alert-ack";
 import { cleanIncidentMeta, type IncidentMeta } from "./incident-meta";
 import { EMPTY_OPS, cleanOps, type OpsState } from "./resources";
@@ -183,7 +184,7 @@ export function parseWorkspace(input: unknown): Workspace {
           }),
         ) as Workspace["settings"]["opacity"],
         thresholds: { ...DEFAULT_SETTINGS.thresholds, ...st.thresholds },
-        notify: { ...DEFAULT_SETTINGS.notify, ...st.notify },
+        notify: cleanNotify(st.notify, DEFAULT_SETTINGS.notify),
         rules: cleanRules(st.rules),
         goal: parseGoal(st.goal),
         // someone who already drew zones or set alerts has been using the panel: do not quiz them

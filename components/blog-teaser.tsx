@@ -1,206 +1,169 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight, BookOpen, Clock } from "lucide-react";
 import { blogPosts } from "@/lib/blog-posts";
 import { formatDate } from "@/lib/format-date";
 
 export function BlogTeaser() {
-  const [isVisible, setIsVisible] = useState(false);
-  const sectionRef = useRef<HTMLElement>(null);
-
   const posts = [...blogPosts]
     .sort((a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt))
     .slice(0, 3);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setIsVisible(true);
-      },
-      { threshold: 0.05, rootMargin: "0px 0px 200px 0px" },
-    );
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <section
-      ref={sectionRef}
-      className="relative py-20 lg:py-24 overflow-hidden"
-      style={{ background: "#faf7f0" }}
+      className="relative py-24 lg:py-32 overflow-hidden bg-[#faf7f0]"
     >
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10">
-        <div
-          className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-16 transition-all duration-700"
-          style={{
-            opacity: isVisible ? 1 : 0,
-            transform: isVisible ? "translateY(0)" : "translateY(16px)",
-          }}
+        
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-16"
         >
           <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase mb-4 bg-emerald-900/10 text-emerald-800 border border-emerald-700/20">
+              <BookOpen className="w-3.5 h-3.5 text-emerald-700" />
+              <span>Publicaciones & Artículos</span>
+            </div>
+
             <h2
-              className="text-4xl sm:text-5xl lg:text-6xl"
-              style={{
-                fontFamily: "var(--font-heading)",
-                fontWeight: 800,
-                color: "rgba(26,24,18,0.92)",
-                lineHeight: 1,
-              }}
+              className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#1a1812]"
+              style={{ fontFamily: "var(--font-heading)", lineHeight: 1.05 }}
             >
-              Últimas <span style={{ color: "var(--green-aa)" }}>notas.</span>
+              Últimas <span className="text-[var(--green-aa)]">notas.</span>
             </h2>
-            {/* Editorial: some posts predate software-first and describe the progressive drone line. */}
+
             <p
-              className="mt-4 max-w-md text-[13px] leading-relaxed"
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontWeight: 300,
-                color: "rgba(26,24,18,0.62)",
-              }}
+              className="mt-4 max-w-lg text-[15px] leading-relaxed text-[#1a1812]/70 font-light"
+              style={{ fontFamily: "var(--font-sans)" }}
             >
-              Sentinel es una plataforma de software sobre datos satelitales e
-              IA. Las notas que mencionan drones y sensores describen nuestra
-              línea progresiva, no una flota operativa hoy.
+              Análisis sobre prevención de incendios forestales, teledetección satelital, tecnologías climáticas y gestión territorial en la Patagonia.
             </p>
           </div>
 
           <Link
             href="/blog"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-sm text-[13px] font-medium transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] w-fit"
-            style={{
-              fontFamily: "var(--font-sans)",
-              border: "0.5px solid rgba(26,24,18,0.2)",
-              color: "rgba(26,24,18,0.8)",
-            }}
+            className="group inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-[13px] font-medium transition-all duration-300 border border-black/15 bg-white shadow-sm hover:shadow-md hover:border-emerald-600/40 hover:text-emerald-900 w-fit"
+            style={{ fontFamily: "var(--font-sans)" }}
           >
-            Ver todas las notas
-            <ArrowRight className="w-3.5 h-3.5" />
+            <span>Ver todas las notas</span>
+            <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-          {/* Featured post, image-led, three-fifths width */}
+        {/* Posts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          {/* Featured Post (3 cols) */}
           {posts[0] && (
-            <Link
-              href={`/blog/${posts[0].slug}`}
-              className="group lg:col-span-3 flex flex-col overflow-hidden rounded-lg transition-all duration-700 hover:-translate-y-1"
-              style={{
-                background: "rgba(26,24,18,0.02)",
-                border: "0.5px solid rgba(26,24,18,0.07)",
-                opacity: isVisible ? 1 : 0,
-                transform: isVisible ? "translateY(0)" : "translateY(24px)",
-              }}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="lg:col-span-3"
             >
-              <div
-                className="relative w-full overflow-hidden"
-                style={{ aspectRatio: "16/8" }}
+              <Link
+                href={`/blog/${posts[0].slug}`}
+                className="group flex flex-col h-full overflow-hidden rounded-3xl bg-white border border-black/5 shadow-md hover:shadow-2xl hover:border-emerald-600/30 transition-all duration-300"
               >
-                <Image
-                  src={posts[0].coverImage}
-                  alt={posts[0].title}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 60vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent" />
-              </div>
-              <div className="p-6 flex-1 flex flex-col justify-between">
-                <div>
-                  <p
-                    className="text-[11px] mb-2 font-normal"
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      color: "var(--green-aa)",
-                    }}
-                  >
-                    {formatDate(posts[0].publishedAt)}
-                  </p>
-                  <h3
-                    className="text-xl mb-2.5 leading-snug transition-colors duration-200 group-hover:text-[#0f7a4f]"
-                    style={{
-                      fontFamily: "var(--font-heading)",
-                      fontWeight: 700,
-                      color: "rgba(26,24,18,0.92)",
-                    }}
-                  >
-                    {posts[0].title}
-                  </h3>
-                  <p
-                    className="text-[13px] leading-relaxed line-clamp-2 max-w-lg"
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      fontWeight: 300,
-                      color: "rgba(26,24,18,0.65)",
-                    }}
-                  >
-                    {posts[0].excerpt}
-                  </p>
+                <div className="relative w-full aspect-[16/9] overflow-hidden">
+                  <Image
+                    src={posts[0].coverImage}
+                    alt={posts[0].title}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 60vw"
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                  
+                  <div className="absolute top-4 left-4">
+                    <span className="text-[10px] font-mono tracking-wider uppercase px-3 py-1 rounded-full bg-black/60 text-emerald-300 backdrop-blur-md border border-white/20">
+                      Destacado
+                    </span>
+                  </div>
                 </div>
-                <div className="mt-4 pt-3 border-t border-[rgba(26,24,18,0.06)] flex items-center justify-between">
-                  <span
-                    className="text-[11px] font-normal group-hover:text-[#0f7a4f] transition-colors flex items-center gap-1"
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      color: "rgba(26,24,18,0.62)",
-                    }}
-                  >
-                    Leer artículo
-                    <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
-                  </span>
+
+                <div className="p-8 flex-1 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-3 text-xs text-emerald-800 font-mono mb-3">
+                      <span>{formatDate(posts[0].publishedAt)}</span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> 5 min lectura
+                      </span>
+                    </div>
+
+                    <h3
+                      className="text-2xl sm:text-3xl font-bold text-[#1a1812] group-hover:text-emerald-900 transition-colors mb-3 leading-snug"
+                      style={{ fontFamily: "var(--font-heading)" }}
+                    >
+                      {posts[0].title}
+                    </h3>
+
+                    <p className="text-[14px] text-[#1a1812]/70 font-light leading-relaxed line-clamp-3">
+                      {posts[0].excerpt}
+                    </p>
+                  </div>
+
+                  <div className="mt-6 flex items-center gap-2 text-xs font-semibold text-emerald-800 group-hover:text-emerald-700">
+                    <span>Leer artículo completo</span>
+                    <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+            </motion.div>
           )}
 
-          {/* Remaining posts as a compact list, two-fifths width */}
-          <div className="lg:col-span-2 flex flex-col divide-y divide-[rgba(26,24,18,0.06)]">
-            {posts.slice(1).map((post, i) => (
-              <Link
+          {/* Side Posts (2 cols) */}
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            {posts.slice(1, 3).map((post, i) => (
+              <motion.div
                 key={post.slug}
-                href={`/blog/${post.slug}`}
-                className="group flex-1 flex flex-col justify-center py-5 first:pt-0 last:pb-0 transition-all duration-700"
-                style={{
-                  opacity: isVisible ? 1 : 0,
-                  transform: isVisible ? "translateY(0)" : "translateY(16px)",
-                  transitionDelay: `${100 + i * 100}ms`,
-                }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.15 + i * 0.1 }}
+                className="flex-1"
               >
-                <p
-                  className="text-[11px] mb-1.5 font-normal"
-                  style={{
-                    fontFamily: "var(--font-sans)",
-                    color: "var(--green-aa)",
-                  }}
+                <Link
+                  href={`/blog/${post.slug}`}
+                  className="group flex flex-col h-full p-6 sm:p-7 rounded-3xl bg-white border border-black/5 shadow-md hover:shadow-xl hover:border-emerald-600/30 transition-all duration-300 justify-between"
                 >
-                  {formatDate(post.publishedAt)}
-                </p>
-                <h3
-                  className="text-base mb-1.5 leading-snug transition-colors duration-200 group-hover:text-[#0f7a4f]"
-                  style={{
-                    fontFamily: "var(--font-heading)",
-                    fontWeight: 700,
-                    color: "rgba(26,24,18,0.92)",
-                  }}
-                >
-                  {post.title}
-                </h3>
-                <span
-                  className="text-[11px] font-normal group-hover:text-[#0f7a4f] transition-colors flex items-center gap-1"
-                  style={{
-                    fontFamily: "var(--font-sans)",
-                    color: "rgba(26,24,18,0.62)",
-                  }}
-                >
-                  Leer artículo
-                  <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
-                </span>
-              </Link>
+                  <div>
+                    <div className="flex items-center gap-3 text-xs text-emerald-800 font-mono mb-2">
+                      <span>{formatDate(post.publishedAt)}</span>
+                      <span>•</span>
+                      <span>Lectura: 4 min</span>
+                    </div>
+
+                    <h3
+                      className="text-lg sm:text-xl font-bold text-[#1a1812] group-hover:text-emerald-900 transition-colors mb-2 leading-snug"
+                      style={{ fontFamily: "var(--font-heading)" }}
+                    >
+                      {post.title}
+                    </h3>
+
+                    <p className="text-[13px] text-[#1a1812]/70 font-light line-clamp-2 leading-relaxed">
+                      {post.excerpt}
+                    </p>
+                  </div>
+
+                  <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-emerald-800 group-hover:text-emerald-700">
+                    <span>Leer más</span>
+                    <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+                  </div>
+                </Link>
+              </motion.div>
             ))}
           </div>
         </div>
+
       </div>
     </section>
   );

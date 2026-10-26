@@ -10,16 +10,6 @@ export const INCIDENT_STATUSES = [
 ] as const;
 export type IncidentStatus = (typeof INCIDENT_STATUSES)[number];
 
-export const INCIDENT_STATUS_LABEL: Record<IncidentStatus, string> = {
-  detected: "Detectado",
-  verified: "Verificado",
-  in_control: "En control",
-  contained: "Contenido",
-  extinguished: "Extinguido",
-  closed: "Cerrado",
-  false_positive: "Falso positivo",
-};
-
 /** One change of status or assignee, kept as the incident's timeline. */
 export interface IncidentChange {
   t: number;

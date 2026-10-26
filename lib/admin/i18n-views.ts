@@ -57,9 +57,8 @@ export const esViews = {
   "set.th.smoke": "Humo / CO ≥ (ppm)",
   "set.th.wind": "Viento ≥ (km/h)",
   "set.notify": "Notificaciones",
-  "set.notify.soon": "Próximamente: envío",
-  "set.notify.email": "Email de alertas",
-  "set.notify.wa": "WhatsApp de guardia",
+  "set.notify.email": "Correo para los avisos",
+  "set.notify.wa": "WhatsApp para los avisos (con código de país)",
   "set.notify.zone":
     "Avisar cuando entra un foco a una zona (con el panel abierto)",
   "set.notify.sensor":
@@ -67,7 +66,7 @@ export const esViews = {
   "set.notify.browser": "Notificaciones del navegador (con el panel abierto)",
   "set.notify.blocked": "El navegador bloqueó las notificaciones",
   "set.notify.note":
-    "Los contactos quedan guardados; el envío automático se activa al conectar el servicio de mensajería.",
+    "Estos son los destinatarios de los avisos por correo y WhatsApp. Más abajo elegís cuándo y con qué frecuencia se mandan.",
   // settings: data and backup
   "set.data": "Datos",
   "set.backup": "Respaldo completo",
@@ -315,16 +314,15 @@ export const enViews: Record<ViewKey, string> = {
   "set.th.smoke": "Smoke / CO ≥ (ppm)",
   "set.th.wind": "Wind ≥ (km/h)",
   "set.notify": "Notifications",
-  "set.notify.soon": "Coming soon: delivery",
-  "set.notify.email": "Alert email",
-  "set.notify.wa": "On-call WhatsApp",
+  "set.notify.email": "Email for alerts",
+  "set.notify.wa": "WhatsApp for alerts (with country code)",
   "set.notify.zone": "Notify when a fire enters a zone (with the panel open)",
   "set.notify.sensor":
     "Notify when a sensor exceeds its threshold (simulated, with the panel open)",
   "set.notify.browser": "Browser notifications (with the panel open)",
   "set.notify.blocked": "The browser blocked notifications",
   "set.notify.note":
-    "Contacts are saved; automatic delivery turns on once the messaging service is connected.",
+    "These are the recipients of the email and WhatsApp alerts. Below you choose when and how often they go out.",
   "set.data": "Data",
   "set.backup": "Full backup",
   "set.backup.text":
@@ -559,9 +557,8 @@ export const ptViews: Record<ViewKey, string> = {
   "set.th.smoke": "Fumaça / CO ≥ (ppm)",
   "set.th.wind": "Vento ≥ (km/h)",
   "set.notify": "Notificações",
-  "set.notify.soon": "Em breve: envio",
-  "set.notify.email": "E-mail de alertas",
-  "set.notify.wa": "WhatsApp de plantão",
+  "set.notify.email": "E-mail para os avisos",
+  "set.notify.wa": "WhatsApp para os avisos (com código do país)",
   "set.notify.zone":
     "Avisar quando um foco entrar em uma zona (com o painel aberto)",
   "set.notify.sensor":
@@ -569,7 +566,7 @@ export const ptViews: Record<ViewKey, string> = {
   "set.notify.browser": "Notificações do navegador (com o painel aberto)",
   "set.notify.blocked": "O navegador bloqueou as notificações",
   "set.notify.note":
-    "Os contatos ficam salvos; o envio automático é ativado ao conectar o serviço de mensagens.",
+    "Estes são os destinatários dos avisos por e-mail e WhatsApp. Mais abaixo você escolhe quando e com que frequência são enviados.",
   "set.data": "Dados",
   "set.backup": "Backup completo",
   "set.backup.text":

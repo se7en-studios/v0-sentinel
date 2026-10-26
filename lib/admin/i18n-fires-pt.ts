@@ -8,18 +8,18 @@ export const ptFires: Record<FiresKey, string> = {
   "trk.case.puerto-patriada.when": "Chubut, janeiro de 2026",
   "trk.src.case":
     "Reconstrução com o arquivo científico do FIRMS e validação com Sentinel-2. {when}.",
-  "trk.src.updated": "Atualizado {time} · NOAA-20 e NOAA-21, últimos 10 dias",
+  "trk.src.updated": "Atualizado {time} · satélites NOAA-20 e NOAA-21, últimos 10 dias",
   "trk.src.snapshot":
-    "Instantâneo de {time} · NOAA-20 e NOAA-21, últimos 10 dias",
+    "Cópia salva de {time} · satélites NOAA-20 e NOAA-21, últimos 10 dias",
   "trk.src.fallback":
-    "A consulta ao vivo não respondeu. Mostrando o último instantâneo.",
+    "Não conseguimos trazer os dados ao vivo. Mostramos a última cópia salva.",
   "trk.src.fallbackNote":
-    "A consulta ao vivo não respondeu ({note}). Mostrando o último instantâneo.",
+    "Não conseguimos trazer os dados ao vivo ({note}). Mostramos a última cópia salva.",
   "trk.err.title": "Não foi possível carregar os incêndios",
-  "trk.err.noData": "sem dados ao vivo nem instantâneo",
-  "trk.toast.miss": "Este grupo não está entre os incêndios acompanhados",
+  "trk.err.noData": "não há dados ao vivo nem uma cópia salva",
+  "trk.toast.miss": "Este grupo de focos não é um dos incêndios que acompanhamos",
   "trk.toast.missDesc":
-    "O acompanhamento cobre a Argentina com os últimos 10 dias do NOAA-20 e NOAA-21.",
+    "Acompanhamos os incêndios da Argentina dos últimos 10 dias (satélites NOAA-20 e NOAA-21).",
 
   "trk.foci.one": "{n} foco",
   "trk.foci.other": "{n} focos",
@@ -74,7 +74,7 @@ export const ptFires: Record<FiresKey, string> = {
   "trk.ev.merge": "Une-se ao incêndio #{ref}",
   "trk.ev.merge.d": "Os perímetros se tocaram",
   "trk.ev.latent": "Sem detecções por 5 dias",
-  "trk.ev.latent.d": "Passa a latente (regra FEDS)",
+  "trk.ev.latent.d": "Fica em pausa: não se detecta mais calor",
   "trk.ev.out": "Sem detecções por 20 dias",
   "trk.ev.out.d": "Considera-se extinto",
 
@@ -89,7 +89,7 @@ export const ptFires: Record<FiresKey, string> = {
   "trk.stat.growth24": "Crescimento 24 h",
   "trk.stat.alerts48": "Alertas 48 h",
   "trk.ov.forestNote":
-    "Florestal: a maioria dos focos do incêndio cai sobre floresta ou arbustal (ESA WorldCover, 1 km). É uma estimativa, não uma verificação em campo.",
+    "Florestal: a maioria dos focos do incêndio cai sobre floresta ou arbustos, segundo o mapa de cobertura da ESA (1 km). É uma estimativa, não uma verificação no campo.",
   "trk.ov.bySize": "Por área",
   "trk.ov.countOf": "{n} de {total}",
   "trk.ov.searchLabel": "Buscar um incêndio por local ou província",

@@ -8,18 +8,18 @@ export const enFires: Record<FiresKey, string> = {
   "trk.case.puerto-patriada.when": "Chubut, January 2026",
   "trk.src.case":
     "Reconstruction from the FIRMS science archive, validated with Sentinel-2. {when}.",
-  "trk.src.updated": "Updated {time} · NOAA-20 and NOAA-21, last 10 days",
+  "trk.src.updated": "Updated {time} · NOAA-20 and NOAA-21 satellites, last 10 days",
   "trk.src.snapshot":
-    "Snapshot from {time} · NOAA-20 and NOAA-21, last 10 days",
+    "Saved copy from {time} · NOAA-20 and NOAA-21 satellites, last 10 days",
   "trk.src.fallback":
-    "The live query did not respond. Showing the latest snapshot.",
+    "We could not get the live data. Showing the last saved copy.",
   "trk.src.fallbackNote":
-    "The live query did not respond ({note}). Showing the latest snapshot.",
+    "We could not get the live data ({note}). Showing the last saved copy.",
   "trk.err.title": "Could not load the fires",
-  "trk.err.noData": "no live data or snapshot",
-  "trk.toast.miss": "This cluster is not among the tracked fires",
+  "trk.err.noData": "there is no live data and no saved copy",
+  "trk.toast.miss": "This group of detections is not one of the fires we follow",
   "trk.toast.missDesc":
-    "Tracking covers Argentina with the last 10 days of NOAA-20 and NOAA-21.",
+    "We follow Argentina's fires from the last 10 days (NOAA-20 and NOAA-21 satellites).",
 
   "trk.foci.one": "{n} hotspot",
   "trk.foci.other": "{n} hotspots",
@@ -74,7 +74,7 @@ export const enFires: Record<FiresKey, string> = {
   "trk.ev.merge": "Merges with fire #{ref}",
   "trk.ev.merge.d": "The perimeters touched",
   "trk.ev.latent": "No detections for 5 days",
-  "trk.ev.latent.d": "Becomes dormant (FEDS rule)",
+  "trk.ev.latent.d": "Goes on hold: no more heat is detected",
   "trk.ev.out": "No detections for 20 days",
   "trk.ev.out.d": "Considered extinguished",
 
@@ -89,7 +89,7 @@ export const enFires: Record<FiresKey, string> = {
   "trk.stat.growth24": "Growth 24 h",
   "trk.stat.alerts48": "Alerts 48 h",
   "trk.ov.forestNote":
-    "Forest: most of the fire's hotspots fall on forest or shrubland (ESA WorldCover, 1 km). It is an estimate, not a field check.",
+    "Forest: most of the fire's detections fall on forest or shrubland, according to the ESA land-cover map (1 km). It is an estimate, not a check on the ground.",
   "trk.ov.bySize": "By area",
   "trk.ov.countOf": "{n} of {total}",
   "trk.ov.searchLabel": "Search a fire by place or province",

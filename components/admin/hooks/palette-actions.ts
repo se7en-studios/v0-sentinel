@@ -6,6 +6,7 @@ import type { Tab } from "../ctx";
 import type { MapHandle } from "../map-view";
 import type { PaletteAction } from "../command-palette";
 import { openGuide } from "../guide-state";
+import { scrollToSection } from "../scroll-to-section";
 
 const BASES = ["esri", "s2", "viirs"] as const satisfies readonly BaseLayer[];
 
@@ -16,6 +17,7 @@ interface Deps {
   setOrbit: (f: (o: boolean) => boolean) => void;
   setPanelOpen: (f: (o: boolean) => boolean) => void;
   dark: boolean;
+  simple: boolean;
   toggleTheme: () => void;
   setSettings: (p: Partial<Settings>) => void;
   mapRef: RefObject<MapHandle | null>;
@@ -26,6 +28,7 @@ interface Deps {
   exportPng: () => void;
   exportCsv: () => void;
   exportReport: () => void;
+  exportWeekly: () => Promise<void>;
   load: () => void;
   loadDemo: () => void;
   t: Translate;
@@ -110,8 +113,25 @@ export function buildPaletteActions(d: Deps): PaletteAction[] {
     { id: "png", group: g.reports, label: t("top.exportPng"), run: d.exportPng },
     { id: "csv", group: g.reports, label: t("pal.csv"), run: d.exportCsv },
     { id: "pdf", group: g.reports, label: t("pal.pdf"), run: d.exportReport },
+    { id: "weekly", group: g.reports, label: t("wk.action"), run: d.exportWeekly },
     { id: "reload", group: g.data, label: t("pal.reload"), run: d.load },
     { id: "demo", group: g.data, label: t("pal.demo"), run: d.loadDemo },
+    { id: "goal", group: g.data, label: t("pal.goal"), run: () => d.setSettings({ onboarded: false }) },
+    {
+      id: "simple",
+      group: g.view,
+      label: d.simple ? t("pal.simple.off") : t("pal.simple.on"),
+      run: () => d.setSettings({ simpleMode: !d.simple }),
+    },
+    {
+      id: "delivery",
+      group: g.share,
+      label: t("pal.delivery"),
+      run: () => {
+        d.goTab("config");
+        scrollToSection("set-alerts");
+      },
+    },
     {
       id: "keys",
       group: g.help,

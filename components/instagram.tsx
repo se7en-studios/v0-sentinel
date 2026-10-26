@@ -1,18 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Instagram } from "lucide-react";
+import { motion } from "framer-motion";
+import { Instagram, ArrowUpRight } from "lucide-react";
 
 const posts = [
   {
     image: "/ig-post-1.jpg",
-    // Review: original caption claimed "drones autónomos... menos de 5 minutos"
-    // (contradicts software-first). Rewritten as target; confirm vs. the real post.
     caption:
       "Un incendio detectado en los primeros minutos se controla. Uno detectado horas después, arrasa. Sentinel apunta a detectar focos activos lo antes posible con datos satelitales e IA.",
     alt: "Publicación de Sentinel sobre detección temprana de incendios",
     href: "https://www.instagram.com/p/DWmLb_DjvIA/",
+    likes: "Comunidad Activa",
   },
   {
     image: "/ig-post-2.jpg",
@@ -20,6 +19,7 @@ const posts = [
       "Con Sentinel pasás de reaccionar a predecir. Monitorear → Detectar/Verificar → Contextualizar → Alertar. Así funciona la protección real del territorio.",
     alt: "Publicación de Sentinel con el ciclo monitorear, detectar, contextualizar y alertar",
     href: "https://www.instagram.com/p/DWmLh-Bjn91/",
+    likes: "Territorio & Tecnología",
   },
   {
     image: "/ig-post-3.jpg",
@@ -27,132 +27,122 @@ const posts = [
       "El fuego no da segundas oportunidades. Usamos sistemas de detección temprana e inteligencia territorial para identificar el peligro antes de que sea incontrolable.",
     alt: "Publicación de Sentinel sobre detección temprana e inteligencia territorial",
     href: "https://www.instagram.com/p/DZL3LoIjMNn/",
+    likes: "Misión Patagonia",
   },
 ];
 
 export function InstagramFeed() {
-  const [isVisible, setIsVisible] = useState(false);
-  const sectionRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setIsVisible(true);
-      },
-      { threshold: 0.05, rootMargin: "0px 0px 200px 0px" },
-    );
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <section
-      ref={sectionRef}
-      className="relative py-20 lg:py-24 overflow-hidden"
-      style={{ background: "#faf7f0" }}
+      className="relative py-24 lg:py-32 overflow-hidden bg-[#faf7f0]"
     >
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(15,122,79,0.05) 0%, transparent 70%)",
+            "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(15,122,79,0.06) 0%, transparent 70%)",
         }}
       />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10">
-        <div
-          className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-16 transition-all duration-700"
-          style={{
-            opacity: isVisible ? 1 : 0,
-            transform: isVisible ? "translateY(0)" : "translateY(16px)",
-          }}
+        
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-16"
         >
           <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase mb-4 bg-emerald-900/10 text-emerald-800 border border-emerald-700/20">
+              <Instagram className="w-3.5 h-3.5 text-emerald-700" />
+              <span>Comunidad en Redes</span>
+            </div>
+
             <h2
-              className="text-4xl sm:text-5xl lg:text-6xl mb-4"
-              style={{
-                fontFamily: "var(--font-heading)",
-                fontWeight: 800,
-                color: "rgba(26,24,18,0.92)",
-                lineHeight: 1,
-              }}
+              className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#1a1812]"
+              style={{ fontFamily: "var(--font-heading)", lineHeight: 1.05 }}
             >
-              Seguinos en <span style={{ color: "var(--green-aa)" }}>Instagram.</span>
+              Seguinos en <span className="text-[var(--green-aa)]">Instagram.</span>
             </h2>
+
             <p
-              className="max-w-md text-[13px] leading-relaxed"
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontWeight: 300,
-                color: "rgba(26,24,18,0.62)",
-              }}
+              className="mt-4 text-[15px] text-[#1a1812]/70 font-light max-w-md"
+              style={{ fontFamily: "var(--font-sans)" }}
             >
-              Prevenimos incendios y generamos datos ambientales, el detrás de
-              escena de Sentinel contado por el equipo.
+              Novedades sobre operativos, monitoreo de la temporada de incendios y actualizaciones del equipo en territorio.
             </p>
           </div>
 
           <a
-            href="https://instagram.com/sentinel.arg"
+            href="https://www.instagram.com/sentinel.patagonia"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-sm text-[13px] font-medium transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] w-fit"
-            style={{
-              fontFamily: "var(--font-sans)",
-              background: "rgba(15,122,79,0.1)",
-              border: "0.5px solid rgba(15,122,79,0.3)",
-              color: "var(--green-aa)",
-            }}
+            className="group inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full text-[13px] font-medium transition-all duration-300 bg-white border border-black/15 shadow-sm hover:shadow-md hover:border-pink-500/30 hover:text-pink-600 w-fit"
+            style={{ fontFamily: "var(--font-sans)" }}
           >
-            <Instagram className="w-4 h-4" />
-            @sentinel.arg
+            <Instagram className="w-4 h-4 text-pink-600 transition-transform duration-300 group-hover:scale-110" />
+            <span>@sentinel.patagonia</span>
+            <ArrowUpRight className="w-4 h-4 text-black/40 group-hover:text-pink-600 transition-colors" />
           </a>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* 3-Column Instagram Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {posts.map((post, i) => (
-            <a
+            <motion.div
               key={post.href}
-              href={post.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`group relative rounded-lg overflow-hidden border-[0.5px] border-[rgba(26,24,18,0.08)] transition-all duration-500 hover:-translate-y-1 hover:border-[rgba(15,122,79,0.3)] shadow-lg shadow-black/10 ${
-                i === 0
-                  ? "aspect-[4/5] sm:aspect-[4/9] sm:row-span-2"
-                  : "aspect-square sm:aspect-[16/10]"
-              }`}
-              style={{
-                opacity: isVisible ? 1 : 0,
-                transform: isVisible ? "translateY(0)" : "translateY(24px)",
-                transitionDelay: `${i * 100}ms`,
-              }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.12 }}
             >
-              <Image
-                src={post.image}
-                alt={post.alt}
-                fill
-                sizes="(max-width: 640px) 100vw, 33vw"
-                className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+              <a
+                href={post.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative flex flex-col overflow-hidden rounded-3xl bg-white border border-black/5 shadow-md hover:shadow-2xl hover:border-pink-500/30 transition-all duration-300 h-full"
+              >
+                <div className="relative aspect-square w-full overflow-hidden">
+                  <Image
+                    src={post.image}
+                    alt={post.alt}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white scale-75 group-hover:scale-100 transition-transform duration-300">
+                      <Instagram className="w-6 h-6" />
+                    </div>
+                  </div>
 
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/30" />
+                  <div className="absolute top-4 left-4">
+                    <span className="text-[10px] font-mono tracking-wider uppercase px-3 py-1 rounded-full bg-black/60 text-white/90 backdrop-blur-md border border-white/20">
+                      {post.likes}
+                    </span>
+                  </div>
+                </div>
 
-              <div className="absolute bottom-0 left-0 right-0 p-5">
-                <p
-                  className="text-[12px] leading-relaxed line-clamp-4"
-                  style={{
-                    fontFamily: "var(--font-sans)",
-                    fontWeight: 300,
-                    color: "rgba(240,234,216,0.85)",
-                  }}
-                >
-                  {post.caption}
-                </p>
-              </div>
-            </a>
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                  <p
+                    className="text-[13px] text-[#1a1812]/75 font-light leading-relaxed line-clamp-3 mb-4"
+                    style={{ fontFamily: "var(--font-sans)" }}
+                  >
+                    {post.caption}
+                  </p>
+
+                  <div className="flex items-center justify-between text-xs font-semibold text-emerald-800 group-hover:text-pink-600 transition-colors pt-3 border-t border-black/5">
+                    <span>Ver en Instagram</span>
+                    <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </div>
+                </div>
+              </a>
+            </motion.div>
           ))}
         </div>
+
       </div>
     </section>
   );

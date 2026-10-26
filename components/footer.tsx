@@ -224,6 +224,24 @@ export function Footer() {
           ))}
         </div>
 
+        {/* Live Network Telemetry Status */}
+        <div className="mb-8 p-4 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono">
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span className="text-emerald-300 font-semibold tracking-wider">
+              RED SENTINEL CLOUD: 100% OPERATIVA
+            </span>
+          </div>
+          <div className="flex items-center gap-4 text-white/50 text-[11px]">
+            <span>NODOS PATAGONIA: CONECTADOS</span>
+            <span className="hidden md:inline text-white/20">|</span>
+            <span className="hidden md:inline">DESPACHO DE ALERTAS: ACTIVO</span>
+          </div>
+        </div>
+
         {/* Bottom */}
         <div
           className="pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4"

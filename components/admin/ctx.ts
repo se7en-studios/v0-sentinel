@@ -224,6 +224,7 @@ export interface Ctx {
   atRiskHa: number;
   exportCsv: () => void;
   exportReport: () => void;
+  exportWeekly: () => Promise<void>;
   zoneRisk: Record<
     string,
     { score: number; label: string; color: string; wx: Weather }

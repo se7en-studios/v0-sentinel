@@ -43,6 +43,10 @@ export const esGoals = {
   "simple.title": "Modo simple",
   "simple.hint":
     "Muestra solo {tabs}. Lo demás queda en “Más”. Se guarda en tu cuenta.",
+  "pal.goal": "Cambiar qué vigilo (volver a elegir)",
+  "pal.simple.on": "Activar el modo simple",
+  "pal.simple.off": "Desactivar el modo simple",
+  "pal.delivery": "Configurar avisos por correo y WhatsApp",
   "brief.aria": "Novedades desde tu última visita",
   "brief.title": "Desde tu última visita",
   "brief.titleFirst": "Lo que pasa ahora",
@@ -113,6 +117,10 @@ export const enGoals: typeof esGoals = {
   "simple.title": "Simple mode",
   "simple.hint":
     "Shows only {tabs}. The rest is under “More”. Saved to your account.",
+  "pal.goal": "Change what I watch (choose again)",
+  "pal.simple.on": "Turn on simple mode",
+  "pal.simple.off": "Turn off simple mode",
+  "pal.delivery": "Set up alerts by email and WhatsApp",
   "brief.aria": "News since your last visit",
   "brief.title": "Since your last visit",
   "brief.titleFirst": "What's happening now",
@@ -184,6 +192,10 @@ export const ptGoals: typeof esGoals = {
   "simple.title": "Modo simples",
   "simple.hint":
     "Mostra só {tabs}. O resto fica em “Mais”. Salvo na sua conta.",
+  "pal.goal": "Mudar o que eu monitoro (escolher de novo)",
+  "pal.simple.on": "Ativar o modo simples",
+  "pal.simple.off": "Desativar o modo simples",
+  "pal.delivery": "Configurar avisos por e-mail e WhatsApp",
   "brief.aria": "Novidades desde a sua última visita",
   "brief.title": "Desde a sua última visita",
   "brief.titleFirst": "O que está acontecendo agora",

@@ -11,18 +11,18 @@ export const esFires = {
   "trk.case.puerto-patriada.when": "Chubut, enero 2026",
   "trk.src.case":
     "Reconstrucción con el archivo científico de FIRMS y validación con Sentinel-2. {when}.",
-  "trk.src.updated": "Actualizado {time} · NOAA-20 y NOAA-21, últimos 10 días",
+  "trk.src.updated": "Actualizado {time} · satélites NOAA-20 y NOAA-21, últimos 10 días",
   "trk.src.snapshot":
-    "Instantánea del {time} · NOAA-20 y NOAA-21, últimos 10 días",
+    "Copia guardada del {time} · satélites NOAA-20 y NOAA-21, últimos 10 días",
   "trk.src.fallback":
-    "La consulta en vivo no respondió. Se muestra la última instantánea.",
+    "No pudimos traer los datos en vivo. Te mostramos la última copia guardada.",
   "trk.src.fallbackNote":
-    "La consulta en vivo no respondió ({note}). Se muestra la última instantánea.",
+    "No pudimos traer los datos en vivo ({note}). Te mostramos la última copia guardada.",
   "trk.err.title": "No se pudieron cargar los incendios",
-  "trk.err.noData": "sin datos en vivo ni instantánea",
-  "trk.toast.miss": "Este grupo no está entre los incendios seguidos",
+  "trk.err.noData": "no hay datos en vivo ni una copia guardada",
+  "trk.toast.miss": "Este grupo de focos no es uno de los incendios que seguimos",
   "trk.toast.missDesc":
-    "El seguimiento cubre la Argentina con los últimos 10 días de NOAA-20 y NOAA-21.",
+    "Seguimos los incendios de Argentina de los últimos 10 días (satélites NOAA-20 y NOAA-21).",
 
   // shared words
   "trk.foci.one": "{n} foco",
@@ -80,7 +80,7 @@ export const esFires = {
   "trk.ev.merge": "Se une el incendio #{ref}",
   "trk.ev.merge.d": "Los perímetros se tocaron",
   "trk.ev.latent": "Sin detecciones por 5 días",
-  "trk.ev.latent.d": "Pasa a latente (regla FEDS)",
+  "trk.ev.latent.d": "Queda en pausa: ya no se detecta calor",
   "trk.ev.out": "Sin detecciones por 20 días",
   "trk.ev.out.d": "Se considera extinguido",
 
@@ -96,7 +96,7 @@ export const esFires = {
   "trk.stat.growth24": "Crecimiento 24 h",
   "trk.stat.alerts48": "Alertas 48 h",
   "trk.ov.forestNote":
-    "Forestal: la mayoría de los focos del incendio cae sobre bosque o arbustal (ESA WorldCover, 1 km). Es una estimación, no una verificación en campo.",
+    "Forestal: la mayoría de los focos del incendio cae sobre bosque o arbustal, según el mapa de cobertura de la ESA (1 km). Es una estimación, no una verificación en el campo.",
   "trk.ov.bySize": "Por superficie",
   "trk.ov.countOf": "{n} de {total}",
   "trk.ov.searchLabel": "Buscar un incendio por lugar o provincia",

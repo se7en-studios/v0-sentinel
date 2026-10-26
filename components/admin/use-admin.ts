@@ -29,6 +29,7 @@ import { useEarly } from "./hooks/use-early";
 import { useTerrain } from "./hooks/use-terrain";
 import { useFiresData } from "./hooks/use-fires-data";
 import { useNotifications } from "./hooks/use-notifications";
+import { useAlertDelivery } from "./hooks/use-alert-delivery";
 import { buildPaletteActions } from "./hooks/palette-actions";
 import { usePlayback } from "./hooks/use-playback";
 import { useTheme } from "./hooks/use-theme";
@@ -251,6 +252,7 @@ export function useAdmin(
     [incidentList, goTab],
   );
 
+  const deliver = useAlertDelivery(s, authedFetch);
   const { ruleFirings } = useNotifications({
     ws,
     s,
@@ -273,6 +275,7 @@ export function useAdmin(
     setPanelSeg,
     setPaletteOpen,
     mapRef,
+    deliver,
   });
   const fx = useFeedExports({
     ws,
@@ -292,6 +295,8 @@ export function useAdmin(
     ready,
     cloud,
     mapRef,
+    forecast: wr.forecast,
+    sources: [...(payload?.sources ?? []), ...(ea.earlyPayload?.sources ?? [])],
   });
 
   const ctx: Ctx = {
@@ -354,6 +359,7 @@ export function useAdmin(
     atRiskHa: fx.atRiskHa,
     exportCsv: fx.exportCsv,
     exportReport: fx.exportReport,
+    exportWeekly: fx.exportWeekly,
     zoneRisk: wr.zoneRisk,
     followId,
     setFollowId,
@@ -485,6 +491,7 @@ export function useAdmin(
     setOrbit,
     setPanelOpen,
     dark,
+    simple: s.simpleMode,
     toggleTheme,
     setSettings,
     mapRef,
@@ -495,6 +502,7 @@ export function useAdmin(
     exportPng: fx.exportPng,
     exportCsv: fx.exportCsv,
     exportReport: fx.exportReport,
+    exportWeekly: fx.exportWeekly,
     load,
     loadDemo: ft.loadDemo,
     t,

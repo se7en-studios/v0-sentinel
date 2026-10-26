@@ -76,6 +76,12 @@ export interface Settings {
     onZoneHit: boolean;
     onSensor: boolean;
     browser: boolean;
+    /** also send the alert rules by email / WhatsApp (off until the person activates it) */
+    deliver: boolean;
+    /** minimum minutes between two messages for the same rule */
+    minIntervalMin: number;
+    /** most messages in 24 hours, all rules together */
+    maxPerDay: number;
   };
 }
 
@@ -270,5 +276,8 @@ export const DEFAULT_SETTINGS: Settings = {
     onZoneHit: true,
     onSensor: true,
     browser: false,
+    deliver: false,
+    minIntervalMin: 60,
+    maxPerDay: 10,
   },
 };

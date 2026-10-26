@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, type RefObject } from "react";
 import { toast } from "sonner";
 import { areaHa, fmtArea } from "@/lib/admin/geo";
-import { translate, type MsgKey, type Translate } from "@/lib/admin/i18n";
+import { riskLabel, translate, type MsgKey, type Translate } from "@/lib/admin/i18n";
 import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
 import { nearestPlace } from "@/lib/admin/places";
+import { buildIncidents } from "@/lib/admin/incident";
+import type { DayForecast } from "@/lib/admin/forecast";
 import {
   downloadDataUrl,
   downloadFiresCsv,
@@ -12,11 +14,13 @@ import {
 import { FLEET } from "@/lib/admin/sim";
 import {
   MODE_ROLE,
+  REGIONS,
   type FireCluster,
   type FirePoint,
   type FiresPayload,
   type Region,
   type Settings,
+  type SourceStatus,
   type Workspace,
 } from "@/lib/admin/types";
 import type { Ctx, FeedItem, FireStats, SensorState } from "../ctx";
@@ -42,6 +46,8 @@ interface Params {
   ready: boolean;
   cloud?: CloudSession;
   mapRef: RefObject<MapHandle | null>;
+  forecast: DayForecast[] | null;
+  sources: SourceStatus[];
 }
 
 /** Activity feed, exposure figures, CSV/PDF/PNG exports and view/read-only share links. */
@@ -63,6 +69,8 @@ export function useFeedExports({
   ready,
   cloud,
   mapRef,
+  forecast,
+  sources,
 }: Params) {
   const t = useCallback<Translate>(
     (key, vars) => translate(s.locale, key, vars),
@@ -187,6 +195,66 @@ export function useFeedExports({
       locale: s.locale,
     });
 
+  /** A real PDF of the last seven days, built here from what the panel already computed (pdf-lib loads only now). */
+  const exportWeekly = async () => {
+    const id = toast.loading(t("wk.action.busy"));
+    try {
+      const [{ buildWeeklyReport }, { renderWeeklyPdf }] = await Promise.all([
+        import("@/lib/admin/weekly-report"),
+        import("@/lib/admin/weekly-pdf"),
+      ]);
+      const report = buildWeeklyReport({
+        org: s.org,
+        region: REGIONS.find((r) => r.id === s.regionId)?.name ?? region.name,
+        locale: s.locale,
+        now,
+        perDay: stats.perDay.map((d) => ({ label: d.label, count: d.count, frp: d.frp })),
+        hectares10d: stats.hectares,
+        zones: ws.features
+          .filter((f) => MODE_ROLE[String(f.properties.mode)] === "zone")
+          .map((z) => ({
+            name: ws.meta[z.id]?.name ?? t("res.zone"),
+            areaHa: areaHa(z),
+            recent: zoneHits[z.id]?.recent ?? 0,
+            total: zoneHits[z.id]?.total ?? 0,
+          })),
+        incidents: buildIncidents(fires).map((inc) => {
+          const place = nearestPlace(inc.lat, inc.lng);
+          return {
+            place: t("gen.clusterWhere", { km: place.km, near: place.near }),
+            areaHa: inc.areaHa,
+            fires: inc.count,
+            frp: inc.frp,
+            daysActive: inc.perDay.length,
+          };
+        }),
+        forecast:
+          forecast?.map((d) => ({
+            label: new Date(`${d.date}T12:00:00`).toLocaleDateString(loc, { weekday: "short", day: "numeric" }),
+            score: d.score,
+            risk: riskLabel(t, d.label),
+            color: d.color,
+          })) ?? null,
+        sources: sources.map((x) => ({
+          label: x.label,
+          ok: x.ok,
+          ageMin: x.newestAt ? Math.max(0, (now - x.newestAt) / 60_000) : undefined,
+        })),
+        activeRules: s.rules.filter((r) => r.enabled).length,
+      });
+      const bytes = await renderWeeklyPdf(report);
+      const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: "application/pdf" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `sentinel-reporte-semanal-${new Date(now).toISOString().slice(0, 10)}.pdf`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+      toast.success(t("wk.action.done"), { id });
+    } catch {
+      toast.error(t("wk.action.fail"), { id });
+    }
+  };
+
   // restore a shared view (#v=lng,lat,zoom,view)
   useEffect(() => {
     if (!ready) return;
@@ -272,6 +340,7 @@ export function useFeedExports({
     atRiskHa,
     exportCsv,
     exportReport,
+    exportWeekly,
     shareView,
     shareReadOnly,
     revokeLinks,

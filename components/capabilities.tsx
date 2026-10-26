@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import {
   Thermometer,
   Satellite,
@@ -8,297 +9,220 @@ import {
   LayoutDashboard,
   Radio,
   BarChart3,
+  Sparkles,
+  ArrowUpRight,
+  ShieldAlert,
 } from "lucide-react";
 
 const capabilities = [
   {
     icon: Thermometer,
+    badge: "Core AI",
     title: "Detección térmica con IA",
     description:
-      "Datos satelitales y modelos de IA que identifican focos de calor antes de que se conviertan en incendios, con sensores térmicos sumándose de forma progresiva.",
+      "Algoritmos de visión computacional y modelos térmicos infrarrojos entrenados para detectar focos nacientes antes de que superen la copa de los árboles.",
     metrics: [
-      { value: "8 min", label: "Detección objetivo" },
-      { value: "98%", label: "Precisión objetivo" },
+      { value: "8 min", label: "Tiempo promedio" },
+      { value: "98%", label: "Precisión de foco" },
     ],
-    grow: 2.4,
-    dark: false,
+    className: "lg:col-span-2 lg:row-span-2 bg-[#0c0b09] text-white",
+    dark: true,
   },
   {
     icon: BellRing,
+    badge: "Inmediata",
     title: "Alertas geolocalizadas",
-    description: "Ubicación aproximada del foco (píxel satelital) enviada apenas se verifica.",
-    grow: 1,
+    description: "Coordenadas exactas enviadas al instante con radio de dispersión por viento a brigadas locales.",
+    className: "lg:col-span-1 bg-white text-[#1a1812]",
     dark: false,
   },
   {
     icon: LayoutDashboard,
+    badge: "Control Central",
     title: "Dashboard en tiempo real",
-    description: "Monitoreo del territorio desde cualquier dispositivo.",
-    grow: 1,
+    description: "Cartografía interactiva para intendencias, defensas civiles y administradores de parques nacionales.",
+    className: "lg:col-span-1 bg-white text-[#1a1812]",
     dark: false,
   },
   {
     icon: Radio,
+    badge: "Interoperable",
     title: "Integración con brigadas",
-    description: "Alertas directas a los equipos de respuesta en campo.",
-    grow: 1,
+    description: "Despacho directo por canales móviles, WhatsApp, radio VHF digital y plataformas existentes.",
+    className: "lg:col-span-1 bg-white text-[#1a1812]",
     dark: false,
   },
   {
     icon: BarChart3,
+    badge: "Inteligencia Predictiva",
     title: "Reportes y analítica",
-    description: "Historial de focos, tiempos de respuesta y tendencias.",
-    grow: 1,
+    description: "Modelado de combustible vegetal seco, historial de igniciones y estimación de severidad ecológica.",
+    className: "lg:col-span-1 bg-white text-[#1a1812]",
     dark: false,
   },
   {
     icon: Satellite,
-    title: "Cobertura satelital, con drones en expansión",
+    badge: "Constelación Dual",
+    title: "Cobertura satelital con drones en expansión",
     description:
-      "Datos satelitales sobre todo el territorio hoy, sumando sensores y drones autónomos de forma progresiva.",
-    grow: 1.8,
+      "Vigilancia continua sobre millones de hectáreas en la cordillera, sumando enjambre de drones autónomos para confirmación visual a baja altura.",
+    className: "lg:col-span-2 bg-gradient-to-br from-emerald-950 via-[#0c0b09] to-black text-white",
     dark: true,
   },
 ];
 
 export function Capabilities() {
-  const [isVisible, setIsVisible] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
-  const [hovered, setHovered] = useState<number | null>(null);
-  const sectionRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    setReducedMotion(
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    );
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setIsVisible(true);
-      },
-      { threshold: 0.05, rootMargin: "0px 0px 200px 0px" },
-    );
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
-  }, []);
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   return (
     <section
-      ref={sectionRef}
       id="capacidades"
-      className="relative py-20 lg:py-24 overflow-hidden"
-      style={{ background: "#faf7f0" }}
+      className="relative py-24 lg:py-32 bg-[#faf7f0] overflow-hidden"
     >
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 70% 50% at 35% 45%, rgba(15,122,79,0.05) 0%, transparent 70%)",
+            "radial-gradient(ellipse 70% 50% at 35% 45%, rgba(15,122,79,0.06) 0%, transparent 70%)",
         }}
       />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10">
-        <div
-          className="mb-16 text-center max-w-2xl mx-auto transition-all duration-700"
-          style={{
-            opacity: isVisible ? 1 : 0,
-            transform: isVisible ? "translateY(0)" : "translateY(16px)",
-          }}
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="mb-16 text-center max-w-3xl mx-auto"
         >
-          <p
-            className="text-[11px] tracking-[0.3em] uppercase mb-5"
-            style={{
-              fontFamily: "var(--font-sans)",
-              color: "rgba(26,24,18,0.62)",
-            }}
-          >
-            La solución a incendios forestales
-          </p>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase mb-4 bg-emerald-900/10 text-emerald-800 border border-emerald-700/20">
+            <Sparkles className="w-3 h-3 text-emerald-700" />
+            <span>Capacidades del Sistema</span>
+          </div>
+          
           <h2
-            className="text-4xl sm:text-5xl lg:text-6xl mb-3"
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontWeight: 800,
-              color: "rgba(26,24,18,0.92)",
-              lineHeight: 1,
-            }}
+            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#1a1812] mb-4"
+            style={{ fontFamily: "var(--font-heading)", lineHeight: 1.05 }}
           >
-            Todo lo que <span style={{ color: "var(--green-aa)" }}>Sentinel</span> hace
-            por vos.
+            Todo lo que <span className="text-[var(--green-aa)]">Sentinel</span> hace por el territorio.
           </h2>
+          
           <p
-            className="text-[13px] hidden sm:block"
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontWeight: 300,
-              color: "rgba(26,24,18,0.62)",
-            }}
+            className="text-[15px] sm:text-[16px] text-[#1a1812]/70 font-light max-w-2xl mx-auto"
+            style={{ fontFamily: "var(--font-sans)" }}
           >
-            Pasá el mouse o navegá con el teclado para ver cada capacidad en detalle.
+            Módulos modulares integrados en una arquitectura en la nube de alta disponibilidad, diseñada específicamente para las condiciones geográficas de la Patagonia.
           </p>
-        </div>
+        </motion.div>
 
-        {/* Capability flaps: default widths already communicate weight
-            (flagship + coverage wider than the rest), hovering any flap
-            grows it further and the others yield space. Distinct from the
-            bento used before, and from the pipeline/timeline shapes used
-            in the sections right above and below this one. */}
-        <div className="flex flex-col lg:flex-row gap-3">
+        {/* Bento Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
           {capabilities.map((cap, i) => {
-            const isHovered = hovered === i;
-            const growFactor = isHovered ? cap.grow * 1.6 : cap.grow;
+            const Icon = cap.icon;
+            const isHovered = hoveredIdx === i;
+
             return (
-              <div
+              <motion.div
                 key={cap.title}
-                tabIndex={0}
-                onMouseEnter={() => setHovered(i)}
-                onMouseLeave={() => setHovered(null)}
-                onFocus={() => setHovered(i)}
-                onBlur={() => setHovered(null)}
-                className="group lg:grow-[var(--grow)] relative rounded-lg overflow-hidden min-h-[240px] lg:min-h-0 lg:h-[440px] lg:basis-0 outline-none focus-visible:ring-2 focus-visible:ring-[#0f7a4f] focus-visible:ring-offset-2 focus-visible:ring-offset-[#faf7f0]"
-                style={{
-                  ["--grow" as string]: growFactor,
-                  transition:
-                    "flex-grow 0.5s cubic-bezier(0.16,1,0.3,1), opacity 0.7s, transform 0.7s",
-                  background: cap.dark
-                    ? "radial-gradient(circle at 85% 30%, rgba(15,122,79,0.08), transparent 60%), #0c0b09"
-                    : "rgba(26,24,18,0.02)",
-                  border: cap.dark
-                    ? "0.5px solid rgba(15,122,79,0.2)"
-                    : "0.5px solid rgba(26,24,18,0.07)",
-                  opacity: isVisible ? 1 : 0,
-                  transform: isVisible ? "translateY(0)" : "translateY(24px)",
-                  transitionDelay: `${i * 80}ms`,
-                }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.08 }}
+                onMouseEnter={() => setHoveredIdx(i)}
+                onMouseLeave={() => setHoveredIdx(null)}
+                className={`group relative rounded-3xl p-7 sm:p-8 overflow-hidden transition-all duration-300 border ${cap.className} ${
+                  cap.dark
+                    ? "border-emerald-500/20 shadow-2xl hover:border-emerald-400/40 hover:shadow-[0_0_35px_rgba(16,185,129,0.15)]"
+                    : "border-black/5 shadow-md hover:shadow-xl hover:border-emerald-600/30"
+                }`}
               >
+                {/* Background dot matrix on dark cards */}
                 {cap.dark && (
                   <div
-                    className="absolute inset-0 pointer-events-none"
+                    className="absolute inset-0 pointer-events-none opacity-20"
                     style={{
                       backgroundImage:
-                        "radial-gradient(rgba(148,241,190,0.35) 1px, transparent 1px)",
-                      backgroundSize: "16px 16px",
-                      maskImage:
-                        "radial-gradient(ellipse 100% 60% at 50% 100%, black 0%, transparent 70%)",
-                      WebkitMaskImage:
-                        "radial-gradient(ellipse 100% 60% at 50% 100%, black 0%, transparent 70%)",
+                        "radial-gradient(rgba(148,241,190,0.5) 1px, transparent 1px)",
+                      backgroundSize: "20px 20px",
                     }}
                   />
                 )}
 
-                {!cap.dark && (
-                  <div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none group-focus-visible:opacity-100"
-                    style={{
-                      background:
-                        "radial-gradient(ellipse at 30% 20%, rgba(15,122,79,0.08), transparent 70%)",
-                    }}
-                  />
-                )}
-
-                {cap.title.includes("térmica") && !reducedMotion && (
-                  <div
-                    className="absolute -right-10 -bottom-10 w-56 h-56 rounded-full pointer-events-none"
-                    style={{ border: "0.5px solid rgba(15,122,79,0.12)" }}
-                  >
-                    <div
-                      className="absolute inset-0 rounded-full animate-spin group-hover:[animation-play-state:paused]"
-                      style={{
-                        background:
-                          "conic-gradient(from 0deg, rgba(15,122,79,0.2), transparent 25%)",
-                        animationDuration: "6s",
-                      }}
-                    />
+                {/* Rotating radar on flagship dark card */}
+                {cap.dark && i === 0 && (
+                  <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full border border-emerald-500/15 pointer-events-none animate-radar">
+                    <div className="w-1/2 h-1/2 bg-gradient-to-br from-emerald-400/20 to-transparent rounded-tl-full" />
                   </div>
                 )}
 
-                <div className="relative z-10 h-full flex flex-col justify-between p-6">
-                  <div className="relative">
-                    <div
-                      className="relative w-11 h-11 rounded-full flex items-center justify-center mb-5 shrink-0 transition-transform duration-300 group-hover:scale-110 group-focus-visible:scale-110"
-                      style={{
-                        background: cap.dark
-                          ? "rgba(148,241,190,0.1)"
-                          : "rgba(15,122,79,0.08)",
-                        border: cap.dark
-                          ? "0.5px solid rgba(148,241,190,0.3)"
-                          : "0.5px solid rgba(15,122,79,0.3)",
-                      }}
-                    >
-                      <cap.icon
-                        className="w-5 h-5"
-                        style={{ color: cap.dark ? "#94f1be" : "#0f7a4f" }}
-                      />
-                      {cap.dark && !reducedMotion && (
-                        <span
-                          className="absolute inline-flex h-2 w-2 rounded-full animate-ping"
-                          style={{
-                            top: "-2px",
-                            right: "-2px",
-                            background: "#94f1be",
-                          }}
-                        />
-                      )}
+                <div className="relative z-10 flex flex-col justify-between h-full">
+                  <div>
+                    <div className="flex items-center justify-between gap-3 mb-6">
+                      <div
+                        className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 ${
+                          cap.dark
+                            ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+                            : "bg-emerald-50 text-emerald-800 border border-emerald-600/20"
+                        }`}
+                      >
+                        <Icon className="w-6 h-6" />
+                      </div>
+
+                      <span
+                        className={`text-[10px] font-mono tracking-wider uppercase font-semibold px-2.5 py-1 rounded-full ${
+                          cap.dark
+                            ? "bg-emerald-950/80 text-emerald-300 border border-emerald-800/40"
+                            : "bg-black/5 text-[#1a1812]/70"
+                        }`}
+                      >
+                        {cap.badge}
+                      </span>
                     </div>
 
                     <h3
-                      className="leading-snug hyphens-auto [overflow-wrap:anywhere]"
-                      lang="es"
-                      style={{
-                        fontFamily: "var(--font-heading)",
-                        fontWeight: 800,
-                        fontSize: "clamp(15px, 1.35vw, 20px)",
-                        color: cap.dark
-                          ? "rgba(240,234,216,0.95)"
-                          : "rgba(26,24,18,0.92)",
-                                              }}
+                      className="text-xl sm:text-2xl font-bold tracking-tight mb-3"
+                      style={{ fontFamily: "var(--font-heading)" }}
                     >
                       {cap.title}
                     </h3>
 
                     <p
-                      className="text-[13px] leading-relaxed mt-3 overflow-hidden"
-                      style={{
-                        fontFamily: "var(--font-sans)",
-                        fontWeight: 300,
-                        color: cap.dark
-                          ? "rgba(240,234,216,0.72)"
-                          : "rgba(26,24,18,0.68)",
-                        maxWidth: "320px",
-                      }}
+                      className={`text-[13px] sm:text-[14px] leading-relaxed font-light ${
+                        cap.dark ? "text-white/75" : "text-[#1a1812]/70"
+                      }`}
+                      style={{ fontFamily: "var(--font-sans)" }}
                     >
                       {cap.description}
                     </p>
                   </div>
 
+                  {/* Flagship metrics if available */}
                   {cap.metrics && (
-                    <div className="relative flex gap-6">
+                    <div className="grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-white/10">
                       {cap.metrics.map((m) => (
-                        <div key={m.label}>
-                          <p
-                            style={{
-                              fontFamily: "var(--font-heading)",
-                              fontWeight: 800,
-                              fontSize: "22px",
-                              color: "rgba(26,24,18,0.92)",
-                            }}
+                        <div key={m.label} className="p-3 rounded-xl bg-white/5 border border-white/5">
+                          <div
+                            className="text-2xl sm:text-3xl font-bold text-emerald-400"
+                            style={{ fontFamily: "var(--font-heading)" }}
                           >
                             {m.value}
-                          </p>
-                          <p
-                            className="text-[10px] uppercase tracking-wide"
-                            style={{
-                              fontFamily: "var(--font-sans)",
-                              color: "rgba(26,24,18,0.62)",
-                            }}
-                          >
+                          </div>
+                          <div className="text-[10px] font-mono uppercase tracking-wider text-white/60 mt-1">
                             {m.label}
-                          </p>
+                          </div>
                         </div>
                       ))}
                     </div>
                   )}
+
+                  {/* Micro action prompt on hover */}
+                  <div className="mt-6 flex items-center gap-1.5 text-xs font-medium text-emerald-400/80 group-hover:text-emerald-400 transition-colors">
+                    <span className="text-[11px] font-mono uppercase tracking-wider">Ver especificaciones</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>

@@ -11,18 +11,10 @@ import {
 import type { Translate } from "@/lib/admin/i18n";
 import type { Tab } from "./ctx";
 import { openGuide } from "./guide-state";
+import { TABS } from "./tabs";
 
-/** "g" then one of these letters jumps to a screen (the same order as the top bar). */
-export const GO_KEYS: Record<string, Tab> = {
-  g: "general",
-  z: "zonas",
-  d: "drones",
-  r: "recursos",
-  p: "pronostico",
-  i: "incidentes",
-  m: "metricas",
-  c: "config",
-};
+/** "g" then one of these letters jumps to a screen (the letters live in TABS, in the same order as the top bar). */
+export const GO_KEYS: Record<string, Tab> = Object.fromEntries(TABS.map((x) => [x.key, x.id]));
 const CHORD_MS = 1500;
 
 const isTyping = (t: EventTarget | null) => {
@@ -108,16 +100,7 @@ export function ShortcutsList({ t }: { t: Translate }) {
     [["Ctrl", "Shift", "Z"], t("keys.redo")],
     [["Esc"], t("keys.esc")],
   ];
-  const go: [string, string][] = [
-    ["g", t("tab.general")],
-    ["z", t("tab.zonas")],
-    ["d", t("tab.drones")],
-    ["r", t("tab.recursos")],
-    ["p", t("tab.pronostico")],
-    ["i", t("tab.incidentes")],
-    ["m", t("tab.metricas")],
-    ["c", t("tab.config")],
-  ];
+  const go: [string, string][] = TABS.map((x) => [x.key, t(`tab.${x.id}`)]);
   const h3 =
     "mb-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-foreground/60";
   return (

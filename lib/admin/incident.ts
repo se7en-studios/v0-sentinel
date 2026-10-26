@@ -3,8 +3,8 @@ import type { FirePoint } from "./types";
 export interface IncidentEvent {
   day: number;
   kind: "ignition" | "explosive" | "jump";
-  title: string;
-  sub: string;
+  /** the figure the event is about: detections in the first pass, hectares gained in 24 h, or km from the burned area */
+  value: number;
 }
 
 export interface Incident {
@@ -194,8 +194,7 @@ function buildUncached(points: FirePoint[], limit: number): Incident[] {
           events.push({
             day: d,
             kind: "ignition",
-            title: "Ignición detectada",
-            sub: `${today.length} focos en el primer pase`,
+            value: today.length,
           });
         else {
           const delta = a - prevArea;
@@ -206,16 +205,14 @@ function buildUncached(points: FirePoint[], limit: number): Incident[] {
             events.push({
               day: d,
               kind: "explosive",
-              title: "Crecimiento explosivo",
-              sub: `+${Math.round(delta).toLocaleString("es-AR")} ha en 24 h`,
+              value: Math.round(delta),
             });
           const far = isolatedKm(today, seen, g, d);
           if (far.length)
             events.push({
               day: d,
               kind: "jump",
-              title: "Posible salto de fuego",
-              sub: `Foco aislado a ${Math.max(...far).toFixed(1)} km de lo ya quemado`,
+              value: Math.max(...far),
             });
         }
         prevArea = a;

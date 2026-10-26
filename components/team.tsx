@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { motion } from "framer-motion";
+import { Linkedin, Users } from "lucide-react";
 
 const teamMembers = [
   {
@@ -39,100 +40,107 @@ const teamMembers = [
 ];
 
 export function Team() {
-  const [isVisible, setIsVisible] = useState(false);
-  const sectionRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setIsVisible(true);
-      },
-      { threshold: 0.05, rootMargin: "0px 0px 200px 0px" },
-    );
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <section
-      ref={sectionRef}
       id="equipo"
-      className="relative w-full overflow-hidden py-20 lg:py-24"
-      style={{ background: "#faf7f0" }}
+      className="relative w-full overflow-hidden py-24 lg:py-32 bg-[#faf7f0]"
     >
       <div className="relative z-10 mx-auto max-w-6xl px-6 lg:px-10">
-        <div className="mx-auto mb-16 flex max-w-2xl flex-col items-center text-center">
+        
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="mx-auto mb-16 flex max-w-2xl flex-col items-center text-center"
+        >
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase mb-4 bg-emerald-900/10 text-emerald-800 border border-emerald-700/20">
+            <Users className="w-3.5 h-3.5 text-emerald-700" />
+            <span>Fundadores & Equipo Técnico</span>
+          </div>
+
           <h2
+            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#1a1812]"
             style={{
               fontFamily: "var(--font-heading)",
-              fontWeight: 700,
-              fontSize: "clamp(1.8rem, 4vw, 2.8rem)",
-              color: "rgba(26,24,18,0.95)",
-              lineHeight: 1.15,
+              lineHeight: 1.1,
             }}
           >
             Las personas detrás de Sentinel
           </h2>
+          
           <p
-            className="mt-4"
+            className="mt-4 text-[15px] sm:text-[16px] text-[#1a1812]/70 font-light max-w-xl"
             style={{
               fontFamily: "var(--font-sans)",
-              fontWeight: 300,
-              fontSize: "15px",
-              lineHeight: 1.7,
-              color: "rgba(26,24,18,0.72)",
             }}
           >
-            Cuatro ingenieros de la Patagonia con un objetivo común: que ningún
-            incendio pase desapercibido.
+            Cuatro ingenieros de la Patagonia con un objetivo común: que ningún incendio forestal pase desapercibido.
           </p>
-        </div>
+        </motion.div>
 
-        <div
-          style={{
-            opacity: isVisible ? 1 : 0,
-            transform: isVisible ? "translateY(0)" : "translateY(24px)",
-            transition: "opacity 0.7s, transform 0.7s",
-          }}
-        >
-          <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-            {teamMembers.map((m) => (
-              <li key={m.image}>
-                <a
-                  href={m.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group relative block overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f7a4f]"
-                >
+        {/* Team Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {teamMembers.map((m, i) => (
+            <motion.div
+              key={m.name}
+              initial={{ opacity: 0, y: 25 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+            >
+              <a
+                href={m.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative block overflow-hidden rounded-2xl bg-[#0c0b09] shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className="relative aspect-[3/4] w-full overflow-hidden">
                   <Image
                     src={m.image}
                     width={480}
                     height={640}
-                    alt=""
-                    className="h-72 w-full object-cover transition-transform duration-500 group-hover:scale-105 md:h-[380px]"
+                    alt={m.name}
+                    className="h-full w-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
                   />
-                  <div
-                    className="absolute inset-x-0 bottom-0 p-4 pt-16 text-white"
-                    style={{
-                      background:
-                        "linear-gradient(to top, rgba(12,11,9,0.9), rgba(12,11,9,0))",
-                      fontFamily: "var(--font-sans)",
-                    }}
-                  >
-                    <h3
-                      className="text-base font-bold leading-tight md:text-lg"
-                      style={{ fontFamily: "var(--font-heading)" }}
-                    >
-                      {m.name}
-                    </h3>
-                    <p className="mt-0.5 text-[13px] text-white/90">{m.role}</p>
-                    <span className="sr-only"> (perfil de LinkedIn, abre en pestaña nueva)</span>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0c0b09] via-black/30 to-transparent" />
+                </div>
+
+                {/* Info Card Overlay */}
+                <div
+                  className="absolute inset-x-0 bottom-0 p-5 text-white"
+                  style={{ fontFamily: "var(--font-sans)" }}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="text-[10px] font-mono tracking-wider uppercase text-emerald-400 font-semibold">
+                      {m.role}
+                    </span>
+                    <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-white/80 group-hover:bg-emerald-500 group-hover:text-black transition-all">
+                      <Linkedin className="w-3.5 h-3.5" />
+                    </div>
                   </div>
-                </a>
-              </li>
-            ))}
-          </ul>
+
+                  <h3
+                    className="text-lg font-bold text-white group-hover:text-emerald-300 transition-colors"
+                    style={{ fontFamily: "var(--font-heading)" }}
+                  >
+                    {m.name}
+                  </h3>
+
+                  <p className="text-[11px] text-white/70 font-mono mt-0.5">
+                    {m.degree}
+                  </p>
+
+                  <p className="text-[12px] text-white/60 font-light mt-2 line-clamp-2 leading-snug">
+                    {m.bio}
+                  </p>
+                </div>
+              </a>
+            </motion.div>
+          ))}
         </div>
+
       </div>
     </section>
   );

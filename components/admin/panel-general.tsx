@@ -239,6 +239,9 @@ function AnalysisTab({ ctx }: { ctx: Ctx }) {
           <Btn onClick={ctx.exportReport} disabled={!ctx.payload}>
             <FileText className="size-3.5" /> {t("gen.pdf")}
           </Btn>
+          <Btn onClick={ctx.exportWeekly} disabled={!ctx.payload} className="col-span-2" title={t("wk.action.hint")}>
+            <FileText className="size-3.5" /> {t("wk.action")}
+          </Btn>
         </div>
       </Card>
     </>

@@ -19,6 +19,7 @@ import {
 } from "@/lib/admin/types";
 import type { Ctx } from "./ctx";
 import { IntegrationsCard } from "./integrations-card";
+import { DeliveryCard } from "./delivery-card";
 import { Badge, Btn, Card, Field, Toggle, inputCls } from "./ui";
 import { scrollToSources } from "./scroll-to-sources";
 
@@ -361,7 +362,7 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
           </div>
         </Card>
 
-        <Card title={t("set.notify")} right={<Badge>{t("set.notify.soon")}</Badge>}>
+        <Card title={t("set.notify")}>
           <div className="grid gap-3 md:grid-cols-2">
             <Field label={t("set.notify.email")}>
               <input
@@ -377,7 +378,7 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
                 type="tel"
                 className={inputCls}
                 value={s.notify.whatsapp}
-                placeholder="+54 9 11 ..."
+                placeholder="+5492991234567"
                 onChange={(e) => setSettings({ notify: { ...s.notify, whatsapp: e.target.value } })}
               />
             </Field>
@@ -408,6 +409,8 @@ export function SettingsView({ ctx }: { ctx: Ctx }) {
           </div>
           <p className="mt-1 text-[11px] text-foreground/60">{t("set.notify.note")}</p>
         </Card>
+
+        <DeliveryCard ctx={ctx} />
       </Group>
 
       <Group id="set-integrations" title={t("int.title")}>

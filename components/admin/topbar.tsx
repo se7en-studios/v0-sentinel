@@ -280,6 +280,9 @@ export function Topbar({ a }: { a: A }) {
             <DropdownMenuItem onSelect={ctx.exportReport}>
               <FileText className="size-4" /> {t("top.pdf")}
             </DropdownMenuItem>
+            <DropdownMenuItem onSelect={ctx.exportWeekly}>
+              <FileText className="size-4" /> {t("wk.action")}
+            </DropdownMenuItem>
             <DropdownMenuItem onSelect={ctx.exportCsv}>
               <Download className="size-4" /> {t("top.csv")}
             </DropdownMenuItem>
@@ -413,6 +416,9 @@ export function Topbar({ a }: { a: A }) {
           )}
           <DropdownMenuItem onSelect={ctx.exportReport}>
             <FileText className="size-4" /> {t("top.pdf")}
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={ctx.exportWeekly}>
+            <FileText className="size-4" /> {t("wk.action")}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={ctx.exportCsv}>
             <Download className="size-4" /> {t("top.csv")}
