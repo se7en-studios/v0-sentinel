@@ -250,7 +250,7 @@ export function Features() {
 
           <div className="grid sm:grid-cols-3 gap-4 text-xs font-mono">
             <div className="p-3 rounded-lg bg-white/5 border border-white/5">
-              <span className="text-white/40 block text-[10px] uppercase">Fuente Primaria</span>
+              <span className="text-white/60 block text-[10px] uppercase">Fuente Primaria</span>
               <span className="text-emerald-300 font-bold text-[13px]">
                 {activeStep === 0 && "VIIRS / MODIS / GOES-19"}
                 {activeStep === 1 && "Red Neuronal Sentinel-V2"}
@@ -259,7 +259,7 @@ export function Features() {
               </span>
             </div>
             <div className="p-3 rounded-lg bg-white/5 border border-white/5">
-              <span className="text-white/40 block text-[10px] uppercase">Estado de Proceso</span>
+              <span className="text-white/60 block text-[10px] uppercase">Estado de Proceso</span>
               <span className="text-emerald-300 font-bold text-[13px]">
                 {activeStep === 0 && "BARRIDO SATELITAL ACTIVO"}
                 {activeStep === 1 && "FILTRADO FALSOS POSITIVOS: 98%"}
@@ -268,7 +268,7 @@ export function Features() {
               </span>
             </div>
             <div className="p-3 rounded-lg bg-white/5 border border-white/5">
-              <span className="text-white/40 block text-[10px] uppercase">Objetivo Operativo</span>
+              <span className="text-white/60 block text-[10px] uppercase">Objetivo Operativo</span>
               <span className="text-emerald-300 font-bold text-[13px]">
                 {activeStep === 0 && "Detección térmica <15 min"}
                 {activeStep === 1 && "Cero alarmas falsas"}

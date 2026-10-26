@@ -199,7 +199,7 @@ export function HowItWorks() {
                         >
                           {step.metrics.map((m) => (
                             <div key={m.label} className="p-2 rounded-lg bg-emerald-50/60 border border-emerald-600/10">
-                              <span className="text-[10px] text-emerald-900/60 uppercase block">{m.label}</span>
+                              <span className="text-[10px] text-emerald-900/80 uppercase block">{m.label}</span>
                               <span className="text-emerald-900 font-bold text-[13px]">{m.value}</span>
                             </div>
                           ))}
