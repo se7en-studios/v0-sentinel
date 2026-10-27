@@ -183,7 +183,7 @@ export function AwardsPanels({ entries }: { entries: AwardEntry[] }) {
           scrollTrigger: {
             trigger: root,
             start: "top top",
-            end: () => `+=${dist()}`,
+            end: () => `+=${Math.round(dist() * 0.6)}`, // 60 %: el recorrido horizontal es más veloz que el scroll, para no alargar la página
             pin: true,
             scrub: 0.6,
             anticipatePin: 1,

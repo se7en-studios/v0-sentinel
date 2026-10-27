@@ -38,7 +38,7 @@ export function ProblemReveal({ lines }: { lines: string[] }) {
           scrollTrigger: {
             trigger: root,
             start: "top top",
-            end: () => `+=${Math.round(window.innerHeight * 2.4)}`,
+            end: () => `+=${Math.round(window.innerHeight * 1.8)}`,
             pin: true,
             scrub: 0.5,
             anticipatePin: 1,

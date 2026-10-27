@@ -1,8 +1,7 @@
-import Image from "next/image";
 import { ArrowDown, ArrowRight } from "lucide-react";
-import { PHOTOS, creditLine } from "@/lib/photos";
 import { HeroReveal } from "@/components/hero-reveal";
 import { Magnetic } from "@/components/ui/magnetic";
+import { HeroWorldVideo } from "@/components/hero-world-video";
 
 const PROOFS = [
   "Lee NASA FIRMS y GOES-19",
@@ -16,39 +15,27 @@ const delay = (ms: number) => ({ "--d": `${ms}ms` }) as React.CSSProperties;
 
 // El hero pinta con CSS puro (.a-load): no espera a GSAP.
 export function Hero() {
-  const fire = PHOTOS.heroFire;
   return (
     <>
       <section
         id="inicio"
         className="a-root relative isolate flex min-h-[100svh] flex-col justify-end overflow-hidden"
       >
-        <div data-hero-photo className="a-photo-in absolute inset-0 -z-20 will-change-transform">
-          <Image
-            src={fire.src}
-            alt={fire.alt}
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
-            style={{ objectPosition: fire.position }}
-          />
+        {/* Fondo azul noche que continúa el del video; el wrapper conserva data-hero-photo para el efecto de scroll. */}
+        <div
+          data-hero-photo
+          className="a-photo-in absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_72%_46%,#10203a_0%,#0b1426_52%,#0a1018_100%)] will-change-transform"
+        >
+          <HeroWorldVideo />
         </div>
         <div data-hero-dim aria-hidden className="absolute inset-0 -z-10 bg-a-bg opacity-0" />
+        <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-r from-[#0a1018]/75 via-[#0a1018]/10 to-transparent to-60%" />
         <div
           aria-hidden
-          className="absolute inset-0 -z-10 bg-gradient-to-t from-a-bg/90 via-a-bg/30 to-transparent to-55%"
+          className="absolute inset-0 -z-10 bg-gradient-to-t from-a-bg/90 via-a-bg/20 to-transparent to-45%"
         />
-        {/* Marcador de detección sobre el frente de fuego; solo desktop, la foto recorta distinto en mobile. */}
-        <div aria-hidden className="a-ping pointer-events-none absolute right-[24%] top-[72%] hidden md:block" style={delay(1900)}>
-          <span className="a-ping-ring" />
-          <span className="a-ping-dot" />
-          <span className="a-ping-line" />
-          <span className="a-ping-tag">Foco detectado</span>
-        </div>
-        <p className="absolute right-5 top-20 text-[0.8125rem] text-white/70 md:right-8">{creditLine(fire)}</p>
 
-        <div className="mx-auto w-full max-w-6xl px-5 pb-8 pt-32 md:px-8 md:pb-12">
+        <div className="relative z-[2] mx-auto w-full max-w-6xl px-5 pb-8 pt-32 md:px-8 md:pb-12">
           <h1 className="a-display a-display-xl max-w-6xl" aria-label={HEADLINE}>
             {HEADLINE.split(" ").map((w, i) => (
               <span key={i} aria-hidden>

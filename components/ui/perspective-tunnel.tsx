@@ -211,7 +211,7 @@ export function PerspectiveTunnel({
   return (
     <section
       ref={sectionRef}
-      className="a-root relative h-[420svh]"
+      className="a-root relative h-[320svh]"
       aria-label={eyebrow}
     >
       <div
