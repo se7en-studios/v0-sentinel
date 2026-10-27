@@ -56,7 +56,13 @@ export function Footer() {
         { icon: "doc", label: "créditos de imágenes", href: "/creditos" },
       ]}
       copyright={`© ${new Date().getFullYear()} Sentinel`}
-      credit="Creado por Se7en Dev"
+      credit={
+        <>
+          Creado por
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/se7en-logo.png" alt="Se7en Dev" width={160} height={45} />
+        </>
+      }
       handle={{
         label: "@sentinel.arg",
         href: "https://instagram.com/sentinel.arg",

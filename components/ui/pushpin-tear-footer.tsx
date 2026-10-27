@@ -289,7 +289,7 @@ export type PushpinTearFooterProps = {
   /** Two links either side of the wordmark. */
   sideLinks?: IconLink[];
   copyright?: string;
-  credit?: string;
+  credit?: React.ReactNode;
   handle?: TearLink;
   sheet?: string;
   paper?: string;
@@ -766,6 +766,7 @@ const CSS =
   ".tpf-badge{display:none}" +
   ".tpf-eye{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--tpf-on-paper)}" +
   ".tpf-bub{padding:0 .8em;background:rgba(6,20,13,.78);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--tpf-on-paper) 28%,transparent)}.tpf-bub b{max-width:8em;opacity:1}.tpf-dots{display:none}" +
+  ".tpf-credit{display:inline-flex;align-items:center;gap:.7em;text-decoration:none}.tpf-credit img{height:1.9em;width:auto;display:block;max-width:none}" +
   ".tpf-credit{opacity:.85}.tpf-col h3{opacity:.9}" +
   // phone column
   "@container (max-width: 620px){" +
@@ -872,7 +873,7 @@ export default function PushpinTearFooter({
   chat = { label: "escribinos" },
   sideLinks = DEFAULT_SIDES,
   copyright = "© 2026 Sentinel",
-  credit = "",
+  credit = null,
   handle = {
     label: "@sentinel.arg",
     href: "https://instagram.com/sentinel.arg",
