@@ -8,6 +8,7 @@ const footerLinks = {
     { label: "Para quién", href: "/#para-quien" },
     { label: "Datos en vivo", href: "/#en-vivo" },
     { label: "Metodología", href: "/metodologia" },
+    { label: "Créditos de imágenes", href: "/creditos" },
   ],
   Empresa: [
     { label: "Equipo", href: "/#equipo" },

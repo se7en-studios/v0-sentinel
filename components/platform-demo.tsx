@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { CLAIMS } from "@/lib/claims";
+import { PHOTOS, creditLine } from "@/lib/photos";
 
 // Recorte nítido de una captura: la imagen se agranda a 1/w del ancho del marco
 // y se desplaza (x, y) en fracción de la propia imagen. Las capturas son 16:10 y
@@ -118,6 +119,8 @@ function CropStack({ active }: { active: number }) {
     </div>
   );
 }
+
+const SPACE = [PHOTOS.satChubut, PHOTOS.satAlerces, PHOTOS.satNasa];
 
 const KEYS: Record<string, number> = {
   ArrowDown: 1,
@@ -338,6 +341,44 @@ export function PlatformDemo() {
         figuran como simulación y la propagación prevista es una demo; hoy la
         lectura es satelital.
       </p>
+
+      <h3 className="mt-24 text-xs font-medium uppercase tracking-[0.16em] text-[#4b5750]">
+        Lo que se ve desde el espacio
+      </h3>
+      <p className="a-sub mt-3 max-w-2xl">
+        Son imágenes Sentinel-2 del programa Copernicus de los incendios de
+        Chubut y de Los Alerces: se ven las cicatrices de quema y las columnas
+        de humo. Ilustran lo que se ve desde órbita; el producto usa lecturas
+        térmicas VIIRS, MODIS y GOES-19, no estas imágenes.
+      </p>
+      <ul
+        aria-label="Imágenes satelitales de incendios en la Patagonia"
+        className="-mx-5 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-4 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 md:pb-0"
+      >
+        {SPACE.map((p) => (
+          <li key={p.src} className="w-[82%] shrink-0 snap-start md:w-auto">
+            <div className="a-brackets">
+              <span className="a-bk a-bk-tr" aria-hidden />
+              <span className="a-bk a-bk-bl" aria-hidden />
+              <div className="a-wipe relative aspect-[4/3] overflow-hidden">
+                <Image
+                  src={p.src}
+                  alt={p.alt}
+                  fill
+                  sizes="(min-width: 1100px) 360px, (min-width: 768px) 33vw, 82vw"
+                  loading="lazy"
+                  className="object-cover"
+                  style={{ objectPosition: p.position }}
+                />
+              </div>
+            </div>
+            <p className="mt-3 text-xs leading-relaxed text-[#4b5750]">
+              {p.caption}
+              <span className="block">{creditLine(p)}</span>
+            </p>
+          </li>
+        ))}
+      </ul>
     </>
   );
 }

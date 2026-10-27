@@ -10,6 +10,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { AlertPhone } from "@/components/alert-phone";
+import { PHOTOS, creditLine, type Photo } from "@/lib/photos";
 
 const AUDIENCES: {
   href: string;
@@ -17,7 +18,7 @@ const AUDIENCES: {
   who: string;
   problem: string;
   gets: string;
-  photo?: { src: string; position: string };
+  photo: Photo;
 }[] = [
   {
     href: "/?perfil=municipio#contacto",
@@ -25,6 +26,7 @@ const AUDIENCES: {
     who: "Municipios y Defensa Civil",
     problem: "Se enteran por un llamado, cuando el fuego ya avanzó.",
     gets: "Una consola con focos verificados y contexto de propagación para activar el protocolo a tiempo.",
+    photo: PHOTOS.aftermathRoad,
   },
   {
     href: "/?perfil=brigada#contacto",
@@ -32,7 +34,7 @@ const AUDIENCES: {
     who: "Brigadas y bomberos",
     problem: "Salir sin saber dónde está el frente ni hacia dónde sopla.",
     gets: "Una alerta por WhatsApp con coordenadas, viento y acceso, directo al celular del equipo.",
-    photo: { src: "/problem-a3.jpg", position: "50% 62%" },
+    photo: PHOTOS.brigadePack,
   },
   {
     href: "/?perfil=campo#contacto",
@@ -40,7 +42,7 @@ const AUDIENCES: {
     who: "Campos y productores",
     problem: "Un foco cercano que nadie ve a tiempo pone en juego el año.",
     gets: "Un aviso temprano sobre tus lotes y un registro del evento para decidir y documentar.",
-    photo: { src: "/problem-a2.jpg", position: "50% 75%" },
+    photo: PHOTOS.valleySmoke,
   },
   {
     href: "#contacto",
@@ -48,6 +50,7 @@ const AUDIENCES: {
     who: "Forestales",
     problem: "Las plantaciones están lejos y se miran poco entre recorridas.",
     gets: "Lectura satelital continua de tu zona y aviso cuando aparece calor cerca.",
+    photo: PHOTOS.burnedForest,
   },
   {
     href: "#contacto",
@@ -55,6 +58,7 @@ const AUDIENCES: {
     who: "Aseguradoras",
     problem: "Valuar y documentar un siniestro sin datos de cuándo empezó.",
     gets: "Un historial de focos con fecha, fuente y ubicación para respaldar el análisis.",
+    photo: PHOTOS.smokeColumn,
   },
   {
     href: "#contacto",
@@ -62,6 +66,7 @@ const AUDIENCES: {
     who: "ONG y áreas protegidas",
     problem: "Cuidar mucho territorio con pocos guardaparques.",
     gets: "Alertas sobre el área que cuidás y mapas para coordinar con brigadas.",
+    photo: PHOTOS.landscape,
   },
 ];
 
@@ -93,31 +98,26 @@ export function Audiences() {
               key={who}
               className="a-lift group relative flex min-h-[30rem] w-[78%] shrink-0 snap-start flex-col justify-end overflow-hidden rounded-2xl border border-a-line bg-a-card p-6 md:w-[300px]"
             >
-              {photo ? (
-                <>
-                  <div className="a-wipe absolute inset-0 overflow-hidden">
-                    <Image
-                      src={photo.src}
-                      alt=""
-                      fill
-                      sizes="(min-width: 768px) 300px, 78vw"
-                      loading="lazy"
-                      className="a-zoom object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                      style={{ objectPosition: photo.position }}
-                    />
-                  </div>
-                  <div
-                    aria-hidden
-                    className="absolute inset-0 bg-gradient-to-t from-a-bg via-a-bg/85 to-a-bg/10"
-                  />
-                </>
-              ) : (
-                <Icon
-                  className="absolute left-6 top-6 size-20 text-a-accent"
-                  strokeWidth={1}
-                  aria-hidden
+              <div className="a-wipe absolute inset-0 overflow-hidden">
+                <Image
+                  src={photo.src}
+                  alt=""
+                  fill
+                  sizes="(min-width: 768px) 300px, 78vw"
+                  loading="lazy"
+                  className="a-zoom object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  style={{ objectPosition: photo.position }}
                 />
-              )}
+              </div>
+              <div
+                aria-hidden
+                className="absolute inset-0 bg-gradient-to-t from-a-bg via-a-bg/85 to-a-bg/25"
+              />
+              <Icon
+                className="absolute left-6 top-6 size-9 text-a-accent"
+                strokeWidth={1.5}
+                aria-hidden
+              />
               <div className="relative flex flex-col">
                 <h3 className="text-xl font-semibold tracking-tight text-white">
                   {who}
@@ -130,6 +130,7 @@ export function Audiences() {
                     aria-hidden
                   />
                 </a>
+                <p className="mt-4 text-xs text-white/70">{creditLine(photo)}</p>
               </div>
             </li>
           ))}

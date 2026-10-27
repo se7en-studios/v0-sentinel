@@ -1,9 +1,9 @@
 import Image from "next/image";
 import { ScrollWords } from "@/components/ui/scroll-words";
-import { PHOTOS } from "@/lib/photos";
+import { PHOTOS, creditLine } from "@/lib/photos";
 
 export function Manifesto() {
-  const photo = PHOTOS.problemTall2;
+  const photo = PHOTOS.brigadeSmoke;
   return (
     <section aria-label="Por qué Sentinel" className="a-forest px-5 py-20 md:px-8 md:py-32">
       <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 lg:grid-cols-[1fr_300px] lg:gap-16">
@@ -27,10 +27,13 @@ export function Manifesto() {
               sizes="300px"
               loading="lazy"
               className="a-parallax h-[118%] w-full object-cover"
+              style={{ objectPosition: photo.position }}
             />
             </div>
           </div>
-          <figcaption className="mt-3 text-xs text-a-mute">{photo.caption}</figcaption>
+          <figcaption className="mt-3 text-xs text-a-mute">
+            {photo.caption} <span className="text-a-faint">{creditLine(photo)}</span>
+          </figcaption>
         </figure>
       </div>
     </section>

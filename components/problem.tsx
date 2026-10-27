@@ -1,22 +1,8 @@
 import Image from "next/image";
 import { CLAIMS } from "@/lib/claims";
+import { PHOTOS, creditLine } from "@/lib/photos";
 
-// ponytail: rutas directas; si aparece lib/photos.ts, cambiar acá. problem-a4 es un
-// collage de tres tomas y no sirve recortado, por eso la tira lleva solo a2 y a3.
-const STRIP = [
-  {
-    src: "/problem-a2.jpg",
-    alt: "Frente de fuego en la ladera de un cerro frente a un lago, con el cielo rojo de humo",
-    caption: "Frente de fuego sobre un lago patagónico. Foto de archivo.",
-    position: "50% 70%",
-  },
-  {
-    src: "/problem-a3.jpg",
-    alt: "Ladera ardiendo de noche sobre un lago, con árboles en primer plano",
-    caption: "Ladera en llamas sobre un lago patagónico. Foto de archivo.",
-    position: "50% 60%",
-  },
-];
+const STRIP = [PHOTOS.problemBrigade, PHOTOS.problemShore];
 
 export function Problem() {
   return (
@@ -25,13 +11,13 @@ export function Problem() {
         {/* Marco más bajo que la imagen: .a-parallax la desplaza lento al scrollear. */}
         <div className="a-parallax absolute inset-x-0 -top-[9%] h-[118%]">
           <Image
-            src="/problem-a1.jpg"
-            alt="Incendio forestal de noche en la Patagonia andina, visto desde el aire"
+            src={PHOTOS.problemWide.src}
+            alt={PHOTOS.problemWide.alt}
             fill
             sizes="100vw"
             loading="lazy"
             className="object-cover"
-            style={{ objectPosition: "50% 40%" }}
+            style={{ objectPosition: PHOTOS.problemWide.position }}
           />
         </div>
         <div
@@ -47,8 +33,11 @@ export function Problem() {
           </h2>
         </div>
       </div>
+      <p className="mx-auto w-full max-w-[1100px] px-5 pt-3 text-xs leading-relaxed text-a-faint md:px-8 md:text-right">
+        {PHOTOS.problemWide.caption} {creditLine(PHOTOS.problemWide)}
+      </p>
 
-      <div className="mx-auto w-full max-w-[1100px] px-5 py-20 md:px-8 md:py-28">
+      <div className="mx-auto w-full max-w-[1100px] px-5 pb-20 pt-12 md:px-8 md:pb-28 md:pt-16">
         <div className="a-sub grid grid-cols-1 gap-x-12 gap-y-5 md:grid-cols-2">
           <p className="a-rise [animation-range:entry_4%_entry_48%]">
             Casi todos los incendios grandes empiezan chicos: una brasa, una
@@ -90,7 +79,7 @@ export function Problem() {
                     src={p.src}
                     alt={p.alt}
                     fill
-                    sizes="(min-width: 768px) 600px, 100vw"
+                    sizes="(min-width: 1100px) 600px, (min-width: 768px) 54vw, 100vw"
                     loading="lazy"
                     className="object-cover"
                     style={{ objectPosition: p.position }}
@@ -99,7 +88,10 @@ export function Problem() {
               </div>
               <p className="mt-4 flex gap-3 border-t border-a-line pt-3 text-xs leading-relaxed text-a-faint">
                 <span aria-hidden className="tabular-nums text-a-accent">0{i + 1}</span>
-                {p.caption}
+                <span>
+                  {p.caption}
+                  <span className="block opacity-80">{creditLine(p)}</span>
+                </span>
               </p>
             </li>
           ))}

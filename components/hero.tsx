@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { ArrowRight, BellRing, ScanSearch, Satellite } from "lucide-react";
-import { PHOTOS } from "@/lib/photos";
+import { PHOTOS, creditLine } from "@/lib/photos";
 
 const POINTS = [
   { icon: Satellite, label: "Lectura satelital" },
@@ -25,6 +25,9 @@ export function Hero() {
           className="a-kenburns -z-20 object-cover"
           style={{ objectPosition: fire.position }}
         />
+        <p className="absolute right-5 top-[5.25rem] z-0 text-xs text-white/60 md:right-8">
+          {creditLine(fire)}
+        </p>
         {/* Scrim mínimo: solo abajo/izquierda, donde va el texto. */}
         <div
           aria-hidden
