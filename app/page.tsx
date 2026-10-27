@@ -19,9 +19,6 @@ const Tunnel = dynamic(() => import("@/components/tunnel").then((m) => m.Tunnel)
 const Platform = dynamic(() =>
   import("@/components/platform").then((m) => m.Platform),
 );
-const Coverage = dynamic(() =>
-  import("@/components/coverage").then((m) => m.Coverage),
-);
 const LiveChapter = dynamic(() =>
   import("@/components/live").then((m) => m.LiveChapter),
 );
@@ -48,7 +45,6 @@ export default function Home() {
         <Problem />
         <Tunnel />
         <Platform />
-        <Coverage />
         <LiveChapter />
         <Audiences />
         <World />
