@@ -36,171 +36,41 @@ export default function BlogIndex() {
       </header>
 
       <main id="main-content" className="a-root min-h-screen">
-        <section className="relative pt-40 pb-20 lg:pt-48 lg:pb-28 px-6 lg:px-10">
-          <div className="max-w-5xl mx-auto">
-            {/* Breadcrumb */}
-            <nav
-              aria-label="Ruta de navegación"
-              className="a-load flex items-center gap-2 mb-6 text-[12px]"
-              style={{
-                fontFamily: "var(--font-sans)",
-                color: "#9fb5a7",
-              }}
-            >
-              <Link href="/" className="hover:text-a-accent transition-colors">
-                Inicio
-              </Link>
-              <span className="text-xs opacity-60">/</span>
-              <span
-                className="font-light"
-                style={{ color: "#e3f6dc" }}
-              >
-                Blog
-              </span>
-            </nav>
+        <section className="mx-auto max-w-5xl px-5 pb-28 pt-36 md:px-8 lg:pt-44">
+          <h1 className="a-display-m a-load max-w-3xl">
+            Ideas sobre monitoreo forestal e inteligencia territorial.
+          </h1>
 
-            <p
-              className="text-xs tracking-[0.3em] uppercase mb-5"
-              style={{
-                fontFamily: "var(--font-sans)",
-                color: "#6f8577",
-              }}
-            >
-              Artículos y Publicaciones
-            </p>
-            <h1
-              className="a-load text-4xl sm:text-5xl lg:text-6xl mb-16"
-              style={{
-                fontFamily: "var(--font-geist)",
-                fontWeight: 600,
-                letterSpacing: "-0.03em",
-                color: "#e3f6dc",
-                lineHeight: 1.05,
-              }}
-            >
-              Ideas sobre{" "}
-              monitoreo forestal e
-              inteligencia territorial.
-            </h1>
-
-            {/* Featured — most recent post gets real weight instead of
-                sitting in the grid as just another identical tile. */}
-            {posts[0] && (
-              <Link
-                href={`/blog/${posts[0].slug}`}
-                className="a-rise group grid sm:grid-cols-2 gap-6 sm:gap-10 items-center rounded-lg overflow-hidden mb-14 transition-all duration-300 hover:border-[rgba(169,239,201,0.4)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a9efc9]"
-                style={{
-                  background: "#16211b",
-                  border: "1px solid rgba(214,245,201,0.11)",
-                }}
-              >
-                <div
-                  className="relative w-full overflow-hidden"
-                  style={{ aspectRatio: "16/11" }}
-                >
-                  <Image
-                    src={posts[0].coverImage}
-                    alt={posts[0].title}
-                    fill
-                    sizes="(max-width: 640px) 100vw, 50vw"
-                    priority
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
-                <div className="p-6 sm:p-0 sm:pr-10">
-                  <p
-                    className="text-xs mb-3 font-normal"
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      color: "#a9efc9",
-                    }}
-                  >
-                    Última nota · {formatDate(posts[0].publishedAt, "long")}
-                  </p>
-                  <h2
-                    className="text-2xl sm:text-3xl mb-4 leading-snug font-bold transition-colors duration-200 group-hover:text-a-accent"
-                    style={{
-                      fontFamily: "var(--font-heading)",
-                      color: "#e3f6dc",
-                    }}
-                  >
-                    {posts[0].title}
-                  </h2>
-                  <p
-                    className="text-[14px] leading-relaxed line-clamp-3"
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      fontWeight: 400,
-                      color: "#9fb5a7",
-                    }}
-                  >
-                    {posts[0].excerpt}
-                  </p>
-                </div>
-              </Link>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {posts.slice(1).map((post, i) => (
+          <ul className="mt-16 divide-y divide-a-line border-y border-a-line">
+            {posts.map((post, i) => (
+              <li key={post.slug}>
                 <Link
-                  key={post.slug}
                   href={`/blog/${post.slug}`}
-                  className="a-rise group flex flex-col rounded-lg overflow-hidden transition-colors duration-300 hover:border-[rgba(169,239,201,0.4)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a9efc9]"
-                  style={{
-                    animationRange: `entry ${4 + (i % 3) * 8}% entry ${48 + (i % 3) * 8}%`,
-                    background: "#16211b",
-                    border: "1px solid rgba(214,245,201,0.11)",
-                  }}
+                  className="group grid gap-5 py-8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent md:grid-cols-[16rem_1fr] md:gap-10"
                 >
-                  <div
-                    className="relative w-full overflow-hidden"
-                    style={{ aspectRatio: "4/3" }}
-                  >
+                  <div className="relative aspect-[16/10] overflow-hidden bg-a-surface">
                     <Image
                       src={post.coverImage}
-                      alt={post.title}
+                      alt=""
                       fill
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      sizes="(max-width: 768px) 100vw, 256px"
+                      priority={i === 0}
+                      className="object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
                   </div>
-                  <div className="p-6 flex-1 flex flex-col justify-between">
-                    <div>
-                      <p
-                        className="text-xs mb-2 font-normal"
-                        style={{
-                          fontFamily: "var(--font-sans)",
-                          color: "#a9efc9",
-                        }}
-                      >
-                        {formatDate(post.publishedAt, "long")}
-                      </p>
-                      <h2
-                        className="text-lg mb-3 leading-snug font-bold transition-colors duration-200 group-hover:text-a-accent"
-                        style={{
-                          fontFamily: "var(--font-heading)",
-                          color: "#e3f6dc",
-                        }}
-                      >
-                        {post.title}
-                      </h2>
-                      <p
-                        className="text-[13px] leading-relaxed line-clamp-3"
-                        style={{
-                          fontFamily: "var(--font-sans)",
-                          fontWeight: 400,
-                          color: "#9fb5a7",
-                        }}
-                      >
-                        {post.excerpt}
-                      </p>
-                    </div>
+                  <div className="min-w-0">
+                    <p className="text-sm text-a-mute">{formatDate(post.publishedAt, "long")}</p>
+                    <h2 className="mt-2 text-2xl font-semibold leading-snug text-[#e3f6dc] transition-colors group-hover:text-a-accent">
+                      {post.title}
+                    </h2>
+                    <p className="mt-3 line-clamp-2 max-w-2xl text-base leading-relaxed text-a-mute">
+                      {post.excerpt}
+                    </p>
                   </div>
                 </Link>
-              ))}
-            </div>
-          </div>
+              </li>
+            ))}
+          </ul>
         </section>
       </main>
 

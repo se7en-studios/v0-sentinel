@@ -5,7 +5,6 @@ export const SECTIONS = [
   { id: "plataforma", label: "Cómo funciona", nav: true },
   { id: "en-vivo", label: "En vivo", nav: true },
   { id: "para-quien", label: "Para quién", nav: true },
-  { id: "reconocimientos", label: "Reconocimientos", nav: true },
-  { id: "faq", label: "FAQ", nav: true },
+  { id: "equipo", label: "Quiénes somos", nav: true },
   { id: "contacto", label: "Contacto", nav: false },
 ] as const;

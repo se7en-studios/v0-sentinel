@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
 import { Navbar } from "@/components/navbar";
 import { Hero } from "@/components/hero";
+import { SmoothScroll } from "@/components/smooth-scroll";
 import { ScrollProgress } from "@/components/scroll-progress";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 
@@ -11,15 +12,6 @@ import { WhatsAppButton } from "@/components/whatsapp-button";
 // Content itself still renders server-side (ssr defaults to true), so
 // there's no loading flash, no CLS, and no SEO impact — only the timing of
 // when each chunk's JS is parsed/hydrated changes.
-const Manifesto = dynamic(() =>
-  import("@/components/manifesto").then((m) => m.Manifesto),
-);
-const ArcSequence = dynamic(() =>
-  import("@/components/arc-sequence").then((m) => m.ArcSequence),
-);
-const FireTimeline = dynamic(() =>
-  import("@/components/fire-timeline").then((m) => m.FireTimeline),
-);
 const Problem = dynamic(() =>
   import("@/components/problem").then((m) => m.Problem),
 );
@@ -33,8 +25,6 @@ const Audiences = dynamic(() =>
   import("@/components/audiences").then((m) => m.Audiences),
 );
 const Proof = dynamic(() => import("@/components/proof").then((m) => m.Proof));
-const Pilot = dynamic(() => import("@/components/pilot").then((m) => m.Pilot));
-const FAQ = dynamic(() => import("@/components/faq").then((m) => m.FAQ));
 const CTA = dynamic(() => import("@/components/cta").then((m) => m.CTA));
 const Footer = dynamic(() =>
   import("@/components/footer").then((m) => m.Footer),
@@ -43,22 +33,18 @@ const Footer = dynamic(() =>
 export default function Home() {
   return (
     <>
+      <SmoothScroll />
       <ScrollProgress />
       <header>
         <Navbar />
       </header>
       <main id="main-content" className="a-root min-h-screen">
         <Hero />
-        <Manifesto />
-        <ArcSequence />
         <Problem />
-        <FireTimeline />
         <Platform />
         <LiveChapter />
         <Audiences />
         <Proof />
-        <Pilot />
-        <FAQ />
         <CTA />
       </main>
       <Footer />

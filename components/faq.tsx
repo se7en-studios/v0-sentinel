@@ -21,20 +21,6 @@ const faqs = [
       "Nuestra meta para un piloto es generar alertas en 4 a 8 semanas desde el inicio (estimación interna, a confirmar según el territorio). La plataforma es cloud: no hay obra ni infraestructura que instalar de tu lado, solo definir la zona a cubrir y tener acceso a internet.",
   },
   {
-    question: "¿Necesito conocimientos técnicos para usar Sentinel?",
-    answer:
-      "No. Recibís la alerta con la ubicación estimada del foco y decidís vos, sin ser experto en tecnología ni en IA. Nosotros acompañamos a tu equipo en los primeros días de uso.",
-  },
-  {
-    question: "¿Qué soporte ofrecen?",
-    answer: `En los pilotos acordamos con cada cliente el esquema de soporte (el objetivo es cubrir operaciones críticas las ${CLAIMS.monitoringHours} h), el onboarding y las actualizaciones de los modelos a medida que suman datos de tu territorio.`,
-  },
-  {
-    question: "¿Quiénes pueden usar Sentinel?",
-    answer:
-      "Municipios, brigadas de bomberos, empresas forestales, productores agropecuarios y cualquier organización que gestione grandes superficies de terreno.",
-  },
-  {
     question: "¿Los datos en vivo de la web son de la red de Sentinel?",
     answer:
       "No, y queremos ser claros: el índice de riesgo y el mapa de focos usan fuentes públicas (Open-Meteo y NASA FIRMS) a modo ilustrativo, para mostrar el mismo tipo de variables que procesa nuestro sistema. Los datos de la implementación de un cliente no son públicos ni se muestran en la web.",
@@ -59,7 +45,7 @@ export function FAQ() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
       <FaqSectionWithCategories
-        title="Lo que nos preguntan seguido"
+        title="Preguntas frecuentes"
         items={faqs}
       />
     </>

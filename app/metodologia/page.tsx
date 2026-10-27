@@ -67,9 +67,8 @@ export default function MetodologiaPage() {
         <Navbar />
       </header>
       <main id="main-content" className="a-root text-[17px] leading-relaxed">
-      <div className="mx-auto max-w-3xl px-6 py-28 text-[#cfe6d7] [&_a]:text-a-accent [&_strong]:text-[#e3f6dc]">
-        <p className="a-load mb-4 text-xs font-medium uppercase tracking-[0.16em] text-a-accent">Metodología</p>
-        <h1 className="a-title a-load mb-6 !text-left" style={{ "--d": "120ms" } as React.CSSProperties}>
+      <div className="mx-auto max-w-3xl px-6 pb-28 pt-36 text-[#cfe6d7] [&_a]:text-a-accent [&_strong]:text-[#e3f6dc]">
+        <h1 className="a-display-m a-load mb-8" style={{ "--d": "120ms" } as React.CSSProperties}>
           Cómo detectamos, qué verificamos y qué todavía no podemos afirmar.
         </h1>
         <p>

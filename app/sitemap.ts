@@ -27,6 +27,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.5,
     },
     {
+      url: `${baseUrl}/simulador`,
+      lastModified: new Date(SITE_UPDATED),
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
       url: `${baseUrl}/creditos`,
       lastModified: new Date(SITE_UPDATED),
       changeFrequency: "monthly",

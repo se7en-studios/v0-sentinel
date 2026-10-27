@@ -24,9 +24,11 @@ const logos = [
 
 export function PartnersBlock() {
   return (
-    <div className="text-center">
-      <p className="a-eyebrow a-rise">Programas y entidades en las que participamos</p>
-      <ul className="a-rise mx-auto mt-8 flex max-w-4xl flex-wrap items-center justify-center gap-x-10 gap-y-6">
+    <div>
+      <p className="a-rise text-sm font-medium uppercase tracking-[0.16em] text-[#4b5750]">
+        Programas y entidades en las que participamos
+      </p>
+      <ul className="a-rise mt-8 flex flex-wrap items-center gap-x-10 gap-y-6">
         {logos.map((l) => (
           <li key={l.id} className="flex h-10 items-center">
             <Image
@@ -35,14 +37,14 @@ export function PartnersBlock() {
               width={100}
               height={36}
               loading="lazy"
-              className="max-h-9 w-auto max-w-[100px] object-contain opacity-60 transition-opacity duration-300 hover:opacity-100"
-              // Todos los logos tienen fondo transparente: silueta blanca sobre el fondo oscuro.
-              style={{ filter: "brightness(0) invert(1)" }}
+              className="max-h-9 w-auto max-w-[100px] object-contain opacity-70"
+              // Logos con fondo transparente: silueta negra, monocromo sobre fondo claro.
+              style={{ filter: "brightness(0)" }}
             />
           </li>
         ))}
       </ul>
-      <p className="mx-auto mt-8 max-w-xl text-xs leading-relaxed text-a-faint">
+      <p className="mt-8 max-w-xl text-sm leading-relaxed text-[#4b5750]">
         Universidades de origen, organizadores de competencias y programas de los
         que Sentinel formó parte. No implica convenio ni respaldo comercial.
       </p>

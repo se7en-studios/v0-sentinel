@@ -1,36 +1,38 @@
-import { ArrowUpRight } from "lucide-react";
 import { pressMentions } from "@/lib/press-mentions";
 import { formatDate } from "@/lib/format-date";
-import { ASection, AHeading, aFocus, riseDelay } from "@/components/a-section";
+import { ASection, AHeading, aFocus } from "@/components/a-section";
 
-// Sin og:image de terceros: solo texto, así no dependemos de hotlinks ni de dominios externos.
+const MAX_LINKS = 5;
+
+// Solo texto: sin og:image de terceros ni dominios externos. Sobre fondo claro (.a-bone).
 export function PressBlock() {
   return (
-    <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {pressMentions.map((m, i) => (
-        <li key={m.url} className="a-rise min-w-0" style={riseDelay(i % 3, 8)}>
-          <a
-            href={m.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`a-card a-lift group flex h-full flex-col justify-between gap-6 p-6 ${aFocus}`}
-          >
-            <p className="text-lg font-medium leading-snug text-[#e3f6dc]">
-              &ldquo;{m.title}&rdquo;
-              <span className="sr-only"> (abre en pestaña nueva)</span>
-            </p>
-            <div className="flex items-center justify-between gap-3 text-sm">
-              <p className="min-w-0 text-a-mute">
-                <span className="font-semibold text-a-accent">{m.outlet}</span>
-                {" · "}
-                {m.date ? formatDate(m.date) : "s/f"}
-              </p>
-              <ArrowUpRight className="h-4 w-4 shrink-0 text-a-mute transition-[color,transform] duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-a-accent" aria-hidden />
-            </div>
-          </a>
-        </li>
-      ))}
-    </ul>
+    <div className="grid gap-8 md:grid-cols-[1fr_2fr]">
+      <h3 className="a-rise text-sm font-medium uppercase tracking-[0.16em] text-[#4b5750]">
+        En los medios
+      </h3>
+      <ul className="divide-y divide-[#131a16]/15 border-y border-[#131a16]/15">
+        {pressMentions.slice(0, MAX_LINKS).map((m) => (
+          <li key={m.url}>
+            <a
+              href={m.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`group block py-4 ${aFocus}`}
+            >
+              <span className="block text-base font-medium leading-snug underline decoration-transparent underline-offset-4 group-hover:decoration-[#131a16]">
+                {m.title}
+                <span className="sr-only"> (abre en pestaña nueva)</span>
+              </span>
+              <span className="mt-1 block text-sm text-[#4b5750]">
+                {m.outlet}
+                {m.date ? ` · ${formatDate(m.date)}` : ""}
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

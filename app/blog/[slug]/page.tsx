@@ -120,7 +120,7 @@ export default async function BlogPostPage({
             priority
             sizes="100vw"
             className="object-cover"
-            style={{ filter: "brightness(0.85) saturate(0.9)" }}
+            
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0c1310] via-[#0c1310]/70 to-transparent" />
         </div>
@@ -166,14 +166,7 @@ export default async function BlogPostPage({
           </p>
 
           <h1
-            className="a-load text-3xl sm:text-4xl lg:text-5xl mb-12"
-            style={{
-              fontFamily: "var(--font-geist)",
-              fontWeight: 600,
-              letterSpacing: "-0.03em",
-              color: "#e3f6dc",
-              lineHeight: 1.12,
-            }}
+            className="a-display-m a-load mb-12"
           >
             {post.title}
           </h1>
@@ -230,7 +223,7 @@ export default async function BlogPostPage({
 
           <Link
             href={post.relatedLink.href}
-            className="inline-flex items-center gap-2 mb-16 text-[13px] font-normal transition-colors hover:text-white"
+            className="inline-flex items-center gap-2 mb-16 text-sm font-normal transition-colors hover:text-white"
             style={{
               fontFamily: "var(--font-sans)",
               color: "#a9efc9",
@@ -241,11 +234,7 @@ export default async function BlogPostPage({
           </Link>
 
           <div
-            className="rounded-lg p-8 mb-20 text-center"
-            style={{
-              background: "#16211b",
-              border: "1px solid rgba(214,245,201,0.11)",
-            }}
+            className="mb-20 border-t border-a-line pt-10"
           >
             <p
               className="text-lg mb-5 font-semibold"
@@ -258,13 +247,7 @@ export default async function BlogPostPage({
             </p>
             <a
               href="/#contacto"
-              className="inline-flex items-center gap-2 px-7 py-3 rounded-sm text-[13px] font-medium transition-all duration-200 hover:-translate-y-0.5"
-              style={{
-                fontFamily: "var(--font-sans)",
-                background: "#a9efc9",
-                border: "1px solid #a9efc9",
-                color: "#06150d",
-              }}
+              className="a-pill"
             >
               Solicitar una reunión
               <ArrowRight className="w-3.5 h-3.5" />
@@ -287,14 +270,10 @@ export default async function BlogPostPage({
                   <Link
                     key={r.slug}
                     href={`/blog/${r.slug}`}
-                    className="group rounded-lg p-5 transition-all duration-300 hover:-translate-y-0.5"
-                    style={{
-                      background: "#16211b",
-                      border: "1px solid rgba(214,245,201,0.11)",
-                    }}
+                    className="group block border-t border-a-line pt-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent"
                   >
                     <p
-                      className="text-[14px] mb-2"
+                      className="text-sm mb-2"
                       style={{
                         fontFamily: "var(--font-heading)",
                         fontWeight: 700,

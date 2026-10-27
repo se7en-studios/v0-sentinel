@@ -10,8 +10,7 @@ const NAV_LINKS = [
   { id: "plataforma", label: "Cómo funciona" },
   { id: "en-vivo", label: "En vivo" },
   { id: "para-quien", label: "Para quién" },
-  { id: "reconocimientos", label: "Reconocimientos" },
-  { id: "faq", label: "FAQ" },
+  { id: "equipo", label: "Quiénes somos" },
 ];
 
 const FOCUSABLE = "a[href], button:not([disabled])";

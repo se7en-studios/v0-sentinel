@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { Linkedin } from "lucide-react";
 import { ASection, AHeading, aFocus, riseDelay } from "@/components/a-section";
 
 const teamMembers = [
@@ -39,36 +38,31 @@ const teamMembers = [
 
 export function TeamBlock() {
   return (
-    <ul className="grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-4">
+    <ul className="grid grid-cols-2 gap-x-4 gap-y-10 lg:grid-cols-4 lg:gap-x-6">
       {teamMembers.map((m, i) => (
-        <li key={m.name} className="a-rise min-w-0" style={riseDelay(i)}>
-        <div className="a-card a-lift group h-full overflow-hidden">
-          <div className="relative aspect-[4/5] bg-a-surface">
+        <li key={m.name} className="a-rise group min-w-0" style={riseDelay(i)}>
+          <div className="relative aspect-[4/5] overflow-hidden bg-[#d3cfc6]">
             <Image
               src={m.image}
               alt={`${m.name}, ${m.role}`}
               fill
               sizes="(max-width: 1024px) 46vw, 270px"
               loading="lazy"
-              className="object-cover grayscale transition-[filter,transform] duration-[900ms] ease-out group-hover:scale-[1.03] group-hover:grayscale-0 group-focus-within:grayscale-0"
+              className="object-cover grayscale transition-[filter] duration-700 ease-out group-hover:grayscale-0 group-focus-within:grayscale-0"
             />
           </div>
-          <div className="p-4 md:p-5">
-            <p className="text-xs font-medium uppercase tracking-wider text-a-accent">{m.role}</p>
-            <h3 className="mt-1.5 text-lg font-semibold leading-tight text-[#e3f6dc]">{m.name}</h3>
-            <p className="mt-1 text-sm text-a-mute">{m.degree}</p>
-            <p className="mt-3 text-sm leading-relaxed text-a-mute">{m.bio}</p>
+          <p className="mt-4 text-base font-semibold leading-snug">
             <a
               href={m.linkedin}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={`LinkedIn de ${m.name} (abre en pestaña nueva)`}
-              className={`mt-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-a-line text-a-mute transition-colors hover:border-a-accent hover:text-a-accent ${aFocus}`}
+              className={`underline decoration-[#131a16]/25 underline-offset-4 hover:decoration-[#131a16] ${aFocus}`}
             >
-              <Linkedin className="h-4 w-4" aria-hidden />
+              {m.name}
+              <span className="sr-only"> (LinkedIn, abre en pestaña nueva)</span>
             </a>
-          </div>
-        </div>
+          </p>
+          <p className="text-sm text-[#4b5750]">{m.role.split(" | ")[0]}</p>
         </li>
       ))}
     </ul>

@@ -1,199 +1,75 @@
 import Image from "next/image";
-import { ASection, AHeading, aFocus, riseDelay } from "@/components/a-section";
+import { ASection, AHeading, aFocus } from "@/components/a-section";
 import { pressMentions } from "@/lib/press-mentions";
+import { PHOTOS } from "@/lib/photos";
 
-type Item = { title: string; detail: string; href?: string };
+type Entry = { year: string; name: string; result: string; href?: string };
 
 const noteFor = (outlet: string) =>
   pressMentions.find((m) => m.outlet === outlet)?.url;
 
-const PHOTOS = [
-  {
-    src: "/logros-tile-1.jpg",
-    alt: "El equipo recibiendo el premio en ILAN 2025",
-    caption: "Premios ILAN 2025, innovación universitaria.",
-  },
-  {
-    src: "/logros-tile-3.jpg",
-    alt: "Ceremonia de los Premios Sadosky 2025",
-    caption: "Ceremonia de los Premios Sadosky 2025.",
-  },
-  {
-    src: "/logros-tile-0.jpg",
-    alt: "Participantes del Prendete Pitch Day con sus tickets simbólicos",
-    caption: "Prendete Pitch Day, CICE (Mendoza).",
-  },
-  {
-    src: "/logros-tile-4.jpg",
-    alt: "Presentación remota de Sentinel en las jornadas JIJE de la UNL",
-    caption: "JIJE 20 años, UNL: presentamos a distancia.",
-  },
+// Cronológico. Solo entradas con año confirmado en el sitio; no inventamos fechas.
+const ENTRIES: Entry[] = [
+  { year: "2025", name: "Premios ILAN, innovación universitaria", result: "Ganamos", href: noteFor("UTN") },
+  { year: "2025", name: "JIJE 20 años, UNL", result: "Ganamos" },
+  { year: "2025", name: "Premios Sadosky", result: "Ganamos", href: noteFor("CESSI") },
+  { year: "2026", name: "Premios Verdes", result: "Fuimos finalistas" },
+  { year: "2026", name: "Impact Startup Competition, Perú", result: "Fuimos finalistas" },
 ];
 
-const GROUPS: { label: string; items: Item[] }[] = [
-  {
-    label: "Ganamos",
-    items: [
-      {
-        title: "Premios ILAN 2025",
-        detail: "Innovación tecnológica universitaria, con final en Tel Aviv.",
-        href: noteFor("UTN"),
-      },
-      {
-        title: "JIJE 20 años, UNL",
-        detail:
-          "Primer puesto en las Jornadas de Ingeniería de la Universidad Nacional del Litoral.",
-      },
-      {
-        title: "Premios Sadosky 2025",
-        detail:
-          "Premios de la Cámara de la Industria Argentina del Software (CESSI).",
-        href: noteFor("CESSI"),
-      },
-    ],
-  },
-  {
-    label: "Fuimos finalistas",
-    items: [
-      {
-        title: "Premios Verdes 2026",
-        detail:
-          "Proyectos ambientales finalistas; el premio incluye un viaje a Ecuador.",
-      },
-      {
-        title: "Climate Launchpad Argentina",
-        detail:
-          "Finalistas nacionales de la competencia global de innovación climática.",
-      },
-      {
-        title: "Impact Startup Competition Perú 2026",
-        detail: "Startups de impacto ambiental de Latinoamérica.",
-      },
-    ],
-  },
-  {
-    label: "Participamos",
-    items: [
-      {
-        title: "Prendete Pitch Day, CICE",
-        detail: "Competencia de pitch para founders universitarios de Mendoza.",
-      },
-      {
-        title: "Usina Emprendedores, CAC",
-        detail:
-          "Programa de la Cámara Argentina de Comercio para escalar startups.",
-      },
-      {
-        title: "Softlanding en Europa, Piensas.xyz",
-        detail:
-          "Viaje financiado para conectar con el ecosistema tech europeo.",
-      },
-      {
-        title: "Emprelatam y Draper House Americas",
-        detail: "Programa de aceleración para startups de la región.",
-      },
-      {
-        title: "Fondo del Gobierno de Mendoza",
-        detail:
-          "USD 3.000: nuestro primer capital no dilutivo, vía fondo provincial de innovación.",
-      },
-    ],
-  },
-];
-
-function PhotoCard({ p }: { p: (typeof PHOTOS)[number] }) {
-  return (
-    <li className="w-[72vw] max-w-[320px] shrink-0 snap-start md:mr-4 md:snap-align-none">
-      <figure className="a-brackets relative aspect-[3/4] overflow-hidden rounded-2xl border border-a-line bg-a-card">
-        <Image
-          src={p.src}
-          alt={p.alt}
-          fill
-          sizes="(max-width: 640px) 72vw, 320px"
-          loading="lazy"
-          className="object-cover"
-        />
-        <span aria-hidden className="a-bk a-bk-tr" />
-        <span aria-hidden className="a-bk a-bk-bl" />
-        <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 to-transparent" />
-        <figcaption className="absolute inset-x-0 bottom-0 p-5 text-base font-medium leading-snug text-white">
-          {p.caption}
-        </figcaption>
-      </figure>
-    </li>
-  );
-}
-
-// Tira que corre sola (pausa al hover/foco). Con reduced-motion la animación se apaga
-// (globals.css) y la tira queda como scroll manual: overflow-x-auto + foco por teclado.
-// El segundo bloque es una copia aria-hidden solo para el bucle; se oculta si no hay animación.
-function PhotoStrip() {
-  return (
-    <div className="a-marquee a-photo-strip scrollbar-hide -mx-5 overflow-hidden px-5 md:-mx-8 md:px-8 [&:focus-within_.a-marquee-track]:[animation-play-state:paused]">
-      <style>{`@media (prefers-reduced-motion: reduce){.a-photo-strip{overflow-x:auto!important;scroll-snap-type:x mandatory}.a-photo-strip [data-dup]{display:none}}`}</style>
-      <div className="a-marquee-track" style={{ "--dur": "70s" } as React.CSSProperties}>
-        <ul
-          aria-label="Fotos de premios y competencias"
-          tabIndex={0}
-          className={`flex gap-4 rounded-2xl pr-4 ${aFocus}`}
-        >
-          {PHOTOS.map((p) => (
-            <PhotoCard key={p.src} p={p} />
-          ))}
-        </ul>
-        <ul aria-hidden data-dup className="flex gap-4 pr-4">
-          {PHOTOS.map((p) => (
-            <PhotoCard key={p.src} p={p} />
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-}
+const PHOTO_SLOTS = [PHOTOS.awardsGroup, PHOTOS.awardsRoom];
 
 export function AwardsBlock() {
   return (
-    <div className="grid gap-10">
-      <PhotoStrip />
-      <div className="grid gap-4 md:grid-cols-3">
-        {GROUPS.map((g, i) => (
-          <section
-            key={g.label}
-            style={riseDelay(i, 9)}
-            className="a-card a-rise min-w-0 p-6 md:p-7"
-            aria-label={g.label}
-          >
-            <h3 className="text-xs font-medium uppercase tracking-[0.16em] text-a-accent">
-              {g.label}
-            </h3>
-            <ul className="mt-5 space-y-5">
-              {g.items.map((a) => (
-                <li key={a.title}>
-                  <p className="font-semibold text-[#e3f6dc]">
-                    {a.href ? (
-                      <a
-                        href={a.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`underline decoration-a-line underline-offset-4 hover:decoration-a-accent ${aFocus}`}
-                      >
-                        {a.title}
-                        <span className="sr-only">
-                          {" "}
-                          (abre la nota en pestaña nueva)
-                        </span>
-                      </a>
-                    ) : (
-                      a.title
-                    )}
-                  </p>
-                  <p className="mt-1 text-sm leading-relaxed text-a-mute">
-                    {a.detail}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </section>
+    <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
+      <div>
+        <h3 className="a-rise text-sm font-medium uppercase tracking-[0.16em] text-[#4b5750]">
+          Reconocimientos
+        </h3>
+        <ol className="mt-6 divide-y divide-[#131a16]/15 border-y border-[#131a16]/15">
+          {ENTRIES.map((e) => (
+            <li
+              key={`${e.year}-${e.name}`}
+              className="grid grid-cols-[3.5rem_1fr] gap-x-4 py-4 sm:grid-cols-[3.5rem_1fr_auto]"
+            >
+              <span className="text-sm tabular-nums text-[#4b5750]">{e.year}</span>
+              <span className="text-base font-medium leading-snug">
+                {e.href ? (
+                  <a
+                    href={e.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`underline decoration-[#131a16]/25 underline-offset-4 hover:decoration-[#131a16] ${aFocus}`}
+                  >
+                    {e.name}
+                    <span className="sr-only"> (abre la nota en pestaña nueva)</span>
+                  </a>
+                ) : (
+                  e.name
+                )}
+              </span>
+              <span className="col-start-2 text-sm text-[#4b5750] sm:col-start-auto sm:text-right">
+                {e.result}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 self-start">
+        {PHOTO_SLOTS.map((p) => (
+          <figure key={p.src} className="a-rise min-w-0">
+            <Image
+              src={p.src}
+              alt={p.alt}
+              width={p.width}
+              height={p.height}
+              sizes="(max-width: 1024px) 46vw, 270px"
+              loading="lazy"
+              className="aspect-[16/10] w-full object-cover object-top"
+            />
+            <figcaption className="mt-2 text-xs leading-snug text-[#4b5750]">{p.caption}</figcaption>
+          </figure>
         ))}
       </div>
     </div>
@@ -203,7 +79,7 @@ export function AwardsBlock() {
 // Compatibilidad: el capítulo completo vive en Proof.
 export function Awards() {
   return (
-    <ASection id="noticias">
+    <ASection id="noticias" tone="bone">
       <AHeading eyebrow="Logros" title="Lo que ya pasó, con fuente" />
       <div className="mt-12">
         <AwardsBlock />
