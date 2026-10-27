@@ -207,7 +207,7 @@ function Pinned() {
       let active = -1;
       const ctx = gsap.context(() => {
         ScrollTrigger.create({
-          refreshPriority: 1, // se recalcula antes que las secciones fijas de más abajo (su pin-spacer las desplaza)
+          refreshPriority: 2, // después de Problema (arriba) y antes de las secciones fijas de más abajo (su pin-spacer las desplaza)
           trigger: el,
           start: "top top",
           end: SCROLL_LENGTH,

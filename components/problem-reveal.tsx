@@ -43,7 +43,7 @@ export function ProblemReveal({ lines }: { lines: string[] }) {
             scrub: 0.5,
             anticipatePin: 1,
             invalidateOnRefresh: true,
-            refreshPriority: -1,
+            refreshPriority: 3, // la sección fija más alta de la página se calcula primero: su pin-spacer desplaza a las de abajo
           },
         });
       });
