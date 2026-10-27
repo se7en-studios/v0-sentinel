@@ -760,6 +760,13 @@ const CSS =
   ".tpf-foot{left:0;right:0;bottom:5%;display:flex;align-items:center;justify-content:space-between;gap:1.5em;padding:0 15%;font-size:max(14px,2.15cqmin)}" +
   ".tpf-credit{position:absolute;left:50%;transform:translateX(-50%);font-size:max(11px,1.6cqmin);letter-spacing:.08em;text-transform:uppercase;opacity:.62;white-space:nowrap}" +
   ".tpf-handle:hover{text-decoration:underline;text-underline-offset:.2em}" +
+  // legibilidad sobre la foto: velo arriba y abajo, sombra en todo el texto, etiquetas siempre visibles
+  '.tpf::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(to bottom,rgba(4,10,7,.38) 0,rgba(4,10,7,0) 36%),linear-gradient(to top,rgba(4,10,7,.7) 0,rgba(4,10,7,.28) 24%,rgba(4,10,7,0) 42%)}' +
+  ".tpf-z{text-shadow:0 1px 3px rgba(0,0,0,.55),0 2px 18px rgba(0,0,0,.6)}" +
+  ".tpf-badge{display:none}" +
+  ".tpf-eye{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--tpf-on-paper)}" +
+  ".tpf-bub{padding:0 .8em;background:rgba(6,20,13,.78);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--tpf-on-paper) 28%,transparent)}.tpf-bub b{max-width:8em;opacity:1}.tpf-dots{display:none}" +
+  ".tpf-credit{opacity:.85}.tpf-col h3{opacity:.9}" +
   // phone column
   "@container (max-width: 620px){" +
   ".tpf-top{padding:0 7%}.tpf-flank,.tpf-mail span{display:none}" +
