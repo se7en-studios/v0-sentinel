@@ -17,7 +17,7 @@ const teamMembers = [
     degree: "Tec. Elec | Ingeniero Industrial",
     role: "CDO | Co-Founder",
     bio: "Sensores, IA, datos y hoja de ruta de I+D.",
-    linkedin: "https://www.linkedin.com/in/franco-riquero-117492355/",
+    linkedin: "https://www.linkedin.com/in/francoriquero/",
   },
   {
     image: "/team-alexis.jpg",

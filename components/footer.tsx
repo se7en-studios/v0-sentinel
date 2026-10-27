@@ -27,7 +27,7 @@ export function Footer() {
         {
           icon: "linkedin",
           label: "LinkedIn",
-          href: "https://linkedin.com/company/sentinelarg",
+          href: "https://www.linkedin.com/company/107603300/",
         },
       ]}
       columns={[
@@ -57,11 +57,17 @@ export function Footer() {
       ]}
       copyright={`© ${new Date().getFullYear()} Sentinel`}
       credit={
-        <>
+        <a
+          href="https://se7en.com.ar"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-[0.7em]"
+        >
           Creado por
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/se7en-logo.png" alt="Se7en Dev" width={160} height={45} />
-        </>
+          <span className="sr-only"> (se abre en una pestaña nueva)</span>
+        </a>
       }
       handle={{
         label: "@sentinel.arg",

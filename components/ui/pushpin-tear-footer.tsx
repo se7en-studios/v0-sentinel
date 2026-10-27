@@ -796,7 +796,7 @@ const DEFAULT_SOCIALS: IconLink[] = [
   {
     icon: "linkedin",
     label: "LinkedIn",
-    href: "https://linkedin.com/company/sentinelarg",
+    href: "https://www.linkedin.com/company/107603300/",
   },
 ];
 
