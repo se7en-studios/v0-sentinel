@@ -22,7 +22,7 @@ export function ValueProp() {
     <section
       id="propuesta"
       aria-labelledby="valor-title"
-      className="a-root relative px-5 py-24 md:px-8 md:py-32"
+      className="a-root a-glow relative px-5 py-24 md:px-8 md:py-32"
     >
       <div className="mx-auto max-w-[1100px]">
         <p className="a-eyebrow flex items-center gap-3 !text-left">

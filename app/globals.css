@@ -925,3 +925,25 @@ html { scroll-behavior: smooth; }
 .a-ring-wrap[data-run="true"] .a-ring { animation-play-state: running; }
 .a-ring-wrap:hover .a-ring { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { .a-ring { animation: none; } }
+/* ---- Capa de pulido visual (landing) ---- */
+/* Botón principal: brillo interior y halo de brasa suave; la flecha se desliza al pasar el mouse. */
+.a-pill { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 8px 28px -10px rgb(169 239 201 / 0.55); transition: transform 0.25s, filter 0.25s, box-shadow 0.25s; }
+.a-pill:hover { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.55), 0 12px 36px -10px rgb(255 138 76 / 0.55); }
+.a-pill:active { transform: translateY(0) scale(0.98); }
+.a-pill-ghost { backdrop-filter: blur(6px); transition: background 0.25s, border-color 0.25s, transform 0.25s; }
+.a-pill-ghost:hover { border-color: rgb(169 239 201 / 0.45); transform: translateY(-1px); }
+/* Tarjetas: se levantan y el borde se enciende apenas. */
+.a-card { transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s, box-shadow 0.35s; }
+@media (hover: hover) {
+  .a-card:hover { transform: translateY(-3px); border-color: rgb(169 239 201 / 0.3); box-shadow: 0 24px 60px -28px rgb(0 0 0 / 0.9), 0 0 0 1px rgb(169 239 201 / 0.06); }
+}
+/* Resplandor ambiente para secciones oscuras (verde bosque arriba a la izquierda, brasa abajo a la derecha). */
+.a-glow { position: relative; isolation: isolate; }
+.a-glow::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(60% 45% at 12% 0%, rgb(169 239 201 / 0.07), transparent 70%), radial-gradient(50% 40% at 92% 100%, rgb(255 138 76 / 0.06), transparent 70%); }
+/* Barra de scroll fina y a tono. */
+html { scrollbar-width: thin; scrollbar-color: rgb(169 239 201 / 0.35) #0c1310; }
+/* Imágenes y videos: bordes más suaves al cargar. */
+.a-root img { -webkit-user-drag: none; }
+/* Selección de foco más clara en tarjetas clickeables. */
+.a-card:focus-within { border-color: rgb(169 239 201 / 0.4); }
+
