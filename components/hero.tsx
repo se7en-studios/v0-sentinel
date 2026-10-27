@@ -40,7 +40,7 @@ export function Hero() {
             {HEADLINE.split(" ").map((w, i) => (
               <span key={i} aria-hidden>
                 <span className="a-word-mask">
-                  <span className="a-word-in" style={delay(150 + i * 80)}>{w}</span>
+                  <span className={`a-word-in${w.startsWith("humo") ? " a-em" : ""}`} style={delay(150 + i * 80)}>{w}</span>
                 </span>{" "}
               </span>
             ))}

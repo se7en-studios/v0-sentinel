@@ -61,7 +61,7 @@ export function Tunnel() {
         <>
           El bosque,
           <br />
-          antes que el fuego.
+          <span className="a-em">antes que el fuego.</span>
         </>
       }
       hint="Seguí bajando"

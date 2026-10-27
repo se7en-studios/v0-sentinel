@@ -41,7 +41,7 @@ export function Audiences() {
           as="h2"
           className="a-display-m max-w-3xl text-white"
         >
-          Pensado para quienes llegan primero al fuego
+          Pensado para quienes <span className="a-em">llegan primero</span> al fuego
         </SplitReveal>
       </div>
       <AudiencePanels items={AUDIENCES} />

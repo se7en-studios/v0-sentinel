@@ -37,7 +37,7 @@ export function Problem() {
             as="h2"
             className="a-display-m max-w-4xl !text-[clamp(2.5rem,6vw,5rem)] text-white"
           >
-            Un foco se corta con una cuadrilla o se convierte en un frente.
+            Un foco se corta con una cuadrilla o <span className="a-em">se convierte en un frente.</span>
           </SplitReveal>
         </div>
       </div>

@@ -15,7 +15,7 @@ export function Proof() {
       <ASection id="equipo" tone="bone" className="!pb-0">
         <span id="reconocimientos" className="absolute" aria-hidden />
         <SplitReveal as="h2" className="a-display-m max-w-3xl">
-          Somos cuatro ingenieros de la Patagonia que queremos que el fuego se vea antes.
+          Somos cuatro ingenieros de la Patagonia que queremos <span className="a-em">que el fuego se vea antes.</span>
         </SplitReveal>
         <p className="a-sub a-rise mt-8 max-w-xl">
           Empezamos Sentinel en la universidad y lo seguimos construyendo nosotros.

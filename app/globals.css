@@ -762,10 +762,11 @@ html { scroll-padding-top: 88px; }
 
 /* v7: lenguaje de producto oscuro (referencia animos.app). Una sans, una acción, tarjetas con filete. */
 .a-root { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; font-family: var(--font-geist); background: var(--color-a-bg); color: #e3f6dc; }
-.a-eyebrow { font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-a-faint); text-align: center; }
+.a-eyebrow { font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: rgb(169 239 201 / 0.78); text-align: center; }
+.a-bone .a-eyebrow { color: #2f6b50; }
 .a-hero-title { font-weight: 600; letter-spacing: -0.035em; line-height: 1.03; font-size: clamp(2.75rem, 7vw, 5.75rem); text-wrap: balance; }
-.a-title { font-weight: 600; letter-spacing: -0.03em; line-height: 1.08; font-size: clamp(2.125rem, 4.6vw, 3.5rem); text-wrap: balance; }
-.a-sub { font-size: clamp(1.0625rem, 1.5vw, 1.3125rem); line-height: 1.6; color: var(--color-a-mute); text-wrap: pretty; }
+.a-title { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.02em; line-height: 1.04; font-size: clamp(2.375rem, 5vw, 3.875rem); text-wrap: balance; }
+.a-sub { font-size: clamp(1.0625rem, 1.5vw, 1.3125rem); line-height: 1.6; color: #b4c9bb; text-wrap: pretty; }
 .a-card { background: var(--color-a-card); border: 1px solid var(--color-a-line); border-radius: 16px; }
 .a-pill { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; height: 3rem; padding: 0 1.6rem; border-radius: 9999px; background: var(--color-a-accent); color: #06150d; font-weight: 600; font-size: 1rem; transition: transform 0.2s, filter 0.2s; }
 .a-pill:hover { filter: brightness(1.08); transform: translateY(-1px); }
@@ -784,7 +785,12 @@ html { scroll-padding-top: 88px; }
 .a-display { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.02em; line-height: 0.98; font-size: clamp(2.75rem, 7vw, 6.5rem); text-wrap: balance; }
 .a-display-m { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.015em; line-height: 1; font-size: clamp(2.5rem, 5.2vw, 4.75rem); text-wrap: balance; }
 .a-bone { background: var(--color-a-bone); color: #131a16; }
-.a-bone .a-sub { color: #4b5750; }
+.a-bone .a-sub { color: #3f4d45; }
+/* Palabra de énfasis en un título: cursiva con degradé bosque → brasa (sobre fondo claro, tonos más oscuros). */
+.a-em { font-style: italic; padding-right: 0.12em; background-image: linear-gradient(100deg, #a9efc9 0%, #eaf8de 48%, #ffb27a 100%); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
+.a-bone .a-em { background-image: linear-gradient(100deg, #0f7a4f 0%, #2b7a56 50%, #c2561a 100%); }
+.a-root ::selection { background: rgb(255 138 76 / 0.35); color: #fff; }
+.a-display, .a-display-m, .a-title { font-feature-settings: "kern", "liga", "ss01"; font-kerning: normal; }
 .a-forest { background: var(--color-a-forest); color: #e3f6dc; }
 /* Esquinas de visor alrededor de una foto o captura: <div class="a-brackets">…</div> */
 .a-brackets { position: relative; }
@@ -866,6 +872,7 @@ html { scroll-behavior: smooth; }
   .a-load, .a-kenburns, .a-marquee-track, .a-rise, .a-scale-in, .a-wipe, .a-parallax, .a-emerge, .a-wordmark-rise, .a-zoom,
   .a-brackets::before, .a-brackets::after, .a-brackets > .a-bk { animation: none !important; opacity: 1 !important; transform: none !important; clip-path: none !important; }
 }
+
 
 
 
