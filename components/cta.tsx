@@ -27,14 +27,29 @@ export function CTA() {
       <span id="piloto" className="absolute" aria-hidden />
       <div className="grid gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-20">
         <div>
-          <SplitReveal as="h2" className="a-display">
-            Hablemos de tu territorio
+          <p className="a-eyebrow flex items-center gap-3 !text-left !text-a-accent">
+            <span aria-hidden className="h-px w-8 bg-a-accent/60" />
+            Piloto
+          </p>
+          <SplitReveal as="h2" className="a-display mt-5 !tracking-[-0.03em]">
+            Hablemos de tu{" "}
+            <span className="bg-gradient-to-r from-[#a9efc9] via-[#d8f5cf] to-[#ffb27a] bg-clip-text pr-[0.15em] italic text-transparent">
+              territorio
+            </span>
           </SplitReveal>
-          <ul className="a-sub mt-10 max-w-md space-y-3">
-            {PILOT.map((t) => (
-              <li key={t}>{t}</li>
+          <ol className="mt-10 max-w-lg space-y-3">
+            {PILOT.map((t, i) => (
+              <li
+                key={t}
+                className="a-card flex items-start gap-4 !bg-white/[0.03] p-4 md:p-5"
+              >
+                <span aria-hidden className="font-[family-name:var(--font-display)] text-3xl leading-none text-a-accent">
+                  {i + 1}
+                </span>
+                <span className="text-[1.0625rem] leading-snug text-[#d3e6d8]">{t}</span>
+              </li>
             ))}
-          </ul>
+          </ol>
           <div className="mt-8 flex flex-col items-start gap-1">
             {WA_URL && (
               <a href={WA_URL} target="_blank" rel="noopener noreferrer" className={quick}>
@@ -50,7 +65,8 @@ export function CTA() {
           </div>
         </div>
 
-        <div className="a-rise min-w-0">
+        <div className="a-rise relative min-w-0">
+          <div aria-hidden className="pointer-events-none absolute -inset-10 -z-10 bg-[radial-gradient(closest-side,rgba(255,106,43,0.18),transparent)]" />
           <Suspense fallback={<div className="a-card min-h-[28rem]" aria-hidden />}>
             <ContactForm />
           </Suspense>

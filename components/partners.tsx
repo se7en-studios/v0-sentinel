@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { ASection } from "@/components/a-section";
+import { MarqueeRow } from "@/components/ui/marquee-row";
 
 const logos = [
   { id: "uba", description: "UBA", image: "/uba-logo.png" },
@@ -28,22 +29,26 @@ export function PartnersBlock() {
       <p className="a-rise text-[0.9375rem] font-medium uppercase tracking-[0.16em] text-[#4b5750]">
         Programas y entidades en las que participamos
       </p>
-      <ul className="a-rise mt-8 flex flex-wrap items-center gap-x-10 gap-y-6">
-        {logos.map((l) => (
-          <li key={l.id} className="flex h-10 items-center">
-            <Image
-              src={l.image}
-              alt={l.description}
-              width={100}
-              height={36}
-              loading="lazy"
-              className="max-h-9 w-auto max-w-[100px] object-contain opacity-70"
-              // Logos con fondo transparente: silueta negra, monocromo sobre fondo claro.
-              style={{ filter: "brightness(0)" }}
-            />
-          </li>
-        ))}
-      </ul>
+      <div className="a-rise mt-10">
+        <MarqueeRow seconds={45}>
+          {(hidden) =>
+            [...logos, ...logos].map((l, i) => (
+              <li key={`${l.id}-${i}`} className="flex h-16 w-40 shrink-0 items-center justify-center">
+                <Image
+                  src={l.image}
+                  alt={hidden || i >= logos.length ? "" : l.description}
+                  width={120}
+                  height={44}
+                  loading="lazy"
+                  className="max-h-11 w-auto max-w-[130px] object-contain opacity-60 transition-opacity hover:opacity-100"
+                  // Logos con fondo transparente: silueta negra, monocromo sobre fondo claro.
+                  style={{ filter: "brightness(0)" }}
+                />
+              </li>
+            ))
+          }
+        </MarqueeRow>
+      </div>
       <p className="mt-8 max-w-xl text-[0.9375rem] leading-relaxed text-[#4b5750]">
         Universidades de origen, organizadores de competencias y programas de los
         que Sentinel formó parte. No implica convenio ni respaldo comercial.
