@@ -7,6 +7,8 @@ import { ScrollProgress } from "@/components/scroll-progress";
 import { blogPosts } from "@/lib/blog-posts";
 import { formatDate } from "@/lib/format-date";
 
+import { OG_IMAGE } from "@/lib/og";
+
 const siteUrl = "https://www.sentineltech.com.ar";
 
 export const metadata: Metadata = {
@@ -20,7 +22,9 @@ export const metadata: Metadata = {
       "Ideas y análisis sobre detección temprana de incendios, monitoreo forestal e inteligencia territorial en la Patagonia.",
     url: `${siteUrl}/blog`,
     type: "website",
+    images: [OG_IMAGE],
   },
+  twitter: { card: "summary_large_image", images: [OG_IMAGE.url] },
 };
 
 export default function BlogIndex() {

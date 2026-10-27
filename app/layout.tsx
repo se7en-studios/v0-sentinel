@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Inter, JetBrains_Mono, Instrument_Serif, Geist } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
+import { OG_DESCRIPTION, OG_IMAGE, OG_TITLE, TWITTER_DESCRIPTION } from "@/lib/og";
 
 const plusJakarta = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700", "800"],
@@ -69,17 +70,19 @@ export const metadata: Metadata = {
     languages: { "es-AR": siteUrl },
   },
   openGraph: {
-    title,
-    description,
+    title: OG_TITLE,
+    description: OG_DESCRIPTION,
     url: siteUrl,
-    siteName: "Sentinel Technologies",
+    siteName: "Sentinel",
     locale: "es_AR",
     type: "website",
+    images: [OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
-    title,
-    description,
+    title: OG_TITLE,
+    description: TWITTER_DESCRIPTION,
+    images: [OG_IMAGE.url],
   },
 };
 
