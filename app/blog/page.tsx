@@ -35,8 +35,8 @@ export default function BlogIndex() {
         <Navbar />
       </header>
 
-      <main id="main-content" className="min-h-screen bg-[#faf7f0]">
-        <section className="relative pt-40 pb-20 lg:pt-48 lg:pb-28 px-6 lg:px-10 bg-[#faf7f0]">
+      <main id="main-content" className="a-root min-h-screen">
+        <section className="relative pt-40 pb-20 lg:pt-48 lg:pb-28 px-6 lg:px-10">
           <div className="max-w-5xl mx-auto">
             {/* Breadcrumb */}
             <nav
@@ -44,26 +44,26 @@ export default function BlogIndex() {
               className="flex items-center gap-2 mb-6 text-[12px]"
               style={{
                 fontFamily: "var(--font-sans)",
-                color: "rgba(26,24,18,0.45)",
+                color: "#9fb5a7",
               }}
             >
-              <Link href="/" className="hover:text-[#0f7a4f] transition-colors">
+              <Link href="/" className="hover:text-a-accent transition-colors">
                 Inicio
               </Link>
-              <span className="text-[10px] opacity-40">/</span>
+              <span className="text-xs opacity-60">/</span>
               <span
                 className="font-light"
-                style={{ color: "rgba(26,24,18,0.75)" }}
+                style={{ color: "#e3f6dc" }}
               >
                 Blog
               </span>
             </nav>
 
             <p
-              className="text-[11px] tracking-[0.3em] uppercase mb-5"
+              className="text-xs tracking-[0.3em] uppercase mb-5"
               style={{
                 fontFamily: "var(--font-sans)",
-                color: "rgba(26,24,18,0.3)",
+                color: "#6f8577",
               }}
             >
               Artículos y Publicaciones
@@ -71,14 +71,15 @@ export default function BlogIndex() {
             <h1
               className="text-4xl sm:text-5xl lg:text-6xl mb-16"
               style={{
-                fontFamily: "var(--font-heading)",
-                fontWeight: 800,
-                color: "rgba(26,24,18,0.92)",
-                lineHeight: 1,
+                fontFamily: "var(--font-geist)",
+                fontWeight: 600,
+                letterSpacing: "-0.03em",
+                color: "#e3f6dc",
+                lineHeight: 1.05,
               }}
             >
               Ideas sobre{" "}
-              <span style={{ color: "#0f7a4f" }}>monitoreo forestal</span> e
+              monitoreo forestal e
               inteligencia territorial.
             </h1>
 
@@ -89,8 +90,8 @@ export default function BlogIndex() {
                 href={`/blog/${posts[0].slug}`}
                 className="group grid sm:grid-cols-2 gap-6 sm:gap-10 items-center rounded-lg overflow-hidden mb-14 transition-all duration-300"
                 style={{
-                  background: "rgba(26,24,18,0.02)",
-                  border: "0.5px solid rgba(26,24,18,0.08)",
+                  background: "#16211b",
+                  border: "1px solid rgba(214,245,201,0.11)",
                 }}
               >
                 <div
@@ -108,19 +109,19 @@ export default function BlogIndex() {
                 </div>
                 <div className="p-6 sm:p-0 sm:pr-10">
                   <p
-                    className="text-[11px] mb-3 font-normal"
+                    className="text-xs mb-3 font-normal"
                     style={{
                       fontFamily: "var(--font-sans)",
-                      color: "rgba(15,122,79,0.8)",
+                      color: "#a9efc9",
                     }}
                   >
                     Última nota · {formatDate(posts[0].publishedAt, "long")}
                   </p>
                   <h2
-                    className="text-2xl sm:text-3xl mb-4 leading-snug font-bold transition-colors duration-200 group-hover:text-[#0f7a4f]"
+                    className="text-2xl sm:text-3xl mb-4 leading-snug font-bold transition-colors duration-200 group-hover:text-a-accent"
                     style={{
                       fontFamily: "var(--font-heading)",
-                      color: "rgba(26,24,18,0.92)",
+                      color: "#e3f6dc",
                     }}
                   >
                     {posts[0].title}
@@ -129,8 +130,8 @@ export default function BlogIndex() {
                     className="text-[14px] leading-relaxed line-clamp-3"
                     style={{
                       fontFamily: "var(--font-sans)",
-                      fontWeight: 300,
-                      color: "rgba(26,24,18,0.5)",
+                      fontWeight: 400,
+                      color: "#9fb5a7",
                     }}
                   >
                     {posts[0].excerpt}
@@ -144,10 +145,10 @@ export default function BlogIndex() {
                 <Link
                   key={post.slug}
                   href={`/blog/${post.slug}`}
-                  className="group flex flex-col rounded-lg overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(15,122,79,0.3)]"
+                  className="group flex flex-col rounded-lg overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(169,239,201,0.4)]"
                   style={{
-                    background: "rgba(26,24,18,0.02)",
-                    border: "0.5px solid rgba(26,24,18,0.08)",
+                    background: "#16211b",
+                    border: "1px solid rgba(214,245,201,0.11)",
                   }}
                 >
                   <div
@@ -161,24 +162,24 @@ export default function BlogIndex() {
                       sizes="(max-width: 768px) 100vw, 33vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
                   </div>
                   <div className="p-6 flex-1 flex flex-col justify-between">
                     <div>
                       <p
-                        className="text-[11px] mb-2 font-normal"
+                        className="text-xs mb-2 font-normal"
                         style={{
                           fontFamily: "var(--font-sans)",
-                          color: "rgba(15,122,79,0.8)",
+                          color: "#a9efc9",
                         }}
                       >
                         {formatDate(post.publishedAt, "long")}
                       </p>
                       <h2
-                        className="text-lg mb-3 leading-snug font-bold transition-colors duration-200 group-hover:text-[#0f7a4f]"
+                        className="text-lg mb-3 leading-snug font-bold transition-colors duration-200 group-hover:text-a-accent"
                         style={{
                           fontFamily: "var(--font-heading)",
-                          color: "rgba(26,24,18,0.92)",
+                          color: "#e3f6dc",
                         }}
                       >
                         {post.title}
@@ -187,8 +188,8 @@ export default function BlogIndex() {
                         className="text-[13px] leading-relaxed line-clamp-3"
                         style={{
                           fontFamily: "var(--font-sans)",
-                          fontWeight: 300,
-                          color: "rgba(26,24,18,0.5)",
+                          fontWeight: 400,
+                          color: "#9fb5a7",
                         }}
                       >
                         {post.excerpt}

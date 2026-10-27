@@ -36,16 +36,16 @@ const socialLinks = [
 ];
 
 const link =
-  "t-small text-[#f4efe2]/75 transition-colors hover:text-leaf-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright rounded-sm";
+  "text-sm text-a-mute transition-colors hover:text-a-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent rounded-sm";
 
 export function Footer() {
   return (
-    <footer className="bg-charcoal text-[#f4efe2] border-t border-white/10">
-      <div className="mx-auto w-full max-w-6xl px-5 md:px-8 pt-16 pb-10">
+    <footer className="a-root a-forest overflow-hidden">
+      <div className="mx-auto w-full max-w-6xl px-5 md:px-8 pt-14 pb-6">
         <div className="grid grid-cols-2 gap-10 md:grid-cols-4">
           <div className="col-span-2 md:col-span-1">
-            <SentinelLogo className="h-6 w-auto" />
-            <p className="t-small mt-4 max-w-xs text-[#f4efe2]/75">
+            <SentinelLogo className="h-6 w-auto" fill="#a9efc9" />
+            <p className="mt-4 max-w-xs text-sm text-a-mute">
               Detección temprana de incendios forestales: datos satelitales,
               geoespacial e IA para quienes cuidan el territorio.
             </p>
@@ -56,14 +56,14 @@ export function Footer() {
               >
                 <Mail
                   aria-hidden
-                  className="h-4 w-4 shrink-0 text-leaf-bright"
+                  className="h-4 w-4 shrink-0 text-a-accent"
                 />
                 {CONTACT_FALLBACK_EMAIL}
               </a>
-              <p className="t-small flex items-center gap-2.5 text-[#f4efe2]/75">
+              <p className="flex items-center gap-2.5 text-sm text-a-mute">
                 <MapPin
                   aria-hidden
-                  className="h-4 w-4 shrink-0 text-leaf-bright"
+                  className="h-4 w-4 shrink-0 text-a-accent"
                 />
                 San Rafael, Mendoza, Argentina
               </p>
@@ -76,7 +76,7 @@ export function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 text-[#f4efe2]/80 transition-colors hover:border-leaf-bright hover:text-leaf-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright"
+                  className="flex h-11 w-11 items-center justify-center rounded-full border border-a-line text-a-mute transition-colors hover:border-a-accent hover:text-a-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent"
                 >
                   <Icon aria-hidden className="h-4 w-4" />
                 </a>
@@ -86,7 +86,7 @@ export function Footer() {
 
           {Object.entries(footerLinks).map(([section, links]) => (
             <nav key={section} aria-label={section}>
-              <p className="t-label mb-4 text-[#f4efe2]/60">{section}</p>
+              <p className="mb-4 text-xs font-medium uppercase tracking-[0.16em] text-a-faint">{section}</p>
               <ul className="space-y-3">
                 {links.map((l) => (
                   <li key={l.label}>
@@ -100,8 +100,8 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
-          <p className="t-small text-[#f4efe2]/65">
+        <div className="mt-14 flex flex-col gap-3 border-t border-a-line pt-8 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-a-mute">
             © {new Date().getFullYear()} Sentinel. Todos los derechos
             reservados.
           </p>
@@ -109,12 +109,16 @@ export function Footer() {
             href="https://se7endev.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="t-small w-fit text-[#f4efe2]/65 transition-colors hover:text-leaf-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright rounded-sm"
+            className="w-fit text-sm text-a-mute transition-colors hover:text-a-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent rounded-sm"
           >
             Creado por{" "}
-            <span className="font-medium text-leaf-bright">Se7en Dev</span>
+            <span className="font-medium text-a-accent">Se7en Dev</span>
           </a>
         </div>
+      </div>
+      {/* Palabra de marca recortada por abajo; decorativa (el nombre ya está arriba). */}
+      <div aria-hidden className="mx-auto mt-6 h-[clamp(3.5rem,15vw,15rem)] w-full max-w-[1600px] overflow-hidden px-2">
+        <p className="a-wordmark-xl text-center">SENTINEL</p>
       </div>
     </footer>
   );

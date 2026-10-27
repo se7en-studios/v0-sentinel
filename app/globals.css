@@ -40,6 +40,17 @@
     var(--font-heading), "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont,
     sans-serif;
   --font-display: var(--font-display), "Iowan Old Style", Georgia, serif;
+  --font-geist: var(--font-geist), -apple-system, "Segoe UI", sans-serif;
+  --color-a-bg: #0c1310;
+  --color-a-surface: #101a15;
+  --color-a-card: #16211b;
+  --color-a-line: rgb(214 245 201 / 0.11);
+  --color-a-mute: #9fb5a7;
+  --color-a-faint: #6f8577;
+  --color-a-accent: #a9efc9;
+  --color-a-bone: #e6e3dc;
+  --color-a-forest: #14231c;
+  --color-a-sand: #c6ad8f;
   --color-charcoal: #12110e;
   --color-ash: #1d1b17;
   --color-ember: #e8732a; /* solo fuego y alertas */
@@ -748,3 +759,40 @@ html { scroll-padding-top: 88px; }
 .t-body { font-size: 1rem; line-height: 1.65; }
 .t-small { font-size: 0.875rem; line-height: 1.55; }
 .t-label { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; }
+
+/* v7: lenguaje de producto oscuro (referencia animos.app). Una sans, una acción, tarjetas con filete. */
+.a-root { font-family: var(--font-geist); background: var(--color-a-bg); color: #e3f6dc; }
+.a-eyebrow { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-a-faint); text-align: center; }
+.a-hero-title { font-weight: 600; letter-spacing: -0.035em; line-height: 1.03; font-size: clamp(2.5rem, 6.4vw, 5rem); text-wrap: balance; }
+.a-title { font-weight: 600; letter-spacing: -0.03em; line-height: 1.08; font-size: clamp(1.875rem, 4vw, 3rem); text-wrap: balance; }
+.a-sub { font-size: clamp(1rem, 1.4vw, 1.125rem); line-height: 1.55; color: var(--color-a-mute); text-wrap: pretty; }
+.a-card { background: var(--color-a-card); border: 1px solid var(--color-a-line); border-radius: 16px; }
+.a-pill { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; height: 2.75rem; padding: 0 1.4rem; border-radius: 9999px; background: var(--color-a-accent); color: #06150d; font-weight: 600; font-size: 0.9375rem; transition: transform 0.2s, filter 0.2s; }
+.a-pill:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.a-pill-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; height: 2.75rem; padding: 0 1.4rem; border-radius: 9999px; border: 1px solid var(--color-a-line); background: rgb(214 245 201 / 0.05); color: #e3f6dc; font-weight: 500; font-size: 0.9375rem; transition: background 0.2s; }
+.a-pill-ghost:hover { background: rgb(214 245 201 / 0.11); }
+.a-frame { border-radius: 14px; border: 1px solid rgb(214 245 201 / 0.16); overflow: hidden; box-shadow: 0 50px 140px -40px rgb(169 239 201 / 0.16), 0 30px 90px -30px rgb(0 0 0 / 0.9); background: #0b0b0c; }
+/* Texto que se enciende palabra por palabra con el scroll (sin JS; si no hay soporte, queda blanco). */
+.a-words .w { color: #d8f5cf; }
+@supports (animation-timeline: view()) {
+  .a-words .w { color: #738f7e; animation: a-word-on linear both; animation-timeline: view(); animation-range: entry calc(30% + var(--i) * 1.4%) entry calc(52% + var(--i) * 1.4%); }
+  @keyframes a-word-on { to { color: #d8f5cf; } }
+}
+@media (prefers-reduced-motion: reduce) { .a-words .w { color: #d8f5cf !important; animation: none !important; } }
+
+/* v7b: cinematográfico (Rainmaker / MyHealthPrac): paneles que alternan, titulares serif grandes, marco con esquinas. */
+.a-display { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.02em; line-height: 0.98; font-size: clamp(2.75rem, 7vw, 6.5rem); text-wrap: balance; }
+.a-display-m { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.015em; line-height: 1; font-size: clamp(2.25rem, 4.6vw, 4rem); text-wrap: balance; }
+.a-bone { background: var(--color-a-bone); color: #131a16; }
+.a-bone .a-sub { color: #4b5750; }
+.a-forest { background: var(--color-a-forest); color: #e3f6dc; }
+/* Esquinas de visor alrededor de una foto o captura: <div class="a-brackets">…</div> */
+.a-brackets { position: relative; }
+.a-brackets::before, .a-brackets::after { content: ""; position: absolute; width: 28px; height: 28px; pointer-events: none; z-index: 2; border: 0 solid var(--color-a-accent); }
+.a-brackets::before { top: 10px; left: 10px; border-top-width: 2px; border-left-width: 2px; }
+.a-brackets::after { bottom: 10px; right: 10px; border-bottom-width: 2px; border-right-width: 2px; }
+.a-brackets > .a-bk { position: absolute; width: 28px; height: 28px; pointer-events: none; z-index: 2; border: 0 solid var(--color-a-accent); }
+.a-brackets > .a-bk-tr { top: 10px; right: 10px; border-top-width: 2px; border-right-width: 2px; }
+.a-brackets > .a-bk-bl { bottom: 10px; left: 10px; border-bottom-width: 2px; border-left-width: 2px; }
+.a-bone .a-brackets::before, .a-bone .a-brackets::after, .a-bone .a-brackets > .a-bk { border-color: #14231c; }
+.a-wordmark-xl { font-family: var(--font-display); font-size: clamp(5rem, 24vw, 22rem); line-height: 0.8; letter-spacing: -0.02em; color: rgb(169 239 201 / 0.1); user-select: none; }

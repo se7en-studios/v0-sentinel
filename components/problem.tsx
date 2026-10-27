@@ -1,63 +1,113 @@
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
-import { Chapter, Eyebrow } from "@/components/ui/chapter";
+import { CLAIMS } from "@/lib/claims";
 
-// Sin cifras: ninguna de las que tenía el sitio (-70%, 100+, 10x) tenía fuente.
-const IMPACTS = [
+// ponytail: rutas directas; si aparece lib/photos.ts, cambiar acá. problem-a4 es un
+// collage de tres tomas y no sirve recortado, por eso la tira lleva solo a2 y a3.
+const STRIP = [
   {
-    value: "Décadas",
-    body: "Lo que tarda en regenerarse un bosque nativo que se pierde en horas.",
+    src: "/problem-a2.jpg",
+    alt: "Frente de fuego en la ladera de un cerro frente a un lago, con el cielo rojo de humo",
+    caption: "Frente de fuego sobre un lago patagónico. Foto de archivo.",
+    position: "50% 70%",
   },
   {
-    value: "Minutos",
-    body: "Lo que separa un conato controlado de una catástrofe. El aviso temprano se juega ahí.",
-  },
-  {
-    value: "Más riesgo",
-    body: "Cuando el fuego ya se ve desde una torre o por su columna de humo, combatirlo cuesta más y expone más a las brigadas.",
+    src: "/problem-a3.jpg",
+    alt: "Ladera ardiendo de noche sobre un lago, con árboles en primer plano",
+    caption: "Ladera en llamas sobre un lago patagónico. Foto de archivo.",
+    position: "50% 60%",
   },
 ];
 
 export function Problem() {
   return (
-    <Chapter id="problema" tone="dark" className="overflow-hidden">
-      <Image
-        src="/problem-a1.jpg"
-        alt=""
-        fill
-        sizes="100vw"
-        loading="lazy"
-        className="object-cover"
-      />
-      <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-charcoal/90 via-charcoal/80 to-charcoal" />
-
-      <div className="relative">
-        <Eyebrow tone="dark">El costo de llegar tarde</Eyebrow>
-        <h2 className="t-display max-w-4xl text-balance">Hoy la Patagonia duele.</h2>
-        <p className="t-lead mt-6 max-w-2xl text-[#f4efe2]/90">
-          Cada temporada se repite lo mismo: incendios que avanzan antes de que alguien pueda dar la alarma.
-          Detrás de cada hectárea hay un hogar, un trabajo y una biodiversidad que no vuelve en lo que dura una vida.
-        </p>
-
-        <dl className="mt-14 grid gap-8 border-t border-[#f4efe2]/20 pt-10 md:mt-20 md:grid-cols-3 md:gap-10">
-          {IMPACTS.map((i) => (
-            <div key={i.value} className="flex flex-col">
-              <dt className="t-h2 order-1 text-ember-soft">{i.value}</dt>
-              <dd className="t-body order-2 mt-3 text-[#f4efe2]/85">{i.body}</dd>
-            </div>
-          ))}
-        </dl>
-        <p className="t-small mt-8 text-[#f4efe2]/70">
-          Lectura cualitativa del equipo. No publicamos cifras sin fuente verificable.
-        </p>
-
-        <a
-          href="#contacto"
-          className="mt-10 inline-flex items-center gap-2 rounded-full bg-leaf-bright px-7 py-3.5 text-base font-semibold text-charcoal transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-        >
-          Sumar mi municipio o campo <ArrowRight className="size-4" aria-hidden />
-        </a>
+    <section id="problema" className="a-root relative scroll-mt-20">
+      <div className="relative flex min-h-[85svh] items-end overflow-hidden">
+        <Image
+          src="/problem-a1.jpg"
+          alt="Incendio forestal de noche en la Patagonia andina, visto desde el aire"
+          fill
+          sizes="100vw"
+          loading="lazy"
+          className="object-cover"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-t from-a-bg via-a-bg/55 to-a-bg/10"
+        />
+        <div className="relative mx-auto w-full max-w-[1100px] px-5 pb-14 pt-40 md:px-8 md:pb-20">
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-a-mute">
+            El problema
+          </p>
+          <h2 className="a-display-m mt-4 max-w-3xl text-white">
+            Un foco se corta con una cuadrilla o se convierte en un frente
+          </h2>
+        </div>
       </div>
-    </Chapter>
+
+      <div className="mx-auto w-full max-w-[1100px] px-5 py-20 md:px-8 md:py-28">
+        <div className="a-sub grid grid-cols-1 gap-x-12 gap-y-5 md:grid-cols-2">
+          <p>
+            Casi todos los incendios grandes empiezan chicos: una brasa, una
+            colilla, una chispa de una máquina. Durante los primeros minutos
+            alcanza con una cuadrilla y una motobomba. Después, con viento y
+            pasto seco, hace falta un operativo entero.
+          </p>
+          <p>
+            En la cordillera y en la estepa casi nunca hay testigos. Hay
+            kilómetros sin casas, sin torres y a veces sin señal. El foco se
+            nota cuando la columna de humo es lo bastante alta como para que
+            alguien la vea de lejos y llame, y para entonces ya pasó un buen
+            rato.
+          </p>
+          <p>
+            Cuando la brigada llega temprano, trabaja sobre un perímetro chico,
+            con menos riesgo para la gente y sin depender de que el viento
+            aguante. Cuando llega tarde, se pelea contra un frente en lugar de
+            contra una chispa.
+          </p>
+          <p>
+            Nosotros atacamos solamente una parte del problema: el tiempo entre
+            que el fuego empieza y alguien con capacidad de actuar se entera.
+            Leemos el calor desde satélites ({CLAIMS.satellites}) y avisamos a
+            municipios y brigadas. Nuestro objetivo es hacerlo en{" "}
+            {CLAIMS.detectionMinutes} minutos; es una meta de diseño, todavía no
+            un resultado medido en campo.
+          </p>
+        </div>
+
+        <ul className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-2">
+          {STRIP.map((p) => (
+            <li key={p.src} className="min-w-0">
+              <div className="a-brackets">
+                <span className="a-bk a-bk-tr" aria-hidden />
+                <span className="a-bk a-bk-bl" aria-hidden />
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <Image
+                    src={p.src}
+                    alt={p.alt}
+                    fill
+                    sizes="(min-width: 768px) 540px, 100vw"
+                    loading="lazy"
+                    className="object-cover"
+                    style={{ objectPosition: p.position }}
+                  />
+                </div>
+              </div>
+              <p className="mt-3 text-xs text-a-faint">{p.caption}</p>
+            </li>
+          ))}
+        </ul>
+
+        <figure className="mx-auto mt-20 max-w-2xl text-center">
+          <blockquote className="a-display-m !text-[clamp(1.75rem,3.4vw,2.75rem)] text-white">
+            «No queremos reemplazar a nadie en el terreno. Queremos que se
+            enteren antes.»
+          </blockquote>
+          <figcaption className="mt-5 text-sm text-a-mute">
+            El equipo de Sentinel
+          </figcaption>
+        </figure>
+      </div>
+    </section>
   );
 }

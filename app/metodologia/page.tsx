@@ -58,7 +58,7 @@ const SOURCES = [
   },
 ];
 
-const H2 = "mt-14 mb-3 text-2xl font-semibold";
+const H2 = "mt-14 mb-3 text-2xl font-semibold tracking-tight text-[#e3f6dc]";
 
 export default function MetodologiaPage() {
   return (
@@ -66,17 +66,10 @@ export default function MetodologiaPage() {
       <header>
         <Navbar />
       </header>
-      <main
-        id="main-content"
-        className="mx-auto max-w-3xl px-6 py-28 text-[17px] leading-relaxed"
-        style={{
-          color: "#1a1812",
-          background: "#faf7f0",
-          fontFamily: "var(--font-sans)",
-        }}
-      >
-        <p className="t-label mb-4 text-[#0b6b44]">Metodología</p>
-        <h1 className="t-h2 mb-6">
+      <main id="main-content" className="a-root text-[17px] leading-relaxed">
+      <div className="mx-auto max-w-3xl px-6 py-28 text-[#cfe6d7] [&_a]:text-a-accent [&_strong]:text-[#e3f6dc]">
+        <p className="mb-4 text-xs font-medium uppercase tracking-[0.16em] text-a-accent">Metodología</p>
+        <h1 className="a-title mb-6 !text-left">
           Cómo detectamos, qué verificamos y qué todavía no podemos afirmar.
         </h1>
         <p>
@@ -98,7 +91,7 @@ export default function MetodologiaPage() {
               Estado de cada cifra de Sentinel
             </caption>
             <thead>
-              <tr className="border-b border-[#1a1812]/30">
+              <tr className="border-b border-a-line">
                 <th scope="col" className="py-2 pr-4 font-semibold">
                   Cifra
                 </th>
@@ -114,7 +107,7 @@ export default function MetodologiaPage() {
               {FIGURES.map((f) => (
                 <tr
                   key={f.figure}
-                  className="border-b border-[#1a1812]/15 align-top"
+                  className="border-b border-a-line align-top"
                 >
                   <th scope="row" className="py-3 pr-4 font-medium">
                     {f.figure}
@@ -184,7 +177,7 @@ export default function MetodologiaPage() {
             de la observación. En la web los actualizamos cada hora como máximo,
             y se muestran con su fecha y hora.{" "}
             <a
-              className="underline"
+              className="underline underline-offset-4"
               href="https://firms.modaps.eosdis.nasa.gov/"
               target="_blank"
               rel="noopener noreferrer"
@@ -198,7 +191,7 @@ export default function MetodologiaPage() {
             son estimaciones de modelo para el punto elegido, no mediciones de
             una estación.{" "}
             <a
-              className="underline"
+              className="underline underline-offset-4"
               href="https://open-meteo.com/"
               target="_blank"
               rel="noopener noreferrer"
@@ -230,10 +223,11 @@ export default function MetodologiaPage() {
         </ul>
 
         <p className="mt-14">
-          <Link className="underline" href="/">
+          <Link className="underline underline-offset-4" href="/">
             Volver al inicio
           </Link>
         </p>
+      </div>
       </main>
       <Footer />
     </>

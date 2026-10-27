@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { geoGraticule, geoMercator, geoPath } from "d3-geo";
 import type { FeatureCollection, Geometry } from "geojson";
 import countriesGeoJson from "@/data/latam-countries.json";
 import { mapPointProps } from "@/components/ui/map-tooltip";
+import { haversineKm } from "@/components/locality-stats";
 
 export interface LiveFire {
   lat: number;
@@ -31,11 +32,13 @@ interface Props {
   places: LivePlace[];
   readingTime: string;
   sourceLabel: string;
+  /** Localidad elegida en el buscador: el mapa se acerca y dibuja anillos de 50 y 100 km. */
+  focus?: { lat: number; lng: number } | null;
+  onFocusClear?: () => void;
 }
 
 const W = 600;
 const H = 760;
-const PULSING = 30; // only the strongest fires animate; the rest are static dots
 const countries = countriesGeoJson as FeatureCollection<
   Geometry,
   { name: string }
@@ -52,6 +55,14 @@ const backdrop = countries.features.filter((f) =>
   ].includes(f.properties.name),
 );
 const graticule = geoGraticule().step([4, 4])();
+
+// Dot color encodes intensity (radiative power); it is a visual cue, not a measurement.
+const STRONG_FRP = 50;
+const MINT = "#a9efc9";
+const AMBER = "#f5b25f";
+const INK = "#e3f6dc";
+const dotColor = (frp: number) => (frp >= STRONG_FRP ? AMBER : MINT);
+const dotR = (frp: number) => 2.3 + Math.min(frp / 150, 1) * 1.7;
 
 const VIEWS = {
   argentina: {
@@ -111,27 +122,19 @@ function acquired(f: LiveFire) {
 
 type Sel = { kind: "fire" | "place"; i: number } | null;
 
+const focusRing =
+  "outline-none cursor-pointer [&:focus-visible>circle:first-of-type]:stroke-[#a9efc9] [&:focus-visible>circle:first-of-type]:stroke-2";
+
 export function FireMapLive({
   fires,
   places,
   readingTime,
   sourceLabel,
+  focus = null,
+  onFocusClear,
 }: Props) {
   const [view, setView] = useState<ViewKey>("argentina");
   const [sel, setSel] = useState<Sel>(null);
-  const boxRef = useRef<HTMLDivElement>(null);
-
-  // Pauses the CSS pulses while the map is off-screen; set on the node so it
-  // never triggers a React render.
-  useEffect(() => {
-    const el = boxRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([e]) => {
-      el.dataset.live = e.isIntersecting ? "1" : "0";
-    });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
 
   const geo = useMemo(() => {
     const r = (n: number) => Math.round(n * 10) / 10;
@@ -153,6 +156,16 @@ export function FireMapLive({
           return [r(p[0]), r(p[1])] as [number, number];
         };
         acc[key] = {
+          at,
+          kmPx: (lat: number, lng: number, km: number) => {
+            const a = proj([lng, lat]) ?? [0, 0];
+            const b =
+              proj([
+                lng + km / (111.32 * Math.cos(lat * (Math.PI / 180))),
+                lat,
+              ]) ?? a;
+            return Math.hypot(b[0] - a[0], b[1] - a[1]);
+          },
           land: backdrop.map((f) => path(f) ?? ""),
           grid: path(graticule) ?? "",
           fires: fires.map((f) => at(f.lat, f.lng)),
@@ -163,6 +176,8 @@ export function FireMapLive({
       {} as Record<
         ViewKey,
         {
+          at: (lat: number, lng: number) => [number, number];
+          kmPx: (lat: number, lng: number, km: number) => number;
           land: string[];
           grid: string;
           fires: [number, number][];
@@ -172,142 +187,242 @@ export function FireMapLive({
     );
   }, [fires, places]);
 
-  const g = geo[view];
+  // Con una localidad elegida el encuadre es siempre el de Argentina, ampliado
+  // con una transformación CSS (barata, animable) y no recalculando proyecciones.
+  const g = geo[focus ? "argentina" : view];
+  const fc = focus ? geo.argentina.at(focus.lat, focus.lng) : null;
+  const k = focus
+    ? Math.min(
+        60,
+        Math.max(1, 120 / geo.argentina.kmPx(focus.lat, focus.lng, 50)),
+      )
+    : 1;
+  const near50 = useMemo(
+    () =>
+      new Set(
+        focus
+          ? fires.flatMap((f, i) =>
+              haversineKm(focus.lat, focus.lng, f.lat, f.lng) <= 50 ? [i] : [],
+            )
+          : [],
+      ),
+    [focus, fires],
+  );
+  const camera =
+    fc && focus
+      ? `translate(${W / 2 - k * fc[0]}px, ${H / 2 - k * fc[1]}px) scale(${k})`
+      : "translate(0px, 0px) scale(1)";
   const onMap = ([x, y]: [number, number]) => x > 0 && x < W && y > 0 && y < H;
   const chooseView = (v: ViewKey) => {
     setView(v);
     setSel(null);
+    onFocusClear?.();
   };
 
   return (
-    <div
-      ref={boxRef}
-      data-live="1"
-      className="lv relative overflow-hidden rounded-2xl border border-white/10"
-      style={{
-        background:
-          "radial-gradient(ellipse at 50% 35%, #1d1b17 0%, #12110e 75%)",
-      }}
-    >
+    <div className="lv min-w-0">
       <style>{`
-        @keyframes lv-ping{0%{transform:scale(1);opacity:.55}100%{transform:scale(4.5);opacity:0}}
-        .lv-pulse{transform-box:fill-box;transform-origin:center;animation:lv-ping 2.4s ease-out infinite}
-        .lv[data-live="0"] .lv-pulse{animation-play-state:paused}
-        @media (prefers-reduced-motion:reduce){.lv-pulse{animation:none;opacity:.25;transform:scale(2.2)}}
+        .lv-camera{transition:transform 1s cubic-bezier(.22,.8,.24,1)}
+        @media (prefers-reduced-motion:reduce){.lv-camera{transition:none}}
       `}</style>
 
-      <div className="relative w-full aspect-[600/760] lg:aspect-auto lg:h-[min(84vh,840px)]">
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-a-line px-5 py-3 sm:px-6">
+        <div className="flex gap-2" role="group" aria-label="Encuadre del mapa">
+          {(Object.keys(VIEWS) as ViewKey[]).map((key) => {
+            const on = !focus && view === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => chooseView(key)}
+                aria-pressed={on}
+                className={`min-h-11 rounded-full border px-4 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent ${
+                  on
+                    ? "border-a-accent bg-a-accent text-[#06150d]"
+                    : "border-a-line bg-[rgb(214_245_201/0.05)] text-[#e3f6dc] hover:bg-[rgb(214_245_201/0.11)]"
+                }`}
+              >
+                {VIEWS[key].label}
+              </button>
+            );
+          })}
+        </div>
+
+        <ul className="m-0 flex list-none flex-wrap gap-x-4 gap-y-1 p-0 text-xs text-a-mute">
+          <li className="flex items-center gap-1.5">
+            <span
+              aria-hidden="true"
+              className="size-2.5 rounded-full bg-[#f5b25f]"
+            />
+            Foco intenso (50 MW o más)
+          </li>
+          <li className="flex items-center gap-1.5">
+            <span
+              aria-hidden="true"
+              className="size-2.5 rounded-full bg-a-accent"
+            />
+            Foco menor
+          </li>
+          <li className="flex items-center gap-1.5">
+            <span
+              aria-hidden="true"
+              className="size-2 rotate-45 border-2 border-[#5fe3a1]"
+            />
+            Localidad (color = riesgo)
+          </li>
+        </ul>
+      </div>
+
+      <div className="a-brackets relative w-full overflow-hidden bg-a-surface aspect-[600/760] lg:aspect-auto lg:h-[min(84vh,840px)]">
         <svg
           viewBox={`0 0 ${W} ${H}`}
-          className="absolute inset-0 w-full h-full"
+          className="absolute inset-0 h-full w-full"
           onClick={() => setSel(null)}
           role="group"
           aria-label={`Mapa de ${fires.length} focos de calor y ${places.length} localidades de la Patagonia. Con el teclado, usá las flechas para recorrer los puntos y Enter para ver el detalle.`}
         >
-          <path
-            d={g.grid}
-            fill="none"
-            stroke="rgba(244,239,226,0.06)"
-            strokeWidth={0.6}
-          />
-          {g.land.map((d, i) => (
+          <g className="lv-camera" style={{ transform: camera }}>
             <path
-              key={i}
-              d={d}
-              fill="rgba(244,239,226,0.05)"
-              stroke="rgba(244,239,226,0.28)"
-              strokeWidth={0.8}
+              d={g.grid}
+              fill="none"
+              stroke="rgba(214,245,201,0.07)"
+              strokeWidth={0.6}
+              vectorEffect="non-scaling-stroke"
             />
-          ))}
+            {g.land.map((d, i) => (
+              <path
+                key={i}
+                d={d}
+                fill="rgba(214,245,201,0.05)"
+                stroke="rgba(214,245,201,0.26)"
+                strokeWidth={0.8}
+                vectorEffect="non-scaling-stroke"
+              />
+            ))}
 
-          {fires.map((f, i) => {
-            const [x, y] = g.fires[i];
-            if (!onMap(g.fires[i])) return null;
-            const isSel = sel?.kind === "fire" && sel.i === i;
-            const toggle = () => setSel(isSel ? null : { kind: "fire", i });
-            const label = `Foco de calor, ${intensity(f.frp)}, ${acquired(f).at}`;
-            return (
-              <g
-                key={`f${i}`}
-                {...mapPointProps(
-                  label,
-                  toggle,
-                  i === (sel?.kind === "fire" ? sel.i : 0),
-                )}
-                className="outline-none cursor-pointer [&:focus-visible>circle:first-of-type]:stroke-[#5fe3a1] [&:focus-visible>circle:first-of-type]:stroke-2"
-                aria-pressed={isSel}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggle();
-                }}
-              >
-                <circle cx={x} cy={y} r={14} fill="transparent" />
-                {i < PULSING && (
+            {fires.map((f, i) => {
+              const [x, y] = g.fires[i];
+              if (!onMap(g.fires[i])) return null;
+              const isSel = sel?.kind === "fire" && sel.i === i;
+              const toggle = () => setSel(isSel ? null : { kind: "fire", i });
+              const label = `Foco de calor, ${intensity(f.frp)}, ${acquired(f).at}`;
+              const color = dotColor(f.frp);
+              const r = (isSel ? 5 : dotR(f.frp)) / k;
+              return (
+                <g
+                  key={`f${i}`}
+                  {...mapPointProps(
+                    label,
+                    toggle,
+                    i === (sel?.kind === "fire" ? sel.i : 0),
+                  )}
+                  className={focusRing}
+                  aria-pressed={isSel}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggle();
+                  }}
+                >
+                  <circle cx={x} cy={y} r={14 / k} fill="transparent" />
                   <circle
-                    className="lv-pulse"
                     cx={x}
                     cy={y}
-                    r={3}
-                    fill="#e8732a"
-                    style={{ animationDelay: `${(i % 8) * 0.3}s` }}
+                    r={r + 2.5 / k}
+                    fill="none"
+                    stroke={color}
+                    strokeOpacity={0.5}
+                    strokeWidth={0.8}
+                    vectorEffect="non-scaling-stroke"
                   />
-                )}
-                <circle
-                  cx={x}
-                  cy={y}
-                  r={isSel ? 5 : 3}
-                  fill="#e8732a"
-                  stroke={isSel ? "#f4efe2" : "none"}
-                  strokeWidth={1.5}
-                />
-              </g>
-            );
-          })}
+                  <circle
+                    cx={x}
+                    cy={y}
+                    r={r}
+                    fill={color}
+                    stroke={isSel ? INK : "none"}
+                    strokeWidth={1.5 / k}
+                  />
+                  {near50.has(i) && (
+                    <circle
+                      cx={x}
+                      cy={y}
+                      r={9 / k}
+                      fill="none"
+                      stroke={INK}
+                      strokeWidth={1.25}
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  )}
+                </g>
+              );
+            })}
 
-          {places.map((p, i) => {
-            const [x, y] = g.places[i];
-            if (!onMap(g.places[i])) return null;
-            const isSel = sel?.kind === "place" && sel.i === i;
-            const toggle = () => setSel(isSel ? null : { kind: "place", i });
-            const color = RISK_ON_DARK[p.label];
-            return (
-              <g
-                key={`p${i}`}
-                {...mapPointProps(
-                  `${p.name}: riesgo ${p.label}`,
-                  toggle,
-                  false,
-                )}
-                className="outline-none cursor-pointer [&:focus-visible>circle:first-of-type]:stroke-[#5fe3a1] [&:focus-visible>circle:first-of-type]:stroke-2"
-                aria-pressed={isSel}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggle();
-                }}
-              >
-                <circle cx={x} cy={y} r={16} fill="transparent" />
-                <rect
-                  x={x - 5}
-                  y={y - 5}
-                  width={10}
-                  height={10}
-                  transform={`rotate(45 ${x} ${y})`}
-                  fill="#12110e"
-                  stroke={color}
-                  strokeWidth={isSel ? 3 : 2}
-                />
+            {places.map((p, i) => {
+              const [x, y] = g.places[i];
+              if (!onMap(g.places[i])) return null;
+              const isSel = sel?.kind === "place" && sel.i === i;
+              const toggle = () => setSel(isSel ? null : { kind: "place", i });
+              return (
+                <g
+                  key={`p${i}`}
+                  {...mapPointProps(
+                    `${p.name}: riesgo ${p.label}`,
+                    toggle,
+                    false,
+                  )}
+                  className={focusRing}
+                  aria-pressed={isSel}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggle();
+                  }}
+                >
+                  <circle cx={x} cy={y} r={16 / k} fill="transparent" />
+                  <rect
+                    x={x - 5 / k}
+                    y={y - 5 / k}
+                    width={10 / k}
+                    height={10 / k}
+                    transform={`rotate(45 ${x} ${y})`}
+                    fill="#0c1310"
+                    stroke={RISK_ON_DARK[p.label]}
+                    strokeWidth={(isSel ? 3 : 2) / k}
+                  />
+                </g>
+              );
+            })}
+
+            {focus && fc && (
+              <g aria-hidden="true" pointerEvents="none">
+                {[100, 50].map((km) => (
+                  <circle
+                    key={km}
+                    cx={fc[0]}
+                    cy={fc[1]}
+                    r={geo.argentina.kmPx(focus.lat, focus.lng, km)}
+                    fill="none"
+                    stroke={MINT}
+                    strokeWidth={1.25}
+                    strokeDasharray={km === 50 ? undefined : "6 6"}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                ))}
+                <circle cx={fc[0]} cy={fc[1]} r={4 / k} fill={MINT} />
               </g>
-            );
-          })}
+            )}
+          </g>
         </svg>
+        <span aria-hidden="true" className="a-bk a-bk-tr" />
+        <span aria-hidden="true" className="a-bk a-bk-bl" />
 
         {view === "patagonia" &&
+          !focus &&
           places.map((p, i) =>
             onMap(g.places[i]) ? (
               <span
                 key={p.name}
                 aria-hidden="true"
-                className="pointer-events-none absolute text-xs font-medium text-[#f4efe2] [text-shadow:0_1px_3px_#12110e]"
+                className="pointer-events-none absolute text-xs font-medium text-[#e3f6dc] [text-shadow:0_1px_3px_#0c1310]"
                 style={{
                   left: `${(g.places[i][0] / W) * 100}%`,
                   top: `${(g.places[i][1] / H) * 100}%`,
@@ -320,47 +435,8 @@ export function FireMapLive({
           )}
 
         <div
-          className="absolute left-3 top-3 flex gap-1.5"
-          role="group"
-          aria-label="Encuadre del mapa"
-        >
-          {(Object.keys(VIEWS) as ViewKey[]).map((k) => (
-            <button
-              key={k}
-              type="button"
-              onClick={() => chooseView(k)}
-              aria-pressed={view === k}
-              className={`t-label min-h-11 rounded-md border px-3 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5fe3a1] ${
-                view === k
-                  ? "border-[#5fe3a1]/60 bg-[#5fe3a1]/15 text-[#5fe3a1]"
-                  : "border-white/20 bg-[#12110e]/70 text-[#f4efe2]/80 hover:text-[#f4efe2]"
-              }`}
-            >
-              {VIEWS[k].label}
-            </button>
-          ))}
-        </div>
-
-        <ul className="absolute right-3 top-3 hidden gap-3 rounded-md bg-[#12110e]/70 px-3 py-2 text-xs text-[#f4efe2]/80 sm:flex list-none m-0">
-          <li className="flex items-center gap-1.5">
-            <span
-              aria-hidden="true"
-              className="size-2 rounded-full bg-[#e8732a]"
-            />
-            Foco de calor
-          </li>
-          <li className="flex items-center gap-1.5">
-            <span
-              aria-hidden="true"
-              className="size-2 rotate-45 border-2 border-[#5fe3a1]"
-            />
-            Localidad
-          </li>
-        </ul>
-
-        <div
           aria-live="polite"
-          className="absolute inset-x-3 bottom-3 rounded-xl border border-white/15 bg-[#12110e]/92 p-4 text-sm leading-relaxed text-[#f4efe2] backdrop-blur sm:right-auto sm:max-w-sm"
+          className="absolute inset-x-3 bottom-11 sm:left-11 rounded-xl border border-a-line bg-a-bg p-4 text-sm leading-relaxed text-[#e3f6dc] sm:right-auto sm:max-w-sm"
         >
           <Detail
             sel={sel}
@@ -384,7 +460,7 @@ function Detail({
 }: Props & { sel: Sel }) {
   if (!sel) {
     return (
-      <p className="text-[#f4efe2]/80">
+      <p className="text-a-mute">
         Tocá un foco o una localidad para ver fuente, hora y confianza.
       </p>
     );
@@ -394,7 +470,7 @@ function Detail({
     const { at, ago } = acquired(f);
     return (
       <>
-        <p className="t-label text-[#f3b384]">
+        <p className="text-xs font-medium uppercase tracking-wider text-[#f5b25f]">
           Foco de calor · {intensity(f.frp)}
         </p>
         <p className="mt-1.5">
@@ -403,7 +479,7 @@ function Detail({
           {CONFIDENCE[f.confidence.toLowerCase()] ?? f.confidence},{" "}
           {Math.round(f.frp)} MW.
         </p>
-        <p className="mt-1.5 text-[#f4efe2]/75">
+        <p className="mt-1.5 text-a-mute">
           Fuente: NASA FIRMS, {sourceLabel}. Dato preliminar: no es
           necesariamente un incendio forestal.
         </p>
@@ -413,7 +489,10 @@ function Detail({
   const p = places[sel.i];
   return (
     <>
-      <p className="t-label" style={{ color: RISK_ON_DARK[p.label] }}>
+      <p
+        className="text-xs font-medium uppercase tracking-wider"
+        style={{ color: RISK_ON_DARK[p.label] }}
+      >
         {p.name}, {p.province} · riesgo {p.label}
       </p>
       <p className="mt-1.5">{RISK_EXPLAIN[p.label]}</p>
@@ -421,7 +500,7 @@ function Detail({
         {Math.round(p.temperature)} °C · {Math.round(p.humidity)}% humedad ·{" "}
         {Math.round(p.windSpeed)} km/h
       </p>
-      <p className="mt-1.5 text-[#f4efe2]/75">
+      <p className="mt-1.5 text-a-mute">
         Fuente: Open-Meteo, lectura {readingTime} (hora local). Índice
         ilustrativo propio, no es el FWI oficial.
       </p>

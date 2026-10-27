@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Linkedin } from "lucide-react";
-import { Chapter, Eyebrow } from "@/components/ui/chapter";
+import { ASection, AHeading, aFocus } from "@/components/a-section";
 
 const teamMembers = [
   {
@@ -39,32 +39,34 @@ const teamMembers = [
 
 export function TeamBlock() {
   return (
-    <ul className="grid grid-cols-2 gap-x-4 gap-y-10 lg:grid-cols-4 lg:gap-x-6">
+    <ul className="grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-4">
       {teamMembers.map((m) => (
-        <li key={m.name}>
-          <div className="relative aspect-[4/5] overflow-hidden rounded-sm bg-ash">
+        <li key={m.name} className="a-card group min-w-0 overflow-hidden">
+          <div className="relative aspect-[4/5] bg-a-surface">
             <Image
               src={m.image}
               alt={`${m.name}, ${m.role}`}
               fill
               sizes="(max-width: 1024px) 46vw, 270px"
               loading="lazy"
-              className="object-cover"
+              className="object-cover grayscale transition duration-500 group-hover:grayscale-0 group-focus-within:grayscale-0"
             />
           </div>
-          <p className="t-label mt-4 text-[#0b6b44]">{m.role}</p>
-          <h3 className="t-h3 mt-1">{m.name}</h3>
-          <p className="t-small mt-1 opacity-75">{m.degree}</p>
-          <p className="t-small mt-2 opacity-90">{m.bio}</p>
-          <a
-            href={m.linkedin}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`LinkedIn de ${m.name} (abre en pestaña nueva)`}
-            className="mt-3 inline-flex h-11 w-11 items-center justify-center rounded-full border border-foreground/20 text-foreground/80 transition-colors hover:border-primary hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-          >
-            <Linkedin className="h-4 w-4" aria-hidden />
-          </a>
+          <div className="p-4 md:p-5">
+            <p className="text-xs font-medium uppercase tracking-wider text-a-accent">{m.role}</p>
+            <h3 className="mt-1.5 text-lg font-semibold leading-tight text-[#e3f6dc]">{m.name}</h3>
+            <p className="mt-1 text-sm text-a-mute">{m.degree}</p>
+            <p className="mt-3 text-sm leading-relaxed text-a-mute">{m.bio}</p>
+            <a
+              href={m.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`LinkedIn de ${m.name} (abre en pestaña nueva)`}
+              className={`mt-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-a-line text-a-mute transition-colors hover:border-a-accent hover:text-a-accent ${aFocus}`}
+            >
+              <Linkedin className="h-4 w-4" aria-hidden />
+            </a>
+          </div>
         </li>
       ))}
     </ul>
@@ -74,10 +76,11 @@ export function TeamBlock() {
 // Compatibilidad: el capítulo completo vive en Proof.
 export function Team() {
   return (
-    <Chapter id="equipo">
-      <Eyebrow>Equipo</Eyebrow>
-      <h2 className="t-h2 mb-12 max-w-3xl">Cuatro ingenieros con un objetivo: llegar antes al fuego.</h2>
-      <TeamBlock />
-    </Chapter>
+    <ASection id="equipo">
+      <AHeading eyebrow="Equipo" title="Cuatro ingenieros con un objetivo: llegar antes al fuego" />
+      <div className="mt-14">
+        <TeamBlock />
+      </div>
+    </ASection>
   );
 }

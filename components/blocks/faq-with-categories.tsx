@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { Chapter, Eyebrow } from "@/components/ui/chapter";
+import { ASection } from "@/components/a-section";
 
 interface FaqItem {
   question: string;
@@ -20,16 +20,16 @@ export function FaqSectionWithCategories({
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <Chapter id="faq">
-      <div className="grid gap-10 lg:grid-cols-[1fr_1.6fr] lg:gap-16">
-        <div>
-          <Eyebrow>Preguntas frecuentes</Eyebrow>
-          <h2 className="t-h2">{title}</h2>
-          <p className="t-body mt-5 text-foreground/75">
+    <ASection id="faq">
+      <div className="mx-auto max-w-2xl">
+        <div className="text-center">
+          <p className="a-eyebrow">Preguntas frecuentes</p>
+          <h2 className="a-title mt-4">{title}</h2>
+          <p className="a-sub mt-5">
             ¿Otra duda?{" "}
             <a
               href="#contacto"
-              className="font-medium text-[#0b6b44] underline underline-offset-2"
+              className="font-medium text-a-accent underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent"
             >
               Escribinos
             </a>
@@ -37,11 +37,11 @@ export function FaqSectionWithCategories({
           </p>
         </div>
 
-        <ul className="divide-y divide-black/10 border-y border-black/10">
+        <ul className="mt-12 space-y-3">
           {items.map((faq, i) => {
             const isOpen = openIndex === i;
             return (
-              <li key={faq.question}>
+              <li key={faq.question} className="a-card">
                 <h3>
                   <button
                     type="button"
@@ -49,12 +49,14 @@ export function FaqSectionWithCategories({
                     aria-expanded={isOpen}
                     aria-controls={`faq-panel-${i}`}
                     onClick={() => setOpenIndex(isOpen ? null : i)}
-                    className="flex w-full items-center justify-between gap-4 py-5 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f7a4f]"
+                    className="flex min-h-14 w-full items-center justify-between gap-4 rounded-2xl px-5 py-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent"
                   >
-                    <span className="t-body font-semibold">{faq.question}</span>
+                    <span className="font-medium text-[#e3f6dc]">
+                      {faq.question}
+                    </span>
                     <Plus
                       aria-hidden
-                      className={`h-5 w-5 shrink-0 text-[#0b6b44] transition-transform duration-300 ${
+                      className={`h-5 w-5 shrink-0 text-a-accent transition-transform duration-300 ${
                         isOpen ? "rotate-45" : ""
                       }`}
                     />
@@ -69,7 +71,7 @@ export function FaqSectionWithCategories({
                   }`}
                 >
                   <div className="overflow-hidden" inert={!isOpen}>
-                    <p className="t-body pb-5 pr-9 text-foreground/80">
+                    <p className="px-5 pb-5 pr-12 text-[0.9375rem] leading-relaxed text-a-mute">
                       {faq.answer}
                     </p>
                   </div>
@@ -79,6 +81,6 @@ export function FaqSectionWithCategories({
           })}
         </ul>
       </div>
-    </Chapter>
+    </ASection>
   );
 }

@@ -15,7 +15,7 @@ function MapSkeleton() {
     <div
       role="status"
       aria-label="Cargando mapa"
-      className="w-full aspect-[600/760] lg:aspect-auto lg:h-[min(84vh,840px)] rounded-2xl border border-white/10 bg-ash animate-pulse"
+      className="w-full aspect-[600/760] lg:aspect-auto lg:h-[min(84vh,840px)] bg-a-surface animate-pulse"
     />
   );
 }

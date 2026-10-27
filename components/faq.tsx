@@ -4,7 +4,7 @@ import { CLAIMS } from "@/lib/claims";
 const faqs = [
   {
     question: "¿Cómo funciona Sentinel Cloud?",
-    answer: `Cruza datos satelitales (${CLAIMS.satellites}), información geoespacial e inteligencia artificial para identificar focos de calor probables y enviar una alerta geolocalizada. Tenemos como objetivo de diseño una precisión del ${CLAIMS.accuracyPct}%: es una meta, todavía no un resultado medido en campo. Sensores y drones se suman de forma progresiva.`,
+    answer: `Leemos datos satelitales (${CLAIMS.satellites}), los cruzamos con información geoespacial e inteligencia artificial para marcar focos de calor probables y mandar una alerta geolocalizada. Nuestro objetivo de precisión es ${CLAIMS.accuracyPct}%: es una meta, todavía no un resultado medido en campo. Hoy la lectura es satelital; sensores y drones los sumamos de a poco.`,
   },
   {
     question: "¿Y si la IA se equivoca y salta una falsa alarma?",
@@ -23,7 +23,7 @@ const faqs = [
   {
     question: "¿Necesito conocimientos técnicos para usar Sentinel?",
     answer:
-      "No. Recibís alertas con la ubicación estimada del foco y podés decidir sin ser experto en tecnología ni en IA. Te acompañamos con el onboarding de tu equipo.",
+      "No. Recibís la alerta con la ubicación estimada del foco y decidís vos, sin ser experto en tecnología ni en IA. Nosotros acompañamos a tu equipo en los primeros días de uso.",
   },
   {
     question: "¿Qué soporte ofrecen?",
@@ -59,7 +59,7 @@ export function FAQ() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
       <FaqSectionWithCategories
-        title="Preguntas que nos hacen seguido"
+        title="Lo que nos preguntan seguido"
         items={faqs}
       />
     </>

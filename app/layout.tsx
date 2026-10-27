@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Inter, JetBrains_Mono, Instrument_Serif } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter, JetBrains_Mono, Instrument_Serif, Geist } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
@@ -28,6 +28,12 @@ const display = Instrument_Serif({
   weight: "400",
   subsets: ["latin"],
   variable: "--font-display",
+});
+
+// Sans de la landing (estilo de producto oscuro, titulares grandes y ajustados).
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist",
 });
 
 const siteUrl = "https://www.sentineltech.com.ar";
@@ -175,7 +181,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${display.variable} ${inter.variable} ${plusJakarta.variable} ${jetbrains.variable} font-sans antialiased bg-[#faf7f0] text-[#1a1812]`}
+        className={`${geist.variable} ${display.variable} ${inter.variable} ${plusJakarta.variable} ${jetbrains.variable} font-sans antialiased bg-[#faf7f0] text-[#1a1812]`}
       >
         <a
           href="#main-content"

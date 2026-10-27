@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Chapter, Eyebrow } from "@/components/ui/chapter";
+import { ASection } from "@/components/a-section";
 
 const logos = [
   { id: "uba", description: "UBA", image: "/uba-logo.png" },
@@ -24,15 +24,9 @@ const logos = [
 
 export function PartnersBlock() {
   return (
-    <div>
-      <h3 className="t-h3 mb-2">
-        Programas y entidades en las que participamos
-      </h3>
-      <p className="t-small mb-6 max-w-2xl opacity-80">
-        Universidades de origen, organizadores de competencias y programas de
-        los que Sentinel formó parte. No implica convenio ni respaldo comercial.
-      </p>
-      <ul className="flex flex-wrap items-center gap-x-8 gap-y-5">
+    <div className="text-center">
+      <p className="a-eyebrow">Programas y entidades en las que participamos</p>
+      <ul className="mx-auto mt-8 flex max-w-4xl flex-wrap items-center justify-center gap-x-10 gap-y-6">
         {logos.map((l) => (
           <li key={l.id} className="flex h-10 items-center">
             <Image
@@ -41,12 +35,17 @@ export function PartnersBlock() {
               width={100}
               height={36}
               loading="lazy"
-              className="max-h-9 w-auto max-w-[100px] object-contain opacity-70"
-              style={{ filter: "grayscale(100%) brightness(0)" }}
+              className="max-h-9 w-auto max-w-[100px] object-contain opacity-60"
+              // Todos los logos tienen fondo transparente: silueta blanca sobre el fondo oscuro.
+              style={{ filter: "brightness(0) invert(1)" }}
             />
           </li>
         ))}
       </ul>
+      <p className="mx-auto mt-8 max-w-xl text-xs leading-relaxed text-a-faint">
+        Universidades de origen, organizadores de competencias y programas de los
+        que Sentinel formó parte. No implica convenio ni respaldo comercial.
+      </p>
     </div>
   );
 }
@@ -54,9 +53,8 @@ export function PartnersBlock() {
 // Compatibilidad: el capítulo completo vive en Proof.
 export function Partners() {
   return (
-    <Chapter>
-      <Eyebrow>Entidades</Eyebrow>
+    <ASection>
       <PartnersBlock />
-    </Chapter>
+    </ASection>
   );
 }

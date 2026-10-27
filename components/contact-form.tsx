@@ -19,12 +19,12 @@ const PERFIL_TO_INTEREST: Record<string, string> = {
 };
 
 const field =
-  "w-full rounded-md border border-white/25 bg-white/[0.06] px-3.5 py-3 text-base text-[#f4efe2] placeholder:text-[#f4efe2]/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright aria-[invalid=true]:border-[#ff9b8a]";
-const label = "t-small block mb-1.5 font-medium text-[#f4efe2]";
+  "h-12 w-full rounded-xl border border-a-line bg-a-bg px-4 text-base text-[#e3f6dc] placeholder:text-a-faint focus-visible:border-a-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent aria-[invalid=true]:border-[#ff9b8a]";
+const label = "mb-1.5 block text-sm font-medium text-[#e3f6dc]";
 
 function FieldError({ id, msg }: { id: string; msg?: string }) {
   return msg ? (
-    <p id={id} className="t-small mt-1.5 text-[#ffb4a6]">
+    <p id={id} className="mt-1.5 text-sm text-[#ffb4a6]">
       {msg}
     </p>
   ) : null;
@@ -83,10 +83,10 @@ export function ContactForm() {
     return (
       <div
         role="status"
-        className="rounded-xl border border-leaf-bright/40 bg-white/[0.04] p-6 md:p-8"
+        className="a-card !border-a-accent/40 p-6 md:p-8"
       >
-        <p className="t-h3 text-leaf-bright">Recibimos tu mensaje.</p>
-        <p className="t-body mt-2 text-[#f4efe2]/85">
+        <p className="text-xl font-semibold text-a-accent">Recibimos tu mensaje.</p>
+        <p className="mt-2 text-a-mute">
           Te respondemos en 24 h hábiles. Si es urgente, escribinos a {mail}.
         </p>
       </div>
@@ -97,7 +97,7 @@ export function ContactForm() {
     <form
       onSubmit={onSubmit}
       noValidate
-      className="grid gap-5 rounded-xl border border-white/15 bg-white/[0.04] p-6 md:p-8 sm:grid-cols-2"
+      className="a-card grid gap-5 p-6 text-left md:p-8 sm:grid-cols-2"
     >
       {/* honeypot */}
       <div
@@ -186,7 +186,7 @@ export function ContactForm() {
           rows={4}
           required
           maxLength={2000}
-          className={field}
+          className={`${field} !h-auto py-3`}
           placeholder="¿Qué territorio cuidás y qué necesitás?"
           aria-invalid={!!errors.message}
           aria-describedby={errors.message ? "c-msg-err" : undefined}
@@ -198,15 +198,15 @@ export function ContactForm() {
         <button
           type="submit"
           disabled={status === "sending"}
-          className="inline-flex min-h-12 items-center rounded-full bg-leaf-bright px-7 text-base font-semibold text-charcoal transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-60"
+          className="a-pill !h-12 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent disabled:opacity-60"
         >
           {status === "sending" ? "Enviando…" : "Solicitar un piloto"}
         </button>
-        <p className="t-small text-[#f4efe2]/75">
+        <p className="text-sm text-a-mute">
           Te respondemos en 24 h hábiles.
         </p>
       </div>
-      <p className="t-small sm:col-span-2 text-[#f4efe2]/65">
+      <p className="text-sm text-a-mute sm:col-span-2">
         Al enviar aceptás nuestra{" "}
         <a href="/privacidad" className="underline underline-offset-2">
           política de privacidad
@@ -216,12 +216,12 @@ export function ContactForm() {
 
       <div className="sm:col-span-2" aria-live="polite">
         {status === "error" && (
-          <p role="alert" className="t-small text-[#ffb4a6]">
+          <p role="alert" className="text-sm text-[#ffb4a6]">
             No pudimos enviar tu mensaje. Probá de nuevo o escribinos a {mail}.
           </p>
         )}
         {status === "unavailable" && (
-          <p role="alert" className="t-small text-[#ffd9a0]">
+          <p role="alert" className="text-sm text-[#ffd9a0]">
             El envío en línea no está disponible por ahora: escribinos a {mail}.
           </p>
         )}

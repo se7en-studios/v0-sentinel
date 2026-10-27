@@ -43,17 +43,14 @@ export function WhatsAppButton() {
       <a
         href={url ?? "#contacto"}
         {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-        className="flex h-12 items-center justify-center gap-2 rounded-full bg-charcoal px-3.5 text-[#f4efe2] shadow-lg shadow-black/25 ring-1 ring-white/20 transition hover:ring-leaf-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-bright md:px-4"
+        className="flex size-12 items-center justify-center rounded-full border border-a-line bg-a-bg text-a-accent transition-colors hover:border-a-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a9efc9]"
         aria-label={
           external
             ? "Escribir al equipo de Sentinel por WhatsApp"
             : "Ir al formulario de contacto"
         }
       >
-        <MessageCircle aria-hidden className="h-5 w-5 text-leaf-bright" />
-        <span className="t-small hidden font-medium md:inline">
-          {external ? "WhatsApp" : "Contacto"}
-        </span>
+        <MessageCircle aria-hidden className="size-5" />
       </a>
     </aside>
   );

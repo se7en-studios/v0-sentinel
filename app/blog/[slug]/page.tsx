@@ -96,7 +96,7 @@ export default async function BlogPostPage({
   const minutes = readingTime(post);
 
   return (
-    <main className="min-h-screen bg-[#faf7f0]">
+    <main className="a-root min-h-screen">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
@@ -122,42 +122,42 @@ export default async function BlogPostPage({
             className="object-cover"
             style={{ filter: "brightness(0.85) saturate(0.9)" }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#faf7f0] via-[#faf7f0]/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0c1310] via-[#0c1310]/70 to-transparent" />
         </div>
 
         <div className="max-w-3xl mx-auto px-6 lg:px-10 -mt-16 relative z-10">
           {/* Breadcrumbs */}
           <nav
-            className="flex items-center gap-2 mb-6 text-[12px]"
+            className="flex items-center gap-2 mb-6 text-xs"
             style={{
               fontFamily: "var(--font-sans)",
-              color: "rgba(26,24,18,0.45)",
+              color: "#9fb5a7",
             }}
           >
-            <Link href="/" className="hover:text-[#0f7a4f] transition-colors">
+            <Link href="/" className="hover:text-a-accent transition-colors">
               Inicio
             </Link>
-            <span className="text-[10px] opacity-40">/</span>
+            <span className="text-xs opacity-40">/</span>
             <Link
               href="/blog"
-              className="hover:text-[#0f7a4f] transition-colors"
+              className="hover:text-a-accent transition-colors"
             >
               Blog
             </Link>
-            <span className="text-[10px] opacity-40">/</span>
+            <span className="text-xs opacity-40">/</span>
             <span
               className="truncate max-w-[180px] sm:max-w-xs font-light"
-              style={{ color: "rgba(26,24,18,0.75)" }}
+              style={{ color: "#e3f6dc" }}
             >
               {post.title}
             </span>
           </nav>
 
           <p
-            className="text-[11px] mb-4"
+            className="text-xs mb-4"
             style={{
               fontFamily: "var(--font-sans)",
-              color: "rgba(26,24,18,0.35)",
+              color: "#9fb5a7",
             }}
           >
             {formatDate(post.publishedAt, "long")}
@@ -168,10 +168,11 @@ export default async function BlogPostPage({
           <h1
             className="text-3xl sm:text-4xl lg:text-5xl mb-12"
             style={{
-              fontFamily: "var(--font-heading)",
-              fontWeight: 800,
-              color: "rgba(26,24,18,0.95)",
-              lineHeight: 1.15,
+              fontFamily: "var(--font-geist)",
+              fontWeight: 600,
+              letterSpacing: "-0.03em",
+              color: "#e3f6dc",
+              lineHeight: 1.12,
             }}
           >
             {post.title}
@@ -185,7 +186,7 @@ export default async function BlogPostPage({
                     className="text-xl sm:text-2xl mb-4 font-semibold"
                     style={{
                       fontFamily: "var(--font-heading)",
-                      color: "rgba(26,24,18,0.92)",
+                      color: "#e3f6dc",
                     }}
                   >
                     {block.heading}
@@ -197,8 +198,8 @@ export default async function BlogPostPage({
                     className="text-[15px] leading-relaxed mb-4"
                     style={{
                       fontFamily: "var(--font-sans)",
-                      fontWeight: 300,
-                      color: "rgba(26,24,18,0.65)",
+                      fontWeight: 400,
+                      color: "#b9cdc0",
                     }}
                   >
                     {p}
@@ -208,15 +209,15 @@ export default async function BlogPostPage({
                   <blockquote
                     className="my-6 pl-6 py-2 rounded-r-lg"
                     style={{
-                      borderLeft: "2px solid #0f7a4f",
-                      background: "rgba(15,122,79,0.03)",
+                      borderLeft: "2px solid #a9efc9",
+                      background: "#16211b",
                     }}
                   >
                     <p
                       className="text-xl sm:text-2xl leading-snug font-medium italic"
                       style={{
                         fontFamily: "var(--font-heading)",
-                        color: "rgba(26,24,18,0.9)",
+                        color: "#e3f6dc",
                       }}
                     >
                       {post.pullQuote}
@@ -229,10 +230,10 @@ export default async function BlogPostPage({
 
           <Link
             href={post.relatedLink.href}
-            className="inline-flex items-center gap-2 mb-16 text-[13px] font-normal transition-colors hover:text-[#0f7a4f]"
+            className="inline-flex items-center gap-2 mb-16 text-[13px] font-normal transition-colors hover:text-white"
             style={{
               fontFamily: "var(--font-sans)",
-              color: "rgba(15,122,79,0.85)",
+              color: "#a9efc9",
             }}
           >
             {post.relatedLink.label}
@@ -242,15 +243,15 @@ export default async function BlogPostPage({
           <div
             className="rounded-lg p-8 mb-20 text-center"
             style={{
-              background: "rgba(26,24,18,0.02)",
-              border: "0.5px solid rgba(15,122,79,0.25)",
+              background: "#16211b",
+              border: "1px solid rgba(214,245,201,0.11)",
             }}
           >
             <p
               className="text-lg mb-5 font-semibold"
               style={{
                 fontFamily: "var(--font-heading)",
-                color: "rgba(26,24,18,0.92)",
+                color: "#e3f6dc",
               }}
             >
               ¿Querés monitoreo continuo en tu territorio?
@@ -260,9 +261,9 @@ export default async function BlogPostPage({
               className="inline-flex items-center gap-2 px-7 py-3 rounded-sm text-[13px] font-medium transition-all duration-200 hover:-translate-y-0.5"
               style={{
                 fontFamily: "var(--font-sans)",
-                background: "rgba(15,122,79,0.12)",
-                border: "0.5px solid rgba(15,122,79,0.35)",
-                color: "#0f7a4f",
+                background: "#a9efc9",
+                border: "1px solid #a9efc9",
+                color: "#06150d",
               }}
             >
               Solicitar una reunión
@@ -273,10 +274,10 @@ export default async function BlogPostPage({
           {related.length > 0 && (
             <div className="pb-24">
               <p
-                className="text-[11px] tracking-[0.25em] uppercase mb-6"
+                className="text-xs tracking-[0.25em] uppercase mb-6"
                 style={{
                   fontFamily: "var(--font-sans)",
-                  color: "rgba(26,24,18,0.3)",
+                  color: "#6f8577",
                 }}
               >
                 Seguí leyendo
@@ -288,8 +289,8 @@ export default async function BlogPostPage({
                     href={`/blog/${r.slug}`}
                     className="group rounded-lg p-5 transition-all duration-300 hover:-translate-y-0.5"
                     style={{
-                      background: "rgba(26,24,18,0.02)",
-                      border: "0.5px solid rgba(26,24,18,0.07)",
+                      background: "#16211b",
+                      border: "1px solid rgba(214,245,201,0.11)",
                     }}
                   >
                     <p
@@ -297,17 +298,17 @@ export default async function BlogPostPage({
                       style={{
                         fontFamily: "var(--font-heading)",
                         fontWeight: 700,
-                        color: "rgba(26,24,18,0.85)",
+                        color: "#e3f6dc",
                       }}
                     >
                       {r.title}
                     </p>
                     <p
-                      className="text-[12px] leading-relaxed"
+                      className="text-xs leading-relaxed"
                       style={{
                         fontFamily: "var(--font-sans)",
-                        fontWeight: 300,
-                        color: "rgba(26,24,18,0.4)",
+                        fontWeight: 400,
+                        color: "#9fb5a7",
                       }}
                     >
                       {r.excerpt}
