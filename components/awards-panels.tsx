@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { aFocus } from "@/components/a-section";
+import { CircularGallery } from "@/components/ui/circular-gallery";
 
 export type AwardEntry = {
   year: string;
@@ -71,7 +72,11 @@ function Moments({ moments }: { moments: Moment[] }) {
         <h3 className="a-display-m mt-3 max-w-2xl !text-[clamp(2rem,4vw,3.75rem)] text-white">
           Más momentos del camino.
         </h3>
-        <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5 lg:gap-4">
+        <CircularGallery
+          items={moments}
+          className="mt-4 hidden h-[58vh] group-data-[pin]/aw:flex"
+        />
+        <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5 lg:gap-4 group-data-[pin]/aw:hidden">
           {moments.map((m, i) => (
             <li
               key={m.src}
