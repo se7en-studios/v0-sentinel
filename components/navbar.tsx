@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { SentinelLogo, SentinelMark } from "@/components/sentinel-logo";
+import { SentinelBrandLogo } from "@/components/sentinel-logo";
 import { useActiveSection } from "@/hooks/use-active-section";
 
 const NAV_LINKS = [
@@ -117,8 +117,7 @@ export function Navbar() {
             onClick={() => setIsOpen(false)}
             className={`flex w-fit items-center gap-2 rounded-sm ${RING}`}
           >
-            <SentinelMark className="size-6" />
-            <SentinelLogo className="h-4 w-auto" fill="#e3f6dc" />
+            <SentinelBrandLogo className="h-7 w-auto md:h-8" hole="#0a1018" />
             <span className="rounded-full border border-a-line px-2 py-0.5 text-[0.8125rem] font-medium text-a-mute">
               Cloud
             </span>

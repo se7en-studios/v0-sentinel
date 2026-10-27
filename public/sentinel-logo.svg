@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-labelledby="title desc">
+  <title id="title">Sentinel</title>
+  <desc id="desc">Sentinel logo: white abstract four-point emblem and wordmark.</desc>
+  <g fill="#FFFFFF">
+    <path d="M45 160 C112 146 171 113 211 44 C195 101 202 131 284 145 C220 151 167 185 126 270 C142 211 132 181 45 160 Z"/>
+    <ellipse cx="157" cy="158" rx="18" ry="34" transform="rotate(35 157 158)" fill="#0B1220"/>
+    <ellipse cx="162" cy="149" rx="6" ry="12" transform="rotate(35 162 149)"/>
+    <text x="315" y="202" font-family="Arial, Helvetica, sans-serif" font-size="112" font-weight="400" letter-spacing="13">SENTINEL</text>
+  </g>
+</svg>

@@ -42,3 +42,37 @@ export function SentinelMark({ className = "size-5" }: { className?: string }) {
     </svg>
   );
 }
+
+const EMBLEM_PATH =
+  "M45 160 C112 146 171 113 211 44 C195 101 202 131 284 145 C220 151 167 185 126 270 C142 211 132 181 45 160 Z";
+
+function EmblemShapes({ hole }: { hole: string }) {
+  return (
+    <>
+      <path d={EMBLEM_PATH} />
+      <ellipse cx="157" cy="158" rx="18" ry="34" transform="rotate(35 157 158)" fill={hole} />
+      <ellipse cx="162" cy="149" rx="6" ry="12" transform="rotate(35 162 149)" />
+    </>
+  );
+}
+
+/** Logo oficial (emblema de cuatro puntas + wordmark), blanco sobre fondo oscuro. `hole` = color del fondo detrás del emblema. */
+export function SentinelBrandLogo({ className = "h-7 w-auto", hole = "#0b1220" }: { className?: string; hole?: string }) {
+  return (
+    <svg viewBox="40 40 930 235" className={className} fill="#fff" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sentinel">
+      <EmblemShapes hole={hole} />
+      <text x="315" y="202" fontFamily="Arial, Helvetica, sans-serif" fontSize="112" fontWeight={400} letterSpacing="13">
+        SENTINEL
+      </text>
+    </svg>
+  );
+}
+
+/** Solo el emblema oficial. */
+export function SentinelEmblem({ className = "size-11", hole = "#0b1220" }: { className?: string; hole?: string }) {
+  return (
+    <svg viewBox="40 40 250 235" className={className} fill="#fff" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <EmblemShapes hole={hole} />
+    </svg>
+  );
+}

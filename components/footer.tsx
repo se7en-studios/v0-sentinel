@@ -1,5 +1,5 @@
 import PushpinTearFooter from "@/components/ui/pushpin-tear-footer";
-import { SentinelMark } from "@/components/sentinel-logo";
+import { SentinelEmblem } from "@/components/sentinel-logo";
 import { CONTACT_FALLBACK_EMAIL } from "@/lib/contact";
 
 // Una sola foto rasgada: la hoja de arriba muestra el fuego y el papel de abajo, el guanaco tomando agua.
@@ -10,7 +10,7 @@ export function Footer() {
     <PushpinTearFooter
       brand="sentinel."
       name="Sentinel Technologies"
-      logo={<SentinelMark className="size-11" />}
+      logo={<SentinelEmblem className="size-11" />}
       logoHref="/"
       email={CONTACT_FALLBACK_EMAIL}
       newsletter={null}
