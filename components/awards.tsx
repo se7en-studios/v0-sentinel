@@ -1,7 +1,7 @@
 import { ASection, AHeading } from "@/components/a-section";
 import { pressMentions } from "@/lib/press-mentions";
 import { PHOTOS } from "@/lib/photos";
-import { AwardsPanels, type AwardEntry } from "@/components/awards-panels";
+import { AwardsPanels, type AwardEntry, type Moment } from "@/components/awards-panels";
 
 const noteFor = (outlet: string) =>
   pressMentions.find((m) => m.outlet === outlet)?.url;
@@ -19,8 +19,22 @@ const ENTRIES: AwardEntry[] = [
   { year: "2026", name: "Impact Startup Competition, Perú", bg: "/photos/ambiente-brasas.webp", result: "Fuimos finalistas" },
 ];
 
+// Fotos del equipo en distintos eventos. Los alt no atribuyen la foto a un evento salvo que se vea el logo/pantalla.
+const MOMENTS: Moment[] = [
+  { src: "/photos/momentos-01.webp", alt: "El equipo y autoridades en el escenario del auditorio de ILAN" },
+  { src: "/photos/momentos-09.webp", alt: "El equipo en el escenario de los Premios Verdes" },
+  { src: "/photos/momentos-04.webp", alt: "Integrantes del equipo en el patio de un evento" },
+  { src: "/photos/momentos-11.webp", alt: "El equipo con la bandera argentina en los Premios Verdes" },
+  { src: "/photos/momentos-05.webp", alt: "Escenario bajo carpa durante un evento" },
+  { src: "/photos/momentos-06.webp", alt: "Integrantes del equipo junto a una persona con credencial" },
+  { src: "/photos/momentos-12.webp", alt: "El equipo en el escenario de los Premios Verdes, con luces verdes" },
+  { src: "/photos/momentos-07.webp", alt: "Sala de una ceremonia con proyecciones verdes" },
+  { src: "/photos/momentos-14.webp", alt: "El equipo frente al logo de los Premios Verdes" },
+  { src: "/photos/momentos-13.webp", alt: "Un ciervo que se acerca a la cámara en un camino rodeado de pinos" },
+];
+
 export function AwardsBlock() {
-  return <AwardsPanels entries={ENTRIES} />;
+  return <AwardsPanels entries={ENTRIES} moments={MOMENTS} />;
 }
 
 // Compatibilidad: el capítulo completo vive en Proof.

@@ -71,7 +71,6 @@ export function HeroReveal() {
               aria-label="Grabación del panel de Sentinel: el perímetro del incendio crece con la línea de tiempo"
               className="absolute inset-0 size-full object-cover"
             >
-              <source src="/video/admin-caso-hero.webm" type="video/webm" />
               <source src="/video/admin-caso-hero.mp4" type="video/mp4" />
             </video>
           </div>

@@ -21,6 +21,8 @@ export type AwardEntry = {
   bg: string;
 };
 
+export type Moment = { src: string; alt: string };
+
 const PIN_MQ =
   "(min-width: 1024px) and (prefers-reduced-motion: no-preference)";
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -52,6 +54,44 @@ function Intro({ entries }: { entries: AwardEntry[] }) {
         Seguí bajando: un premio por pantalla →
       </p>
     </div>
+  );
+}
+
+const TILT = [-2.5, 1.5, -1, 2.5, -1.5, 2, -2, 1, -2.5, 1.5];
+
+function Moments({ moments }: { moments: Moment[] }) {
+  return (
+    <section
+      data-moments
+      aria-label="Más momentos del camino"
+      className="relative flex min-h-[80svh] w-full flex-col justify-center overflow-hidden bg-[#06100b] px-5 py-24 group-data-[pin]/aw:h-screen group-data-[pin]/aw:w-screen group-data-[pin]/aw:shrink-0 group-data-[pin]/aw:py-0 md:px-10"
+    >
+      <div className="mx-auto w-full max-w-[1500px]">
+        <p className="a-eyebrow !text-left">Momentos</p>
+        <h3 className="a-display-m mt-3 max-w-2xl !text-[clamp(2rem,4vw,3.75rem)] text-white">
+          Más momentos del camino.
+        </h3>
+        <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5 lg:gap-4">
+          {moments.map((m, i) => (
+            <li
+              key={m.src}
+              data-moment
+              style={{ rotate: `${TILT[i % TILT.length]}deg` }}
+              className="relative aspect-[3/4] overflow-hidden rounded-xl border border-white/25 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.8)] group-data-[pin]/aw:h-[31vh] group-data-[pin]/aw:justify-self-center"
+            >
+              <Image
+                src={m.src}
+                alt={m.alt}
+                fill
+                sizes="(min-width: 1024px) 18vw, 45vw"
+                loading="lazy"
+                className="object-cover"
+              />
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
   );
 }
 
@@ -178,7 +218,13 @@ function Panel({ e, i, total }: { e: AwardEntry; i: number; total: number }) {
 
 // Apilado por defecto (celular, reduced-motion, sin JS). En lg+ con movimiento, GSAP marca data-pin:
 // la sección queda fija y los paneles de pantalla completa pasan en horizontal, uno por premio.
-export function AwardsPanels({ entries }: { entries: AwardEntry[] }) {
+export function AwardsPanels({
+  entries,
+  moments = [],
+}: {
+  entries: AwardEntry[];
+  moments?: Moment[];
+}) {
   const rootRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLSpanElement>(null);
@@ -199,7 +245,7 @@ export function AwardsPanels({ entries }: { entries: AwardEntry[] }) {
       mm.add(PIN_MQ, () => {
         root.setAttribute("data-pin", "");
         const dist = () => Math.max(0, track.scrollWidth - window.innerWidth);
-        const total = entries.length;
+        const total = entries.length + (moments.length ? 1 : 0);
 
         const move = gsap.to(track, {
           x: () => -dist(),
@@ -218,10 +264,34 @@ export function AwardsPanels({ entries }: { entries: AwardEntry[] }) {
               // 0 = pantalla de introducción; 1..n = premios
               const idx = Math.round(self.progress * total);
               count.textContent =
-                idx === 0 ? "Reconocimientos" : `${pad(idx)} / ${pad(total)}`;
+                idx === 0
+                  ? "Reconocimientos"
+                  : idx > entries.length
+                    ? "Momentos"
+                    : `${pad(idx)} / ${pad(entries.length)}`;
             },
           },
         });
+
+        const shots = gsap.utils.toArray<HTMLElement>("[data-moment]", track);
+        if (shots.length)
+          gsap.fromTo(
+            shots,
+            { y: 60, opacity: 0 },
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.7,
+              ease: "power3.out",
+              stagger: 0.06,
+              scrollTrigger: {
+                trigger: "[data-moments]",
+                containerAnimation: move,
+                start: "left 65%",
+                toggleActions: "play none none reverse",
+              },
+            },
+          );
 
         gsap.utils
           .toArray<HTMLElement>("[data-panel]", track)
@@ -291,7 +361,7 @@ export function AwardsPanels({ entries }: { entries: AwardEntry[] }) {
       cancelled = true;
       revert();
     };
-  }, [entries]);
+  }, [entries, moments]);
 
   return (
     <div
@@ -314,6 +384,7 @@ export function AwardsPanels({ entries }: { entries: AwardEntry[] }) {
         {entries.map((e, i) => (
           <Panel key={e.name} e={e} i={i} total={entries.length} />
         ))}
+        {moments.length ? <Moments moments={moments} /> : null}
       </div>
 
       {/* Progreso: solo en la versión fija. */}
