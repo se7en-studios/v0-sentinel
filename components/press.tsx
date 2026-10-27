@@ -1,19 +1,19 @@
 import { ArrowUpRight } from "lucide-react";
 import { pressMentions } from "@/lib/press-mentions";
 import { formatDate } from "@/lib/format-date";
-import { ASection, AHeading, aFocus } from "@/components/a-section";
+import { ASection, AHeading, aFocus, riseDelay } from "@/components/a-section";
 
 // Sin og:image de terceros: solo texto, así no dependemos de hotlinks ni de dominios externos.
 export function PressBlock() {
   return (
     <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {pressMentions.map((m) => (
-        <li key={m.url} className="min-w-0">
+      {pressMentions.map((m, i) => (
+        <li key={m.url} className="a-rise min-w-0" style={riseDelay(i % 3, 8)}>
           <a
             href={m.url}
             target="_blank"
             rel="noopener noreferrer"
-            className={`a-card group flex h-full flex-col justify-between gap-6 p-6 transition-colors hover:border-a-accent/40 ${aFocus}`}
+            className={`a-card a-lift group flex h-full flex-col justify-between gap-6 p-6 ${aFocus}`}
           >
             <p className="text-lg font-medium leading-snug text-[#e3f6dc]">
               &ldquo;{m.title}&rdquo;
@@ -25,7 +25,7 @@ export function PressBlock() {
                 {" · "}
                 {m.date ? formatDate(m.date) : "s/f"}
               </p>
-              <ArrowUpRight className="h-4 w-4 shrink-0 text-a-mute transition-colors group-hover:text-a-accent" aria-hidden />
+              <ArrowUpRight className="h-4 w-4 shrink-0 text-a-mute transition-[color,transform] duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-a-accent" aria-hidden />
             </div>
           </a>
         </li>

@@ -41,5 +41,10 @@ export function AHeading({
   );
 }
 
+// Escalonado para .a-rise en grillas: el rango de la animación se corre por índice.
+export const riseDelay = (i: number, step = 7) => ({
+  animationRange: `entry ${4 + i * step}% entry ${48 + i * step}%`,
+});
+
 export const aFocus =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent";

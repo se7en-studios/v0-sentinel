@@ -166,7 +166,7 @@ export default async function BlogPostPage({
           </p>
 
           <h1
-            className="text-3xl sm:text-4xl lg:text-5xl mb-12"
+            className="a-load text-3xl sm:text-4xl lg:text-5xl mb-12"
             style={{
               fontFamily: "var(--font-geist)",
               fontWeight: 600,

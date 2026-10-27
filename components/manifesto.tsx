@@ -18,6 +18,7 @@ export function Manifesto() {
           <div className="a-brackets">
             <span className="a-bk a-bk-tr" />
             <span className="a-bk a-bk-bl" />
+            <div className="a-wipe aspect-[4/5] w-full overflow-hidden rounded-lg">
             <Image
               src={photo.src}
               alt={photo.alt}
@@ -25,8 +26,9 @@ export function Manifesto() {
               height={photo.height}
               sizes="300px"
               loading="lazy"
-              className="aspect-[4/5] w-full rounded-lg object-cover"
+              className="a-parallax h-[118%] w-full object-cover"
             />
+            </div>
           </div>
           <figcaption className="mt-3 text-xs text-a-mute">{photo.caption}</figcaption>
         </figure>

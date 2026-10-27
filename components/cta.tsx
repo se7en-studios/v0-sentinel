@@ -16,15 +16,15 @@ export function CTA() {
   return (
     <ASection id="contacto" tone="forest" className="!pb-16">
       <div className="mx-auto max-w-2xl text-center">
-        <p className="a-eyebrow">Contacto</p>
-        <h2 className="a-display mt-5">Hablemos de tu territorio</h2>
+        <p className="a-eyebrow a-rise">Contacto</p>
+        <h2 className="a-display a-rise mt-5">Hablemos de tu territorio</h2>
         <p className="a-sub mx-auto mt-6 max-w-xl">
           Contanos qué zona cuidás. Elegimos juntos dónde probar y validamos las
           alertas antes de pensar en algo más grande.
         </p>
       </div>
 
-      <div className="mx-auto mt-12 max-w-2xl">
+      <div className="a-rise mx-auto mt-12 max-w-2xl">
         <Suspense
           fallback={<div className="a-card min-h-[28rem]" aria-hidden />}
         >

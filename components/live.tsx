@@ -1,4 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
+import { LiveCountUp } from "@/components/live-count-up";
 import { LiveExplorerLazy } from "@/components/live-explorer-lazy";
 import { localityStats } from "@/components/locality-stats";
 import { Updated, formatUpdated } from "@/components/data/data-section";
@@ -30,6 +31,11 @@ const RISK_ON_DARK: Record<RiskLabel, string> = {
   Alto: "#f1b46b",
   Extremo: "#ff8f85",
 };
+
+// Entrada escalonada por scroll (CSS): cada elemento arranca un poco después.
+const rise = (i: number) => ({
+  animationRange: `entry ${4 + i * 7}% entry ${48 + i * 7}%`,
+});
 
 const link =
   "underline underline-offset-2 hover:text-[#e3f6dc] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent";
@@ -73,15 +79,15 @@ export async function LiveChapter() {
       className="a-root scroll-mt-16 px-4 py-24 sm:px-6 md:py-36"
     >
       <div className="mx-auto max-w-[1100px]">
-        <p className="a-eyebrow">En vivo</p>
+        <p className="a-eyebrow a-load text-center">En vivo</p>
         <h2
           id="live-title"
-          className="a-title mx-auto mt-4 max-w-3xl text-center"
+          className="a-title a-rise mx-auto mt-4 max-w-3xl text-center"
         >
           {count > 0 ? (
             <>
               <span className="a-display-m mb-3 block tabular-nums" style={{ fontSize: "clamp(4.5rem, 15vw, 9rem)", lineHeight: 0.9 }}>
-                {nf(count)}
+                <LiveCountUp value={count} />
               </span>
               focos de calor en Argentina en las últimas 24 horas
             </>
@@ -91,7 +97,7 @@ export async function LiveChapter() {
             "Lo que ven hoy los satélites sobre Argentina"
           )}
         </h2>
-        <p className="a-sub mx-auto mt-5 max-w-2xl text-center">
+        <p className="a-sub a-rise mx-auto mt-6 max-w-2xl text-center">
           {fires ? (
             <>
               Fuente: NASA FIRMS ({FIRMS_LABEL}). <Updated at={fires.at} />
@@ -105,7 +111,7 @@ export async function LiveChapter() {
           horas.
         </p>
 
-        <div className="mt-14 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
+        <div className="mt-14 grid grid-cols-1 gap-5 md:mt-20 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
           {fires ? (
             <LiveExplorerLazy
               fires={mapFires}
@@ -132,7 +138,7 @@ export async function LiveChapter() {
           <div className="flex min-w-0 flex-col gap-5">
             <section
               aria-labelledby="live-riesgo"
-              className="a-card min-w-0 p-5 sm:p-6"
+              className="a-card a-rise min-w-0 p-5 sm:p-6"
             >
               <div className="flex flex-wrap items-baseline justify-between gap-x-3">
                 <h3
@@ -159,10 +165,11 @@ export async function LiveChapter() {
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map(({ r, label }) => (
+                    {rows.map(({ r, label }, i) => (
                       <tr
                         key={r.location.name}
-                        className="border-t border-a-line"
+                        className="a-rise border-t border-a-line"
+                        style={rise(i)}
                       >
                         <th
                           scope="row"
@@ -210,7 +217,7 @@ export async function LiveChapter() {
 
             <section
               aria-labelledby="live-cifras"
-              className="a-card min-w-0 p-5 sm:p-6"
+              className="a-card a-rise min-w-0 p-5 sm:p-6"
             >
               <h3
                 id="live-cifras"
@@ -221,13 +228,13 @@ export async function LiveChapter() {
               <dl className="mt-4 grid grid-cols-2 gap-5">
                 <div className="flex flex-col-reverse gap-1">
                   <dt className="text-sm text-a-mute">últimas 24 h</dt>
-                  <dd className="text-4xl font-semibold tracking-tight tabular-nums text-[#e3f6dc]">
+                  <dd className="text-4xl font-semibold leading-none tracking-tight tabular-nums sm:text-5xl text-[#e3f6dc]">
                     {fires ? nf(count) : "—"}
                   </dd>
                 </div>
                 <div className="flex flex-col-reverse gap-1">
                   <dt className="text-sm text-a-mute">últimos 90 días</dt>
-                  <dd className="text-4xl font-semibold tracking-tight tabular-nums text-[#e3f6dc]">
+                  <dd className="text-4xl font-semibold leading-none tracking-tight tabular-nums sm:text-5xl text-[#e3f6dc]">
                     {impact
                       ? `${impact.failedChunks > 0 ? "≥ " : ""}${nf(impact.total)}`
                       : "—"}
@@ -263,7 +270,7 @@ export async function LiveChapter() {
         </div>
 
         {news.length > 0 && (
-          <section aria-labelledby="live-noticias" className="mt-16">
+          <section aria-labelledby="live-noticias" className="mt-16 border-t border-a-line pt-10 md:mt-20">
             <h3
               id="live-noticias"
               className="text-lg font-semibold tracking-tight text-[#e3f6dc]"
@@ -271,13 +278,17 @@ export async function LiveChapter() {
               Noticias recientes
             </h3>
             <ul className="mt-4 grid list-none grid-cols-1 gap-5 p-0 md:grid-cols-3">
-              {news.map((item) => (
-                <li key={item.link} className="min-w-0">
+              {news.map((item, i) => (
+                <li
+                  key={item.link}
+                  className="a-rise min-w-0"
+                  style={rise(i)}
+                >
                   <a
                     href={item.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="a-card group flex h-full flex-col justify-between gap-8 p-5 transition-colors hover:bg-a-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent sm:p-6"
+                    className="a-card a-lift group flex h-full flex-col justify-between gap-8 p-5 hover:bg-a-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent sm:p-6"
                   >
                     <span className="line-clamp-4 text-lg font-semibold leading-snug tracking-tight text-[#e3f6dc]">
                       {item.title}

@@ -25,8 +25,8 @@ const logos = [
 export function PartnersBlock() {
   return (
     <div className="text-center">
-      <p className="a-eyebrow">Programas y entidades en las que participamos</p>
-      <ul className="mx-auto mt-8 flex max-w-4xl flex-wrap items-center justify-center gap-x-10 gap-y-6">
+      <p className="a-eyebrow a-rise">Programas y entidades en las que participamos</p>
+      <ul className="a-rise mx-auto mt-8 flex max-w-4xl flex-wrap items-center justify-center gap-x-10 gap-y-6">
         {logos.map((l) => (
           <li key={l.id} className="flex h-10 items-center">
             <Image
@@ -35,7 +35,7 @@ export function PartnersBlock() {
               width={100}
               height={36}
               loading="lazy"
-              className="max-h-9 w-auto max-w-[100px] object-contain opacity-60"
+              className="max-h-9 w-auto max-w-[100px] object-contain opacity-60 transition-opacity duration-300 hover:opacity-100"
               // Todos los logos tienen fondo transparente: silueta blanca sobre el fondo oscuro.
               style={{ filter: "brightness(0) invert(1)" }}
             />

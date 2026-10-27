@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { CLAIMS } from "@/lib/claims";
 
@@ -74,27 +74,46 @@ const SHOTS = [
   },
 ];
 
-function CropFrame({ crop }: { crop: Crop }) {
+function CropImg({ crop }: { crop: Crop }) {
   const { src, w, x, y, alt } = crop;
+  return (
+    <div className="a-frame relative aspect-[16/10]">
+      <Image
+        src={src}
+        alt={alt}
+        width={2000}
+        height={1250}
+        unoptimized
+        loading="lazy"
+        draggable={false}
+        className="absolute left-0 top-0 h-auto max-w-none"
+        style={{
+          width: `${100 / w}%`,
+          transform: `translate(${-x * 100}%, ${-y * 100}%)`,
+        }}
+      />
+    </div>
+  );
+}
+
+// Las 4 capturas apiladas: la activa entra con crossfade y zoom suave (solo opacity/transform).
+function CropStack({ active }: { active: number }) {
   return (
     <div className="a-brackets">
       <span className="a-bk a-bk-tr" aria-hidden />
       <span className="a-bk a-bk-bl" aria-hidden />
-      <div className="a-frame relative aspect-[16/10]">
-        <Image
-          src={src}
-          alt={alt}
-          width={2000}
-          height={1250}
-          unoptimized
-          loading="lazy"
-          draggable={false}
-          className="absolute left-0 top-0 h-auto max-w-none"
-          style={{
-            width: `${100 / w}%`,
-            transform: `translate(${-x * 100}%, ${-y * 100}%)`,
-          }}
-        />
+      <div className="relative aspect-[16/10]">
+        {STEPS.map(({ title, crop }, i) => (
+          <div
+            key={title}
+            aria-hidden={i !== active}
+            className={`absolute inset-0 transition-[opacity,transform] duration-700 ease-out motion-reduce:transition-none ${
+              i === active ? "scale-100 opacity-100" : "scale-[1.04] opacity-0"
+            }`}
+          >
+            <CropImg crop={crop} />
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -107,98 +126,213 @@ const KEYS: Record<string, number> = {
   ArrowLeft: -1,
 };
 
+const STICKY_QUERY =
+  "(min-width: 1024px) and (prefers-reduced-motion: no-preference)";
+const LOCK_MS = 900;
+
 export function PlatformDemo() {
   const [active, setActive] = useState(0);
+  const [sticky, setSticky] = useState(false);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
+  const outer = useRef<HTMLDivElement>(null);
+  const activeRef = useRef(0);
+  const lockUntil = useRef(0);
   const step = STEPS[active];
+
+  useEffect(() => {
+    const mq = window.matchMedia(STICKY_QUERY);
+    const sync = () => setSticky(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  // Un único rAF escribe --p y calcula el paso; solo escucha con la sección en pantalla.
+  useEffect(() => {
+    const el = outer.current;
+    if (!sticky || !el) return;
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const r = el.getBoundingClientRect();
+      const total = r.height - window.innerHeight;
+      if (total <= 0) return;
+      const p = Math.min(1, Math.max(0, -r.top / total));
+      el.style.setProperty("--p", p.toFixed(4));
+      if (performance.now() < lockUntil.current) return;
+      const idx = Math.min(STEPS.length - 1, Math.floor(p * STEPS.length));
+      if (idx !== activeRef.current) {
+        activeRef.current = idx;
+        setActive(idx);
+      }
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) {
+        window.addEventListener("scroll", onScroll, { passive: true });
+        window.addEventListener("resize", onScroll);
+        onScroll();
+      } else {
+        window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("resize", onScroll);
+      }
+    });
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [sticky]);
+
+  const goTo = useCallback(
+    (i: number, focus = false) => {
+      activeRef.current = i;
+      setActive(i);
+      if (focus) tabs.current[i]?.focus();
+      const el = outer.current;
+      if (!sticky || !el) return;
+      const total = el.offsetHeight - window.innerHeight;
+      const top = window.scrollY + el.getBoundingClientRect().top;
+      lockUntil.current = performance.now() + LOCK_MS;
+      window.scrollTo({
+        top: top + ((i + 0.5) / STEPS.length) * total,
+        behavior: "smooth",
+      });
+    },
+    [sticky],
+  );
 
   const onKey = (e: React.KeyboardEvent) => {
     const d = KEYS[e.key];
     if (!d) return;
     e.preventDefault();
-    const next = (active + d + STEPS.length) % STEPS.length;
-    setActive(next);
-    tabs.current[next]?.focus();
+    goTo((active + d + STEPS.length) % STEPS.length, true);
   };
+
+  const layout = (
+    <div
+      className={`grid w-full grid-cols-1 items-center gap-10 md:gap-16 ${
+        sticky ? "md:grid-cols-[0.8fr_1.2fr]" : "mt-14 md:grid-cols-2"
+      }`}
+    >
+      <div className="min-w-0">
+        <div
+          role="tablist"
+          aria-label="Pasos de Sentinel"
+          aria-orientation="vertical"
+          onKeyDown={onKey}
+          className="flex flex-col items-start"
+        >
+          {STEPS.map(({ title }, i) => (
+            <button
+              key={title}
+              ref={(el) => {
+                tabs.current[i] = el;
+              }}
+              id={`pd-tab-${i}`}
+              role="tab"
+              type="button"
+              aria-selected={i === active}
+              aria-controls="pd-panel"
+              tabIndex={i === active ? 0 : -1}
+              onClick={() => goTo(i)}
+              className={`a-display-m py-1 text-left transition-colors duration-500 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#14231c] ${
+                i === active
+                  ? "text-[#131a16]"
+                  : "text-[#66706a] hover:text-[#131a16]"
+              }`}
+            >
+              {title}
+            </button>
+          ))}
+        </div>
+        <div
+          id="pd-panel"
+          role="tabpanel"
+          aria-labelledby={`pd-tab-${active}`}
+          className="mt-8 min-h-[9rem] max-w-md"
+        >
+          <p className="text-xs font-medium text-[#4b5750]">
+            Paso {active + 1} de {STEPS.length}
+          </p>
+          <p
+            key={active}
+            className="a-sub mt-2 text-[1.0625rem] [animation:pd-in_0.5s_ease-out] motion-reduce:animate-none"
+          >
+            {step.text}
+          </p>
+        </div>
+        {sticky && (
+          <div
+            className="mt-4 h-px w-full max-w-md bg-[#131a16]/15"
+            aria-hidden
+          >
+            <div
+              className="h-full origin-left bg-[#131a16]"
+              style={{ transform: "scaleX(var(--p, 0))" }}
+            />
+          </div>
+        )}
+      </div>
+      <div className="min-w-0">
+        <CropStack active={active} />
+      </div>
+    </div>
+  );
 
   return (
     <>
-      <div className="mt-14 grid grid-cols-1 items-center gap-10 md:grid-cols-2 md:gap-16">
-        <div className="min-w-0">
-          <div
-            role="tablist"
-            aria-label="Pasos de Sentinel"
-            aria-orientation="vertical"
-            onKeyDown={onKey}
-            className="flex flex-col items-start"
-          >
-            {STEPS.map(({ title }, i) => (
-              <button
-                key={title}
-                ref={(el) => {
-                  tabs.current[i] = el;
-                }}
-                id={`pd-tab-${i}`}
-                role="tab"
-                type="button"
-                aria-selected={i === active}
-                aria-controls="pd-panel"
-                tabIndex={i === active ? 0 : -1}
-                onClick={() => setActive(i)}
-                className={`a-display-m py-1 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#14231c] ${
-                  i === active
-                    ? "text-[#131a16]"
-                    : "text-[#6f7a73] hover:text-[#131a16]"
-                }`}
-              >
-                {title}
-              </button>
-            ))}
-          </div>
-          <div
-            id="pd-panel"
-            role="tabpanel"
-            aria-labelledby={`pd-tab-${active}`}
-            className="mt-8 max-w-md"
-          >
-            <p className="text-xs font-medium text-[#4b5750]">
-              Paso {active + 1} de {STEPS.length}
-            </p>
-            <p className="a-sub mt-2 text-[1.0625rem]">{step.text}</p>
-          </div>
+      <style>{`@keyframes pd-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
+      {sticky ? (
+        <div ref={outer} className="h-[360svh]">
+          <div className="sticky top-0 flex h-svh items-center">{layout}</div>
         </div>
-        <div className="min-w-0">
-          <CropFrame key={step.title} crop={step.crop} />
-        </div>
-      </div>
+      ) : (
+        layout
+      )}
 
       <h3 className="mt-24 text-xs font-medium uppercase tracking-[0.16em] text-[#4b5750]">
         Así se ve el panel
       </h3>
-      <ul
-        className="-mx-5 mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-4 md:mx-0 md:px-0"
+      <div
+        className="a-marquee -mx-5 mt-6 overflow-hidden motion-reduce:overflow-x-auto md:-mx-8"
+        role="group"
         aria-label="Capturas del panel"
       >
-        {SHOTS.map(({ src, alt, cap }) => (
-          <li
-            key={src}
-            className="w-[85%] shrink-0 snap-center md:w-[calc((100%-2rem)/3)]"
-          >
-            <div className="a-frame">
-              <Image
-                src={src}
-                alt={alt}
-                width={2000}
-                height={1250}
-                sizes="(min-width: 768px) 360px, 85vw"
-                loading="lazy"
-                className="h-auto w-full"
-              />
-            </div>
-            <p className="mt-2 text-xs text-[#4b5750]">{cap}</p>
-          </li>
-        ))}
-      </ul>
+        <div className="a-marquee-track" style={{ ["--dur" as string]: "50s" }}>
+          {[false, true].map((dup) => (
+            <ul
+              key={String(dup)}
+              aria-hidden={dup || undefined}
+              className="flex shrink-0 gap-4 pr-4 motion-reduce:last:hidden"
+            >
+              {[...SHOTS, ...SHOTS].map(({ src, alt, cap }, i) => (
+                <li
+                  key={`${src}-${i}`}
+                  className="w-[78vw] shrink-0 md:w-[380px]"
+                >
+                  <div className="a-frame">
+                    <Image
+                      src={src}
+                      alt={dup || i >= SHOTS.length ? "" : alt}
+                      width={2000}
+                      height={1250}
+                      sizes="(min-width: 768px) 380px, 78vw"
+                      loading="lazy"
+                      className="h-auto w-full"
+                    />
+                  </div>
+                  <p className="mt-2 text-xs text-[#4b5750]">{cap}</p>
+                </li>
+              ))}
+            </ul>
+          ))}
+        </div>
+      </div>
       <p className="mt-4 text-xs text-[#4b5750]">
         Capturas reales del panel con datos de octubre. Los drones y sensores
         figuran como simulación y la propagación prevista es una demo; hoy la

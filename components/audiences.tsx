@@ -85,25 +85,27 @@ export function Audiences() {
         </div>
 
         <ul
-          className="-mx-5 mt-14 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-4 md:mx-auto md:max-w-[1100px] md:px-0"
+          className="-mx-5 mt-14 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-6 pt-2 md:mx-auto md:max-w-[1100px] md:px-0"
           aria-label="Públicos de Sentinel"
         >
           {AUDIENCES.map(({ href, icon: Icon, who, problem, gets, photo }) => (
             <li
               key={who}
-              className="relative flex min-h-[28rem] w-[78%] shrink-0 snap-start flex-col justify-end overflow-hidden rounded-2xl border border-a-line bg-a-card p-6 md:w-[300px]"
+              className="a-lift group relative flex min-h-[30rem] w-[78%] shrink-0 snap-start flex-col justify-end overflow-hidden rounded-2xl border border-a-line bg-a-card p-6 md:w-[300px]"
             >
               {photo ? (
                 <>
-                  <Image
-                    src={photo.src}
-                    alt=""
-                    fill
-                    sizes="(min-width: 768px) 300px, 78vw"
-                    loading="lazy"
-                    className="object-cover"
-                    style={{ objectPosition: photo.position }}
-                  />
+                  <div className="a-wipe absolute inset-0 overflow-hidden">
+                    <Image
+                      src={photo.src}
+                      alt=""
+                      fill
+                      sizes="(min-width: 768px) 300px, 78vw"
+                      loading="lazy"
+                      className="a-zoom object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                      style={{ objectPosition: photo.position }}
+                    />
+                  </div>
                   <div
                     aria-hidden
                     className="absolute inset-0 bg-gradient-to-t from-a-bg via-a-bg/85 to-a-bg/10"
@@ -123,7 +125,10 @@ export function Audiences() {
                 <p className="mt-2 text-[0.9375rem] text-a-mute">{problem}</p>
                 <p className="mt-3 text-[0.9375rem] text-[#e3f6dc]">{gets}</p>
                 <a href={href} className={LINK}>
-                  Pedir un piloto <ArrowRight className="size-4" aria-hidden />
+                  Pedir un piloto <ArrowRight
+                    className="size-4 transition-transform group-hover:translate-x-1"
+                    aria-hidden
+                  />
                 </a>
               </div>
             </li>
@@ -142,7 +147,9 @@ export function Audiences() {
           <p className="a-sub mx-auto mt-4 mb-10 max-w-xl text-center">
             El mismo foco, contado para quien tiene que actuar.
           </p>
-          <AlertPhone tone="light" />
+          <div className="a-scale-in">
+            <AlertPhone tone="light" />
+          </div>
         </div>
       </section>
     </>

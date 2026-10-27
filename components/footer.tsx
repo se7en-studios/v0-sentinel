@@ -36,7 +36,7 @@ const socialLinks = [
 ];
 
 const link =
-  "text-sm text-a-mute transition-colors hover:text-a-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent rounded-sm";
+  "a-linkline w-fit text-sm text-a-mute transition-colors hover:text-a-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent rounded-sm";
 
 export function Footer() {
   return (
@@ -52,7 +52,7 @@ export function Footer() {
             <div className="mt-5 space-y-2.5">
               <a
                 href={`mailto:${CONTACT_FALLBACK_EMAIL}`}
-                className={`${link} flex w-fit items-center gap-2.5`}
+                className={`${link} flex items-center gap-2.5`}
               >
                 <Mail
                   aria-hidden
@@ -118,7 +118,7 @@ export function Footer() {
       </div>
       {/* Palabra de marca recortada por abajo; decorativa (el nombre ya está arriba). */}
       <div aria-hidden className="mx-auto mt-6 h-[clamp(3.5rem,15vw,15rem)] w-full max-w-[1600px] overflow-hidden px-2">
-        <p className="a-wordmark-xl text-center">SENTINEL</p>
+        <p data-w="SENTINEL" className="a-wordmark-xl a-wordmark-rise text-center after:content-[attr(data-w)]" />
       </div>
     </footer>
   );

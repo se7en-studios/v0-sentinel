@@ -14,6 +14,9 @@ import { WhatsAppButton } from "@/components/whatsapp-button";
 const Manifesto = dynamic(() =>
   import("@/components/manifesto").then((m) => m.Manifesto),
 );
+const ArcSequence = dynamic(() =>
+  import("@/components/arc-sequence").then((m) => m.ArcSequence),
+);
 const FireTimeline = dynamic(() =>
   import("@/components/fire-timeline").then((m) => m.FireTimeline),
 );
@@ -47,6 +50,7 @@ export default function Home() {
       <main id="main-content" className="a-root min-h-screen">
         <Hero />
         <Manifesto />
+        <ArcSequence />
         <Problem />
         <FireTimeline />
         <Platform />

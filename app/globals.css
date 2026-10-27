@@ -796,3 +796,54 @@ html { scroll-padding-top: 88px; }
 .a-brackets > .a-bk-bl { bottom: 10px; left: 10px; border-bottom-width: 2px; border-left-width: 2px; }
 .a-bone .a-brackets::before, .a-bone .a-brackets::after, .a-bone .a-brackets > .a-bk { border-color: #14231c; }
 .a-wordmark-xl { font-family: var(--font-display); font-size: clamp(5rem, 24vw, 22rem); line-height: 0.8; letter-spacing: -0.02em; color: rgb(169 239 201 / 0.1); user-select: none; }
+
+/* v8: animaciones de las referencias (animos, Saapro, MyHealthPrac, Rainmaker). Todo transform/opacity/clip-path,
+   dirigido por el scroll con CSS (sin JS) y apagado con prefers-reduced-motion. Sin soporte: el contenido queda visible. */
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Carga: sube y aparece, escalonado con --d (ms). */
+@keyframes a-load-up { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+.a-load { animation: a-load-up 0.95s cubic-bezier(0.22, 0.8, 0.24, 1) both; animation-delay: var(--d, 0ms); }
+/* Foto de fondo que respira lento (Rainmaker / MyHealthPrac). */
+@keyframes a-kenburns { from { transform: scale(1.04) translate3d(0, 0, 0); } to { transform: scale(1.14) translate3d(-1.2%, -1%, 0); } }
+.a-kenburns { animation: a-kenburns 28s ease-in-out infinite alternate; will-change: transform; }
+/* Tira que corre sola (animos «Made with»). Duplicar el contenido en un segundo bloque aria-hidden. */
+@keyframes a-marquee { to { transform: translateX(-50%); } }
+.a-marquee-track { display: flex; width: max-content; animation: a-marquee var(--dur, 60s) linear infinite; }
+.a-marquee:hover .a-marquee-track { animation-play-state: paused; }
+.a-pill svg, .a-pill-ghost svg { transition: transform 0.25s; }
+.a-pill:hover svg, .a-pill-ghost:hover svg { transform: translateX(3px); }
+.a-lift { transition: transform 0.35s cubic-bezier(0.22, 0.8, 0.24, 1), border-color 0.35s; }
+.a-lift:hover { transform: translateY(-4px); border-color: rgb(169 239 201 / 0.35); }
+.a-linkline { background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; transition: background-size 0.3s; }
+.a-linkline:hover { background-size: 100% 1px; }
+
+@supports (animation-timeline: view()) {
+  @keyframes a-rise { from { opacity: 0; transform: translateY(34px); } to { opacity: 1; transform: none; } }
+  .a-rise { animation: a-rise linear both; animation-timeline: view(); animation-range: entry 4% entry 48%; }
+  @keyframes a-scale-in { from { opacity: 0; transform: translateY(40px) scale(0.93); } to { opacity: 1; transform: none; } }
+  .a-scale-in { animation: a-scale-in linear both; animation-timeline: view(); animation-range: entry 0% entry 62%; }
+  /* Cortina: la imagen se descubre de abajo hacia arriba. */
+  @keyframes a-wipe { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+  .a-wipe { animation: a-wipe linear both; animation-timeline: view(); animation-range: entry 8% entry 70%; }
+  /* Parallax lento de una imagen dentro de un contenedor con overflow hidden (aplicar a la imagen, que debe ser más alta que el marco). */
+  @keyframes a-parallax { from { transform: translateY(-7%); } to { transform: translateY(7%); } }
+  .a-parallax { animation: a-parallax linear both; animation-timeline: view(); animation-range: cover; will-change: transform; }
+  /* El panel «emerge» y se asienta al subir (animos). */
+  @keyframes a-emerge { from { transform: translateY(60px) scale(0.9); opacity: 0.35; } to { transform: none; opacity: 1; } }
+  .a-emerge { animation: a-emerge linear both; animation-timeline: view(); animation-range: entry 0% entry 80%; }
+  /* Palabra de marca gigante: sube desde abajo al llegar al final. */
+  @keyframes a-wordmark-rise { from { transform: translateY(42%); opacity: 0.2; } to { transform: none; opacity: 1; } }
+  .a-wordmark-rise { animation: a-wordmark-rise linear both; animation-timeline: view(); animation-range: entry 0% cover 55%; }
+  /* Esquinas de visor que se «cierran» sobre la foto. */
+  @keyframes a-bk-in { from { opacity: 0; transform: scale(2.2); } to { opacity: 1; transform: none; } }
+  .a-brackets::before, .a-brackets::after, .a-brackets > .a-bk { animation: a-bk-in linear both; animation-timeline: view(); animation-range: entry 10% entry 75%; }
+  /* Zoom suave de una foto de fondo al pasar. */
+  @keyframes a-zoom { from { transform: scale(1.12); } to { transform: scale(1); } }
+  .a-zoom { animation: a-zoom linear both; animation-timeline: view(); animation-range: cover; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .a-load, .a-kenburns, .a-marquee-track, .a-rise, .a-scale-in, .a-wipe, .a-parallax, .a-emerge, .a-wordmark-rise, .a-zoom,
+  .a-brackets::before, .a-brackets::after, .a-brackets > .a-bk { animation: none !important; opacity: 1 !important; transform: none !important; clip-path: none !important; }
+}

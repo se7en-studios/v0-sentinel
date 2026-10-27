@@ -58,7 +58,7 @@ const SOURCES = [
   },
 ];
 
-const H2 = "mt-14 mb-3 text-2xl font-semibold tracking-tight text-[#e3f6dc]";
+const H2 = "a-rise mt-14 mb-3 text-2xl font-semibold tracking-tight text-[#e3f6dc]";
 
 export default function MetodologiaPage() {
   return (
@@ -68,8 +68,8 @@ export default function MetodologiaPage() {
       </header>
       <main id="main-content" className="a-root text-[17px] leading-relaxed">
       <div className="mx-auto max-w-3xl px-6 py-28 text-[#cfe6d7] [&_a]:text-a-accent [&_strong]:text-[#e3f6dc]">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.16em] text-a-accent">Metodología</p>
-        <h1 className="a-title mb-6 !text-left">
+        <p className="a-load mb-4 text-xs font-medium uppercase tracking-[0.16em] text-a-accent">Metodología</p>
+        <h1 className="a-title a-load mb-6 !text-left" style={{ "--d": "120ms" } as React.CSSProperties}>
           Cómo detectamos, qué verificamos y qué todavía no podemos afirmar.
         </h1>
         <p>
@@ -129,7 +129,7 @@ export default function MetodologiaPage() {
         </p>
         <ul className="space-y-4">
           {SOURCES.map((s) => (
-            <li key={s.name}>
+            <li key={s.name} className="a-rise">
               <strong>{s.name}.</strong> {s.detail}
             </li>
           ))}

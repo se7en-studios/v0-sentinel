@@ -41,7 +41,7 @@ export default function BlogIndex() {
             {/* Breadcrumb */}
             <nav
               aria-label="Ruta de navegación"
-              className="flex items-center gap-2 mb-6 text-[12px]"
+              className="a-load flex items-center gap-2 mb-6 text-[12px]"
               style={{
                 fontFamily: "var(--font-sans)",
                 color: "#9fb5a7",
@@ -69,7 +69,7 @@ export default function BlogIndex() {
               Artículos y Publicaciones
             </p>
             <h1
-              className="text-4xl sm:text-5xl lg:text-6xl mb-16"
+              className="a-load text-4xl sm:text-5xl lg:text-6xl mb-16"
               style={{
                 fontFamily: "var(--font-geist)",
                 fontWeight: 600,
@@ -88,7 +88,7 @@ export default function BlogIndex() {
             {posts[0] && (
               <Link
                 href={`/blog/${posts[0].slug}`}
-                className="group grid sm:grid-cols-2 gap-6 sm:gap-10 items-center rounded-lg overflow-hidden mb-14 transition-all duration-300"
+                className="a-rise group grid sm:grid-cols-2 gap-6 sm:gap-10 items-center rounded-lg overflow-hidden mb-14 transition-all duration-300 hover:border-[rgba(169,239,201,0.4)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a9efc9]"
                 style={{
                   background: "#16211b",
                   border: "1px solid rgba(214,245,201,0.11)",
@@ -141,12 +141,13 @@ export default function BlogIndex() {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {posts.slice(1).map((post) => (
+              {posts.slice(1).map((post, i) => (
                 <Link
                   key={post.slug}
                   href={`/blog/${post.slug}`}
-                  className="group flex flex-col rounded-lg overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(169,239,201,0.4)]"
+                  className="a-rise group flex flex-col rounded-lg overflow-hidden transition-colors duration-300 hover:border-[rgba(169,239,201,0.4)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a9efc9]"
                   style={{
+                    animationRange: `entry ${4 + (i % 3) * 8}% entry ${48 + (i % 3) * 8}%`,
                     background: "#16211b",
                     border: "1px solid rgba(214,245,201,0.11)",
                   }}

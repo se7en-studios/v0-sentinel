@@ -15,11 +15,11 @@ export function FireTimeline() {
       className="a-root relative scroll-mt-20 py-24 md:py-36"
     >
       <div className="mx-auto w-full max-w-[1100px] px-5 md:px-8">
-        <p className="a-eyebrow mb-5">Simulador</p>
-        <h2 className="a-title mx-auto max-w-3xl text-center text-white">
+        <p className="a-eyebrow a-rise mb-5 text-center">Simulador</p>
+        <h2 className="a-display-m a-rise mx-auto max-w-4xl text-center text-white [animation-range:entry_6%_entry_52%]">
           La diferencia son los primeros minutos
         </h2>
-        <p className="a-sub mx-auto mt-5 max-w-2xl text-center">
+        <p className="a-sub a-rise mx-auto mt-6 [animation-range:entry_10%_entry_56%] max-w-2xl text-center">
           Mismo foco, dos relojes. Movés el minuto y mirás cuánto crece según
           cuándo llega la brigada.
         </p>

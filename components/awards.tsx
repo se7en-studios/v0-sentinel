@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ASection, AHeading, aFocus } from "@/components/a-section";
+import { ASection, AHeading, aFocus, riseDelay } from "@/components/a-section";
 import { pressMentions } from "@/lib/press-mentions";
 
 type Item = { title: string; detail: string; href?: string };
@@ -101,32 +101,53 @@ const GROUPS: { label: string; items: Item[] }[] = [
   },
 ];
 
+function PhotoCard({ p }: { p: (typeof PHOTOS)[number] }) {
+  return (
+    <li className="w-[72vw] max-w-[320px] shrink-0 snap-start md:mr-4 md:snap-align-none">
+      <figure className="a-brackets relative aspect-[3/4] overflow-hidden rounded-2xl border border-a-line bg-a-card">
+        <Image
+          src={p.src}
+          alt={p.alt}
+          fill
+          sizes="(max-width: 640px) 72vw, 320px"
+          loading="lazy"
+          className="object-cover"
+        />
+        <span aria-hidden className="a-bk a-bk-tr" />
+        <span aria-hidden className="a-bk a-bk-bl" />
+        <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 to-transparent" />
+        <figcaption className="absolute inset-x-0 bottom-0 p-5 text-base font-medium leading-snug text-white">
+          {p.caption}
+        </figcaption>
+      </figure>
+    </li>
+  );
+}
+
+// Tira que corre sola (pausa al hover/foco). Con reduced-motion la animación se apaga
+// (globals.css) y la tira queda como scroll manual: overflow-x-auto + foco por teclado.
+// El segundo bloque es una copia aria-hidden solo para el bucle; se oculta si no hay animación.
 function PhotoStrip() {
   return (
-    <ul
-      aria-label="Fotos de premios y competencias"
-      tabIndex={0}
-      className={`scrollbar-hide -mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 md:-mx-8 md:px-8 ${aFocus}`}
-    >
-      {PHOTOS.map((p) => (
-        <li key={p.src} className="w-[72vw] max-w-[320px] shrink-0 snap-start">
-          <figure className="relative aspect-[3/4] overflow-hidden rounded-2xl border border-a-line bg-a-card">
-            <Image
-              src={p.src}
-              alt={p.alt}
-              fill
-              sizes="(max-width: 640px) 72vw, 320px"
-              loading="lazy"
-              className="object-cover"
-            />
-            <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 to-transparent" />
-            <figcaption className="absolute inset-x-0 bottom-0 p-5 text-base font-medium leading-snug text-white">
-              {p.caption}
-            </figcaption>
-          </figure>
-        </li>
-      ))}
-    </ul>
+    <div className="a-marquee a-photo-strip scrollbar-hide -mx-5 overflow-hidden px-5 md:-mx-8 md:px-8 [&:focus-within_.a-marquee-track]:[animation-play-state:paused]">
+      <style>{`@media (prefers-reduced-motion: reduce){.a-photo-strip{overflow-x:auto!important;scroll-snap-type:x mandatory}.a-photo-strip [data-dup]{display:none}}`}</style>
+      <div className="a-marquee-track" style={{ "--dur": "70s" } as React.CSSProperties}>
+        <ul
+          aria-label="Fotos de premios y competencias"
+          tabIndex={0}
+          className={`flex gap-4 rounded-2xl pr-4 ${aFocus}`}
+        >
+          {PHOTOS.map((p) => (
+            <PhotoCard key={p.src} p={p} />
+          ))}
+        </ul>
+        <ul aria-hidden data-dup className="flex gap-4 pr-4">
+          {PHOTOS.map((p) => (
+            <PhotoCard key={p.src} p={p} />
+          ))}
+        </ul>
+      </div>
+    </div>
   );
 }
 
@@ -135,10 +156,11 @@ export function AwardsBlock() {
     <div className="grid gap-10">
       <PhotoStrip />
       <div className="grid gap-4 md:grid-cols-3">
-        {GROUPS.map((g) => (
+        {GROUPS.map((g, i) => (
           <section
             key={g.label}
-            className="a-card min-w-0 p-6"
+            style={riseDelay(i, 9)}
+            className="a-card a-rise min-w-0 p-6 md:p-7"
             aria-label={g.label}
           >
             <h3 className="text-xs font-medium uppercase tracking-[0.16em] text-a-accent">

@@ -25,13 +25,13 @@ export function Proof() {
 
     <ASection id="reconocimientos" tone="surface" className="!py-20 md:!py-28">
       <span id="noticias" className="absolute" aria-hidden />
-      <h2 className="a-title text-center">Lo que ya pasó</h2>
+      <h2 className="a-title a-rise text-center">Lo que ya pasó</h2>
       <div className="mt-10">
         <AwardsBlock />
       </div>
 
       <div id="prensa" className="mt-24 scroll-mt-20">
-        <h3 className="a-title !text-2xl text-center">Dónde salimos en los medios</h3>
+        <h3 className="a-title a-rise !text-2xl text-center">Dónde salimos en los medios</h3>
         <div className="mt-10">
           <PressBlock />
         </div>
@@ -42,9 +42,9 @@ export function Proof() {
       </div>
 
       <p className="mt-12 text-center">
-        <Link href="/metodologia" className={`a-pill-ghost ${aFocus}`}>
+        <Link href="/metodologia" className={`a-pill-ghost group ${aFocus}`}>
           Cómo medimos lo que afirmamos
-          <ArrowRight className="h-4 w-4" aria-hidden />
+          <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
         </Link>
       </p>
     </ASection>

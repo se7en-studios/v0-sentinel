@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Linkedin } from "lucide-react";
-import { ASection, AHeading, aFocus } from "@/components/a-section";
+import { ASection, AHeading, aFocus, riseDelay } from "@/components/a-section";
 
 const teamMembers = [
   {
@@ -40,8 +40,9 @@ const teamMembers = [
 export function TeamBlock() {
   return (
     <ul className="grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-4">
-      {teamMembers.map((m) => (
-        <li key={m.name} className="a-card group min-w-0 overflow-hidden">
+      {teamMembers.map((m, i) => (
+        <li key={m.name} className="a-rise min-w-0" style={riseDelay(i)}>
+        <div className="a-card a-lift group h-full overflow-hidden">
           <div className="relative aspect-[4/5] bg-a-surface">
             <Image
               src={m.image}
@@ -49,7 +50,7 @@ export function TeamBlock() {
               fill
               sizes="(max-width: 1024px) 46vw, 270px"
               loading="lazy"
-              className="object-cover grayscale transition duration-500 group-hover:grayscale-0 group-focus-within:grayscale-0"
+              className="object-cover grayscale transition-[filter,transform] duration-[900ms] ease-out group-hover:scale-[1.03] group-hover:grayscale-0 group-focus-within:grayscale-0"
             />
           </div>
           <div className="p-4 md:p-5">
@@ -67,6 +68,7 @@ export function TeamBlock() {
               <Linkedin className="h-4 w-4" aria-hidden />
             </a>
           </div>
+        </div>
         </li>
       ))}
     </ul>

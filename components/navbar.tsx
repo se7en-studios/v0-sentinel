@@ -73,11 +73,7 @@ export function Navbar() {
     };
   }, [isOpen]);
 
-  const barBg = isOpen
-    ? "bg-a-bg"
-    : isScrolled
-      ? "border-b border-a-line bg-a-bg/80 backdrop-blur-md"
-      : "border-b border-transparent bg-gradient-to-b from-black/50 to-transparent";
+  const barBg = isOpen ? "bg-a-bg" : "";
 
   const current = (id: string) =>
     isHome && activeSection === id
@@ -96,6 +92,12 @@ export function Navbar() {
         aria-label="Navegación principal"
         className={`fixed inset-x-0 top-0 z-50 font-[family-name:var(--font-geist)] text-[#e3f6dc] transition-colors duration-300 ${barBg}`}
       >
+        {!isOpen && (
+          <>
+            <div aria-hidden className={`absolute inset-0 -z-10 bg-gradient-to-b from-black/50 to-transparent transition-opacity duration-500 ${isScrolled ? "opacity-0" : "opacity-100"}`} />
+            <div aria-hidden className={`absolute inset-0 -z-10 border-b border-a-line bg-a-bg/90 transition-opacity duration-500 ${isScrolled ? "opacity-100" : "opacity-0"}`} />
+          </>
+        )}
         <div className="mx-auto grid h-14 max-w-6xl grid-cols-[1fr_auto] items-center gap-4 px-5 md:h-16 md:grid-cols-[1fr_auto_1fr] md:px-8">
           <a
             href={`${prefix}#inicio`}
@@ -115,7 +117,7 @@ export function Navbar() {
                 <a
                   href={`${prefix}#${l.id}`}
                   {...current(l.id)}
-                  className={`rounded-sm text-sm text-a-mute transition-colors hover:text-[#e3f6dc] aria-[current]:text-[#e3f6dc] ${RING}`}
+                  className={`a-linkline rounded-sm py-1 text-sm text-a-mute transition-colors hover:text-[#e3f6dc] aria-[current]:text-[#e3f6dc] aria-[current]:[background-size:100%_1px] ${RING}`}
                 >
                   {l.label}
                 </a>

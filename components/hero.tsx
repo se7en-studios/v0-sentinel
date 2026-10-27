@@ -22,7 +22,7 @@ export function Hero() {
           fill
           priority
           sizes="100vw"
-          className="-z-20 object-cover"
+          className="a-kenburns -z-20 object-cover"
           style={{ objectPosition: fire.position }}
         />
         {/* Scrim mínimo: solo abajo/izquierda, donde va el texto. */}
@@ -36,19 +36,19 @@ export function Hero() {
         />
 
         <div className="mx-auto w-full max-w-6xl px-5 pb-8 pt-28 md:px-8 md:pb-12">
-          <p className="a-eyebrow !text-left !text-xs !text-a-mute">
+          <p className="a-eyebrow a-load !text-left !text-xs !text-a-mute">
             Detección temprana de incendios forestales
           </p>
-          <h1 className="a-display mt-4 max-w-4xl">
+          <h1 className="a-display a-load mt-4 max-w-4xl" style={{ "--d": "120ms" } as React.CSSProperties}>
             El aviso llega antes que el humo.
           </h1>
 
           <div className="mt-6 flex flex-col gap-6 md:mt-8 md:flex-row md:items-end md:justify-between">
             <div className="max-w-md">
-              <p className="a-sub">
+              <p className="a-sub a-load" style={{ "--d": "320ms" } as React.CSSProperties}>
                 Seguimos los focos de calor desde el espacio y avisamos a municipios, brigadas y propietarios de la Patagonia andina.
               </p>
-              <a href="#contacto" className="a-pill mt-5 !pr-1.5">
+              <a href="#contacto" className="a-pill a-load mt-5 !pr-1.5" style={{ "--d": "480ms" } as React.CSSProperties}>
                 Pedir un piloto
                 <span className="grid size-8 place-items-center rounded-full bg-[#06150d] text-a-accent">
                   <ArrowRight className="size-4" aria-hidden />
@@ -56,9 +56,13 @@ export function Hero() {
               </a>
             </div>
 
-            <ul className="flex flex-col gap-2.5 text-sm text-[#e3f6dc]">
-              {POINTS.map(({ icon: Icon, label }) => (
-                <li key={label} className="flex items-center gap-2.5">
+            <ul className="flex flex-col gap-3 text-sm text-[#e3f6dc]">
+              {POINTS.map(({ icon: Icon, label }, i) => (
+                <li
+                  key={label}
+                  className="a-load flex items-center gap-2.5 border-t border-a-line pt-3 md:min-w-56"
+                  style={{ "--d": `${620 + i * 90}ms` } as React.CSSProperties}
+                >
                   <Icon className="size-4 text-a-accent" aria-hidden />
                   {label}
                 </li>
@@ -70,7 +74,7 @@ export function Hero() {
 
       <section aria-label="El panel de Sentinel" className="a-root bg-a-bg px-5 pb-16 pt-12 md:px-8 md:pb-24 md:pt-20">
         <figure className="mx-auto max-w-5xl">
-          <div className="a-brackets">
+          <div className="a-brackets a-emerge">
             <span className="a-bk a-bk-tr" />
             <span className="a-bk a-bk-bl" />
             <div className="a-frame">

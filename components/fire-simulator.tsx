@@ -8,6 +8,7 @@ import {
   CloudFog,
   Flame,
   Pause,
+  RotateCcw,
   Play,
   ShieldCheck,
   type LucideIcon,
@@ -53,6 +54,10 @@ const WITHOUT: Step[] = [
 ];
 const RESPONSE_WITH = 15;
 const RESPONSE_WITHOUT = 50;
+
+// Suaviza el salto entre minutos y entre viento bajo/medio/alto (transform sobre variables CSS).
+const TWEEN =
+  "motion-safe:transition-[transform,opacity] motion-safe:duration-300 motion-safe:ease-out [transform-box:fill-box]";
 
 const freeArea = (m: number, k: number) => A0 * (Math.exp(k * m) - 1);
 
@@ -124,11 +129,17 @@ function Scene({
         d="M0 150 L70 128 L140 146 L210 126 L320 148 V180 H0Z"
         fill="#070b09"
       />
+      <g fill="#050806" aria-hidden>
+        {[18, 40, 66, 252, 280, 302].map((x, i) => (
+          <path key={x} d={`M${x} 160 l-7 ${i % 2 ? 22 : 28} h14 z`} />
+        ))}
+      </g>
       <g transform="translate(160 140)">
         <ellipse
           rx="100"
           ry="100"
           fill={`url(#fire-${id})`}
+          className={TWEEN}
           style={{
             transform: `scale(calc(var(--s-${id}) * var(--stretch)), var(--s-${id}))`,
           }}
@@ -136,7 +147,7 @@ function Scene({
         {/* Humo: aparece ~20 min; con Sentinel ya hay brigada, columna más baja */}
         <g
           style={{ opacity: `var(--smoke-${id})` }}
-          className="motion-safe:transition-opacity"
+          className="motion-safe:transition-opacity motion-safe:duration-500"
         >
           <ellipse
             cx="6"
@@ -170,6 +181,7 @@ function Scene({
             stroke="#a9efc9"
             strokeWidth="1.5"
             strokeDasharray="7 6"
+            className={TWEEN}
             style={{
               opacity: `var(--ring-${id})`,
               transform: `scale(calc(var(--s-${id}) * var(--stretch) + 0.12), calc(var(--s-${id}) + 0.12))`,
@@ -252,7 +264,7 @@ function Clock({
       </div>
       <p className="mt-4 flex flex-wrap items-baseline gap-x-2">
         <span
-          className={`text-5xl font-semibold leading-none tracking-tight tabular-nums md:text-6xl ${withSentinel ? "text-a-accent" : "text-[#e3b25c]"}`}
+          className={`inline-block min-w-[4.5ch] text-5xl font-semibold leading-none tracking-tight tabular-nums md:text-6xl ${withSentinel ? "text-a-accent" : "text-[#e3b25c]"}`}
         >
           {fmt(ha)}
         </span>
@@ -260,6 +272,12 @@ function Clock({
           ha comprometidas (ilustrativo)
         </span>
       </p>
+      <div aria-hidden className="mt-3 h-1 overflow-hidden rounded-full bg-a-line">
+        <div
+          className={`h-full w-full origin-left rounded-full motion-safe:transition-transform motion-safe:duration-300 ${withSentinel ? "bg-a-accent" : "bg-[#e3b25c]"}`}
+          style={{ transform: `scaleX(var(--s-${id}))` }}
+        />
+      </div>
       <Hitos steps={steps} m={m} withSentinel={withSentinel} />
     </div>
   );
@@ -342,7 +360,7 @@ export function FireSimulator() {
     <div
       ref={rootRef}
       style={cssVars(START_MIN, "medio")}
-      className="a-card relative overflow-hidden p-5 text-white md:p-10"
+      className="a-card a-scale-in relative overflow-hidden p-5 text-white md:p-10"
     >
       <div className="relative">
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
@@ -379,14 +397,17 @@ export function FireSimulator() {
             <button
               type="button"
               onClick={playing ? stop : play}
-              className="inline-flex motion-reduce:hidden items-center gap-2 rounded-full bg-a-accent px-5 py-2 text-sm font-semibold text-[#06150d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              aria-pressed={playing}
+              className={`inline-flex min-w-[9.5rem] justify-center motion-reduce:hidden items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-[0.97] ${playing ? "border border-a-accent bg-transparent text-a-accent" : "bg-a-accent text-[#06150d]"}`}
             >
               {playing ? (
                 <Pause className="size-4" aria-hidden />
+              ) : minute >= MAX_MIN ? (
+                <RotateCcw className="size-4" aria-hidden />
               ) : (
                 <Play className="size-4" aria-hidden />
               )}
-              {playing ? "Pausar" : "Reproducir"}
+              {playing ? "Pausar" : minute >= MAX_MIN ? "Repetir" : "Reproducir"}
             </button>
           </div>
         </div>
@@ -433,7 +454,7 @@ export function FireSimulator() {
           />
         </div>
 
-        <p className="mt-8 text-balance text-[clamp(1.6rem,3.6vw,2.6rem)] font-semibold leading-tight tracking-tight">
+        <p className="mt-10 border-t border-a-line pt-8 text-balance font-[family-name:var(--font-display)] text-[clamp(1.9rem,4vw,3.2rem)] leading-[1.05] tracking-tight">
           La diferencia:{" "}
           <span className="text-a-accent tabular-nums">
             {fmt(Math.max(0, diff))} ha

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { geoGraticule, geoMercator, geoPath } from "d3-geo";
 import type { FeatureCollection, Geometry } from "geojson";
 import countriesGeoJson from "@/data/latam-countries.json";
@@ -135,6 +135,26 @@ export function FireMapLive({
 }: Props) {
   const [view, setView] = useState<ViewKey>("argentina");
   const [sel, setSel] = useState<Sel>(null);
+  // Se activa una sola vez al entrar en pantalla: dispara las entradas CSS del mapa.
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setSeen(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return;
+        setSeen(true);
+        io.disconnect();
+      },
+      { threshold: 0.25 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   const geo = useMemo(() => {
     const r = (n: number) => Math.round(n * 10) / 10;
@@ -220,10 +240,19 @@ export function FireMapLive({
   };
 
   return (
-    <div className="lv min-w-0">
+    <div ref={rootRef} className="lv min-w-0" data-seen={seen ? "" : undefined}>
       <style>{`
-        .lv-camera{transition:transform 1s cubic-bezier(.22,.8,.24,1)}
-        @media (prefers-reduced-motion:reduce){.lv-camera{transition:none}}
+        .lv-camera{transition:transform 1.25s cubic-bezier(.65,.05,.2,1)}
+        .lv-dot,.lv-ring,.lv-grid,.lv-land{transform-box:fill-box;transform-origin:center}
+        .lv:not([data-seen]) .lv-dot,.lv:not([data-seen]) .lv-grid,.lv:not([data-seen]) .lv-land{opacity:0}
+        .lv[data-seen] .lv-dot{animation:lv-pop .55s cubic-bezier(.22,.8,.24,1) both;animation-delay:var(--d,0ms)}
+        .lv[data-seen] .lv-grid{animation:lv-fade 1.6s ease-out both}
+        .lv[data-seen] .lv-land{animation:lv-fade 1.1s ease-out both}
+        .lv-ring{animation:lv-ring 1s cubic-bezier(.22,.8,.24,1) both;animation-delay:var(--d,0ms)}
+        @keyframes lv-pop{from{opacity:0;transform:scale(.2)}to{opacity:1;transform:none}}
+        @keyframes lv-fade{from{opacity:0}to{opacity:1}}
+        @keyframes lv-ring{from{opacity:0;transform:scale(.15)}to{opacity:1;transform:none}}
+        @media (prefers-reduced-motion:reduce){.lv-camera{transition:none}.lv-dot,.lv-ring,.lv-grid,.lv-land{animation:none!important;opacity:1!important;transform:none!important}}
       `}</style>
 
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-a-line px-5 py-3 sm:px-6">
@@ -283,6 +312,7 @@ export function FireMapLive({
         >
           <g className="lv-camera" style={{ transform: camera }}>
             <path
+              className="lv-grid"
               d={g.grid}
               fill="none"
               stroke="rgba(214,245,201,0.07)"
@@ -292,6 +322,7 @@ export function FireMapLive({
             {g.land.map((d, i) => (
               <path
                 key={i}
+                className="lv-land"
                 d={d}
                 fill="rgba(214,245,201,0.05)"
                 stroke="rgba(214,245,201,0.26)"
@@ -316,7 +347,8 @@ export function FireMapLive({
                     toggle,
                     i === (sel?.kind === "fire" ? sel.i : 0),
                   )}
-                  className={focusRing}
+                  className={`${focusRing} lv-dot`}
+                  style={{ "--d": `${300 + Math.min(i * 14, 1100)}ms` } as React.CSSProperties}
                   aria-pressed={isSel}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -370,7 +402,8 @@ export function FireMapLive({
                     toggle,
                     false,
                   )}
-                  className={focusRing}
+                  className={`${focusRing} lv-dot`}
+                  style={{ "--d": `${1500 + i * 90}ms` } as React.CSSProperties}
                   aria-pressed={isSel}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -394,9 +427,11 @@ export function FireMapLive({
 
             {focus && fc && (
               <g aria-hidden="true" pointerEvents="none">
-                {[100, 50].map((km) => (
+                {[100, 50].map((km, n) => (
                   <circle
-                    key={km}
+                    key={`${km}-${focus.lat}-${focus.lng}`}
+                    className="lv-ring"
+                    style={{ "--d": `${650 + n * 160}ms` } as React.CSSProperties}
                     cx={fc[0]}
                     cy={fc[1]}
                     r={geo.argentina.kmPx(focus.lat, focus.lng, km)}
@@ -407,7 +442,15 @@ export function FireMapLive({
                     vectorEffect="non-scaling-stroke"
                   />
                 ))}
-                <circle cx={fc[0]} cy={fc[1]} r={4 / k} fill={MINT} />
+                <circle
+                  key={`c-${focus.lat}-${focus.lng}`}
+                  className="lv-ring"
+                  style={{ "--d": "500ms" } as React.CSSProperties}
+                  cx={fc[0]}
+                  cy={fc[1]}
+                  r={4 / k}
+                  fill={MINT}
+                />
               </g>
             )}
           </g>

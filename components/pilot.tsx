@@ -1,4 +1,4 @@
-import { ASection, AHeading } from "@/components/a-section";
+import { ASection, AHeading, riseDelay } from "@/components/a-section";
 
 const PILOT = [
   "4 a 8 semanas hasta las primeras alertas a confirmar (estimación interna, depende del territorio)",
@@ -21,6 +21,7 @@ function PlanCard({
   className,
   leadClass,
   lineClass,
+  from,
 }: {
   name: string;
   lead: string;
@@ -28,20 +29,22 @@ function PlanCard({
   className: string;
   leadClass: string;
   lineClass: string;
+  from: "l" | "r";
 }) {
   return (
     <div
-      className={`flex min-w-0 flex-col rounded-2xl p-7 md:p-9 ${className}`}
+      className={`a-scale-in pilot-${from} flex min-w-0 flex-col rounded-2xl p-7 md:p-9 ${className}`}
     >
       <h3 className="a-display-m">{name}</h3>
       <p className={`mt-3 text-[0.9375rem] leading-relaxed ${leadClass}`}>
         {lead}
       </p>
       <ul className={`mt-7 border-t ${lineClass}`}>
-        {items.map((t) => (
+        {items.map((t, i) => (
           <li
             key={t}
-            className={`border-b py-3.5 text-[0.9375rem] leading-relaxed ${lineClass}`}
+            style={riseDelay(i, 10)}
+            className={`a-rise border-b py-3.5 text-[0.9375rem] leading-relaxed ${lineClass}`}
           >
             {t}
           </li>
@@ -52,9 +55,16 @@ function PlanCard({
 }
 
 // Sin precios: el modelo se define con cada organización y todavía no hay pilotos cuantificados.
+const SIDE_CSS = `@media (prefers-reduced-motion: no-preference){@supports (animation-timeline: view()){
+@keyframes pilot-from-l{from{opacity:0;transform:translateX(-56px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes pilot-from-r{from{opacity:0;transform:translateX(56px) scale(.94)}to{opacity:1;transform:none}}
+.pilot-l{animation-name:pilot-from-l}.pilot-r{animation-name:pilot-from-r}
+@media (max-width:767px){.pilot-l,.pilot-r{animation-name:a-scale-in}}}}`;
+
 export function Pilot() {
   return (
     <ASection id="piloto">
+      <style>{SIDE_CSS}</style>
       <AHeading
         eyebrow="Cómo empezamos"
         title="Arrancamos chico, en una zona que elijas"
@@ -68,6 +78,7 @@ export function Pilot() {
           className="a-bone"
           leadClass="text-[#4b5750]"
           lineClass="border-[#131a16]/20"
+          from="l"
         />
         <PlanCard
           name="Despliegue sostenido"
@@ -76,12 +87,13 @@ export function Pilot() {
           className="bg-a-sand text-[#1f1710]"
           leadClass="text-[#3a2e20]"
           lineClass="border-[#1f1710]/25"
+          from="r"
         />
       </div>
       <div className="mt-10 text-center">
         <a
           href="#contacto"
-          className="a-pill focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent"
+          className="a-pill a-rise focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent"
         >
           Pedir un piloto
         </a>
