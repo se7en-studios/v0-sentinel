@@ -33,6 +33,39 @@ const MOBILE_POSITIONS: Pos[] = [
   { top: 50, left: 50, scale: 1.4 },
 ];
 
+// Focos de calor sobre el globo (posiciones en % del círculo). Aparecen desde "Verificar"; en "Contexto" se suman más.
+const SPOTS = [
+  { x: 36, y: 62, d: 0 },
+  { x: 44, y: 70, d: 0.6 },
+  { x: 30, y: 48, d: 1.2 },
+  { x: 52, y: 40, d: 0.3, more: true },
+  { x: 40, y: 78, d: 0.9, more: true },
+  { x: 58, y: 58, d: 1.5, more: true },
+];
+
+function HeatSpots({ visible, dense }: { visible: boolean; dense: boolean }) {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0 z-10 transition-opacity duration-700"
+      style={{ opacity: visible ? 1 : 0 }}
+    >
+      {SPOTS.map((s, i) => (
+        <span
+          key={i}
+          className="absolute size-2 rounded-full bg-[#ffb27a] shadow-[0_0_10px_3px_rgba(255,106,43,0.9)] transition-opacity duration-700 motion-safe:animate-pulse"
+          style={{
+            left: `${s.x}%`,
+            top: `${s.y}%`,
+            animationDelay: `${s.d}s`,
+            opacity: s.more && !dense ? 0 : 1,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 // El globo es fijo (sticky) y se mueve según la sección que está en el centro de la pantalla.
 export function ScrollGlobe({
   sections,
@@ -85,6 +118,7 @@ export function ScrollGlobe({
             transform: `translate3d(${p.left}vw, ${p.top}vh, 0) translate3d(-50%, -50%, 0) scale3d(${p.scale}, ${p.scale}, 1)`,
           }}
         >
+          <HeatSpots visible={active >= 1} dense={active >= 2} />
           <CssGlobe
             className={cn(
               "transition-opacity duration-700",
@@ -95,6 +129,36 @@ export function ScrollGlobe({
           />
         </div>
       </div>
+
+      {/* Riel de capítulos: dónde estás dentro del recorrido. */}
+      <nav
+        aria-label="Capítulos"
+        className="pointer-events-none sticky top-0 z-30 -mt-[100vh] hidden h-screen items-center justify-end pr-6 md:flex lg:pr-10"
+      >
+        <ol className="pointer-events-auto grid gap-4">
+          {sections.map((s, i) => (
+            <li key={s.id}>
+              <a
+                href={`#${s.id}`}
+                aria-current={i === active ? "step" : undefined}
+                className="group flex items-center justify-end gap-3 text-[0.8125rem] uppercase tracking-[0.18em] text-a-faint transition-colors aria-[current]:text-a-accent hover:text-[#e3f6dc]"
+              >
+                <span className="opacity-0 transition-opacity group-hover:opacity-100 group-aria-[current]:opacity-100">
+                  {s.badge}
+                </span>
+                <span
+                  aria-hidden
+                  className={cn(
+                    "h-px bg-current transition-all duration-500",
+                    i === active ? "w-10" : "w-5",
+                  )}
+                />
+                <span className="tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
 
       <div className="relative z-20 -mt-[100vh]">
         {sections.map((s, i) => (
@@ -113,7 +177,9 @@ export function ScrollGlobe({
             )}
           >
             <div className="w-full max-w-3xl">
-              <p className={cn("a-eyebrow", s.align !== "center" && "!text-left")}>{s.badge}</p>
+              <p className={cn("a-eyebrow", s.align !== "center" && "!text-left")}>
+                {String(i + 1).padStart(2, "0")} / {String(sections.length).padStart(2, "0")} · {s.badge}
+              </p>
               <h2 className="a-display mt-4 !text-[clamp(2.5rem,6vw,5.5rem)]">
                 {s.title}
                 {s.subtitle ? (
