@@ -8,7 +8,7 @@ const MAX_LINKS = 5;
 export function PressBlock() {
   return (
     <div className="grid gap-8 md:grid-cols-[1fr_2fr]">
-      <h3 className="a-rise text-sm font-medium uppercase tracking-[0.16em] text-[#4b5750]">
+      <h3 className="a-rise text-[0.9375rem] font-medium uppercase tracking-[0.16em] text-[#4b5750]">
         En los medios
       </h3>
       <ul className="divide-y divide-[#131a16]/15 border-y border-[#131a16]/15">
@@ -24,7 +24,7 @@ export function PressBlock() {
                 {m.title}
                 <span className="sr-only"> (abre en pestaña nueva)</span>
               </span>
-              <span className="mt-1 block text-sm text-[#4b5750]">
+              <span className="mt-1 block text-[0.9375rem] text-[#4b5750]">
                 {m.outlet}
                 {m.date ? ` · ${formatDate(m.date)}` : ""}
               </span>

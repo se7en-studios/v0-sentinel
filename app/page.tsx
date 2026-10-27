@@ -15,8 +15,12 @@ import { WhatsAppButton } from "@/components/whatsapp-button";
 const Problem = dynamic(() =>
   import("@/components/problem").then((m) => m.Problem),
 );
+const Tunnel = dynamic(() => import("@/components/tunnel").then((m) => m.Tunnel));
 const Platform = dynamic(() =>
   import("@/components/platform").then((m) => m.Platform),
+);
+const Coverage = dynamic(() =>
+  import("@/components/coverage").then((m) => m.Coverage),
 );
 const LiveChapter = dynamic(() =>
   import("@/components/live").then((m) => m.LiveChapter),
@@ -24,6 +28,7 @@ const LiveChapter = dynamic(() =>
 const Audiences = dynamic(() =>
   import("@/components/audiences").then((m) => m.Audiences),
 );
+const World = dynamic(() => import("@/components/world").then((m) => m.World));
 const Proof = dynamic(() => import("@/components/proof").then((m) => m.Proof));
 const CTA = dynamic(() => import("@/components/cta").then((m) => m.CTA));
 const Footer = dynamic(() =>
@@ -41,9 +46,12 @@ export default function Home() {
       <main id="main-content" className="a-root min-h-screen">
         <Hero />
         <Problem />
+        <Tunnel />
         <Platform />
+        <Coverage />
         <LiveChapter />
         <Audiences />
+        <World />
         <Proof />
         <CTA />
       </main>

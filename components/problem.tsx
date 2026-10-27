@@ -2,6 +2,7 @@ import Image from "next/image";
 import { CLAIMS } from "@/lib/claims";
 import { PHOTOS, creditLine } from "@/lib/photos";
 import { SplitReveal } from "@/components/ui/split-reveal";
+import { ProblemReveal } from "@/components/problem-reveal";
 
 const LINES = [
   "Casi todos los incendios grandes empiezan chicos: durante los primeros minutos alcanza con una cuadrilla y una motobomba.",
@@ -40,22 +41,11 @@ export function Problem() {
           </SplitReveal>
         </div>
       </div>
-      <p className="mx-auto w-full max-w-[1100px] px-5 pt-3 text-xs leading-relaxed text-a-faint md:px-8 md:text-right">
+      <p className="mx-auto w-full max-w-[1100px] px-5 pt-3 text-[0.8125rem] leading-relaxed text-a-faint md:px-8 md:text-right">
         {photo.caption} {creditLine(photo)}
       </p>
 
-      <div className="mx-auto w-full max-w-[34rem] px-5 py-24 md:py-36">
-        <ol className="space-y-8 md:space-y-10">
-          {LINES.map((line) => (
-            <li
-              key={line}
-              className="a-sub !text-[clamp(1.0625rem,1.6vw,1.25rem)] !text-[#e3f6dc]"
-            >
-              <SplitReveal as="p">{line}</SplitReveal>
-            </li>
-          ))}
-        </ol>
-      </div>
+      <ProblemReveal lines={LINES} />
     </section>
   );
 }

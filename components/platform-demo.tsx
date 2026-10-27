@@ -295,16 +295,16 @@ function Pinned() {
                 data-active={i === 0}
                 className="opacity-60 transition-opacity duration-300 data-[active=true]:opacity-100"
               >
-                <h3 className="a-display-m !text-[clamp(1.75rem,2.6vw,2.5rem)] text-white">
+                <h3 className="a-display-m !text-[clamp(2rem,3vw,3rem)] text-white">
                   <span
                     aria-hidden
-                    className="mr-3 font-[family-name:var(--font-geist)] text-sm tabular-nums text-a-accent"
+                    className="mr-3 font-[family-name:var(--font-geist)] text-base tabular-nums text-a-accent"
                   >
                     0{i + 1}
                   </span>
                   {s.title}
                 </h3>
-                <p className="a-sub mt-2 !text-[0.9375rem]">{s.text}</p>
+                <p className="a-sub mt-2 !text-[clamp(1.0625rem,1.3vw,1.1875rem)]">{s.text}</p>
               </li>
             ))}
           </ol>

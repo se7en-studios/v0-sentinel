@@ -136,7 +136,7 @@ export async function LiveChapter() {
             </h3>
             {overall && (
               <span
-                className="text-sm font-medium"
+                className="text-[0.9375rem] font-medium"
                 style={{ color: RISK_ON_DARK[overall] }}
               >
                 Patagonia: {overall}
@@ -176,7 +176,7 @@ export async function LiveChapter() {
               </tbody>
             </table>
           ) : (
-            <p role="status" className="mt-3 text-sm text-a-mute">
+            <p role="status" className="mt-3 text-[0.9375rem] text-a-mute">
               La lectura de Open-Meteo no está disponible en este momento.
             </p>
           )}
@@ -198,7 +198,7 @@ export async function LiveChapter() {
           </p>
         </section>
 
-        <p className="mx-auto mt-12 max-w-3xl text-center text-xs leading-relaxed text-a-mute">
+        <p className="mx-auto mt-12 max-w-3xl text-center text-[0.8125rem] leading-relaxed text-a-mute">
           Los focos de calor son datos satelitales preliminares, sin verificar
           en campo, y llegan con una demora de horas. Fuente:{" "}
           <a

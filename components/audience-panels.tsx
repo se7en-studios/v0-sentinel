@@ -143,7 +143,7 @@ export function AudiencePanels({ items }: { items: AudiencePanel[] }) {
               <ArrowRight className="size-4" aria-hidden />
             </a>
           </div>
-          <p className="absolute bottom-4 left-5 right-5 text-xs text-white/75 md:left-8">
+          <p className="absolute bottom-4 left-5 right-5 text-[0.8125rem] text-white/75 md:left-8">
             {creditLine(photo)}
           </p>
         </article>

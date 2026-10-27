@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { ASection, AHeading, aFocus, riseDelay } from "@/components/a-section";
+import { ASection, AHeading, aFocus } from "@/components/a-section";
+import { MarqueeRow } from "@/components/ui/marquee-row";
 
 const teamMembers = [
   {
@@ -36,36 +37,48 @@ const teamMembers = [
   },
 ];
 
+type Member = (typeof teamMembers)[number];
+
+function TeamCard({ m, hidden }: { m: Member; hidden?: boolean }) {
+  return (
+    <li aria-hidden={hidden || undefined} className="group relative aspect-[4/5] w-60 shrink-0 overflow-hidden rounded-2xl bg-[#d3cfc6] sm:w-72">
+      <Image
+        src={m.image}
+        alt={hidden ? "" : `${m.name}, ${m.role}`}
+        fill
+        sizes="288px"
+        loading="lazy"
+        className="object-cover grayscale transition-[filter] duration-700 ease-out group-hover:grayscale-0 group-focus-within:grayscale-0"
+      />
+      <div className="absolute inset-x-0 bottom-0 bg-[#e6e3dc]/90 p-3">
+        <p className="text-base font-semibold leading-snug">
+          <a
+            href={m.linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+            tabIndex={hidden ? -1 : undefined}
+            className={`after:absolute after:inset-0 ${aFocus}`}
+          >
+            {m.name}
+            <span className="sr-only"> (LinkedIn, abre en pestaña nueva)</span>
+          </a>
+        </p>
+        <p className="text-[0.9375rem] text-[#4b5750]">{m.role.split(" | ")[0]}</p>
+      </div>
+    </li>
+  );
+}
+
+// Carrusel continuo; con solo 4 personas se repiten para que cada mitad llene la pantalla.
 export function TeamBlock() {
   return (
-    <ul className="grid grid-cols-2 gap-x-4 gap-y-10 lg:grid-cols-4 lg:gap-x-6">
-      {teamMembers.map((m, i) => (
-        <li key={m.name} className="a-rise group min-w-0" style={riseDelay(i)}>
-          <div className="relative aspect-[4/5] overflow-hidden bg-[#d3cfc6]">
-            <Image
-              src={m.image}
-              alt={`${m.name}, ${m.role}`}
-              fill
-              sizes="(max-width: 1024px) 46vw, 270px"
-              loading="lazy"
-              className="object-cover grayscale transition-[filter] duration-700 ease-out group-hover:grayscale-0 group-focus-within:grayscale-0"
-            />
-          </div>
-          <p className="mt-4 text-base font-semibold leading-snug">
-            <a
-              href={m.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`underline decoration-[#131a16]/25 underline-offset-4 hover:decoration-[#131a16] ${aFocus}`}
-            >
-              {m.name}
-              <span className="sr-only"> (LinkedIn, abre en pestaña nueva)</span>
-            </a>
-          </p>
-          <p className="text-sm text-[#4b5750]">{m.role.split(" | ")[0]}</p>
-        </li>
-      ))}
-    </ul>
+    <MarqueeRow>
+      {(hidden) =>
+        [0, 1].flatMap((n) =>
+          teamMembers.map((m) => <TeamCard key={`${n}-${m.name}`} m={m} hidden={hidden || n === 1} />),
+        )
+      }
+    </MarqueeRow>
   );
 }
 

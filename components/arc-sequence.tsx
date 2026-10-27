@@ -126,7 +126,7 @@ export function ArcSequence() {
               <span
                 key={s.word}
                 style={{ left: `${x}%`, top: `${y}%` }}
-                className={`absolute grid size-8 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border text-xs font-medium transition-colors duration-300 md:size-10 md:text-sm ${
+                className={`absolute grid size-8 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border text-[0.8125rem] font-medium transition-colors duration-300 md:size-10 md:text-sm ${
                   on
                     ? "border-a-accent bg-a-accent text-[#06150d]"
                     : "border-a-line bg-a-bg text-a-mute"

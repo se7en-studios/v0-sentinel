@@ -120,7 +120,7 @@ export function LiveExplorer({
         >
           Probá con tu localidad
         </h3>
-        <p className="mt-1.5 text-sm text-a-mute">
+        <p className="mt-1.5 text-[0.9375rem] text-a-mute">
           Elegí tu pueblo o ciudad y mirá qué focos de calor detectaron los
           satélites cerca, con los datos de hoy.
         </p>
@@ -189,7 +189,7 @@ export function LiveExplorer({
                 <span className="min-w-0 truncate font-medium">
                   {PLACES[pi][0]}
                 </span>
-                <span className="shrink-0 text-sm text-a-mute">
+                <span className="shrink-0 text-[0.9375rem] text-a-mute">
                   {PLACES[pi][1]}
                 </span>
               </li>
@@ -242,7 +242,7 @@ function Result({
   const fmt = (n: number) => n.toLocaleString("es-AR");
   return (
     <div className="rounded-xl border border-a-line bg-a-bg p-4">
-      <p className="text-sm font-medium text-[#e3f6dc]">
+      <p className="text-[0.9375rem] font-medium text-[#e3f6dc]">
         {PLACES[i][0]}, {PLACES[i][1]}
       </p>
       {km === null ? (
@@ -256,7 +256,7 @@ function Result({
             Sin focos de calor detectados en 100 km en las últimas 24 h; no
             garantiza ausencia de fuego.
           </p>
-          <p className="mt-1.5 text-sm text-a-mute">
+          <p className="mt-1.5 text-[0.9375rem] text-a-mute">
             El foco más cercano del país está a {fmt(km)} km.
           </p>
         </>
@@ -264,15 +264,15 @@ function Result({
         <>
           <p className="mt-2 text-3xl font-semibold tabular-nums tracking-tight text-[#e3f6dc]">
             {fmt(km)} km
-            <span className="ml-2 text-sm font-normal text-a-mute">
+            <span className="ml-2 text-[0.9375rem] font-normal text-a-mute">
               al foco de calor más cercano
             </span>
           </p>
-          <p className="mt-1.5 text-sm tabular-nums text-[#e3f6dc]">
+          <p className="mt-1.5 text-[0.9375rem] tabular-nums text-[#e3f6dc]">
             {fmt(n50)} {n50 === 1 ? "foco" : "focos"} en 50 km · {fmt(n100)}{" "}
             {n100 === 1 ? "foco" : "focos"} en 100 km
           </p>
-          <p className="mt-1 text-sm text-a-mute">
+          <p className="mt-1 text-[0.9375rem] text-a-mute">
             Más cercano detectado {at}.
             {truncated &&
               " El mapa dibuja solo los 150 focos más intensos del país."}
@@ -281,14 +281,14 @@ function Result({
       )}
       {place && (
         <p
-          className="mt-2 text-sm tabular-nums"
+          className="mt-2 text-[0.9375rem] tabular-nums"
           style={{ color: RISK_ON_DARK[place.label] }}
         >
           Riesgo hoy: {place.label} · {Math.round(place.temperature)} °C ·{" "}
           {Math.round(place.humidity)}% · {Math.round(place.windSpeed)} km/h
         </p>
       )}
-      <p className="mt-2 text-xs text-a-mute">
+      <p className="mt-2 text-[0.8125rem] text-a-mute">
         Fuente: NASA FIRMS, {sourceLabel}, últimas 24 h. {firesAt}. Son focos de
         calor satelitales, no incendios confirmados, con demora de horas.
       </p>

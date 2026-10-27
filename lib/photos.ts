@@ -23,18 +23,14 @@ export function creditLine(p: Photo): string {
 
 export const PHOTOS = {
   heroFire: {
-    src: "/photos/alerces-noche.webp",
-    width: 2560,
-    height: 1707,
-    alt: "Incendio forestal de noche sobre un cordón de montaña en el Parque Nacional Los Alerces, Chubut",
-    caption: "Incendio de noche en el Parque Nacional Los Alerces, Chubut (febrero de 2025).",
-    position: "center 55%",
-    credit: {
-      author: "Nicolás Palacios",
-      license: "CC BY-SA 4.0",
-      licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0",
-      source: "https://commons.wikimedia.org/wiki/File:Incendio_en_Parque_Nacional_Los_Alerces_04.jpg",
-    },
+    src: "/photos/hero-incendio-noche.webp",
+    width: 2000,
+    height: 1125,
+    alt: "Incendio de noche: una cortina de humo y llamas naranjas detrás de una hilera de árboles",
+    caption: "Incendio de noche con una columna de humo sobre una arboleda.",
+    position: "center 85%",
+    // TODO(dueño): sin autor, fecha ni lugar confirmados. Si no es una foto propia, agregar `credit`
+    // (autor, licencia, fuente): el crédito se muestra solo en el hero.
   },
   problemWide: {
     src: "/photos/foco-atardecer.webp",

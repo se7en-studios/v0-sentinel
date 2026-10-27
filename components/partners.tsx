@@ -25,7 +25,7 @@ const logos = [
 export function PartnersBlock() {
   return (
     <div>
-      <p className="a-rise text-sm font-medium uppercase tracking-[0.16em] text-[#4b5750]">
+      <p className="a-rise text-[0.9375rem] font-medium uppercase tracking-[0.16em] text-[#4b5750]">
         Programas y entidades en las que participamos
       </p>
       <ul className="a-rise mt-8 flex flex-wrap items-center gap-x-10 gap-y-6">
@@ -44,7 +44,7 @@ export function PartnersBlock() {
           </li>
         ))}
       </ul>
-      <p className="mt-8 max-w-xl text-sm leading-relaxed text-[#4b5750]">
+      <p className="mt-8 max-w-xl text-[0.9375rem] leading-relaxed text-[#4b5750]">
         Universidades de origen, organizadores de competencias y programas de los
         que Sentinel formó parte. No implica convenio ni respaldo comercial.
       </p>

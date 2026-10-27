@@ -761,15 +761,15 @@ html { scroll-padding-top: 88px; }
 .t-label { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; }
 
 /* v7: lenguaje de producto oscuro (referencia animos.app). Una sans, una acción, tarjetas con filete. */
-.a-root { font-family: var(--font-geist); background: var(--color-a-bg); color: #e3f6dc; }
-.a-eyebrow { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-a-faint); text-align: center; }
-.a-hero-title { font-weight: 600; letter-spacing: -0.035em; line-height: 1.03; font-size: clamp(2.5rem, 6.4vw, 5rem); text-wrap: balance; }
-.a-title { font-weight: 600; letter-spacing: -0.03em; line-height: 1.08; font-size: clamp(1.875rem, 4vw, 3rem); text-wrap: balance; }
-.a-sub { font-size: clamp(1rem, 1.4vw, 1.125rem); line-height: 1.55; color: var(--color-a-mute); text-wrap: pretty; }
+.a-root { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; font-family: var(--font-geist); background: var(--color-a-bg); color: #e3f6dc; }
+.a-eyebrow { font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-a-faint); text-align: center; }
+.a-hero-title { font-weight: 600; letter-spacing: -0.035em; line-height: 1.03; font-size: clamp(2.75rem, 7vw, 5.75rem); text-wrap: balance; }
+.a-title { font-weight: 600; letter-spacing: -0.03em; line-height: 1.08; font-size: clamp(2.125rem, 4.6vw, 3.5rem); text-wrap: balance; }
+.a-sub { font-size: clamp(1.0625rem, 1.5vw, 1.3125rem); line-height: 1.6; color: var(--color-a-mute); text-wrap: pretty; }
 .a-card { background: var(--color-a-card); border: 1px solid var(--color-a-line); border-radius: 16px; }
-.a-pill { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; height: 2.75rem; padding: 0 1.4rem; border-radius: 9999px; background: var(--color-a-accent); color: #06150d; font-weight: 600; font-size: 0.9375rem; transition: transform 0.2s, filter 0.2s; }
+.a-pill { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; height: 3rem; padding: 0 1.6rem; border-radius: 9999px; background: var(--color-a-accent); color: #06150d; font-weight: 600; font-size: 1rem; transition: transform 0.2s, filter 0.2s; }
 .a-pill:hover { filter: brightness(1.08); transform: translateY(-1px); }
-.a-pill-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; height: 2.75rem; padding: 0 1.4rem; border-radius: 9999px; border: 1px solid var(--color-a-line); background: rgb(214 245 201 / 0.05); color: #e3f6dc; font-weight: 500; font-size: 0.9375rem; transition: background 0.2s; }
+.a-pill-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; height: 3rem; padding: 0 1.6rem; border-radius: 9999px; border: 1px solid var(--color-a-line); background: rgb(214 245 201 / 0.05); color: #e3f6dc; font-weight: 500; font-size: 1rem; transition: background 0.2s; }
 .a-pill-ghost:hover { background: rgb(214 245 201 / 0.11); }
 .a-frame { border-radius: 14px; border: 1px solid rgb(214 245 201 / 0.16); overflow: hidden; box-shadow: 0 50px 140px -40px rgb(169 239 201 / 0.16), 0 30px 90px -30px rgb(0 0 0 / 0.9); background: #0b0b0c; }
 /* Texto que se enciende palabra por palabra con el scroll (sin JS; si no hay soporte, queda blanco). */
@@ -782,7 +782,7 @@ html { scroll-padding-top: 88px; }
 
 /* v7b: cinematográfico (Rainmaker / MyHealthPrac): paneles que alternan, titulares serif grandes, marco con esquinas. */
 .a-display { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.02em; line-height: 0.98; font-size: clamp(2.75rem, 7vw, 6.5rem); text-wrap: balance; }
-.a-display-m { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.015em; line-height: 1; font-size: clamp(2.25rem, 4.6vw, 4rem); text-wrap: balance; }
+.a-display-m { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.015em; line-height: 1; font-size: clamp(2.5rem, 5.2vw, 4.75rem); text-wrap: balance; }
 .a-bone { background: var(--color-a-bone); color: #131a16; }
 .a-bone .a-sub { color: #4b5750; }
 .a-forest { background: var(--color-a-forest); color: #e3f6dc; }
@@ -805,6 +805,25 @@ html { scroll-behavior: smooth; }
 /* Carga: sube y aparece, escalonado con --d (ms). */
 @keyframes a-load-up { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
 .a-load { animation: a-load-up 0.95s cubic-bezier(0.22, 0.8, 0.24, 1) both; animation-delay: var(--d, 0ms); }
+.a-display-xl { font-size: clamp(3.25rem, 10.5vw, 10rem); line-height: 0.92; letter-spacing: -0.03em; }
+/* Marcador de detección: anillo que late, línea y etiqueta que aparecen en secuencia. */
+.a-ping { width: 0; height: 0; }
+.a-ping-dot, .a-ping-ring { position: absolute; left: -6px; top: -6px; width: 12px; height: 12px; border-radius: 9999px; }
+.a-ping-dot { background: #a9efc9; box-shadow: 0 0 0 3px rgb(6 21 13 / 0.6); animation: a-ping-in 0.5s ease-out backwards; animation-delay: var(--d); }
+.a-ping-ring { border: 1.5px solid #a9efc9; animation: a-ping-ring 2.2s ease-out infinite; animation-delay: calc(var(--d) + 0.3s); opacity: 0; }
+.a-ping-line { position: absolute; left: 0; top: 0; width: 1px; height: 64px; background: linear-gradient(#a9efc9, transparent); transform-origin: top; animation: a-ping-line 0.7s ease-out backwards; animation-delay: calc(var(--d) + 0.3s); }
+.a-ping-tag { position: absolute; left: 8px; top: 70px; white-space: nowrap; font: 500 0.75rem/1 var(--font-geist), sans-serif; letter-spacing: 0.08em; text-transform: uppercase; color: #e3f6dc; animation: a-load-up 0.7s ease-out backwards; animation-delay: calc(var(--d) + 0.7s); }
+@keyframes a-ping-in { from { transform: scale(0); } to { transform: scale(1); } }
+@keyframes a-ping-ring { 0% { transform: scale(1); opacity: 0.9; } 100% { transform: scale(4.5); opacity: 0; } }
+@keyframes a-ping-line { from { transform: scaleY(0); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .a-ping-dot, .a-ping-ring, .a-ping-line, .a-ping-tag { animation: none; } .a-ping-ring { opacity: 0; } }
+/* Hero: titular palabra por palabra bajo máscara; la foto se asienta desde un zoom (fill backwards: después manda el scroll). */
+.a-word-mask { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.14em; margin-bottom: -0.14em; }
+@keyframes a-word-up { from { transform: translateY(105%); } to { transform: none; } }
+.a-word-in { display: inline-block; animation: a-word-up 1.1s cubic-bezier(0.16, 0.9, 0.2, 1) backwards; animation-delay: var(--d, 0ms); }
+@keyframes a-photo-in { from { transform: scale(1.14); } to { transform: scale(1); } }
+.a-photo-in { animation: a-photo-in 2.6s cubic-bezier(0.16, 0.8, 0.2, 1) backwards; }
+@media (prefers-reduced-motion: reduce) { .a-word-in, .a-photo-in { animation: none; } }
 /* Foto de fondo que respira lento (Rainmaker / MyHealthPrac). */
 @keyframes a-kenburns { from { transform: scale(1.04) translate3d(0, 0, 0); } to { transform: scale(1.14) translate3d(-1.2%, -1%, 0); } }
 .a-kenburns { animation: a-kenburns 28s ease-in-out infinite alternate; will-change: transform; }
@@ -847,3 +866,45 @@ html { scroll-behavior: smooth; }
   .a-load, .a-kenburns, .a-marquee-track, .a-rise, .a-scale-in, .a-wipe, .a-parallax, .a-emerge, .a-wordmark-rise, .a-zoom,
   .a-brackets::before, .a-brackets::after, .a-brackets > .a-bk { animation: none !important; opacity: 1 !important; transform: none !important; clip-path: none !important; }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

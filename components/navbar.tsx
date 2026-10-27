@@ -27,6 +27,20 @@ export function Navbar() {
   const toggleRef = useRef<HTMLButtonElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const activeSection = useActiveSection();
+  const [isHidden, setIsHidden] = useState(false);
+
+  // Se esconde al bajar y vuelve al subir; siempre visible arriba de todo o con el menú abierto.
+  useEffect(() => {
+    let last = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (Math.abs(y - last) < 6) return;
+      setIsHidden(y > last && y > 240);
+      last = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // Un IntersectionObserver sobre un centinela en lo alto de la página: sin listener de scroll.
   useEffect(() => {
@@ -89,7 +103,7 @@ export function Navbar() {
       <nav
         ref={navRef}
         aria-label="Navegación principal"
-        className={`fixed inset-x-0 top-0 z-50 font-[family-name:var(--font-geist)] text-[#e3f6dc] transition-colors duration-300 ${barBg}`}
+        className={`fixed inset-x-0 top-0 z-50 font-[family-name:var(--font-geist)] text-[#e3f6dc] transition-[background-color,transform] duration-300 ${isHidden && !isOpen ? "-translate-y-full" : ""} ${barBg}`}
       >
         {!isOpen && (
           <>
@@ -105,7 +119,7 @@ export function Navbar() {
           >
             <SentinelMark className="size-6" />
             <SentinelLogo className="h-4 w-auto" fill="#e3f6dc" />
-            <span className="rounded-full border border-a-line px-2 py-0.5 text-xs font-medium text-a-mute">
+            <span className="rounded-full border border-a-line px-2 py-0.5 text-[0.8125rem] font-medium text-a-mute">
               Cloud
             </span>
           </a>
@@ -116,7 +130,7 @@ export function Navbar() {
                 <a
                   href={`${prefix}#${l.id}`}
                   {...current(l.id)}
-                  className={`a-linkline rounded-sm py-1 text-sm text-a-mute transition-colors hover:text-[#e3f6dc] aria-[current]:text-[#e3f6dc] aria-[current]:[background-size:100%_1px] ${RING}`}
+                  className={`a-linkline rounded-sm py-1 text-[0.9375rem] text-a-mute transition-colors hover:text-[#e3f6dc] aria-[current]:text-[#e3f6dc] aria-[current]:[background-size:100%_1px] ${RING}`}
                 >
                   {l.label}
                 </a>
@@ -127,13 +141,13 @@ export function Navbar() {
           <div className="hidden items-center justify-end gap-5 md:flex">
             <a
               href="/demo"
-              className={`rounded-sm text-sm text-a-mute transition-colors hover:text-[#e3f6dc] ${RING}`}
+              className={`rounded-sm text-[0.9375rem] text-a-mute transition-colors hover:text-[#e3f6dc] ${RING}`}
             >
               Ver el panel
             </a>
             <a
               href={`${prefix}#contacto`}
-              className={`a-pill !h-9 !px-4 !text-sm ${RING}`}
+              className={`a-pill !h-9 !px-4 !text-[0.9375rem] ${RING}`}
             >
               Pedir un piloto
             </a>

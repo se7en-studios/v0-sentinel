@@ -20,11 +20,11 @@ const PERFIL_TO_INTEREST: Record<string, string> = {
 
 const field =
   "h-12 w-full rounded-xl border border-a-line bg-a-bg px-4 text-base text-[#e3f6dc] placeholder:text-a-faint focus-visible:border-a-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent aria-[invalid=true]:border-[#ff9b8a]";
-const label = "mb-1.5 block text-sm font-medium text-[#e3f6dc]";
+const label = "mb-1.5 block text-[0.9375rem] font-medium text-[#e3f6dc]";
 
 function FieldError({ id, msg }: { id: string; msg?: string }) {
   return msg ? (
-    <p id={id} className="mt-1.5 text-sm text-[#ffb4a6]">
+    <p id={id} className="mt-1.5 text-[0.9375rem] text-[#ffb4a6]">
       {msg}
     </p>
   ) : null;
@@ -202,11 +202,11 @@ export function ContactForm() {
         >
           {status === "sending" ? "Enviando…" : "Solicitar un piloto"}
         </button>
-        <p className="text-sm text-a-mute">
+        <p className="text-[0.9375rem] text-a-mute">
           Te respondemos en 24 h hábiles.
         </p>
       </div>
-      <p className="text-sm text-a-mute sm:col-span-2">
+      <p className="text-[0.9375rem] text-a-mute sm:col-span-2">
         Al enviar aceptás nuestra{" "}
         <a href="/privacidad" className="underline underline-offset-2">
           política de privacidad
@@ -216,12 +216,12 @@ export function ContactForm() {
 
       <div className="sm:col-span-2" aria-live="polite">
         {status === "error" && (
-          <p role="alert" className="text-sm text-[#ffb4a6]">
+          <p role="alert" className="text-[0.9375rem] text-[#ffb4a6]">
             No pudimos enviar tu mensaje. Probá de nuevo o escribinos a {mail}.
           </p>
         )}
         {status === "unavailable" && (
-          <p role="alert" className="text-sm text-[#ffd9a0]">
+          <p role="alert" className="text-[0.9375rem] text-[#ffd9a0]">
             El envío en línea no está disponible por ahora: escribinos a {mail}.
           </p>
         )}

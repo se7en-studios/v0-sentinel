@@ -45,7 +45,7 @@ export function Audiences() {
         </SplitReveal>
       </div>
       <AudiencePanels items={AUDIENCES} />
-      <p className="mx-auto max-w-[1100px] px-5 py-8 text-xs text-a-mute md:px-8">
+      <p className="mx-auto max-w-[1100px] px-5 py-8 text-[0.8125rem] text-a-mute md:px-8">
         Piloto abierto: todavía no hay casos publicados.
       </p>
     </section>
