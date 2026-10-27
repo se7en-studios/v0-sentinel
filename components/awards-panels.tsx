@@ -13,6 +13,10 @@ export type AwardEntry = {
   /** Foto real del evento (inserto). Sin foto, el panel es solo tipográfico. */
   image?: string;
   alt?: string;
+  /** La foto principal es vertical (se muestra sin recortar las caras). */
+  portrait?: boolean;
+  /** Segunda foto del evento, más chica y superpuesta. */
+  extra?: { image: string; alt: string; portrait?: boolean };
   /** Foto de ambiente a pantalla completa: ilustra el tema, NO es una foto del evento. */
   bg: string;
 };
@@ -130,20 +134,40 @@ function Panel({ e, i, total }: { e: AwardEntry; i: number; total: number }) {
         {e.image ? (
           <figure
             data-inset
-            className="w-full max-w-md shrink-0 lg:w-[30vw] lg:max-w-none"
+            className="relative w-full max-w-md shrink-0 pb-8 lg:w-[30vw] lg:max-w-none"
           >
-            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/25 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)]">
+            <div
+              className={`relative overflow-hidden rounded-2xl border border-white/25 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)] ${
+                e.portrait ? "mx-auto aspect-[4/5] w-[74%]" : "aspect-[4/3]"
+              }`}
+            >
               <Image
                 src={e.image}
                 alt={e.alt ?? ""}
                 fill
                 sizes="(min-width: 1024px) 30vw, 90vw"
                 loading="lazy"
-                className="object-cover"
+                className="object-cover object-top"
               />
             </div>
-            <figcaption className="mt-2 text-[0.8125rem] text-a-faint">
-              Foto del evento.
+            {e.extra ? (
+              <div
+                className={`absolute bottom-2 left-0 -rotate-3 overflow-hidden rounded-xl border-2 border-white/40 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.85)] ${
+                  e.extra.portrait ? "aspect-[4/5] w-[34%]" : "aspect-[4/3] w-[44%]"
+                }`}
+              >
+                <Image
+                  src={e.extra.image}
+                  alt={e.extra.alt}
+                  fill
+                  sizes="(min-width: 1024px) 14vw, 40vw"
+                  loading="lazy"
+                  className="object-cover object-top"
+                />
+              </div>
+            ) : null}
+            <figcaption className="mt-3 text-[0.8125rem] text-a-faint lg:text-right">
+              Fotos del equipo en el evento.
             </figcaption>
           </figure>
         ) : null}

@@ -12,10 +12,10 @@ const noteFor = (outlet: string) =>
 const ENTRIES: AwardEntry[] = [
   // Sin año confirmado en el sitio: la tarjeta no muestra fecha.
   { year: "", name: "Programa Prendete, CICE", bg: "/photos/ambiente-bosque-lenga.webp", result: "Pitch Day", caption: "El equipo con los demás proyectos finalistas de Prendete (Mendoza).", image: PHOTOS.awardsGroup.src, alt: PHOTOS.awardsGroup.alt },
-  { year: "2025", name: "Premios ILAN, innovación universitaria", bg: "/photos/ambiente-montana-atardecer.webp", result: "Ganamos", caption: "El equipo recibe el certificado del premio ILAN.", href: noteFor("UTN"), image: "/logros-tile-1.jpg", alt: "El equipo recibe el certificado del premio ILAN" },
+  { year: "2025", name: "Premios ILAN, innovación universitaria", bg: "/photos/ambiente-montana-atardecer.webp", result: "Ganamos", caption: "El equipo recibe el certificado del premio ILAN.", href: noteFor("UTN"), image: "/photos/premios-ilan-certificado.webp", portrait: true, alt: "Dos integrantes del equipo con el certificado del premio ILAN, frente a la pantalla del evento", extra: { image: "/photos/premios-ilan-equipo.webp", alt: "El equipo de Sentinel en el escenario del auditorio de ILAN" } },
   { year: "2025", name: "JIJE 20 años, UNL", bg: "/photos/ambiente-guanaco-roca.webp", result: "Ganamos", caption: "Presentamos a distancia.", image: "/logros-tile-4.jpg", alt: "Presentación de Sentinel en la JIJE 20 años, UNL" },
   { year: "2025", name: "Premios Sadosky", bg: "/photos/ambiente-bombera-humo.webp", result: "Ganamos", caption: "Ceremonia de los Premios Sadosky 2025.", href: noteFor("CESSI"), image: PHOTOS.awardsRoom.src, alt: PHOTOS.awardsRoom.alt },
-  { year: "2026", name: "Premios Verdes", bg: "/photos/ambiente-bosque-quemado.webp", result: "Fuimos finalistas" },
+  { year: "2026", name: "Premios Verdes", bg: "/photos/ambiente-bosque-quemado.webp", result: "Fuimos finalistas", caption: "Con el certificado de Sentinel y la bandera argentina en el escenario.", image: "/photos/premios-verdes-certificado.webp", portrait: true, alt: "Dos integrantes del equipo con el certificado de Sentinel, junto al logo de los Premios Verdes", extra: { image: "/photos/premios-verdes-bandera.webp", portrait: true, alt: "Dos integrantes del equipo con la bandera argentina frente al logo de los Premios Verdes" } },
   { year: "2026", name: "Impact Startup Competition, Perú", bg: "/photos/ambiente-brasas.webp", result: "Fuimos finalistas" },
 ];
 
