@@ -25,7 +25,7 @@ export function MomentsSection() {
 
       <CircularGallery
         items={MOMENTS}
-        className="mt-6 h-[78vh] min-h-[520px] motion-reduce:hidden"
+        className="mt-6 h-[78vh] min-h-[520px] max-md:h-[84vh] max-md:min-h-[460px] max-md:[zoom:0.58] motion-reduce:hidden"
       />
 
       <ul className="mx-auto mt-12 hidden max-w-[1100px] grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5 motion-reduce:grid">

@@ -43,7 +43,7 @@ export function FaqScroller({ title, items }: { title: string; items: FaqScrolle
         FAQ
       </p>
       <h3 className="a-display-m mx-auto mt-4 !text-[clamp(2.25rem,4.2vw,3.75rem)] text-[#e3f6dc]">{title}</h3>
-      <div className="mt-12 grid gap-6 text-left">
+      <div className="mt-12 flex flex-col gap-6 text-left">
         <Row items={items.slice(0, mid)} seconds={70} />
         <Row items={items.slice(mid)} seconds={55} reverse />
       </div>

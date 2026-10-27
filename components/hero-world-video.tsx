@@ -39,7 +39,7 @@ export function HeroWorldVideo() {
       poster="/video/hero-mundo-poster.webp"
       aria-hidden
       tabIndex={-1}
-      className="pointer-events-none absolute bottom-[-2%] right-[-7%] h-[78%] w-auto max-w-none [mask-image:radial-gradient(ellipse_60%_66%_at_55%_55%,#000_52%,transparent_100%)] max-md:bottom-[-1%] max-md:right-[-38%] max-md:h-[46%]"
+      className="pointer-events-none absolute bottom-[-2%] right-[-7%] h-[78%] w-auto max-w-none [mask-image:radial-gradient(ellipse_60%_66%_at_55%_55%,#000_52%,transparent_100%)] max-md:[mask-image:radial-gradient(ellipse_54%_50%_at_52%_50%,#000_58%,transparent_100%)] max-md:bottom-auto max-md:top-[7%] max-md:right-[-14%] max-md:h-[37%]"
     >
       <source src="/video/hero-mundo.mp4" type="video/mp4" />
     </video>

@@ -53,7 +53,7 @@ export function Footer() {
       chat={{ label: "escribinos", href: "/#contacto" }}
       sideLinks={[
         { icon: "shield", label: "privacidad", href: "/privacidad" },
-        { icon: "doc", label: "créditos de imágenes", href: "/creditos" },
+        { icon: "doc", label: "créditos", href: "/creditos" },
       ]}
       copyright={`© ${new Date().getFullYear()} Sentinel`}
       credit={

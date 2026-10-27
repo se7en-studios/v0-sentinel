@@ -66,7 +66,7 @@ export function CTA() {
         </div>
 
         <div className="a-rise relative min-w-0">
-          <div aria-hidden className="pointer-events-none absolute -inset-10 -z-10 bg-[radial-gradient(closest-side,rgba(255,106,43,0.18),transparent)]" />
+          <div aria-hidden className="pointer-events-none absolute -inset-x-0 -inset-y-10 -z-10 bg-[radial-gradient(closest-side,rgba(255,106,43,0.18),transparent)]" />
           <Suspense fallback={<div className="a-card min-h-[28rem]" aria-hidden />}>
             <ContactForm />
           </Suspense>
