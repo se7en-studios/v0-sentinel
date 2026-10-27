@@ -1,4 +1,4 @@
-import { FaqSectionWithCategories } from "@/components/blocks/faq-with-categories";
+import { FaqScroller } from "@/components/ui/faq-scroller";
 import { CLAIMS } from "@/lib/claims";
 
 const faqs = [
@@ -44,10 +44,7 @@ export function FAQ() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
-      <FaqSectionWithCategories
-        title="Preguntas frecuentes"
-        items={faqs}
-      />
+      <FaqScroller title="Preguntas frecuentes" items={faqs} />
     </>
   );
 }
