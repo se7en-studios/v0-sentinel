@@ -915,3 +915,7 @@ html { scroll-behavior: smooth; }
 
 
 
+/* SplitText enmascara cada línea con overflow:clip; con line-height < 1 recortaba ascendentes/descendentes y la cursiva. */
+:is(h1, h2, h3) > div[style*="overflow: clip"] { overflow-clip-margin: 0.16em; }
+/* Ninguna palabra se parte ni se sale de su caja: corte solo como último recurso. */
+.a-root :is(h1, h2, h3, h4, p, li) { overflow-wrap: break-word; }

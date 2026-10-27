@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
 import { Navbar } from "@/components/navbar";
 import { Hero } from "@/components/hero";
+import { ValueProp } from "@/components/value-prop";
 import { SmoothScroll } from "@/components/smooth-scroll";
 import { ScrollProgress } from "@/components/scroll-progress";
 import { WhatsAppButton } from "@/components/whatsapp-button";
@@ -42,6 +43,7 @@ export default function Home() {
       </header>
       <main id="main-content" className="a-root min-h-screen">
         <Hero />
+        <ValueProp />
         <Problem />
         <Tunnel />
         <Platform />
