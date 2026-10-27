@@ -116,7 +116,7 @@ export function LiveExplorer({
       >
         <h3
           id={`${uid}-title`}
-          className="text-lg font-semibold tracking-tight text-[#e3f6dc]"
+          className="font-[family-name:var(--font-display)] text-[clamp(1.5rem,2.6vw,2rem)] leading-tight text-[#e3f6dc]"
         >
           Probá con tu localidad
         </h3>

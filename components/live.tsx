@@ -66,20 +66,28 @@ export async function LiveChapter() {
       <div className="mx-auto max-w-[1280px]">
         <h2
           id="live-title"
-          className="a-rise mx-auto max-w-3xl text-center font-[family-name:var(--font-geist)] text-lg font-medium text-[#e3f6dc] sm:text-xl"
+          className="a-rise mx-auto max-w-3xl text-center font-[family-name:var(--font-display)] text-[clamp(1.5rem,3vw,2.25rem)] font-normal leading-[1.15] text-[#e3f6dc]"
         >
           {count > 0 ? (
             <>
+              <span className="a-eyebrow mb-6 flex items-center justify-center gap-2.5 !font-[family-name:var(--font-geist)]">
+                <span aria-hidden className="relative flex size-2.5">
+                  <span className="absolute inline-flex size-full rounded-full bg-[#ff8a4c] opacity-70 motion-safe:animate-ping" />
+                  <span className="relative inline-flex size-2.5 rounded-full bg-[#ff8a4c]" />
+                </span>
+                En vivo · NASA FIRMS
+              </span>
               <span
-                className="a-display-m mb-4 block tabular-nums text-white"
+                className="a-display-m mb-5 block bg-gradient-to-b from-white via-[#e9f7dc] to-[#ffb27a] bg-clip-text tabular-nums text-transparent [text-shadow:none]"
                 style={{
-                  fontSize: "clamp(5rem, 16vw, 10rem)",
-                  lineHeight: 0.9,
+                  fontSize: "clamp(6rem, 20vw, 13rem)",
+                  lineHeight: 0.86,
                 }}
               >
                 <LiveCountUp value={count} />
               </span>
-              focos de calor en Argentina en las últimas 24 horas
+              focos de calor en Argentina{" "}
+              <span className="a-em">en las últimas 24 horas</span>
             </>
           ) : fires ? (
             "Hoy los satélites no reportan focos de calor en Argentina"
@@ -87,7 +95,7 @@ export async function LiveChapter() {
             "Lo que ven hoy los satélites sobre Argentina"
           )}
         </h2>
-        <p className="a-sub a-rise mx-auto mt-5 max-w-2xl text-center">
+        <p className="a-sub a-rise mx-auto mt-6 max-w-2xl text-center !text-[1rem] !text-a-mute">
           {fires ? (
             <>
               NASA FIRMS ({FIRMS_LABEL}). <Updated at={fires.at} />. Un foco de
@@ -130,7 +138,7 @@ export async function LiveChapter() {
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
             <h3
               id="live-riesgo"
-              className="text-lg font-semibold tracking-tight text-[#e3f6dc]"
+              className="font-[family-name:var(--font-display)] text-[clamp(1.5rem,2.6vw,2rem)] text-[#e3f6dc]"
             >
               Riesgo por localidad
             </h3>
@@ -182,14 +190,14 @@ export async function LiveChapter() {
           )}
 
           <p className="mt-10 text-center tabular-nums text-[#e3f6dc]">
-            <span className="text-2xl font-semibold">
+            <span className="font-[family-name:var(--font-display)] text-4xl">
               {fires ? nf(count) : "—"}
             </span>{" "}
             <span className="text-a-mute">focos en 24 h</span>
             <span aria-hidden className="mx-3 text-a-faint">
               ·
             </span>
-            <span className="text-2xl font-semibold">
+            <span className="font-[family-name:var(--font-display)] text-4xl">
               {impact
                 ? `${impact.failedChunks > 0 ? "≥ " : ""}${nf(impact.total)}`
                 : "—"}
