@@ -20,7 +20,7 @@ const ENTRIES: AwardEntry[] = [
 ];
 
 // Fotos del equipo en distintos eventos. Los alt no atribuyen la foto a un evento salvo que se vea el logo/pantalla.
-const MOMENTS: Moment[] = [
+export const MOMENTS: Moment[] = [
   { src: "/photos/momentos-01.webp", alt: "El equipo y autoridades en el escenario del auditorio de ILAN" },
   { src: "/photos/momentos-09.webp", alt: "El equipo en el escenario de los Premios Verdes" },
   { src: "/photos/momentos-04.webp", alt: "Integrantes del equipo en el patio de un evento" },
@@ -34,7 +34,7 @@ const MOMENTS: Moment[] = [
 ];
 
 export function AwardsBlock() {
-  return <AwardsPanels entries={ENTRIES} moments={MOMENTS} />;
+  return <AwardsPanels entries={ENTRIES} />;
 }
 
 // Compatibilidad: el capítulo completo vive en Proof.

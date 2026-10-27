@@ -4,6 +4,7 @@ import { SplitReveal } from "@/components/ui/split-reveal";
 import { ASection, aFocus } from "@/components/a-section";
 import { TeamBlock } from "@/components/team";
 import { AwardsBlock } from "@/components/awards";
+import { MomentsSection } from "@/components/moments";
 import { PressBlock } from "@/components/press";
 import { PartnersBlock } from "@/components/partners";
 
@@ -34,6 +35,7 @@ export function Proof() {
 
       {/* Todo el ancho: la sección se clava y corre en horizontal. */}
       <AwardsBlock />
+      <MomentsSection />
 
       <ASection tone="bone" className="!pt-0">
         <div id="prensa" className="scroll-mt-20">

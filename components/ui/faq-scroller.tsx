@@ -37,13 +37,13 @@ function Row({ items, seconds, reverse }: { items: FaqScrollerItem[]; seconds: n
 export function FaqScroller({ title, items }: { title: string; items: FaqScrollerItem[] }) {
   const mid = Math.ceil(items.length / 2);
   return (
-    <div id="faq" className="scroll-mt-20">
-      <p className="a-eyebrow flex items-center gap-3 !text-left !text-a-accent">
+    <div id="faq" className="scroll-mt-20 text-center">
+      <p className="a-eyebrow flex items-center justify-center gap-3 !text-a-accent">
         <span aria-hidden className="h-px w-8 bg-a-accent/60" />
         FAQ
       </p>
-      <h3 className="a-display-m mt-4 !text-[clamp(2.25rem,4.2vw,3.75rem)] text-[#e3f6dc]">{title}</h3>
-      <div className="mt-12 grid gap-6">
+      <h3 className="a-display-m mx-auto mt-4 !text-[clamp(2.25rem,4.2vw,3.75rem)] text-[#e3f6dc]">{title}</h3>
+      <div className="mt-12 grid gap-6 text-left">
         <Row items={items.slice(0, mid)} seconds={70} />
         <Row items={items.slice(mid)} seconds={55} reverse />
       </div>

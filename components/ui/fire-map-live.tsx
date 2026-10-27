@@ -59,9 +59,10 @@ const graticule = geoGraticule().step([4, 4])();
 // Dot color encodes intensity (radiative power); it is a visual cue, not a measurement.
 const STRONG_FRP = 50;
 const MINT = "#a9efc9";
-const AMBER = "#f5b25f";
 const INK = "#e3f6dc";
-const dotColor = (frp: number) => (frp >= STRONG_FRP ? AMBER : MINT);
+const HOT = "#ffc46b";
+const EMBER = "#ff7a45";
+const dotColor = (frp: number) => (frp >= STRONG_FRP ? HOT : EMBER);
 const dotR = (frp: number) => 2.3 + Math.min(frp / 150, 1) * 1.7;
 
 const VIEWS = {
@@ -243,7 +244,9 @@ export function FireMapLive({
     <div ref={rootRef} className="lv min-w-0" data-seen={seen ? "" : undefined}>
       <style>{`
         .lv-camera{transition:transform 1.25s cubic-bezier(.65,.05,.2,1)}
-        .lv-dot,.lv-ring,.lv-grid,.lv-land{transform-box:fill-box;transform-origin:center}
+        .lv-dot,.lv-ring,.lv-grid,.lv-land,.lv-halo{transform-box:fill-box;transform-origin:center}
+        .lv[data-seen] .lv-breathe{animation:lv-breathe 2.6s ease-in-out infinite}
+        @keyframes lv-breathe{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(1.3)}}
         .lv:not([data-seen]) .lv-dot,.lv:not([data-seen]) .lv-grid,.lv:not([data-seen]) .lv-land{opacity:0}
         .lv[data-seen] .lv-dot{animation:lv-pop .55s cubic-bezier(.22,.8,.24,1) both;animation-delay:var(--d,0ms)}
         .lv[data-seen] .lv-grid{animation:lv-fade 1.6s ease-out both}
@@ -252,7 +255,7 @@ export function FireMapLive({
         @keyframes lv-pop{from{opacity:0;transform:scale(.2)}to{opacity:1;transform:none}}
         @keyframes lv-fade{from{opacity:0}to{opacity:1}}
         @keyframes lv-ring{from{opacity:0;transform:scale(.15)}to{opacity:1;transform:none}}
-        @media (prefers-reduced-motion:reduce){.lv-camera{transition:none}.lv-dot,.lv-ring,.lv-grid,.lv-land{animation:none!important;opacity:1!important;transform:none!important}}
+        @media (prefers-reduced-motion:reduce){.lv-camera{transition:none}.lv-dot,.lv-ring,.lv-grid,.lv-land,.lv-halo{animation:none!important;opacity:1!important;transform:none!important}}
       `}</style>
 
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-a-line px-5 py-3 sm:px-6">
@@ -281,14 +284,14 @@ export function FireMapLive({
           <li className="flex items-center gap-1.5">
             <span
               aria-hidden="true"
-              className="size-2.5 rounded-full bg-[#f5b25f]"
+              className="size-2.5 rounded-full bg-[#ffc46b] shadow-[0_0_8px_2px_rgba(255,196,107,0.7)]"
             />
             Foco intenso (50 MW o más)
           </li>
           <li className="flex items-center gap-1.5">
             <span
               aria-hidden="true"
-              className="size-2.5 rounded-full bg-a-accent"
+              className="size-2.5 rounded-full bg-[#ff7a45] shadow-[0_0_8px_2px_rgba(255,122,69,0.7)]"
             />
             Foco menor
           </li>
@@ -310,6 +313,18 @@ export function FireMapLive({
           role="group"
           aria-label={`Mapa de ${fires.length} focos de calor y ${places.length} localidades de la Patagonia. Con el teclado, usá las flechas para recorrer los puntos y Enter para ver el detalle.`}
         >
+          <defs>
+            <radialGradient id="lv-heat-hi">
+              <stop offset="0" stopColor="#ffd9a0" stopOpacity="0.95" />
+              <stop offset="0.35" stopColor="#ff9a3d" stopOpacity="0.5" />
+              <stop offset="1" stopColor="#ff6a2b" stopOpacity="0" />
+            </radialGradient>
+            <radialGradient id="lv-heat-lo">
+              <stop offset="0" stopColor="#ff9a6b" stopOpacity="0.8" />
+              <stop offset="0.4" stopColor="#ff6a2b" stopOpacity="0.35" />
+              <stop offset="1" stopColor="#ff6a2b" stopOpacity="0" />
+            </radialGradient>
+          </defs>
           <g className="lv-camera" style={{ transform: camera }}>
             <path
               className="lv-grid"
@@ -324,8 +339,8 @@ export function FireMapLive({
                 key={i}
                 className="lv-land"
                 d={d}
-                fill="rgba(214,245,201,0.05)"
-                stroke="rgba(214,245,201,0.26)"
+                fill="rgba(169,239,201,0.1)"
+                stroke="rgba(169,239,201,0.45)"
                 strokeWidth={0.8}
                 vectorEffect="non-scaling-stroke"
               />
@@ -356,6 +371,14 @@ export function FireMapLive({
                   }}
                 >
                   <circle cx={x} cy={y} r={14 / k} fill="transparent" />
+                  <circle
+                    cx={x}
+                    cy={y}
+                    r={(isSel ? 18 : f.frp >= STRONG_FRP ? 16 : 11) / k}
+                    fill={f.frp >= STRONG_FRP ? "url(#lv-heat-hi)" : "url(#lv-heat-lo)"}
+                    className={f.frp >= STRONG_FRP ? "lv-halo lv-breathe" : "lv-halo"}
+                    pointerEvents="none"
+                  />
                   <circle
                     cx={x}
                     cy={y}

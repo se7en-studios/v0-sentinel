@@ -293,7 +293,7 @@ function Pinned() {
                   steps.current[i] = n;
                 }}
                 data-active={i === 0}
-                className="opacity-60 transition-opacity duration-300 data-[active=true]:opacity-100"
+                className="opacity-80 transition-opacity duration-300 data-[active=true]:opacity-100"
               >
                 <h3 className="a-display-m !text-[clamp(2rem,3vw,3rem)] text-white">
                   <span
@@ -304,7 +304,7 @@ function Pinned() {
                   </span>
                   {s.title}
                 </h3>
-                <p className="a-sub mt-2 !text-[clamp(1.0625rem,1.3vw,1.1875rem)]">{s.text}</p>
+                <p className="a-sub mt-2 !text-[clamp(1.0625rem,1.3vw,1.1875rem)] !text-[#dcebdf]">{s.text}</p>
               </li>
             ))}
           </ol>

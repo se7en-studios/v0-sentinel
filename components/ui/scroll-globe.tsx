@@ -34,38 +34,21 @@ const MOBILE_POSITIONS: Pos[] = [
   { top: 50, left: 50, scale: 1.4 },
 ];
 
-// Focos de calor sobre el globo (posiciones en % del círculo). Aparecen desde "Verificar"; en "Contexto" se suman más.
-const SPOTS = [
-  { x: 36, y: 62, d: 0 },
-  { x: 44, y: 70, d: 0.6 },
-  { x: 30, y: 48, d: 1.2 },
-  { x: 52, y: 40, d: 0.3, more: true },
-  { x: 40, y: 78, d: 0.9, more: true },
-  { x: 58, y: 58, d: 1.5, more: true },
+// Focos de calor sobre el mapa (lat, lon reales de la cordillera patagónica y otros puntos del mundo).
+// Aparecen desde "Verificar"; en "Contexto" se suman más. Giran con la Tierra.
+const DOTS = [
+  { lat: -41.1, lon: -71.3, delay: 0 }, // Bariloche
+  { lat: -42.9, lon: -71.3, delay: 0.5 }, // Esquel
+  { lat: -39.0, lon: -70.9, delay: 1 }, // Neuquén cordillera
+  { lat: -43.3, lon: -71.5, delay: 0.3 }, // Chubut
+  { lat: -33.0, lon: -68.9, delay: 0.8, more: true }, // Mendoza
+  { lat: -31.4, lon: -64.2, delay: 1.2, more: true }, // Córdoba
+  { lat: -24.8, lon: -65.4, delay: 0.6, more: true }, // Salta
+  { lat: -12, lon: -55, delay: 0.2, more: true }, // Amazonia
+  { lat: 37, lon: -120, delay: 0.9, more: true }, // California
+  { lat: -25, lon: 135, delay: 0.4, more: true }, // Australia
+  { lat: 39, lon: -8, delay: 1.1, more: true }, // Portugal
 ];
-
-function HeatSpots({ visible, dense }: { visible: boolean; dense: boolean }) {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-0 z-10 transition-opacity duration-700"
-      style={{ opacity: visible ? 1 : 0 }}
-    >
-      {SPOTS.map((s, i) => (
-        <span
-          key={i}
-          className="absolute size-2 rounded-full bg-[#ffb27a] shadow-[0_0_10px_3px_rgba(255,106,43,0.9)] transition-opacity duration-700 motion-safe:animate-pulse"
-          style={{
-            left: `${s.x}%`,
-            top: `${s.y}%`,
-            animationDelay: `${s.d}s`,
-            opacity: s.more && !dense ? 0 : 1,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
 
 // El globo es fijo (sticky) y se mueve según la sección que está en el centro de la pantalla.
 export function ScrollGlobe({
@@ -119,8 +102,10 @@ export function ScrollGlobe({
             transform: `translate3d(${p.left}vw, ${p.top}vh, 0) translate3d(-50%, -50%, 0) scale3d(${p.scale}, ${p.scale}, 1)`,
           }}
         >
-          <HeatSpots visible={active >= 1} dense={active >= 2} />
           <CssGlobe
+            dots={DOTS}
+            showDots={active >= 1}
+            denseDots={active >= 2}
             className={cn(
               "transition-opacity duration-700",
               active === sections.length - 1 || mobile
