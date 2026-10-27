@@ -100,7 +100,6 @@ export function Navbar() {
           <a
             href={`${prefix}#inicio`}
             onClick={() => setIsOpen(false)}
-            aria-label="Sentinel Cloud, ir al inicio"
             className={`flex w-fit items-center gap-2 rounded-sm ${RING}`}
           >
             <SentinelMark className="size-6" />
