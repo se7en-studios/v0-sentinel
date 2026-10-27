@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { CssGlobe } from "@/components/ui/css-globe";
+import { SplitReveal } from "@/components/ui/split-reveal";
 import { cn } from "@/lib/utils";
 
 export type ScrollGlobeSection = {
@@ -21,7 +22,7 @@ type Pos = { top: number; left: number; scale: number };
 // Posición del globo (en vh / vw del escenario) para cada sección.
 const DEFAULT_POSITIONS: Pos[] = [
   { top: 50, left: 74, scale: 1.5 },
-  { top: 30, left: 50, scale: 1 },
+  { top: 80, left: 50, scale: 1 },
   { top: 62, left: 82, scale: 1.9 },
   { top: 50, left: 50, scale: 2.3 },
 ];
@@ -177,18 +178,32 @@ export function ScrollGlobe({
             )}
           >
             <div className="w-full max-w-3xl">
-              <p className={cn("a-eyebrow", s.align !== "center" && "!text-left")}>
-                {String(i + 1).padStart(2, "0")} / {String(sections.length).padStart(2, "0")} · {s.badge}
-              </p>
-              <h2 className="a-display mt-4 !text-[clamp(2.5rem,6vw,5.5rem)]">
-                {s.title}
-                {s.subtitle ? (
-                  <span className="block text-a-mute">{s.subtitle}</span>
-                ) : null}
-              </h2>
               <p
                 className={cn(
-                  "a-sub mt-6 max-w-xl",
+                  "a-eyebrow flex items-center gap-3 !text-a-accent",
+                  s.align === "center" ? "justify-center" : "!text-left",
+                )}
+              >
+                <span aria-hidden className="h-px w-8 bg-a-accent/60" />
+                <span className="tabular-nums">
+                  {String(i + 1).padStart(2, "0")} / {String(sections.length).padStart(2, "0")}
+                </span>
+                <span className="text-a-mute">{s.badge}</span>
+              </p>
+              <SplitReveal
+                as="h2"
+                className="a-display mt-5 !text-[clamp(2.75rem,6.6vw,6rem)] !leading-[0.95] !tracking-[-0.03em] [text-shadow:0_2px_30px_rgba(0,0,0,0.5)]"
+              >
+                {s.title}
+                {s.subtitle ? (
+                  <span className="block bg-gradient-to-r from-[#a9efc9] via-[#d8f5cf] to-[#ffb27a] bg-clip-text italic text-transparent">
+                    {s.subtitle}
+                  </span>
+                ) : null}
+              </SplitReveal>
+              <p
+                className={cn(
+                  "a-sub mt-7 max-w-xl !text-[clamp(1.125rem,1.6vw,1.4375rem)] !leading-[1.55] !text-[#c3d6c9]",
                   s.align === "center" && "mx-auto",
                 )}
               >
