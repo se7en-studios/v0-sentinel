@@ -65,7 +65,7 @@ export function Footer() {
         >
           Creado por
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/se7en-logo.png" alt="Se7en Dev" width={160} height={45} />
+          <img src="/se7en-logo.webp" alt="Se7en Dev" width={160} height={45} />
           <span className="sr-only"> (se abre en una pestaña nueva)</span>
         </a>
       }
