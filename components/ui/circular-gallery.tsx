@@ -43,9 +43,9 @@ export function CircularGallery({ items, className = "" }: { items: CircularItem
           <figure
             key={it.src}
             className="absolute inset-0 m-0 overflow-hidden rounded-xl border border-white/25 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.8)]"
-            style={{ transform: `rotateY(${i * step}deg) translateZ(${radius}px)` }}
+            style={{ transform: `rotateY(${i * step}deg) translateZ(${radius}px)`, backfaceVisibility: "hidden", willChange: "transform" }}
           >
-            <Image src={it.src} alt={it.alt} fill sizes="250px" loading="lazy" className="object-cover" />
+            <Image src={it.src} alt={it.alt} fill sizes="640px" quality={90} loading="lazy" className="object-cover" />
           </figure>
         ))}
       </div>

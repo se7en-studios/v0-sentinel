@@ -46,7 +46,7 @@ function TeamCard({ m, hidden }: { m: Member; hidden?: boolean }) {
         src={m.image}
         alt={hidden ? "" : `${m.name}, ${m.role}`}
         fill
-        sizes="288px"
+        sizes="600px" quality={90}
         loading="lazy"
         className="object-cover grayscale transition-[filter] duration-700 ease-out group-hover:grayscale-0 group-focus-within:grayscale-0"
       />

@@ -62,6 +62,8 @@ const nextConfig = {
   // per browser support, so this is a free size win with no risk.
   images: {
     formats: ["image/avif", "image/webp"],
+    // Next 16 solo respeta las calidades listadas; sin esto quality={85|90} se bajaba a 75.
+    qualities: [75, 85, 90],
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
