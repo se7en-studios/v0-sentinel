@@ -22,7 +22,7 @@ type Pos = { top: number; left: number; scale: number };
 // Posición del globo (en vh / vw del escenario) para cada sección.
 const DEFAULT_POSITIONS: Pos[] = [
   { top: 50, left: 74, scale: 1.5 },
-  { top: 80, left: 50, scale: 1 },
+  { top: 86, left: 50, scale: 0.9 },
   { top: 62, left: 82, scale: 1.9 },
   { top: 50, left: 50, scale: 2.3 },
 ];
@@ -177,11 +177,11 @@ export function ScrollGlobe({
               </p>
               <SplitReveal
                 as="h2"
-                className="a-display mt-5 !text-[clamp(2.75rem,6.6vw,6rem)] !leading-[0.95] !tracking-[-0.03em] [text-shadow:0_2px_30px_rgba(0,0,0,0.5)]"
+                className="a-display mt-5 !text-[clamp(2rem,4.2vw,4rem)] !leading-[1.02] !tracking-[-0.03em] [text-shadow:0_2px_30px_rgba(0,0,0,0.5)]"
               >
                 {s.title}
                 {s.subtitle ? (
-                  <span className="block bg-gradient-to-r from-[#a9efc9] via-[#d8f5cf] to-[#ffb27a] bg-clip-text italic text-transparent">
+                  <span className="block bg-gradient-to-r from-[#a9efc9] via-[#d8f5cf] to-[#ffb27a] bg-clip-text text-transparent">
                     {s.subtitle}
                   </span>
                 ) : null}

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { MOMENTS } from "@/components/awards";
 import { CircularGallery } from "@/components/ui/circular-gallery";
+import { MomentsPinner } from "@/components/moments-pinner";
 
 // Sección propia (separada de Reconocimientos) para que las fotos se vean grandes. Con reduced-motion no gira: grilla.
 export function MomentsSection() {
@@ -8,7 +9,7 @@ export function MomentsSection() {
     <section
       id="momentos"
       aria-labelledby="momentos-title"
-      className="a-root a-glow relative overflow-hidden px-5 py-24 md:px-8 md:py-32"
+      className="a-root a-glow relative overflow-hidden px-5 py-24 md:px-8 md:py-32 data-[pin]:flex data-[pin]:h-screen data-[pin]:flex-col data-[pin]:justify-center data-[pin]:pb-0 data-[pin]:pt-16"
     >
       <div className="mx-auto max-w-[1100px] text-center">
         <p className="a-eyebrow flex items-center justify-center gap-3 !text-a-accent">
@@ -23,9 +24,10 @@ export function MomentsSection() {
         </p>
       </div>
 
+      <MomentsPinner />
       <CircularGallery
         items={MOMENTS}
-        className="-mt-2 h-[64vh] min-h-[480px] max-md:h-[84vh] max-md:min-h-[460px] max-md:[zoom:0.58] motion-reduce:hidden"
+        className="-mt-2 h-[58vh] min-h-[440px] max-md:h-[84vh] max-md:min-h-[460px] max-md:[zoom:0.58] motion-reduce:hidden"
       />
 
       <ul className="mx-auto mt-12 hidden max-w-[1100px] grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5 motion-reduce:grid">

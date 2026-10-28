@@ -1,14 +1,19 @@
 import { pressMentions } from "@/lib/press-mentions";
 import { formatDate } from "@/lib/format-date";
 import { ASection, AHeading, aFocus } from "@/components/a-section";
+import { PressPinner } from "@/components/press-pinner";
 
 const MAX_LINKS = 5;
 
 // Solo texto: sin og:image de terceros ni dominios externos. Sobre fondo claro (.a-bone).
 export function PressBlock() {
   return (
-    <div className="grid gap-10 md:grid-cols-[1fr_2fr] md:gap-16">
-      <div className="a-rise md:sticky md:top-28 md:self-start">
+    <div
+      id="prensa-pin"
+      className="group/pr grid gap-10 md:grid-cols-[1fr_2fr] md:gap-16 data-[pin]:ml-[calc(50%-50vw)] data-[pin]:h-screen data-[pin]:w-screen data-[pin]:grid-cols-[24rem_1fr] data-[pin]:items-center data-[pin]:gap-10 data-[pin]:pl-[max(2rem,calc((100vw-1100px)/2))]"
+    >
+      <PressPinner />
+      <div className="a-rise md:sticky md:top-28 md:self-start group-data-[pin]/pr:static group-data-[pin]/pr:self-center">
         <p className="text-[0.9375rem] font-medium uppercase tracking-[0.16em] text-[#4b5750]">
           Prensa
         </p>
@@ -16,9 +21,13 @@ export function PressBlock() {
           En los medios.
         </h3>
       </div>
-      <ul className="divide-y divide-[#131a16]/15 border-y border-[#131a16]/15">
+      <div data-press-view className="min-w-0 group-data-[pin]/pr:overflow-hidden">
+      <ul className="divide-y divide-[#131a16]/15 border-y border-[#131a16]/15 group-data-[pin]/pr:flex group-data-[pin]/pr:w-max group-data-[pin]/pr:gap-6 group-data-[pin]/pr:divide-y-0 group-data-[pin]/pr:border-y-0 group-data-[pin]/pr:pr-[10vw]">
         {pressMentions.slice(0, MAX_LINKS).map((m, i) => (
-          <li key={m.url}>
+          <li
+            key={m.url}
+            className="group-data-[pin]/pr:w-[26rem] group-data-[pin]/pr:shrink-0 group-data-[pin]/pr:rounded-2xl group-data-[pin]/pr:border group-data-[pin]/pr:border-[#131a16]/20 group-data-[pin]/pr:bg-white/35"
+          >
             <a
               href={m.url}
               target="_blank"
@@ -47,6 +56,7 @@ export function PressBlock() {
           </li>
         ))}
       </ul>
+      </div>
     </div>
   );
 }

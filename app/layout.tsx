@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Inter, JetBrains_Mono, Instrument_Serif, Geist } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter, JetBrains_Mono, Archivo, Chivo_Mono, Instrument_Serif } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { OG_DESCRIPTION, OG_IMAGE, OG_TITLE, TWITTER_DESCRIPTION } from "@/lib/og";
@@ -24,17 +24,26 @@ const jetbrains = JetBrains_Mono({
   preload: false,
 });
 
-// Solo para titulares emocionales grandes (capítulos del relato); el resto usa Jakarta.
-const display = Instrument_Serif({
-  weight: "400",
+// Tipografías de la landing, las mismas de se7en.com.ar: Archivo (títulos en versión ancha y texto),
+// Chivo Mono (etiquetas) e Instrument Serif cursiva (la palabra de énfasis).
+const archivo = Archivo({
   subsets: ["latin"],
-  variable: "--font-display",
+  axes: ["wdth"],
+  variable: "--font-archivo",
 });
 
-// Sans de la landing (estilo de producto oscuro, titulares grandes y ajustados).
-const geist = Geist({
+const chivoMono = Chivo_Mono({
   subsets: ["latin"],
-  variable: "--font-geist",
+  variable: "--font-chivo",
+  preload: false,
+});
+
+const serifAccent = Instrument_Serif({
+  weight: "400",
+  style: ["italic"],
+  subsets: ["latin"],
+  variable: "--font-serif-accent",
+  preload: false,
 });
 
 const siteUrl = "https://www.sentineltech.com.ar";
@@ -184,7 +193,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geist.variable} ${display.variable} ${inter.variable} ${plusJakarta.variable} ${jetbrains.variable} font-sans antialiased bg-[#faf7f0] text-[#1a1812]`}
+        className={`${archivo.variable} ${chivoMono.variable} ${serifAccent.variable} ${inter.variable} ${plusJakarta.variable} ${jetbrains.variable} font-sans antialiased bg-[#faf7f0] text-[#1a1812]`}
       >
         <a
           href="#main-content"

@@ -33,7 +33,7 @@ export function CTA() {
           </p>
           <SplitReveal as="h2" className="a-display mt-5 !tracking-[-0.03em]">
             Hablemos de tu{" "}
-            <span className="bg-gradient-to-r from-[#a9efc9] via-[#d8f5cf] to-[#ffb27a] bg-clip-text pr-[0.15em] italic text-transparent">
+            <span className="bg-gradient-to-r from-[#a9efc9] via-[#d8f5cf] to-[#ffb27a] bg-clip-text pr-[0.15em] text-transparent">
               territorio
             </span>
           </SplitReveal>

@@ -39,8 +39,9 @@
   --font-heading:
     var(--font-heading), "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont,
     sans-serif;
-  --font-display: var(--font-display), "Iowan Old Style", Georgia, serif;
-  --font-geist: var(--font-geist), -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-archivo), "Archivo", -apple-system, "Segoe UI", sans-serif;
+  /* Landing: texto en Inter (la variable se llama --font-geist por historia), títulos en Jura, etiquetas en Karla. */
+  --font-geist: var(--font-archivo), "Archivo", -apple-system, "Segoe UI", sans-serif;
   --color-a-bg: #0c1310;
   --color-a-surface: #101a15;
   --color-a-card: #16211b;
@@ -960,3 +961,14 @@ html { scrollbar-width: thin; scrollbar-color: rgb(169 239 201 / 0.35) #0c1310; 
 [data-off] [data-cg], [data-off] .cg-dots, [data-off] .cg-dot { animation-play-state: paused !important; }
 body { overflow-x: clip; }
 
+/* Momentos clavado: la rueda hace girar la galería (la variable --ry la anima GSAP). */
+#momentos[data-pin] .a-ring { animation: none; transform: rotateX(-7deg) rotateY(var(--ry, 0deg)); }
+
+/* ---- Tipografía de la landing (la de se7en.com.ar): Archivo ancha en títulos, Chivo Mono en etiquetas, Instrument Serif cursiva en el énfasis ---- */
+.a-display, .a-display-m, .a-title { font-weight: 700; letter-spacing: -0.03em; font-variation-settings: "wdth" 116; line-height: 1; }
+.a-display { font-size: clamp(2.25rem, 5.2vw, 4.75rem); }
+.a-display-xl { font-size: clamp(2.5rem, 6.4vw, 6rem); letter-spacing: -0.035em; line-height: 0.98; }
+.a-display-m { font-size: clamp(2rem, 3.8vw, 3.5rem); }
+.a-title { font-size: clamp(1.9rem, 3.8vw, 3rem); }
+.a-em { font-family: var(--font-serif-accent), "Instrument Serif", Georgia, serif; font-style: italic; font-weight: 400; font-variation-settings: normal; letter-spacing: -0.01em; font-size: 1.1em; }
+.a-eyebrow { font-family: var(--font-chivo), ui-monospace, monospace; font-weight: 500; letter-spacing: 0.14em; }
