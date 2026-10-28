@@ -127,8 +127,7 @@ const organizationJsonLd = {
       availableLanguage: ["es"],
     },
   ],
-  // TODO(dueño): confirmar el domicilio real. San Rafael, Mendoza no coincide con el resto de la landing
-  // (Río Negro/Neuquén); si no hay dirección pública, omitir este bloque. No se cambió a propósito.
+  // Domicilio confirmado por el dueño (28/10/2026): San Rafael, Mendoza. El área de servicio es la Patagonia.
   address: {
     "@type": "PostalAddress",
     addressLocality: "San Rafael",
