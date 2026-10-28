@@ -1,6 +1,6 @@
 // Imagen Open Graph única del sitio (1200×630, en /public). Se usa como ruta relativa: metadataBase la vuelve absoluta.
 export const OG_IMAGE = {
-  url: "/og-image.png",
+  url: "/og-image-v3.jpg",
   width: 1200,
   height: 630,
   alt: "Sentinel: el fuego no espera, nosotros tampoco. Detección temprana de incendios forestales.",
