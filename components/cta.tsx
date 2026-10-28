@@ -23,7 +23,7 @@ const PILOT = [
 // Capítulo final único: piloto + contacto + preguntas frecuentes (reemplaza a Pilot y FAQ en la home).
 export function CTA() {
   return (
-    <ASection id="contacto" tone="forest" className="!pb-20">
+    <ASection id="contacto" tone="forest" className="a-glow !pb-20">
       <span id="piloto" className="absolute" aria-hidden />
       <div className="grid gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-20">
         <div>

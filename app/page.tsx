@@ -4,6 +4,7 @@ import { Hero } from "@/components/hero";
 import { ValueProp } from "@/components/value-prop";
 import { SmoothScroll } from "@/components/smooth-scroll";
 import { ScrollProgress } from "@/components/scroll-progress";
+import { PauseOffscreen } from "@/components/pause-offscreen";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 
 // ponytail: everything below the hero is off-screen on first load, so its
@@ -38,6 +39,7 @@ export default function Home() {
     <>
       <SmoothScroll />
       <ScrollProgress />
+      <PauseOffscreen />
       <header>
         <Navbar />
       </header>

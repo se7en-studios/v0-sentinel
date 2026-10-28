@@ -52,7 +52,15 @@ export function ValueProp() {
             </li>
           ))}
         </ol>
-        <p className="mt-6 text-[0.9375rem] text-a-mute">
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+          <a href="#contacto" className="a-pill">
+            Pedir un piloto
+          </a>
+          <a href="#plataforma" className="a-pill-ghost">
+            Ver cómo funciona
+          </a>
+        </div>
+        <p className="mt-8 text-center text-[0.9375rem] text-a-mute">
           Todo desde la nube, sin instalar equipos. Hoy trabajamos en un piloto
           abierto: todavía no hay casos publicados con resultados medidos.
         </p>

@@ -89,7 +89,7 @@ export function ScrollGlobe({
   const p = set[Math.min(active, set.length - 1)];
 
   return (
-    <div className="a-glow relative">
+    <div data-pause-offscreen className="a-glow relative">
       {/* Escenario fijo del globo: queda detrás del texto (el texto lo recubre con -mt). */}
       <div
         aria-hidden

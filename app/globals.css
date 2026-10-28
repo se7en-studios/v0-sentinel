@@ -949,3 +949,14 @@ html { scrollbar-width: thin; scrollbar-color: rgb(169 239 201 / 0.35) #0c1310; 
 
 
 
+
+/* Fase 2: transición suave entre secciones oscuras y de fondo claro (.a-fade-top / .a-fade-bottom). */
+.a-fade-top, .a-fade-bottom { position: relative; isolation: isolate; }
+.a-fade-top::before, .a-fade-bottom::after { content: ""; position: absolute; left: 0; right: 0; height: 96px; z-index: -1; pointer-events: none; }
+.a-fade-top::before { top: 0; background: linear-gradient(to bottom, rgb(12 19 16 / 0.22), transparent); }
+.a-fade-bottom::after { bottom: 0; background: linear-gradient(to top, rgb(20 35 28 / 0.18), transparent); }
+/* Fase 5: animaciones infinitas en pausa cuando la sección no está en pantalla (ver PauseOffscreen). */
+[data-off] .a-marquee-track, .a-marquee[data-off] .a-marquee-track { animation-play-state: paused !important; }
+[data-off] [data-cg], [data-off] .cg-dots, [data-off] .cg-dot { animation-play-state: paused !important; }
+body { overflow-x: clip; }
+

@@ -61,7 +61,7 @@ export async function LiveChapter() {
     <section
       id="en-vivo"
       aria-labelledby="live-title"
-      className="a-root scroll-mt-16 px-4 py-24 sm:px-6 md:py-32"
+      className="a-root a-glow scroll-mt-16 px-4 py-24 sm:px-6 md:py-32"
     >
       <div className="mx-auto max-w-[1280px]">
         <h2

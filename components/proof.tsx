@@ -13,7 +13,7 @@ import { PartnersBlock } from "@/components/partners";
 export function Proof() {
   return (
     <>
-      <ASection id="equipo" tone="bone" className="!pb-0">
+      <ASection id="equipo" tone="bone" className="a-fade-top !pb-0">
         <span id="reconocimientos" className="absolute" aria-hidden />
         <div className="text-center">
         <Eyebrow>Quiénes somos</Eyebrow>
@@ -40,7 +40,7 @@ export function Proof() {
       <AwardsBlock />
       <MomentsSection />
 
-      <ASection tone="bone" className="!pt-0">
+      <ASection tone="bone" className="a-fade-top a-fade-bottom !pt-16">
         <div id="prensa" className="scroll-mt-20">
           <span id="noticias" className="absolute" aria-hidden />
           <PressBlock />
