@@ -931,7 +931,7 @@ html { scroll-behavior: smooth; }
 .a-pill { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 8px 28px -10px rgb(169 239 201 / 0.55); transition: transform 0.25s, filter 0.25s, box-shadow 0.25s; }
 .a-pill:hover { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.55), 0 12px 36px -10px rgb(255 138 76 / 0.55); }
 .a-pill:active { transform: translateY(0) scale(0.98); }
-.a-pill-ghost { backdrop-filter: blur(6px); transition: background 0.25s, border-color 0.25s, transform 0.25s; }
+.a-pill-ghost { transition: background 0.25s, border-color 0.25s, transform 0.25s; }
 .a-pill-ghost:hover { border-color: rgb(169 239 201 / 0.45); transform: translateY(-1px); }
 /* Tarjetas: se levantan y el borde se enciende apenas. */
 .a-card { transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s, box-shadow 0.35s; }
@@ -973,7 +973,7 @@ body { overflow-x: clip; }
 .a-em { font-family: var(--font-serif-accent), "Instrument Serif", Georgia, serif; font-style: italic; font-weight: 400; font-variation-settings: normal; letter-spacing: -0.01em; font-size: 1.1em; }
 .a-eyebrow { font-family: var(--font-chivo), ui-monospace, monospace; font-weight: 500; letter-spacing: 0.14em; }
 /* ---- Efectos de scroll y mouse (ver ScrollFx) ---- */
-.a-marquee { transform: skewY(calc(var(--vel, 0) * -1.6deg)); }
+.a-marquee { transform: skewY(calc(var(--vel, 0) * -1.6deg)); will-change: transform; }
 @media (prefers-reduced-motion: reduce) { .a-marquee { transform: none; } }
 @media (hover: hover) {
   .a-card:hover { background-image: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgb(169 239 201 / 0.11), transparent 70%); }

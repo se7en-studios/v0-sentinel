@@ -200,7 +200,7 @@ export function ScrollGlobe({
                   {s.features.map((f) => (
                     <li
                       key={f.title}
-                      className="rounded-xl border border-a-line bg-a-bg/70 p-4 text-left backdrop-blur-sm"
+                      className="rounded-xl border border-a-line bg-a-bg/85 p-4 text-left"
                     >
                       <p className="font-semibold text-[#e3f6dc]">{f.title}</p>
                       <p className="mt-1 text-sm text-a-mute">
