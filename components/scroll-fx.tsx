@@ -31,6 +31,8 @@ export function ScrollFx() {
         const b = card.getBoundingClientRect();
         card.style.setProperty("--mx", `${mouse.x - b.left}px`);
         card.style.setProperty("--my", `${mouse.y - b.top}px`);
+        card.style.setProperty("--ry", `${((mouse.x - b.left) / b.width - 0.5) * 7}deg`);
+        card.style.setProperty("--rx", `${(0.5 - (mouse.y - b.top) / b.height) * 5}deg`);
       }
       if (mouse && words.length) {
         words.forEach((w, i) => {

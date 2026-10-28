@@ -244,6 +244,9 @@ export function FireMapLive({
     <div ref={rootRef} className="lv min-w-0" data-seen={seen ? "" : undefined}>
       <style>{`
         .lv-camera{transition:transform 1.25s cubic-bezier(.65,.05,.2,1)}
+        .lv-sweep{position:absolute;left:50%;top:50%;width:190%;aspect-ratio:1;margin:-95% 0 0 -95%;border-radius:50%;pointer-events:none;opacity:0;background:conic-gradient(from 0deg,rgba(255,138,76,0) 0deg,rgba(255,138,76,.22) 38deg,rgba(255,196,107,.35) 40deg,transparent 41deg)}
+        .lv[data-seen] .lv-sweep{animation:lv-sweep 2.8s cubic-bezier(.4,0,.2,1) .15s both}
+        @keyframes lv-sweep{0%{opacity:.95;transform:rotate(0)}85%{opacity:.6}100%{opacity:0;transform:rotate(360deg)}}
         .lv-dot,.lv-ring,.lv-grid,.lv-land,.lv-halo{transform-box:fill-box;transform-origin:center}
         .lv[data-seen] .lv-breathe{animation:lv-breathe 2.6s ease-in-out infinite}
         @keyframes lv-breathe{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(1.3)}}
@@ -478,6 +481,7 @@ export function FireMapLive({
             )}
           </g>
         </svg>
+        <span aria-hidden="true" className="lv-sweep" />
         <span aria-hidden="true" className="a-bk a-bk-tr" />
         <span aria-hidden="true" className="a-bk a-bk-bl" />
 

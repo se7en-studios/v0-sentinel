@@ -936,7 +936,7 @@ html { scroll-behavior: smooth; }
 /* Tarjetas: se levantan y el borde se enciende apenas. */
 .a-card { transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s, box-shadow 0.35s; }
 @media (hover: hover) {
-  .a-card:hover { transform: translateY(-3px); border-color: rgb(169 239 201 / 0.3); box-shadow: 0 24px 60px -28px rgb(0 0 0 / 0.9), 0 0 0 1px rgb(169 239 201 / 0.06); }
+  .a-card:hover { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-3px); border-color: rgb(169 239 201 / 0.3); box-shadow: 0 24px 60px -28px rgb(0 0 0 / 0.9), 0 0 0 1px rgb(169 239 201 / 0.06); }
 }
 /* Resplandor ambiente para secciones oscuras (verde bosque arriba a la izquierda, brasa abajo a la derecha). */
 .a-glow { position: relative; isolation: isolate; }
@@ -979,4 +979,5 @@ body { overflow-x: clip; }
   .a-card:hover { background-image: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgb(169 239 201 / 0.11), transparent 70%); }
 }
 [data-hero-word] { transition: none; }
+
 

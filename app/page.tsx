@@ -6,6 +6,7 @@ import { SmoothScroll } from "@/components/smooth-scroll";
 import { ScrollProgress } from "@/components/scroll-progress";
 import { PauseOffscreen } from "@/components/pause-offscreen";
 import { ScrollFx } from "@/components/scroll-fx";
+import { DecodeText } from "@/components/decode-text";
 import { SectionRail } from "@/components/section-rail";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 
@@ -43,6 +44,7 @@ export default function Home() {
       <ScrollProgress />
       <PauseOffscreen />
       <ScrollFx />
+      <DecodeText />
       <SectionRail />
       <header>
         <Navbar />
