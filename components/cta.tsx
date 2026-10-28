@@ -5,23 +5,54 @@ import { ASection, aFocus } from "@/components/a-section";
 import { ContactForm } from "@/components/contact-form";
 import { FAQ } from "@/components/faq";
 import { CONTACT_FALLBACK_EMAIL, whatsappUrl } from "@/lib/contact";
+import { t, type Copy } from "@/lib/i18n";
 
-const WA_URL = whatsappUrl(
-  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER,
-  "Hola Sentinel, quiero coordinar un piloto de detección temprana de incendios.",
-);
+const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
 
 const quick = `inline-flex min-h-11 items-center gap-2 text-[0.9375rem] font-medium text-a-accent underline decoration-a-line underline-offset-4 hover:decoration-a-accent ${aFocus}`;
 
 // Piloto: sin precios (se define con cada organización) y las 4 a 8 semanas son una estimación interna.
-const PILOT = [
-  "4 a 8 semanas hasta las primeras alertas a confirmar, según el territorio.",
-  "Sin inversión inicial en equipos: todo en la nube.",
-  "Elegimos juntos una zona, la que más te preocupa.",
-];
+const COPY: Copy<{
+  waText: string;
+  pilot: string[];
+  eyebrow: string;
+  heading: string;
+  accent: string;
+  whatsapp: string;
+  newTab: string;
+}> = {
+  es: {
+    waText: "Hola Sentinel, quiero coordinar un piloto de detección temprana de incendios.",
+    pilot: [
+      "4 a 8 semanas hasta las primeras alertas a confirmar, según el territorio.",
+      "Sin inversión inicial en equipos: todo en la nube.",
+      "Elegimos juntos una zona, la que más te preocupa.",
+    ],
+    eyebrow: "Piloto",
+    heading: "Hablemos de tu",
+    accent: "territorio",
+    whatsapp: "Escribinos por WhatsApp",
+    newTab: " (abre en pestaña nueva)",
+  },
+  en: {
+    waText: "Hi Sentinel, I'd like to set up a pilot for early wildfire detection.",
+    pilot: [
+      "4 to 8 weeks until the first alerts to confirm, depending on the territory.",
+      "No upfront investment in equipment: everything runs in the cloud.",
+      "We pick a zone together, the one that worries you most.",
+    ],
+    eyebrow: "Pilot",
+    heading: "Let's talk about your",
+    accent: "territory",
+    whatsapp: "Message us on WhatsApp",
+    newTab: " (opens in a new tab)",
+  },
+};
 
 // Capítulo final único: piloto + contacto + preguntas frecuentes (reemplaza a Pilot y FAQ en la home).
 export function CTA() {
+  const c = t(COPY);
+  const WA_URL = whatsappUrl(WA_NUMBER, c.waText);
   return (
     <ASection id="contacto" tone="forest" className="a-glow !pb-20">
       <span id="piloto" className="absolute" aria-hidden />
@@ -29,24 +60,24 @@ export function CTA() {
         <div>
           <p className="a-eyebrow flex items-center gap-3 !text-left !text-a-accent">
             <span aria-hidden className="h-px w-8 bg-a-accent/60" />
-            Piloto
+            {c.eyebrow}
           </p>
           <SplitReveal as="h2" className="a-display mt-5 !tracking-[-0.03em]">
-            Hablemos de tu{" "}
+            {c.heading}{" "}
             <span className="bg-gradient-to-r from-[#a9efc9] via-[#d8f5cf] to-[#ffb27a] bg-clip-text pr-[0.15em] text-transparent">
-              territorio
+              {c.accent}
             </span>
           </SplitReveal>
           <ol className="mt-10 max-w-lg space-y-3">
-            {PILOT.map((t, i) => (
+            {c.pilot.map((text, i) => (
               <li
-                key={t}
+                key={text}
                 className="a-card flex items-start gap-4 !bg-white/[0.03] p-4 md:p-5"
               >
                 <span aria-hidden className="font-[family-name:var(--font-display)] text-3xl leading-none text-a-accent">
                   {i + 1}
                 </span>
-                <span className="text-[1.0625rem] leading-snug text-[#d3e6d8]">{t}</span>
+                <span className="text-[1.0625rem] leading-snug text-[#d3e6d8]">{text}</span>
               </li>
             ))}
           </ol>
@@ -54,8 +85,8 @@ export function CTA() {
             {WA_URL && (
               <a href={WA_URL} target="_blank" rel="noopener noreferrer" className={quick}>
                 <MessageCircle aria-hidden className="h-4 w-4" />
-                Escribinos por WhatsApp
-                <span className="sr-only"> (abre en pestaña nueva)</span>
+                {c.whatsapp}
+                <span className="sr-only">{c.newTab}</span>
               </a>
             )}
             <a href={`mailto:${CONTACT_FALLBACK_EMAIL}`} className={quick}>

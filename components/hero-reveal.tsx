@@ -1,11 +1,27 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useCopy } from "@/lib/i18n/client";
+import type { Copy } from "@/lib/i18n";
 
 const DESKTOP_MOTION = "(min-width: 1024px) and (prefers-reduced-motion: no-preference)";
 
+const COPY: Copy<{ section: string; video: string; caption: string }> = {
+  es: {
+    section: "El panel de Sentinel",
+    video: "Grabación del panel de Sentinel: el perímetro del incendio crece con la línea de tiempo",
+    caption: "Reconstrucción del incendio de Puerto Patriada (enero de 2026) en el panel de Sentinel con datos de NASA FIRMS y Sentinel-2.",
+  },
+  en: {
+    section: "The Sentinel dashboard",
+    video: "Recording of the Sentinel dashboard: the fire perimeter grows along the timeline",
+    caption: "Reconstruction of the Puerto Patriada fire (January 2026) in the Sentinel dashboard, using NASA FIRMS and Sentinel-2 data.",
+  },
+};
+
 // El HTML (marco + poster) llega renderizado; GSAP se suma después solo en lg+.
 export function HeroReveal() {
+  const c = useCopy(COPY);
   const frame = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const section = useRef<HTMLElement>(null);
@@ -55,7 +71,7 @@ export function HeroReveal() {
   }, []);
 
   return (
-    <section ref={section} aria-label="El panel de Sentinel" className="a-root bg-a-bg px-5 pb-20 pt-12 md:px-8 md:pb-32 md:pt-20">
+    <section ref={section} aria-label={c.section} className="a-root bg-a-bg px-5 pb-20 pt-12 md:px-8 md:pb-32 md:pt-20">
       <figure className="mx-auto max-w-6xl">
         <div ref={frame} className="a-brackets origin-center">
           <span className="a-bk a-bk-tr" />
@@ -68,7 +84,7 @@ export function HeroReveal() {
               playsInline
               preload="metadata"
               poster="/video/admin-caso-hero-poster.webp"
-              aria-label="Grabación del panel de Sentinel: el perímetro del incendio crece con la línea de tiempo"
+              aria-label={c.video}
               className="absolute inset-0 size-full object-cover"
             >
               <source src="/video/admin-caso-hero.mp4" type="video/mp4" />
@@ -76,7 +92,7 @@ export function HeroReveal() {
           </div>
         </div>
         <figcaption className="mx-auto mt-4 max-w-xl text-center text-xs text-a-faint">
-          Reconstrucción del incendio de Puerto Patriada (enero de 2026) en el panel de Sentinel con datos de NASA FIRMS y Sentinel-2.
+          {c.caption}
         </figcaption>
       </figure>
     </section>

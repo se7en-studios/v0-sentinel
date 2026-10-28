@@ -8,3 +8,14 @@ export const SECTIONS = [
   { id: "equipo", label: "Quiénes somos", nav: true },
   { id: "contacto", label: "Contacto", nav: false },
 ] as const;
+
+// Etiquetas en inglés por id de sección (la versión en español está en SECTIONS).
+export const SECTION_LABELS_EN: Record<(typeof SECTIONS)[number]["id"], string> = {
+  inicio: "Home",
+  problema: "The problem",
+  plataforma: "How it works",
+  "en-vivo": "Live",
+  "para-quien": "Who it's for",
+  equipo: "About us",
+  contacto: "Contact",
+};

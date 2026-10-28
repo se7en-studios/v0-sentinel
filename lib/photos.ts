@@ -1,3 +1,5 @@
+import type { Lang } from "@/lib/i18n";
+
 // Única fuente de las fotos de la landing. Para reemplazar por fotos propias,
 // cambiar solo este archivo (src, tamaño real, alt, pie y crédito).
 // Las fotos de incendios y las imágenes satelitales salen de Wikimedia Commons / NASA / Copernicus
@@ -16,9 +18,41 @@ export type Photo = {
 };
 
 /** Texto corto del crédito para el pie de foto: «Foto: autor · licencia». */
-export function creditLine(p: Photo): string {
+export function creditLine(p: Photo, lang: Lang = "es"): string {
   if (!p.credit) return "";
-  return `${p.credit.license === "Dominio público" ? "Imagen" : "Foto"}: ${p.credit.author} · ${p.credit.license}`;
+  const pd = p.credit.license === "Dominio público";
+  if (lang === "en") return `${pd ? "Image" : "Photo"}: ${p.credit.author} · ${pd ? "Public domain" : p.credit.license}`;
+  return `${pd ? "Imagen" : "Foto"}: ${p.credit.author} · ${p.credit.license}`;
+}
+
+// Textos en inglés (alt y pie) por src; el resto de cada foto no cambia.
+const EN: Record<string, { alt: string; caption: string }> = {
+  "/photos/hero-incendio-noche.webp": { alt: "Wildfire at night: a wall of smoke and orange flames behind a row of trees", caption: "Wildfire at night with a column of smoke over a grove of trees." },
+  "/photos/foco-atardecer.webp": { alt: "Active fire hotspot with flames under a sunset sky in the Patagonian Andes", caption: "Active fire hotspot in Patagonia, January 2026." },
+  "/photos/foco-llamas.webp": { alt: "Tall flames of a forest fire beside a road in the mountains", caption: "Flame front in a mountain wildfire, January 2026." },
+  "/photos/brigadistas-llamas.webp": { alt: "Firefighters fighting a flame front with hoses on a road", caption: "Firefighters facing an active hotspot, January 2026." },
+  "/photos/brigadistas-orilla.webp": { alt: "Two firefighters with a hose next to a hotspot among smoke and mountains", caption: "Firefighters with a hose next to a hotspot, January 2026." },
+  "/photos/brigadista-manguera.webp": { alt: "Silhouette of a firefighter aiming a hose at the flames at night", caption: "Firefighter fighting the fire at night, February 2026." },
+  "/photos/brigadista-humo.webp": { alt: "A firefighter standing on a ridge in dense smoke", caption: "Firefighter on a ridge in the smoke, January 2026." },
+  "/photos/brigadista-mochila.webp": { alt: "A firefighter with water gear among burned trees and smoke", caption: "Firefighter with a water backpack in the burned forest, January 2026." },
+  "/photos/epuyen-lago.webp": { alt: "Lake at sunset with the sky tinted by wildfire smoke, Epuyén", caption: "Sunset with smoke over a lake near Epuyén, January 2026." },
+  "/photos/valle-humo.webp": { alt: "Mountain valley with a column of smoke and burned trees in the foreground", caption: "Column of smoke over a mountain valley, January 2026." },
+  "/photos/restos-camino.webp": { alt: "Gravel road between burned trees with mountains in the background", caption: "Road through burned forest in the mountains, January 2026." },
+  "/photos/monte-quemado.webp": { alt: "Person standing in a forest of charred trunks after a fire", caption: "Burned conifer forest, January 2026." },
+  "/photos/alerces-columna.webp": { alt: "Large column of wildfire smoke over Los Alerces National Park", caption: "Smoke column in Los Alerces National Park, February 2024." },
+  "/photos/color-incendio.webp": { alt: "Red sun through wildfire smoke over a wooded hillside", caption: "The sun through wildfire smoke, January 2026." },
+  "/photos/sat-chubut.webp": { alt: "Sentinel-2 satellite image of the fires in Chubut with burn scars and smoke columns", caption: "Sentinel-2 image of the fires in Chubut, January 11, 2026." },
+  "/photos/sat-alerces.webp": { alt: "Sentinel-2 satellite image of Los Alerces National Park with smoke and a burn scar", caption: "Sentinel-2 image of Los Alerces National Park, January 2024." },
+  "/photos/sat-nasa-patagonia.webp": { alt: "NASA satellite image with a smoke column over Patagonia", caption: "NASA image of a wildfire smoke column in Patagonia, February 2025." },
+  "/logros-tile-0.jpg": { alt: "The Sentinel team with the other Prendete finalist projects", caption: "Programa Prendete, CICE." },
+  "/logros-tile-4.jpg": { alt: "Sentinel presenting on a stage, with the team connected by video call", caption: "Presentation at an entrepreneurship event." },
+  "/logros-tile-3.jpg": { alt: "Room at the Premios Sadosky ceremony", caption: "Premios Sadosky." },
+};
+
+/** Copia de la foto con alt y pie en el idioma pedido (src, recorte y crédito quedan igual). */
+export function localizePhoto(photo: Photo, lang: Lang): Photo {
+  const en = lang === "en" ? EN[photo.src] : undefined;
+  return en ? { ...photo, ...en } : photo;
 }
 
 export const PHOTOS = {

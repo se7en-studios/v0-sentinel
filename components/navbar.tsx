@@ -5,21 +5,88 @@ import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { SentinelBrandLogo } from "@/components/sentinel-logo";
 import { useActiveSection } from "@/hooks/use-active-section";
+import { useCopy, useLang } from "@/lib/i18n/client";
+import { homePath, type Copy, type Lang } from "@/lib/i18n";
 
-const NAV_LINKS = [
-  { id: "plataforma", label: "Cómo funciona" },
-  { id: "en-vivo", label: "En vivo" },
-  { id: "para-quien", label: "Para quién" },
-  { id: "equipo", label: "Quiénes somos" },
+const NAV_IDS = ["plataforma", "en-vivo", "para-quien", "equipo"];
+
+const COPY: Copy<{
+  links: string[];
+  nav: string;
+  panel: string;
+  pilot: string;
+  close: string;
+  open: string;
+  langs: string;
+}> = {
+  es: {
+    links: ["Cómo funciona", "En vivo", "Para quién", "Quiénes somos"],
+    nav: "Navegación principal",
+    panel: "Ver el panel",
+    pilot: "Pedir un piloto",
+    close: "Cerrar menú",
+    open: "Abrir menú",
+    langs: "Idioma",
+  },
+  en: {
+    links: ["How it works", "Live", "Who it's for", "About us"],
+    nav: "Main navigation",
+    panel: "Dashboard",
+    pilot: "Request a pilot",
+    close: "Close menu",
+    open: "Open menu",
+    langs: "Language",
+  },
+};
+
+const LANG_OPTIONS: { lang: Lang; label: string }[] = [
+  { lang: "es", label: "ES" },
+  { lang: "en", label: "EN" },
 ];
 
 const FOCUSABLE = "a[href], button:not([disabled])";
 const RING =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a9efc9]";
 
+// Selector de idioma (solo en la home, que es la única página con versión en inglés).
+function LangSwitch({
+  lang,
+  label,
+  mobile = false,
+  onNavigate,
+}: {
+  lang: Lang;
+  label: string;
+  mobile?: boolean;
+  onNavigate?: () => void;
+}) {
+  return (
+    <div role="group" aria-label={label} className={mobile ? "flex items-center gap-2 py-1" : "flex items-center gap-1"}>
+      {LANG_OPTIONS.map((o) => (
+        <a
+          key={o.lang}
+          href={homePath(o.lang)}
+          lang={o.lang}
+          hrefLang={o.lang}
+          aria-current={o.lang === lang ? "true" : undefined}
+          onClick={onNavigate}
+          className={`rounded-sm text-[0.8125rem] font-medium tracking-wide transition-colors hover:text-[#e3f6dc] ${
+            o.lang === lang ? "text-[#e3f6dc]" : "text-a-mute"
+          } ${mobile ? "grid min-h-11 min-w-11 place-items-center px-2 text-base" : "px-1 py-1"} ${RING}`}
+        >
+          {o.label}
+        </a>
+      ))}
+    </div>
+  );
+}
+
 export function Navbar() {
   const pathname = usePathname();
-  const isHome = pathname === "/";
+  const isHome = pathname === "/" || pathname === "/en";
+  const c = useCopy(COPY);
+  const lang = useLang();
+  const navLinks = NAV_IDS.map((id, i) => ({ id, label: c.links[i] }));
   const prefix = isHome ? "" : "/";
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -102,7 +169,7 @@ export function Navbar() {
       />
       <nav
         ref={navRef}
-        aria-label="Navegación principal"
+        aria-label={c.nav}
         className={`fixed inset-x-0 top-0 z-50 font-[family-name:var(--font-geist)] text-[#e3f6dc] transition-[background-color,transform] duration-300 ${isHidden && !isOpen ? "-translate-y-full" : ""} ${barBg}`}
       >
         {!isOpen && (
@@ -124,7 +191,7 @@ export function Navbar() {
           </a>
 
           <ul className="hidden items-center gap-7 md:flex">
-            {NAV_LINKS.map((l) => (
+            {navLinks.map((l) => (
               <li key={l.id}>
                 <a
                   href={`${prefix}#${l.id}`}
@@ -138,17 +205,18 @@ export function Navbar() {
           </ul>
 
           <div className="hidden items-center justify-end gap-5 md:flex">
+            {isHome && <LangSwitch lang={lang} label={c.langs} />}
             <a
               href="/demo"
-              className={`rounded-sm text-[0.9375rem] text-a-mute transition-colors hover:text-[#e3f6dc] ${RING}`}
+              className={`whitespace-nowrap rounded-sm text-[0.9375rem] text-a-mute transition-colors hover:text-[#e3f6dc] ${RING}`}
             >
-              Ver el panel
+              {c.panel}
             </a>
             <a
               href={`${prefix}#contacto`}
-              className={`a-pill !h-9 !px-4 !text-[0.9375rem] ${RING}`}
+              className={`a-pill !h-9 !px-4 !text-[0.9375rem] whitespace-nowrap ${RING}`}
             >
-              Pedir un piloto
+              {c.pilot}
             </a>
           </div>
 
@@ -157,7 +225,7 @@ export function Navbar() {
             type="button"
             className={`-mr-2.5 justify-self-end rounded-sm p-2.5 md:hidden ${RING}`}
             onClick={() => setIsOpen((o) => !o)}
-            aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
+            aria-label={isOpen ? c.close : c.open}
             aria-expanded={isOpen}
             aria-controls="mobile-menu"
           >
@@ -177,7 +245,7 @@ export function Navbar() {
           }`}
         >
           <ul className="divide-y divide-[color:var(--color-a-line)] border-y border-a-line">
-            {NAV_LINKS.map((l) => (
+            {navLinks.map((l) => (
               <li key={l.id}>
                 <a
                   href={`${prefix}#${l.id}`}
@@ -195,16 +263,21 @@ export function Navbar() {
                 onClick={() => setIsOpen(false)}
                 className={`block py-4 text-lg font-medium text-a-mute ${RING}`}
               >
-                Ver el panel
+                {c.panel}
               </a>
             </li>
+            {isHome && (
+              <li>
+                <LangSwitch lang={lang} label={c.langs} mobile onNavigate={() => setIsOpen(false)} />
+              </li>
+            )}
           </ul>
           <a
             href={`${prefix}#contacto`}
             onClick={() => setIsOpen(false)}
             className={`a-pill mt-8 !h-12 w-full ${RING}`}
           >
-            Pedir un piloto
+            {c.pilot}
           </a>
         </div>
       </nav>

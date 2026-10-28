@@ -5,16 +5,54 @@ import { motion, useReducedMotion, useScroll, useSpring } from "framer-motion";
 import type { PressMention, PressTag } from "@/lib/press-mentions";
 import { formatDate } from "@/lib/format-date";
 import { aFocus } from "@/components/a-section";
+import { useCopy, useLang } from "@/lib/i18n/client";
+import type { Copy, Lang } from "@/lib/i18n";
 
-const ALL = "Todas";
+const ALL = "all";
 type Filter = PressTag | typeof ALL;
 
-const TAG_LABEL: Record<PressTag, string> = {
-  ILAN: "Premio ILAN",
-  Sadosky: "Premios Sadosky",
-  JIJE: "JIJE, UNL",
-  "Premios Verdes": "Premios Verdes",
-  Perfil: "Perfiles",
+const COPY: Copy<{
+  tags: Record<PressTag, string>;
+  all: string;
+  eyebrow: string;
+  heading: string;
+  notes: string;
+  outlets: string;
+  filter: string;
+  newTab: string;
+}> = {
+  es: {
+    tags: {
+      ILAN: "Premio ILAN",
+      Sadosky: "Premios Sadosky",
+      JIJE: "JIJE, UNL",
+      "Premios Verdes": "Premios Verdes",
+      Perfil: "Perfiles",
+    },
+    all: "Todas",
+    eyebrow: "Prensa",
+    heading: "En los medios.",
+    notes: "notas",
+    outlets: "medios",
+    filter: "Filtrar notas por hito",
+    newTab: " (abre en pestaña nueva)",
+  },
+  en: {
+    tags: {
+      ILAN: "Premio ILAN",
+      Sadosky: "Premios Sadosky",
+      JIJE: "JIJE, UNL",
+      "Premios Verdes": "Premios Verdes",
+      Perfil: "Profiles",
+    },
+    all: "All",
+    eyebrow: "Press",
+    heading: "In the media.",
+    notes: "articles",
+    outlets: "outlets",
+    filter: "Filter articles by milestone",
+    newTab: " (opens in a new tab)",
+  },
 };
 
 // Miniatura redonda de la nota dentro del badge del medio. Si la imagen no carga, queda la inicial del medio.
@@ -43,12 +81,14 @@ function Thumb({ src, outlet }: { src: string; outlet: string }) {
   );
 }
 
-const monthOf = (date: string) =>
-  new Date(date).toLocaleDateString("es-AR", { month: "long", year: "numeric", timeZone: "UTC" });
+const monthOf = (date: string, lang: Lang) =>
+  new Date(date).toLocaleDateString(lang === "en" ? "en-US" : "es-AR", { month: "long", year: "numeric", timeZone: "UTC" });
 
 // Línea de tiempo de prensa: el riel se llena con el scroll, los puntos se encienden al llegar y las notas se filtran por hito.
 export function PressTimeline({ items }: { items: PressMention[] }) {
   const reduce = useReducedMotion();
+  const c = useCopy(COPY);
+  const lang = useLang();
   const [filter, setFilter] = useState<Filter>(ALL);
   const listRef = useRef<HTMLOListElement>(null);
 
@@ -65,32 +105,32 @@ export function PressTimeline({ items }: { items: PressMention[] }) {
   const groups = useMemo(() => {
     const out: { label: string; notes: PressMention[] }[] = [];
     for (const m of shown) {
-      const label = monthOf(m.date);
+      const label = monthOf(m.date, lang);
       const last = out[out.length - 1];
       if (last?.label === label) last.notes.push(m);
       else out.push({ label, notes: [m] });
     }
     return out;
-  }, [shown]);
+  }, [shown, lang]);
 
   const count = (f: Filter) => (f === ALL ? items.length : items.filter((m) => m.tag === f).length);
 
   return (
     <div className="grid gap-10 md:grid-cols-[minmax(0,22rem)_1fr] md:gap-16">
       <div className="md:sticky md:top-28 md:self-start">
-        <p className="text-[0.9375rem] font-medium uppercase tracking-[0.16em] text-[#4b5750]">Prensa</p>
-        <h3 className="a-display-m mt-3 !text-[clamp(2.25rem,4.2vw,3.75rem)]">En los medios.</h3>
+        <p className="text-[0.9375rem] font-medium uppercase tracking-[0.16em] text-[#4b5750]">{c.eyebrow}</p>
+        <h3 className="a-display-m mt-3 !text-[clamp(2.25rem,4.2vw,3.75rem)]">{c.heading}</h3>
         <dl className="mt-8 flex gap-8">
           <div>
-            <dt className="text-[0.9375rem] text-[#4b5750]">notas</dt>
+            <dt className="text-[0.9375rem] text-[#4b5750]">{c.notes}</dt>
             <dd className="font-[family-name:var(--font-display)] text-5xl leading-none tabular-nums text-[#0f7a4f]">{items.length}</dd>
           </div>
           <div>
-            <dt className="text-[0.9375rem] text-[#4b5750]">medios</dt>
+            <dt className="text-[0.9375rem] text-[#4b5750]">{c.outlets}</dt>
             <dd className="font-[family-name:var(--font-display)] text-5xl leading-none tabular-nums text-[#c2561a]">{outlets}</dd>
           </div>
         </dl>
-        <div role="group" aria-label="Filtrar notas por hito" className="mt-8 flex flex-wrap gap-2">
+        <div role="group" aria-label={c.filter} className="mt-8 flex flex-wrap gap-2">
           {([ALL, ...tags] as Filter[]).map((f) => {
             const on = f === filter;
             return (
@@ -105,7 +145,7 @@ export function PressTimeline({ items }: { items: PressMention[] }) {
                     : "border-[#131a16]/25 text-[#131a16] hover:border-[#0f7a4f] hover:text-[#0f7a4f]"
                 }`}
               >
-                {f === ALL ? ALL : TAG_LABEL[f]} <span className="tabular-nums opacity-60">{count(f)}</span>
+                {f === ALL ? c.all : c.tags[f]} <span className="tabular-nums opacity-60">{count(f)}</span>
               </button>
             );
           })}
@@ -145,7 +185,7 @@ export function PressTimeline({ items }: { items: PressMention[] }) {
                       <span className="flex items-start justify-between gap-4">
                         <span className="block font-[family-name:var(--font-display)] text-[clamp(1.125rem,1.8vw,1.5rem)] leading-[1.2]">
                           {m.title}
-                          <span className="sr-only"> (abre en pestaña nueva)</span>
+                          <span className="sr-only">{c.newTab}</span>
                         </span>
                         <span aria-hidden className="text-2xl text-[#131a16]/40 transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-[#0f7a4f]">↗</span>
                       </span>
@@ -154,8 +194,8 @@ export function PressTimeline({ items }: { items: PressMention[] }) {
                           <Thumb src={m.image} outlet={m.outlet} />
                           {m.outlet}
                         </span>
-                        <span>{formatDate(m.date)}</span>
-                        <span className="text-[#2f6b50]">{TAG_LABEL[m.tag]}</span>
+                        <span>{formatDate(m.date, "short", lang)}</span>
+                        <span className="text-[#2f6b50]">{c.tags[m.tag]}</span>
                       </span>
                     </a>
                   </motion.li>

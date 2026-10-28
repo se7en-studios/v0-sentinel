@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useLang } from "@/lib/i18n/client";
 
 const DURATION_MS = 1600;
-const nf = (n: number) => n.toLocaleString("es-AR");
+const LOCALE = { es: "es-AR", en: "en-US" } as const;
 
 /**
  * Número que cuenta de 0 al valor al entrar en pantalla. El HTML del servidor
@@ -11,6 +12,8 @@ const nf = (n: number) => n.toLocaleString("es-AR");
  * escribe directo en el DOM: sin setState por frame.
  */
 export function LiveCountUp({ value }: { value: number }) {
+  const lang = useLang();
+  const nf = (n: number) => n.toLocaleString(LOCALE[lang]);
   const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
@@ -48,7 +51,7 @@ export function LiveCountUp({ value }: { value: number }) {
       io.disconnect();
       cancelAnimationFrame(raf);
     };
-  }, [value]);
+  }, [value, lang]);
 
   return (
     <>

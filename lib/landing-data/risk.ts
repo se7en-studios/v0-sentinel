@@ -15,6 +15,12 @@ export const RISK_STYLE: Record<RiskLabel, { color: string; text: string }> = {
   Extremo: { color: "#b83a3a", text: "#a32f2f" },
 };
 
+// Display words per language; the RiskLabel keys stay in Spanish (they are data keys).
+export const RISK_WORD: Record<"es" | "en", Record<RiskLabel, string>> = {
+  es: { Bajo: "Bajo", Moderado: "Moderado", Alto: "Alto", Extremo: "Extremo" },
+  en: { Bajo: "Low", Moderado: "Moderate", Alto: "High", Extremo: "Extreme" },
+};
+
 export const RISK_RANK: Record<RiskLabel, number> = {
   Bajo: 0,
   Moderado: 1,

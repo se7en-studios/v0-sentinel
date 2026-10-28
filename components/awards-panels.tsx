@@ -4,11 +4,56 @@ import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { aFocus } from "@/components/a-section";
 import { CircularGallery } from "@/components/ui/circular-gallery";
+import { useCopy } from "@/lib/i18n/client";
+import type { Copy } from "@/lib/i18n";
+
+const COPY: Copy<{
+  recognitions: string;
+  moments: string;
+  title: string;
+  sub: string;
+  scroll: string;
+  momentsLabel: string;
+  momentsTitle: string;
+  program: string;
+  read: string;
+  newTab: string;
+  photos: string;
+}> = {
+  es: {
+    recognitions: "Reconocimientos",
+    moments: "Momentos",
+    title: "Lo que ya pasó, con fuente.",
+    sub: "2025 – 2026. Donde hay nota publicada, el panel lleva a ella.",
+    scroll: "Seguí bajando: un premio por pantalla →",
+    momentsLabel: "Más momentos del camino",
+    momentsTitle: "Más momentos del camino.",
+    program: "Programa",
+    read: "Leer la nota",
+    newTab: " (abre en pestaña nueva)",
+    photos: "Fotos del equipo en el evento.",
+  },
+  en: {
+    recognitions: "Recognition",
+    moments: "Moments",
+    title: "What has already happened, with sources.",
+    sub: "2025 – 2026. Where a published article exists, the panel links to it.",
+    scroll: "Keep scrolling: one award per screen →",
+    momentsLabel: "More moments along the way",
+    momentsTitle: "More moments along the way.",
+    program: "Program",
+    read: "Read the article",
+    newTab: " (opens in a new tab)",
+    photos: "Photos of the team at the event.",
+  },
+};
 
 export type AwardEntry = {
   year: string;
   name: string;
   result: string;
+  /** Premio ganado (estilo del badge). Si falta, se deduce del texto en español. */
+  won?: boolean;
   caption?: string;
   href?: string;
   /** Foto real del evento (inserto). Sin foto, el panel es solo tipográfico. */
@@ -29,12 +74,13 @@ const PIN_MQ =
 const pad = (n: number) => String(n).padStart(2, "0");
 
 function Intro({ entries }: { entries: AwardEntry[] }) {
+  const c = useCopy(COPY);
   return (
     <div className="relative z-10 mx-auto flex h-full w-full max-w-[1100px] flex-col justify-center px-5 py-24 md:px-8 group-data-[pin]/aw:py-0">
-      <p className="a-eyebrow !text-left">Reconocimientos</p>
-      <h3 className="a-display-m mt-4 max-w-xl">Lo que ya pasó, con fuente.</h3>
+      <p className="a-eyebrow !text-left">{c.recognitions}</p>
+      <h3 className="a-display-m mt-4 max-w-xl">{c.title}</h3>
       <p className="a-sub mt-4 max-w-md">
-        2025 – 2026. Donde hay nota publicada, el panel lleva a ella.
+        {c.sub}
       </p>
       <ol className="mt-8 max-w-xl divide-y divide-white/15 border-y border-white/15 text-[0.9375rem]">
         {entries.map((e, i) => (
@@ -52,7 +98,7 @@ function Intro({ entries }: { entries: AwardEntry[] }) {
         ))}
       </ol>
       <p className="mt-8 text-[0.9375rem] text-a-faint group-data-[pin]/aw:block hidden">
-        Seguí bajando: un premio por pantalla →
+        {c.scroll}
       </p>
     </div>
   );
@@ -61,16 +107,17 @@ function Intro({ entries }: { entries: AwardEntry[] }) {
 const TILT = [-2.5, 1.5, -1, 2.5, -1.5, 2, -2, 1, -2.5, 1.5];
 
 function Moments({ moments }: { moments: Moment[] }) {
+  const c = useCopy(COPY);
   return (
     <section
       data-moments
-      aria-label="Más momentos del camino"
+      aria-label={c.momentsLabel}
       className="relative flex min-h-[80svh] w-full flex-col justify-center overflow-hidden bg-[#06100b] px-5 py-24 group-data-[pin]/aw:h-screen group-data-[pin]/aw:w-screen group-data-[pin]/aw:shrink-0 group-data-[pin]/aw:py-0 md:px-10"
     >
       <div className="mx-auto w-full max-w-[1500px]">
-        <p className="a-eyebrow !text-left">Momentos</p>
+        <p className="a-eyebrow !text-left">{c.moments}</p>
         <h3 className="a-display-m mt-3 max-w-2xl !text-[clamp(2rem,4vw,3.75rem)] text-white">
-          Más momentos del camino.
+          {c.momentsTitle}
         </h3>
         <CircularGallery
           items={moments}
@@ -101,7 +148,8 @@ function Moments({ moments }: { moments: Moment[] }) {
 }
 
 function Panel({ e, i, total }: { e: AwardEntry; i: number; total: number }) {
-  const won = e.result.toLowerCase().startsWith("gan");
+  const c = useCopy(COPY);
+  const won = e.won ?? e.result.toLowerCase().startsWith("gan");
   return (
     <article
       data-panel
@@ -143,7 +191,7 @@ function Panel({ e, i, total }: { e: AwardEntry; i: number; total: number }) {
               {pad(i + 1)} / {pad(total)}
             </span>
             <span aria-hidden className="h-px w-10 bg-a-mute/50" />
-            <span>{e.year || "Programa"}</span>
+            <span>{e.year || c.program}</span>
           </p>
           <p
             className={`mt-5 inline-block rounded-full px-4 py-1.5 text-[0.9375rem] font-medium ${
@@ -169,8 +217,8 @@ function Panel({ e, i, total }: { e: AwardEntry; i: number; total: number }) {
               rel="noopener noreferrer"
               className={`mt-7 inline-flex min-h-11 items-center gap-2 rounded-full border border-white/40 px-5 text-[0.9375rem] font-medium text-white transition-colors hover:bg-white hover:text-[#06150d] ${aFocus}`}
             >
-              Leer la nota
-              <span className="sr-only"> (abre en pestaña nueva)</span>
+              {c.read}
+              <span className="sr-only">{c.newTab}</span>
               <span aria-hidden>↗</span>
             </a>
           ) : null}
@@ -212,7 +260,7 @@ function Panel({ e, i, total }: { e: AwardEntry; i: number; total: number }) {
               </div>
             ) : null}
             <figcaption className="mt-3 text-[0.8125rem] text-a-faint lg:text-right">
-              Fotos del equipo en el evento.
+              {c.photos}
             </figcaption>
           </figure>
         ) : null}
@@ -234,6 +282,7 @@ export function AwardsPanels({
   const trackRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLSpanElement>(null);
   const countRef = useRef<HTMLSpanElement>(null);
+  const c = useCopy(COPY);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -270,9 +319,9 @@ export function AwardsPanels({
               const idx = Math.round(self.progress * total);
               count.textContent =
                 idx === 0
-                  ? "Reconocimientos"
+                  ? c.recognitions
                   : idx > entries.length
-                    ? "Momentos"
+                    ? c.moments
                     : `${pad(idx)} / ${pad(entries.length)}`;
             },
           },
@@ -366,7 +415,7 @@ export function AwardsPanels({
       cancelled = true;
       revert();
     };
-  }, [entries, moments]);
+  }, [entries, moments, c]);
 
   return (
     <div
@@ -378,7 +427,7 @@ export function AwardsPanels({
         className="flex flex-col group-data-[pin]/aw:h-full group-data-[pin]/aw:w-max group-data-[pin]/aw:flex-row"
       >
         <section
-          aria-label="Reconocimientos"
+          aria-label={c.recognitions}
           className="relative flex min-h-[80svh] w-full items-center overflow-hidden group-data-[pin]/aw:h-screen group-data-[pin]/aw:w-screen group-data-[pin]/aw:shrink-0"
         >
           <Image src="/photos/ambiente-bomberos.webp" alt="" fill sizes="100vw" quality={75} loading="lazy" className="object-cover object-[70%_50%]" />
@@ -401,7 +450,7 @@ export function AwardsPanels({
           ref={countRef}
           className="min-w-[7.5rem] text-[0.9375rem] tabular-nums text-a-mute"
         >
-          Reconocimientos
+          {c.recognitions}
         </span>
         <span className="relative h-px flex-1 bg-white/15">
           <span

@@ -1,25 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useCopy } from "@/lib/i18n/client";
+import type { Copy } from "@/lib/i18n";
 
-const STOPS = [
-  { id: "propuesta", label: "Qué hace" },
-  { id: "problema", label: "El problema" },
-  { id: "plataforma", label: "Cómo funciona" },
-  { id: "en-vivo", label: "En vivo" },
-  { id: "para-quien", label: "Para quién" },
-  { id: "mundo", label: "El mundo" },
-  { id: "equipo", label: "Equipo" },
-  { id: "momentos", label: "Momentos" },
-  { id: "contacto", label: "Contacto" },
-];
+const STOP_IDS = ["propuesta", "problema", "plataforma", "en-vivo", "para-quien", "mundo", "equipo", "momentos", "contacto"];
+
+const COPY: Copy<{ nav: string; labels: string[] }> = {
+  es: {
+    nav: "Recorrido de la página",
+    labels: ["Qué hace", "El problema", "Cómo funciona", "En vivo", "Para quién", "El mundo", "Equipo", "Momentos", "Contacto"],
+  },
+  en: {
+    nav: "Page tour",
+    labels: ["What it does", "The problem", "How it works", "Live", "Who it's for", "The world", "Team", "Moments", "Contact"],
+  },
+};
 
 // Riel de navegación a la izquierda (solo escritorio): un punto de brasa marca dónde estás en el recorrido.
 export function SectionRail() {
   const [active, setActive] = useState(-1);
+  const c = useCopy(COPY);
+  const STOPS = STOP_IDS.map((id, i) => ({ id, label: c.labels[i] }));
 
   useEffect(() => {
-    const els = STOPS.map((s) => document.getElementById(s.id));
+    const els = STOP_IDS.map((id) => document.getElementById(id));
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
@@ -34,7 +39,7 @@ export function SectionRail() {
 
   return (
     <nav
-      aria-label="Recorrido de la página"
+      aria-label={c.nav}
       className="pointer-events-none fixed left-4 top-1/2 z-40 hidden -translate-y-1/2 xl:block"
       style={{ opacity: active < 0 ? 0 : 1, transition: "opacity .5s" }}
     >

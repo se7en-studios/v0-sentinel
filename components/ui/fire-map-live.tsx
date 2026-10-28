@@ -6,6 +6,9 @@ import type { FeatureCollection, Geometry } from "geojson";
 import countriesGeoJson from "@/data/latam-countries.json";
 import { mapPointProps } from "@/components/ui/map-tooltip";
 import { haversineKm } from "@/components/locality-stats";
+import { RISK_WORD } from "@/lib/landing-data/risk";
+import { useCopy, useLang } from "@/lib/i18n/client";
+import type { Copy } from "@/lib/i18n";
 
 export interface LiveFire {
   lat: number;
@@ -67,14 +70,12 @@ const dotR = (frp: number) => 2.3 + Math.min(frp / 150, 1) * 1.7;
 
 const VIEWS = {
   argentina: {
-    label: "Argentina",
     corners: [
       [-74, -55.5],
       [-53, -21.5],
     ],
   },
   patagonia: {
-    label: "Patagonia",
     corners: [
       [-73.5, -50],
       [-66, -37],
@@ -91,34 +92,111 @@ const RISK_ON_DARK = {
   Extremo: "#ff8f85",
 } as const;
 
-const RISK_EXPLAIN = {
-  Bajo: "Condiciones tranquilas, riesgo bajo de que un fuego se propague.",
-  Moderado: "Vigilar: condiciones que podrían favorecer un incendio.",
-  Alto: "Un incendio se propagaría rápido en estas condiciones.",
-  Extremo: "Alerta: condiciones muy peligrosas para incendios forestales.",
-} as const;
+type Level = "Bajo" | "Moderado" | "Alto" | "Extremo";
 
-const CONFIDENCE: Record<string, string> = {
-  n: "media",
-  h: "alta",
-  nominal: "media",
-  high: "alta",
+const COPY: Copy<{
+  viewLabels: Record<ViewKey, string>;
+  riskExplain: Record<Level, string>;
+  confidence: Record<string, string>;
+  intensity: [string, string, string, string];
+  instants: string;
+  ago: (h: number) => string;
+  mapGroup: string;
+  strong: string;
+  minor: string;
+  place: string;
+  mapAria: (fires: number, places: number) => string;
+  fireAria: (intensity: string, at: string) => string;
+  placeAria: (name: string, risk: string) => string;
+  hint: string;
+  fireKicker: (intensity: string) => string;
+  detected: (at: string, ago: string, confidence: string, mw: number) => string;
+  fireSource: (label: string) => string;
+  placeKicker: (name: string, province: string, risk: string) => string;
+  humidity: string;
+  placeSource: (time: string) => string;
+}> = {
+  es: {
+    viewLabels: { argentina: "Argentina", patagonia: "Patagonia" },
+    riskExplain: {
+      Bajo: "Condiciones tranquilas, riesgo bajo de que un fuego se propague.",
+      Moderado: "Vigilar: condiciones que podrían favorecer un incendio.",
+      Alto: "Un incendio se propagaría rápido en estas condiciones.",
+      Extremo: "Alerta: condiciones muy peligrosas para incendios forestales.",
+    },
+    confidence: { n: "media", h: "alta", nominal: "media", high: "alta" },
+    intensity: ["Foco chico", "Foco moderado", "Foco grande", "Foco muy intenso"],
+    instants: "hace instantes",
+    ago: (h) => `hace ${h} h`,
+    mapGroup: "Encuadre del mapa",
+    strong: "Foco intenso (50 MW o más)",
+    minor: "Foco menor",
+    place: "Localidad (color = riesgo)",
+    mapAria: (f, p) =>
+      `Mapa de ${f} focos de calor y ${p} localidades de la Patagonia. Con el teclado, usá las flechas para recorrer los puntos y Enter para ver el detalle.`,
+    fireAria: (i, at) => `Foco de calor, ${i}, ${at}`,
+    placeAria: (n, r) => `${n}: riesgo ${r}`,
+    hint: "Tocá un foco o una localidad para ver fuente, hora y confianza.",
+    fireKicker: (i) => `Foco de calor · ${i}`,
+    detected: (at, ago, conf, mw) =>
+      `Detectado ${at}${ago && ` (${ago})`}. Confianza ${conf}, ${mw} MW.`,
+    fireSource: (l) =>
+      `Fuente: NASA FIRMS, ${l}. Dato preliminar: no es necesariamente un incendio forestal.`,
+    placeKicker: (n, pr, r) => `${n}, ${pr} · riesgo ${r}`,
+    humidity: "humedad",
+    placeSource: (t) =>
+      `Fuente: Open-Meteo, lectura ${t} (hora local). Índice ilustrativo propio, no es el FWI oficial.`,
+  },
+  en: {
+    viewLabels: { argentina: "Argentina", patagonia: "Patagonia" },
+    riskExplain: {
+      Bajo: "Calm conditions, low risk of a fire spreading.",
+      Moderado: "Keep watch: conditions that could favor a wildfire.",
+      Alto: "A fire would spread quickly in these conditions.",
+      Extremo: "Alert: very dangerous conditions for wildfires.",
+    },
+    confidence: { n: "medium", h: "high", nominal: "medium", high: "high" },
+    intensity: ["Small hotspot", "Moderate hotspot", "Large hotspot", "Very intense hotspot"],
+    instants: "moments ago",
+    ago: (h) => `${h} h ago`,
+    mapGroup: "Map view",
+    strong: "Intense hotspot (50 MW or more)",
+    minor: "Minor hotspot",
+    place: "Town (color = risk)",
+    mapAria: (f, p) =>
+      `Map of ${f} fire hotspots and ${p} Patagonian towns. With the keyboard, use the arrow keys to move between points and Enter to see details.`,
+    fireAria: (i, at) => `Fire hotspot, ${i}, ${at}`,
+    placeAria: (n, r) => `${n}: ${r} risk`,
+    hint: "Tap a hotspot or a town to see source, time and confidence.",
+    fireKicker: (i) => `Fire hotspot · ${i}`,
+    detected: (at, ago, conf, mw) =>
+      `Detected ${at}${ago && ` (${ago})`}. Confidence ${conf}, ${mw} MW.`,
+    fireSource: (l) =>
+      `Source: NASA FIRMS, ${l}. Preliminary data: not necessarily a wildfire.`,
+    placeKicker: (n, pr, r) => `${n}, ${pr} · ${r} risk`,
+    humidity: "humidity",
+    placeSource: (t) =>
+      `Source: Open-Meteo, reading ${t} (local time). Our own illustrative index, not the official FWI.`,
+  },
 };
 
-function intensity(frp: number) {
-  if (frp < 10) return "Foco chico";
-  if (frp < 50) return "Foco moderado";
-  if (frp < 150) return "Foco grande";
-  return "Foco muy intenso";
+type C = (typeof COPY)["es"];
+
+function intensity(frp: number, c: C) {
+  const [a, b, d, e] = c.intensity;
+  if (frp < 10) return a;
+  if (frp < 50) return b;
+  if (frp < 150) return d;
+  return e;
 }
 
-function acquired(f: LiveFire) {
+function acquired(f: LiveFire, c: C) {
   const t = f.acqTime.padStart(4, "0");
   const at = `${f.acqDate} ${t.slice(0, 2)}:${t.slice(2)} UTC`;
   const ms = Date.parse(`${f.acqDate}T${t.slice(0, 2)}:${t.slice(2)}:00Z`);
   if (Number.isNaN(ms)) return { at, ago: "" };
   const h = Math.max(0, Math.round((Date.now() - ms) / 36e5));
-  return { at, ago: h <= 0 ? "hace instantes" : `hace ${h} h` };
+  return { at, ago: h <= 0 ? c.instants : c.ago(h) };
 }
 
 type Sel = { kind: "fire" | "place"; i: number } | null;
@@ -134,6 +212,8 @@ export function FireMapLive({
   focus = null,
   onFocusClear,
 }: Props) {
+  const c = useCopy(COPY);
+  const lang = useLang();
   const [view, setView] = useState<ViewKey>("argentina");
   const [sel, setSel] = useState<Sel>(null);
   // Se activa una sola vez al entrar en pantalla: dispara las entradas CSS del mapa.
@@ -262,7 +342,7 @@ export function FireMapLive({
       `}</style>
 
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-a-line px-5 py-3 sm:px-6">
-        <div className="flex gap-2" role="group" aria-label="Encuadre del mapa">
+        <div className="flex gap-2" role="group" aria-label={c.mapGroup}>
           {(Object.keys(VIEWS) as ViewKey[]).map((key) => {
             const on = !focus && view === key;
             return (
@@ -277,7 +357,7 @@ export function FireMapLive({
                     : "border-a-line bg-[rgb(214_245_201/0.05)] text-[#e3f6dc] hover:bg-[rgb(214_245_201/0.11)]"
                 }`}
               >
-                {VIEWS[key].label}
+                {c.viewLabels[key]}
               </button>
             );
           })}
@@ -289,21 +369,21 @@ export function FireMapLive({
               aria-hidden="true"
               className="size-2.5 rounded-full bg-[#ffc46b] shadow-[0_0_8px_2px_rgba(255,196,107,0.7)]"
             />
-            Foco intenso (50 MW o más)
+            {c.strong}
           </li>
           <li className="flex items-center gap-1.5">
             <span
               aria-hidden="true"
               className="size-2.5 rounded-full bg-[#ff7a45] shadow-[0_0_8px_2px_rgba(255,122,69,0.7)]"
             />
-            Foco menor
+            {c.minor}
           </li>
           <li className="flex items-center gap-1.5">
             <span
               aria-hidden="true"
               className="size-2 rotate-45 border-2 border-[#5fe3a1]"
             />
-            Localidad (color = riesgo)
+            {c.place}
           </li>
         </ul>
       </div>
@@ -314,7 +394,7 @@ export function FireMapLive({
           className="absolute inset-0 h-full w-full"
           onClick={() => setSel(null)}
           role="group"
-          aria-label={`Mapa de ${fires.length} focos de calor y ${places.length} localidades de la Patagonia. Con el teclado, usá las flechas para recorrer los puntos y Enter para ver el detalle.`}
+          aria-label={c.mapAria(fires.length, places.length)}
         >
           <defs>
             <radialGradient id="lv-heat-hi">
@@ -354,7 +434,7 @@ export function FireMapLive({
               if (!onMap(g.fires[i])) return null;
               const isSel = sel?.kind === "fire" && sel.i === i;
               const toggle = () => setSel(isSel ? null : { kind: "fire", i });
-              const label = `Foco de calor, ${intensity(f.frp)}, ${acquired(f).at}`;
+              const label = c.fireAria(intensity(f.frp, c), acquired(f, c).at);
               const color = dotColor(f.frp);
               const r = (isSel ? 5 : dotR(f.frp)) / k;
               return (
@@ -424,7 +504,7 @@ export function FireMapLive({
                 <g
                   key={`p${i}`}
                   {...mapPointProps(
-                    `${p.name}: riesgo ${p.label}`,
+                    c.placeAria(p.name, RISK_WORD[lang][p.label]),
                     toggle,
                     false,
                   )}
@@ -528,31 +608,28 @@ function Detail({
   readingTime,
   sourceLabel,
 }: Props & { sel: Sel }) {
+  const c = useCopy(COPY);
+  const lang = useLang();
   if (!sel) {
-    return (
-      <p className="text-a-mute">
-        Tocá un foco o una localidad para ver fuente, hora y confianza.
-      </p>
-    );
+    return <p className="text-a-mute">{c.hint}</p>;
   }
   if (sel.kind === "fire") {
     const f = fires[sel.i];
-    const { at, ago } = acquired(f);
+    const { at, ago } = acquired(f, c);
     return (
       <>
         <p className="text-xs font-medium uppercase tracking-wider text-[#f5b25f]">
-          Foco de calor · {intensity(f.frp)}
+          {c.fireKicker(intensity(f.frp, c))}
         </p>
         <p className="mt-1.5">
-          Detectado {at}
-          {ago && ` (${ago})`}. Confianza{" "}
-          {CONFIDENCE[f.confidence.toLowerCase()] ?? f.confidence},{" "}
-          {Math.round(f.frp)} MW.
+          {c.detected(
+            at,
+            ago,
+            c.confidence[f.confidence.toLowerCase()] ?? f.confidence,
+            Math.round(f.frp),
+          )}
         </p>
-        <p className="mt-1.5 text-a-mute">
-          Fuente: NASA FIRMS, {sourceLabel}. Dato preliminar: no es
-          necesariamente un incendio forestal.
-        </p>
+        <p className="mt-1.5 text-a-mute">{c.fireSource(sourceLabel)}</p>
       </>
     );
   }
@@ -563,17 +640,14 @@ function Detail({
         className="text-xs font-medium uppercase tracking-wider"
         style={{ color: RISK_ON_DARK[p.label] }}
       >
-        {p.name}, {p.province} · riesgo {p.label}
+        {c.placeKicker(p.name, p.province, RISK_WORD[lang][p.label])}
       </p>
-      <p className="mt-1.5">{RISK_EXPLAIN[p.label]}</p>
+      <p className="mt-1.5">{c.riskExplain[p.label]}</p>
       <p className="mt-1.5 tabular-nums">
-        {Math.round(p.temperature)} °C · {Math.round(p.humidity)}% humedad ·{" "}
+        {Math.round(p.temperature)} °C · {Math.round(p.humidity)}% {c.humidity} ·{" "}
         {Math.round(p.windSpeed)} km/h
       </p>
-      <p className="mt-1.5 text-a-mute">
-        Fuente: Open-Meteo, lectura {readingTime} (hora local). Índice
-        ilustrativo propio, no es el FWI oficial.
-      </p>
+      <p className="mt-1.5 text-a-mute">{c.placeSource(readingTime)}</p>
     </>
   );
 }

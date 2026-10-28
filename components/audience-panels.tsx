@@ -4,6 +4,13 @@ import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import { creditLine, type Photo } from "@/lib/photos";
+import { useCopy, useLang } from "@/lib/i18n/client";
+import type { Copy } from "@/lib/i18n";
+
+const COPY: Copy<{ cta: string }> = {
+  es: { cta: "Pedir un piloto" },
+  en: { cta: "Request a pilot" },
+};
 
 export type AudiencePanel = {
   href: string;
@@ -21,6 +28,8 @@ const LINK =
 export function AudiencePanels({ items }: { items: AudiencePanel[] }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<{ start: number; end: number } | null>(null);
+  const { cta } = useCopy(COPY);
+  const lang = useLang();
 
   useEffect(() => {
     const root = rootRef.current;
@@ -139,12 +148,12 @@ export function AudiencePanels({ items }: { items: AudiencePanel[] }) {
               {gets}
             </p>
             <a href={href} className={LINK} onFocus={() => reveal(i)}>
-              Pedir un piloto
+              {cta}
               <ArrowRight className="size-4" aria-hidden />
             </a>
           </div>
           <p className="absolute bottom-4 left-5 right-5 text-[0.8125rem] text-white/75 md:left-8">
-            {creditLine(photo)}
+            {creditLine(photo, lang)}
           </p>
         </article>
       ))}

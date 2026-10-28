@@ -1,10 +1,35 @@
+import type { ReactNode } from "react";
 import Image from "next/image";
-import { MOMENTS } from "@/components/awards";
+import { momentsFor } from "@/components/awards";
+import { getLang, t, type Copy } from "@/lib/i18n";
 import { CircularGallery } from "@/components/ui/circular-gallery";
 import { MomentsPinner } from "@/components/moments-pinner";
 
+const COPY: Copy<{ eyebrow: string; heading: ReactNode; sub: string }> = {
+  es: {
+    eyebrow: "Momentos",
+    heading: (
+      <>
+        Más momentos <span className="a-em">del camino.</span>
+      </>
+    ),
+    sub: "Fotos del equipo en las competencias y eventos donde presentamos Sentinel.",
+  },
+  en: {
+    eyebrow: "Moments",
+    heading: (
+      <>
+        More moments <span className="a-em">along the way.</span>
+      </>
+    ),
+    sub: "Photos of the team at the competitions and events where we presented Sentinel.",
+  },
+};
+
 // Sección propia (separada de Reconocimientos) para que las fotos se vean grandes. Con reduced-motion no gira: grilla.
 export function MomentsSection() {
+  const c = t(COPY);
+  const MOMENTS = momentsFor(getLang());
   return (
     <section
       id="momentos"
@@ -14,13 +39,13 @@ export function MomentsSection() {
       <div className="mx-auto max-w-[1100px] text-center">
         <p className="a-eyebrow flex items-center justify-center gap-3 !text-a-accent">
           <span aria-hidden className="h-px w-8 bg-a-accent/60" />
-          Momentos
+          {c.eyebrow}
         </p>
         <h2 id="momentos-title" className="a-display-m mx-auto mt-4 max-w-3xl !text-[clamp(2.5rem,5.4vw,4.75rem)] text-white">
-          Más momentos <span className="a-em">del camino.</span>
+          {c.heading}
         </h2>
         <p className="a-sub mx-auto mt-5 max-w-xl">
-          Fotos del equipo en las competencias y eventos donde presentamos Sentinel.
+          {c.sub}
         </p>
       </div>
 

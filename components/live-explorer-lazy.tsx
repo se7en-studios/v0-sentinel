@@ -4,17 +4,25 @@
 // viewport; the skeleton reserves the same space so nothing jumps.
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
+import { useCopy } from "@/lib/i18n/client";
+import type { Copy } from "@/lib/i18n";
 
 const LiveExplorer = dynamic(
   () => import("@/components/locality-check").then((m) => m.LiveExplorer),
   { ssr: false, loading: () => <ExplorerSkeleton /> },
 );
 
+const COPY: Copy<string> = {
+  es: "Cargando mapa y buscador",
+  en: "Loading map and search",
+};
+
 function ExplorerSkeleton() {
+  const label = useCopy(COPY);
   return (
     <div
       role="status"
-      aria-label="Cargando mapa y buscador"
+      aria-label={label}
       className="a-card min-h-[680px] animate-pulse"
     />
   );

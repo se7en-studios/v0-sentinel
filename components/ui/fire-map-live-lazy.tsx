@@ -4,17 +4,22 @@
 // requested once the chapter is about to enter the viewport.
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
+import { useCopy } from "@/lib/i18n/client";
+import type { Copy } from "@/lib/i18n";
 
 const FireMapLive = dynamic(
   () => import("@/components/ui/fire-map-live").then((m) => m.FireMapLive),
   { ssr: false, loading: () => <MapSkeleton /> },
 );
 
+const COPY: Copy<string> = { es: "Cargando mapa", en: "Loading map" };
+
 function MapSkeleton() {
+  const label = useCopy(COPY);
   return (
     <div
       role="status"
-      aria-label="Cargando mapa"
+      aria-label={label}
       className="w-full aspect-[600/760] lg:aspect-auto lg:h-[min(84vh,840px)] bg-a-surface animate-pulse"
     />
   );

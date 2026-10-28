@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { ASection, AHeading, aFocus } from "@/components/a-section";
 import { MarqueeRow } from "@/components/ui/marquee-row";
+import { t, type Copy } from "@/lib/i18n";
 
 const teamMembers = [
   {
@@ -39,6 +40,23 @@ const teamMembers = [
 
 type Member = (typeof teamMembers)[number];
 
+const COPY: Copy<{
+  linkedin: string;
+  eyebrow: string;
+  title: string;
+}> = {
+  es: {
+    linkedin: " (LinkedIn, abre en pestaña nueva)",
+    eyebrow: "Equipo",
+    title: "Cuatro ingenieros con un objetivo: llegar antes al fuego",
+  },
+  en: {
+    linkedin: " (LinkedIn, opens in a new tab)",
+    eyebrow: "Team",
+    title: "Four engineers with one goal: reach the fire sooner",
+  },
+};
+
 function TeamCard({ m, hidden }: { m: Member; hidden?: boolean }) {
   return (
     <li aria-hidden={hidden || undefined} className="group relative aspect-[4/5] w-60 shrink-0 overflow-hidden rounded-2xl bg-[#d3cfc6] sm:w-72">
@@ -60,7 +78,7 @@ function TeamCard({ m, hidden }: { m: Member; hidden?: boolean }) {
             className={`after:absolute after:inset-0 ${aFocus}`}
           >
             {m.name}
-            <span className="sr-only"> (LinkedIn, abre en pestaña nueva)</span>
+            <span className="sr-only">{t(COPY).linkedin}</span>
           </a>
         </p>
         <p className="text-[0.9375rem] text-[#4b5750]">{m.role.split(" | ")[0]}</p>
@@ -86,7 +104,7 @@ export function TeamBlock() {
 export function Team() {
   return (
     <ASection id="equipo">
-      <AHeading eyebrow="Equipo" title="Cuatro ingenieros con un objetivo: llegar antes al fuego" />
+      <AHeading eyebrow={t(COPY).eyebrow} title={t(COPY).title} />
       <div className="mt-14">
         <TeamBlock />
       </div>

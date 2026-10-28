@@ -4,6 +4,10 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { CssGlobe } from "@/components/ui/css-globe";
 import { SplitReveal } from "@/components/ui/split-reveal";
 import { cn } from "@/lib/utils";
+import { useCopy } from "@/lib/i18n/client";
+import type { Copy } from "@/lib/i18n";
+
+const CHAPTERS: Copy<string> = { es: "Capítulos", en: "Chapters" };
 
 export type ScrollGlobeSection = {
   id: string;
@@ -58,6 +62,7 @@ export function ScrollGlobe({
   sections: ScrollGlobeSection[];
   positions?: Pos[];
 }) {
+  const chapters = useCopy(CHAPTERS);
   const [active, setActive] = useState(0);
   const [mobile, setMobile] = useState(false);
   const refs = useRef<(HTMLElement | null)[]>([]);
@@ -118,7 +123,7 @@ export function ScrollGlobe({
 
       {/* Riel de capítulos: dónde estás dentro del recorrido. */}
       <nav
-        aria-label="Capítulos"
+        aria-label={chapters}
         className="pointer-events-none sticky top-0 z-30 -mt-[100vh] hidden h-screen items-center justify-end pr-6 md:flex lg:pr-10"
       >
         <ol className="pointer-events-auto grid gap-4">

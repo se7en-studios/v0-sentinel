@@ -1,9 +1,10 @@
 import { LiveCountUp } from "@/components/live-count-up";
 import { LiveExplorerLazy } from "@/components/live-explorer-lazy";
 import { localityStats } from "@/components/locality-stats";
-import { Updated, formatUpdated } from "@/components/data/data-section";
+import { formatUpdated as formatUpdatedEs } from "@/components/data/data-section";
+import { getLang, t, type Copy, type Lang } from "@/lib/i18n";
 import { FIRMS_LABEL } from "@/lib/firms";
-import { RISK_RANK, riskLabel, type RiskLabel } from "@/lib/landing-data/risk";
+import { RISK_RANK, RISK_WORD, riskLabel, type RiskLabel } from "@/lib/landing-data/risk";
 import { topByFrp } from "@/lib/landing-data/firms";
 import { fetchActiveFires } from "@/components/active-fires";
 import { fetchImpact } from "@/components/fire-impact-stats";
@@ -14,7 +15,117 @@ import {
 } from "@/components/fire-risk-index";
 
 const MAP_ARGENTINA = 150;
-const nf = (n: number) => n.toLocaleString("es-AR");
+const LOCALE: Record<Lang, string> = { es: "es-AR", en: "en-US" };
+const nf = (n: number) => n.toLocaleString(LOCALE[getLang()]);
+
+// El español usa el helper compartido; el inglés formatea igual pero en inglés.
+const formatUpdated = (d: Date) =>
+  getLang() === "es"
+    ? formatUpdatedEs(d)
+    : `${new Intl.DateTimeFormat("en-GB", {
+        timeZone: "America/Argentina/Buenos_Aires",
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }).format(d)} (Argentina time)`;
+
+const Updated = ({ at }: { at: Date }) => (
+  <time dateTime={at.toISOString()}>
+    {t(COPY).updated} {formatUpdated(at)}
+  </time>
+);
+
+const COPY: Copy<{
+  updated: string;
+  eyebrow: string;
+  hotspotsIn: string;
+  last24: string;
+  noHotspots: string;
+  seenToday: string;
+  firmsDown: string;
+  unconfirmed: string;
+  mapDown: string;
+  riskTitle: string;
+  patagonia: string;
+  colPlace: string;
+  colWeather: string;
+  colRisk: string;
+  readingDown: string;
+  in24h: string;
+  in90d: string;
+  prelim: string;
+  newTab: string;
+  confidence: string;
+  partial: (failed: number, total: number) => string;
+  border: string;
+  reading: (time: string) => string;
+  index: string;
+}> = {
+  es: {
+    updated: "Actualizado",
+    eyebrow: "En vivo · NASA FIRMS",
+    hotspotsIn: "focos de calor en Argentina",
+    last24: "en las últimas 24 horas",
+    noHotspots: "Hoy los satélites no reportan focos de calor en Argentina",
+    seenToday: "Lo que ven hoy los satélites sobre Argentina",
+    firmsDown: "No pudimos conectar con NASA FIRMS en este momento.",
+    unconfirmed: "Un foco de calor no es un incendio confirmado.",
+    mapDown:
+      "El mapa de focos de NASA FIRMS no está disponible en este momento. Se reintenta automáticamente; volvé a visitar la página en unos minutos.",
+    riskTitle: "Riesgo por localidad",
+    patagonia: "Patagonia",
+    colPlace: "Localidad",
+    colWeather: "Temperatura, humedad y viento",
+    colRisk: "Riesgo",
+    readingDown: "La lectura de Open-Meteo no está disponible en este momento.",
+    in24h: "focos en 24 h",
+    in90d: "en 90 días",
+    prelim:
+      "Los focos de calor son datos satelitales preliminares, sin verificar en campo, y llegan con una demora de horas. Fuente:",
+    newTab: " (se abre en una pestaña nueva)",
+    confidence: ", confianza media o alta. ",
+    partial: (f, n) =>
+      `Cifra de 90 días parcial: ${f} de ${n} períodos no respondieron, es un mínimo. `,
+    border:
+      "El contorno de Argentina está simplificado y puede errar cerca de la frontera.",
+    reading: (t) => `Riesgo: lectura ${t} (hora local). `,
+    index:
+      "Índice ilustrativo propio (temperatura, humedad y viento), no es el FWI oficial. Datos meteorológicos:",
+  },
+  en: {
+    updated: "Updated",
+    eyebrow: "Live · NASA FIRMS",
+    hotspotsIn: "fire hotspots in Argentina",
+    last24: "in the last 24 hours",
+    noHotspots: "Today satellites report no fire hotspots in Argentina",
+    seenToday: "What satellites see over Argentina today",
+    firmsDown: "We couldn't connect to NASA FIRMS right now.",
+    unconfirmed: "A fire hotspot is not a confirmed wildfire.",
+    mapDown:
+      "The NASA FIRMS hotspot map is not available right now. It retries automatically; check back in a few minutes.",
+    riskTitle: "Risk by town",
+    patagonia: "Patagonia",
+    colPlace: "Town",
+    colWeather: "Temperature, humidity and wind",
+    colRisk: "Risk",
+    readingDown: "The Open-Meteo reading is not available right now.",
+    in24h: "hotspots in 24 h",
+    in90d: "in 90 days",
+    prelim:
+      "Fire hotspots are preliminary satellite data, not verified on the ground, and arrive with a delay of hours. Source:",
+    newTab: " (opens in a new tab)",
+    confidence: ", medium or high confidence. ",
+    partial: (f, n) =>
+      `Partial 90-day figure: ${f} of ${n} periods did not respond, so this is a minimum. `,
+    border:
+      "The outline of Argentina is simplified and may be off near the border.",
+    reading: (t) => `Risk: reading ${t} (local time). `,
+    index:
+      "Our own illustrative index (temperature, humidity and wind), not the official FWI. Weather data:",
+  },
+};
 
 // Brighter than RISK_STYLE.text, which is tuned for the light background.
 const RISK_ON_DARK: Record<RiskLabel, string> = {
@@ -29,6 +140,8 @@ const link =
 
 // Las noticias salen de la home (quedaban flojas); components/wildfire-news.tsx sigue disponible.
 export async function LiveChapter() {
+  const c = t(COPY);
+  const lang = getLang();
   const [fires, impact, rawReadings] = await Promise.all([
     fetchActiveFires(),
     fetchImpact(),
@@ -75,7 +188,7 @@ export async function LiveChapter() {
                   <span className="absolute inline-flex size-full rounded-full bg-[#ff8a4c] opacity-70 motion-safe:animate-ping" />
                   <span className="relative inline-flex size-2.5 rounded-full bg-[#ff8a4c]" />
                 </span>
-                En vivo · NASA FIRMS
+                {c.eyebrow}
               </span>
               <span
                 className="a-display-m mb-5 block bg-gradient-to-b from-white via-[#e9f7dc] to-[#ffb27a] bg-clip-text tabular-nums text-transparent [text-shadow:none]"
@@ -86,23 +199,22 @@ export async function LiveChapter() {
               >
                 <LiveCountUp value={count} />
               </span>
-              focos de calor en Argentina{" "}
-              <span className="a-em">en las últimas 24 horas</span>
+              {c.hotspotsIn} <span className="a-em">{c.last24}</span>
             </>
           ) : fires ? (
-            "Hoy los satélites no reportan focos de calor en Argentina"
+            c.noHotspots
           ) : (
-            "Lo que ven hoy los satélites sobre Argentina"
+            c.seenToday
           )}
         </h2>
         <p className="a-sub a-rise mx-auto mt-6 max-w-2xl text-center !text-[1rem] !text-a-mute">
           {fires ? (
             <>
-              NASA FIRMS ({FIRMS_LABEL}). <Updated at={fires.at} />. Un foco de
-              calor no es un incendio confirmado.
+              NASA FIRMS ({FIRMS_LABEL}). <Updated at={fires.at} />.{" "}
+              {c.unconfirmed}
             </>
           ) : (
-            <>No pudimos conectar con NASA FIRMS en este momento.</>
+            <>{c.firmsDown}</>
           )}
         </p>
 
@@ -123,9 +235,7 @@ export async function LiveChapter() {
               className="a-card flex min-h-80 items-center justify-center p-8 text-center lg:min-h-[480px]"
             >
               <p className="a-sub max-w-sm">
-                El mapa de focos de NASA FIRMS no está disponible en este
-                momento. Se reintenta automáticamente; volvé a visitar la página
-                en unos minutos.
+                {c.mapDown}
               </p>
             </div>
           )}
@@ -140,14 +250,14 @@ export async function LiveChapter() {
               id="live-riesgo"
               className="font-[family-name:var(--font-display)] text-[clamp(1.5rem,2.6vw,2rem)] text-[#e3f6dc]"
             >
-              Riesgo por localidad
+              {c.riskTitle}
             </h3>
             {overall && (
               <span
                 className="text-[0.9375rem] font-medium"
                 style={{ color: RISK_ON_DARK[overall] }}
               >
-                Patagonia: {overall}
+                {c.patagonia}: {RISK_WORD[lang][overall]}
               </span>
             )}
           </div>
@@ -155,9 +265,9 @@ export async function LiveChapter() {
             <table className="mt-4 w-full border-collapse text-left text-[0.9375rem]">
               <thead className="sr-only">
                 <tr>
-                  <th scope="col">Localidad</th>
-                  <th scope="col">Temperatura, humedad y viento</th>
-                  <th scope="col">Riesgo</th>
+                  <th scope="col">{c.colPlace}</th>
+                  <th scope="col">{c.colWeather}</th>
+                  <th scope="col">{c.colRisk}</th>
                 </tr>
               </thead>
               <tbody>
@@ -177,7 +287,7 @@ export async function LiveChapter() {
                       className="py-3 text-right font-medium"
                       style={{ color: RISK_ON_DARK[label] }}
                     >
-                      {label}
+                      {RISK_WORD[lang][label]}
                     </td>
                   </tr>
                 ))}
@@ -185,7 +295,7 @@ export async function LiveChapter() {
             </table>
           ) : (
             <p role="status" className="mt-3 text-[0.9375rem] text-a-mute">
-              La lectura de Open-Meteo no está disponible en este momento.
+              {c.readingDown}
             </p>
           )}
 
@@ -193,7 +303,7 @@ export async function LiveChapter() {
             <span className="font-[family-name:var(--font-display)] text-4xl">
               {fires ? nf(count) : "—"}
             </span>{" "}
-            <span className="text-a-mute">focos en 24 h</span>
+            <span className="text-a-mute">{c.in24h}</span>
             <span aria-hidden className="mx-3 text-a-faint">
               ·
             </span>
@@ -202,13 +312,12 @@ export async function LiveChapter() {
                 ? `${impact.failedChunks > 0 ? "≥ " : ""}${nf(impact.total)}`
                 : "—"}
             </span>{" "}
-            <span className="text-a-mute">en 90 días</span>
+            <span className="text-a-mute">{c.in90d}</span>
           </p>
         </section>
 
         <p className="mx-auto mt-12 max-w-3xl text-center text-[0.8125rem] leading-relaxed text-a-mute">
-          Los focos de calor son datos satelitales preliminares, sin verificar
-          en campo, y llegan con una demora de horas. Fuente:{" "}
+          {c.prelim}{" "}
           <a
             href="https://firms.modaps.eosdis.nasa.gov/"
             target="_blank"
@@ -216,17 +325,15 @@ export async function LiveChapter() {
             className={link}
           >
             NASA FIRMS
-            <span className="sr-only"> (se abre en una pestaña nueva)</span>
+            <span className="sr-only">{c.newTab}</span>
           </a>{" "}
-          ({FIRMS_LABEL}), confianza media o alta.{" "}
+          ({FIRMS_LABEL}){c.confidence}
           {impact?.failedChunks
-            ? `Cifra de 90 días parcial: ${impact.failedChunks} de ${impact.totalChunks} períodos no respondieron, es un mínimo. `
+            ? c.partial(impact.failedChunks, impact.totalChunks)
             : ""}
-          El contorno de Argentina está simplificado y puede errar cerca de la
-          frontera.{" "}
-          {readingTime && `Riesgo: lectura ${readingTime} (hora local). `}
-          Índice ilustrativo propio (temperatura, humedad y viento), no es el
-          FWI oficial. Datos meteorológicos:{" "}
+          {c.border}{" "}
+          {readingTime && c.reading(readingTime)}
+          {c.index}{" "}
           <a
             href="https://open-meteo.com/"
             target="_blank"
@@ -234,9 +341,9 @@ export async function LiveChapter() {
             className={link}
           >
             Open-Meteo
-            <span className="sr-only"> (se abre en una pestaña nueva)</span>
+            <span className="sr-only">{c.newTab}</span>
           </a>{" "}
-          (CC BY 4.0).
+(CC BY 4.0).
         </p>
       </div>
     </section>

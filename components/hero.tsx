@@ -2,19 +2,40 @@ import { ArrowDown, ArrowRight } from "lucide-react";
 import { HeroReveal } from "@/components/hero-reveal";
 import { Magnetic } from "@/components/ui/magnetic";
 import { HeroWorldVideo } from "@/components/hero-world-video";
+import { t, type Copy } from "@/lib/i18n";
 
-const PROOFS = [
-  "Lee NASA FIRMS y GOES-19",
-  "Panel funcionando hoy",
-  "Objetivo de aviso: 8 min",
-];
-
-const HEADLINE = "El aviso llega antes que el humo.";
+const COPY: Copy<{
+  proofs: string[];
+  headline: string;
+  emWord: string;
+  sub: string;
+  cta: string;
+  how: string;
+}> = {
+  es: {
+    proofs: ["Lee NASA FIRMS y GOES-19", "Panel funcionando hoy", "Objetivo de aviso: 8 min"],
+    headline: "El aviso llega antes que el humo.",
+    emWord: "humo",
+    sub: "Detectamos focos de incendio desde el espacio y avisamos en minutos a quien tiene que actuar. Para municipios, brigadas y productores de la Patagonia.",
+    cta: "Pedir un piloto",
+    how: "Ver cómo funciona",
+  },
+  en: {
+    proofs: ["Reads NASA FIRMS and GOES-19", "Dashboard working today", "Alert target: 8 min"],
+    headline: "The alert arrives before the smoke.",
+    emWord: "smoke",
+    sub: "We detect wildfire hotspots from space and alert whoever needs to act within minutes. For municipalities, fire brigades and producers across Patagonia.",
+    cta: "Request a pilot",
+    how: "See how it works",
+  },
+};
 
 const delay = (ms: number) => ({ "--d": `${ms}ms` }) as React.CSSProperties;
 
 // El hero pinta con CSS puro (.a-load): no espera a GSAP.
 export function Hero() {
+  const c = t(COPY);
+  const HEADLINE = c.headline;
   return (
     <>
       <section
@@ -40,20 +61,20 @@ export function Hero() {
             {HEADLINE.split(" ").map((w, i) => (
               <span key={i} aria-hidden>
                 <span className="a-word-mask">
-                  <span data-hero-word className={`a-word-in${w.startsWith("humo") ? " a-em" : ""}`} style={delay(150 + i * 80)}>{w}</span>
+                  <span data-hero-word className={`a-word-in${w.startsWith(c.emWord) ? " a-em" : ""}`} style={delay(150 + i * 80)}>{w}</span>
                 </span>{" "}
               </span>
             ))}
           </h1>
 
           <p className="a-sub a-load mt-6 max-w-xl text-[#e3f6dc]" style={delay(240)}>
-            Detectamos focos de incendio desde el espacio y avisamos en minutos a quien tiene que actuar. Para municipios, brigadas y productores de la Patagonia.
+            {c.sub}
           </p>
 
           <div className="a-load mt-8 flex flex-wrap items-center gap-x-8 gap-y-4" style={delay(400)}>
             <Magnetic>
               <a href="#contacto" className="a-pill !pr-1.5">
-                Pedir un piloto
+                {c.cta}
                 <span className="grid size-8 place-items-center rounded-full bg-[#06150d] text-a-accent">
                   <ArrowRight className="size-4" aria-hidden />
                 </span>
@@ -63,7 +84,7 @@ export function Hero() {
               href="#plataforma"
               className="inline-flex items-center gap-2 rounded-sm text-[0.9375rem] text-[#e3f6dc] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#a9efc9]"
             >
-              Ver cómo funciona
+              {c.how}
               <ArrowDown className="size-4" aria-hidden />
             </a>
           </div>
@@ -72,7 +93,7 @@ export function Hero() {
             className="a-load mt-10 flex flex-col divide-y divide-a-line border-y border-a-line text-[0.9375rem] text-[#e3f6dc] sm:flex-row sm:divide-x sm:divide-y-0"
             style={delay(560)}
           >
-            {PROOFS.map((p) => (
+            {c.proofs.map((p) => (
               <li key={p} className="py-3 sm:px-6 sm:first:pl-0 sm:last:pr-0">
                 {p}
               </li>

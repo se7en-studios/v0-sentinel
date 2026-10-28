@@ -6,6 +6,81 @@ import { FireMapLiveLazy } from "@/components/ui/fire-map-live-lazy";
 import type { LiveFire, LivePlace } from "@/components/ui/fire-map-live";
 import type { LocalityStat } from "@/components/locality-stats";
 import { PLACES } from "@/lib/places";
+import { RISK_WORD } from "@/lib/landing-data/risk";
+import { useCopy, useLang } from "@/lib/i18n/client";
+import type { Copy } from "@/lib/i18n";
+
+const LOCALE = { es: "es-AR", en: "en-US" } as const;
+
+const COPY: Copy<{
+  title: string;
+  intro: string;
+  searchLabel: string;
+  placeholder: string;
+  clearLabel: string;
+  listLabel: string;
+  noFiresCountry: string;
+  noFires100: string;
+  nearestCountry: (km: string) => string;
+  kmSuffix: string;
+  hotspot: string;
+  hotspots: string;
+  in50: string;
+  in100: string;
+  nearestAt: (at: string) => string;
+  truncated: string;
+  riskToday: string;
+  source: (label: string, firesAt: string) => string;
+}> = {
+  es: {
+    title: "Probá con tu localidad",
+    intro:
+      "Elegí tu pueblo o ciudad y mirá qué focos de calor detectaron los satélites cerca, con los datos de hoy.",
+    searchLabel: "Buscar localidad",
+    placeholder: "Ej.: Bariloche, Esquel, Epuyén…",
+    clearLabel: "Borrar localidad",
+    listLabel: "Localidades",
+    noFiresCountry:
+      "Sin focos de calor detectados en Argentina en las últimas 24 h; no garantiza ausencia de fuego.",
+    noFires100:
+      "Sin focos de calor detectados en 100 km en las últimas 24 h; no garantiza ausencia de fuego.",
+    nearestCountry: (km) => `El foco más cercano del país está a ${km} km.`,
+    kmSuffix: "al foco de calor más cercano",
+    hotspot: "foco",
+    hotspots: "focos",
+    in50: "en 50 km",
+    in100: "en 100 km",
+    nearestAt: (at) => `Más cercano detectado ${at}.`,
+    truncated: " El mapa dibuja solo los 150 focos más intensos del país.",
+    riskToday: "Riesgo hoy",
+    source: (label, firesAt) =>
+      `Fuente: NASA FIRMS, ${label}, últimas 24 h. ${firesAt}. Son focos de calor satelitales, no incendios confirmados, con demora de horas.`,
+  },
+  en: {
+    title: "Try it with your town",
+    intro:
+      "Pick your town or city and see which fire hotspots satellites detected nearby, with today's data.",
+    searchLabel: "Search for a town",
+    placeholder: "E.g. Bariloche, Esquel, Epuyén…",
+    clearLabel: "Clear town",
+    listLabel: "Towns",
+    noFiresCountry:
+      "No fire hotspots detected in Argentina in the last 24 h; this does not guarantee there is no fire.",
+    noFires100:
+      "No fire hotspots detected within 100 km in the last 24 h; this does not guarantee there is no fire.",
+    nearestCountry: (km) => `The nearest hotspot in the country is ${km} km away.`,
+    kmSuffix: "to the nearest fire hotspot",
+    hotspot: "hotspot",
+    hotspots: "hotspots",
+    in50: "within 50 km",
+    in100: "within 100 km",
+    nearestAt: (at) => `Nearest detected ${at}.`,
+    truncated: " The map only draws the 150 most intense hotspots in the country.",
+    riskToday: "Risk today",
+    source: (label, firesAt) =>
+      `Source: NASA FIRMS, ${label}, last 24 h. ${firesAt}. These are satellite fire hotspots, not confirmed wildfires, and arrive with a delay of hours.`,
+  },
+};
 
 const MAX_OPTIONS = 8;
 const norm = (s: string) =>
@@ -54,6 +129,7 @@ export function LiveExplorer({
   totalFires,
   firesAt,
 }: Props) {
+  const c = useCopy(COPY);
   const uid = useId();
   const listId = `${uid}-list`;
   const inputRef = useRef<HTMLInputElement>(null);
@@ -118,12 +194,9 @@ export function LiveExplorer({
           id={`${uid}-title`}
           className="font-[family-name:var(--font-display)] text-[clamp(1.5rem,2.6vw,2rem)] leading-tight text-[#e3f6dc]"
         >
-          Probá con tu localidad
+          {c.title}
         </h3>
-        <p className="mt-1.5 text-[0.9375rem] text-a-mute">
-          Elegí tu pueblo o ciudad y mirá qué focos de calor detectaron los
-          satélites cerca, con los datos de hoy.
-        </p>
+        <p className="mt-1.5 text-[0.9375rem] text-a-mute">{c.intro}</p>
 
         <div className="relative mt-4">
           <Search
@@ -134,7 +207,7 @@ export function LiveExplorer({
             ref={inputRef}
             type="text"
             role="combobox"
-            aria-label="Buscar localidad"
+            aria-label={c.searchLabel}
             aria-expanded={listOpen}
             aria-controls={listId}
             aria-autocomplete="list"
@@ -142,7 +215,7 @@ export function LiveExplorer({
             autoComplete="off"
             spellCheck={false}
             enterKeyHint="search"
-            placeholder="Ej.: Bariloche, Esquel, Epuyén…"
+            placeholder={c.placeholder}
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -158,7 +231,7 @@ export function LiveExplorer({
           {query && (
             <button
               type="button"
-              aria-label="Borrar localidad"
+              aria-label={c.clearLabel}
               onClick={() => {
                 clear();
                 inputRef.current?.focus();
@@ -171,7 +244,7 @@ export function LiveExplorer({
           <ul
             id={listId}
             role="listbox"
-            aria-label="Localidades"
+            aria-label={c.listLabel}
             hidden={!listOpen}
             className="absolute inset-x-0 top-full z-30 m-0 mt-1.5 max-h-[min(16rem,35dvh)] list-none overflow-y-auto overscroll-contain rounded-xl border border-a-line bg-a-card p-1 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.8)]"
           >
@@ -238,8 +311,10 @@ function Result({
   sourceLabel: string;
   truncated: boolean;
 }) {
+  const c = useCopy(COPY);
+  const lang = useLang();
   const [km, n50, n100, at] = stat;
-  const fmt = (n: number) => n.toLocaleString("es-AR");
+  const fmt = (n: number) => n.toLocaleString(LOCALE[lang]);
   return (
     <div className="rounded-xl border border-a-line bg-a-bg p-4">
       <p className="text-[0.9375rem] font-medium text-[#e3f6dc]">
@@ -247,17 +322,15 @@ function Result({
       </p>
       {km === null ? (
         <p className="mt-2 text-base text-a-accent">
-          Sin focos de calor detectados en Argentina en las últimas 24 h; no
-          garantiza ausencia de fuego.
+          {c.noFiresCountry}
         </p>
       ) : n100 === 0 ? (
         <>
           <p className="mt-2 text-base text-a-accent">
-            Sin focos de calor detectados en 100 km en las últimas 24 h; no
-            garantiza ausencia de fuego.
+            {c.noFires100}
           </p>
           <p className="mt-1.5 text-[0.9375rem] text-a-mute">
-            El foco más cercano del país está a {fmt(km)} km.
+            {c.nearestCountry(fmt(km))}
           </p>
         </>
       ) : (
@@ -265,17 +338,16 @@ function Result({
           <p className="mt-2 text-3xl font-semibold tabular-nums tracking-tight text-[#e3f6dc]">
             {fmt(km)} km
             <span className="ml-2 text-[0.9375rem] font-normal text-a-mute">
-              al foco de calor más cercano
+              {c.kmSuffix}
             </span>
           </p>
           <p className="mt-1.5 text-[0.9375rem] tabular-nums text-[#e3f6dc]">
-            {fmt(n50)} {n50 === 1 ? "foco" : "focos"} en 50 km · {fmt(n100)}{" "}
-            {n100 === 1 ? "foco" : "focos"} en 100 km
+            {fmt(n50)} {n50 === 1 ? c.hotspot : c.hotspots} {c.in50} ·{" "}
+            {fmt(n100)} {n100 === 1 ? c.hotspot : c.hotspots} {c.in100}
           </p>
           <p className="mt-1 text-[0.9375rem] text-a-mute">
-            Más cercano detectado {at}.
-            {truncated &&
-              " El mapa dibuja solo los 150 focos más intensos del país."}
+            {c.nearestAt(at)}
+            {truncated && c.truncated}
           </p>
         </>
       )}
@@ -284,13 +356,12 @@ function Result({
           className="mt-2 text-[0.9375rem] tabular-nums"
           style={{ color: RISK_ON_DARK[place.label] }}
         >
-          Riesgo hoy: {place.label} · {Math.round(place.temperature)} °C ·{" "}
+          {c.riskToday}: {RISK_WORD[lang][place.label]} · {Math.round(place.temperature)} °C ·{" "}
           {Math.round(place.humidity)}% · {Math.round(place.windSpeed)} km/h
         </p>
       )}
       <p className="mt-2 text-[0.8125rem] text-a-mute">
-        Fuente: NASA FIRMS, {sourceLabel}, últimas 24 h. {firesAt}. Son focos de
-        calor satelitales, no incendios confirmados, con demora de horas.
+        {c.source(sourceLabel, firesAt)}
       </p>
     </div>
   );

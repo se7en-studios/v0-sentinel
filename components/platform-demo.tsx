@@ -2,6 +2,8 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 import { CLAIMS } from "@/lib/claims";
+import { useCopy } from "@/lib/i18n/client";
+import type { Copy } from "@/lib/i18n";
 
 const PIN_QUERY =
   "(min-width: 1024px) and (prefers-reduced-motion: no-preference)";
@@ -11,47 +13,78 @@ const SMOOTHING = 0.14;
 const DURATION_A = 16.8;
 const DURATION_B = 14.7;
 
-const CAPTION =
-  "Reconstrucción del incendio de Puerto Patriada (enero de 2026) en el panel de Sentinel con datos de NASA FIRMS y Sentinel-2.";
-
 type Shot = "general" | "caso";
 
+const COPY: Copy<{
+  caption: string;
+  steps: { title: string; text: string; alt: string }[];
+  videoAltA: string;
+  videoAltB: string;
+}> = {
+  es: {
+    caption:
+      "Reconstrucción del incendio de Puerto Patriada (enero de 2026) en el panel de Sentinel con datos de NASA FIRMS y Sentinel-2.",
+    steps: [
+      {
+        title: "Detectar",
+        text: "Leemos los focos de calor que ven los satélites (VIIRS y MODIS vía NASA FIRMS; GOES-19 como alerta temprana).",
+        alt: "Panel de Sentinel con las capas de detección: anomalías térmicas, alerta temprana y mapa de calor",
+      },
+      {
+        title: "Verificar",
+        text: "Cruzamos las fuentes y descartamos calor industrial.",
+        alt: "Barra de estado del panel con focos de las últimas 24 horas y calor industrial oculto",
+      },
+      {
+        title: "Contextualizar",
+        text: "Sumamos relieve, viento y localidad.",
+        alt: "Reconstrucción del incendio de Puerto Patriada sobre el relieve, con las localidades cercanas",
+      },
+      {
+        title: "Alertar",
+        text: `Avisamos por WhatsApp con ubicación y acceso. Objetivo: ${CLAIMS.detectionMinutes} minutos desde la detección (todavía no medido en un incendio real).`,
+        alt: "Ficha del caso con superficie, potencia, clima y viento en el momento del foco",
+      },
+    ],
+    videoAltA: "Panel de Sentinel con focos, capas y línea de tiempo",
+    videoAltB: "Caso Puerto Patriada en el panel de Sentinel",
+  },
+  en: {
+    caption:
+      "Reconstruction of the Puerto Patriada wildfire (January 2026) in the Sentinel dashboard, using NASA FIRMS and Sentinel-2 data.",
+    steps: [
+      {
+        title: "Detect",
+        text: "We read the fire hotspots that satellites see (VIIRS and MODIS via NASA FIRMS; GOES-19 as early warning).",
+        alt: "Sentinel dashboard with the detection layers: thermal anomalies, early warning and heat map",
+      },
+      {
+        title: "Verify",
+        text: "We cross-check the sources and rule out industrial heat.",
+        alt: "Dashboard status bar showing hotspots from the last 24 hours and industrial heat hidden",
+      },
+      {
+        title: "Add context",
+        text: "We add terrain, wind and nearby towns.",
+        alt: "Reconstruction of the Puerto Patriada wildfire over the terrain, with the nearby towns",
+      },
+      {
+        title: "Alert",
+        text: `We send a WhatsApp alert with location and access. Target: ${CLAIMS.detectionMinutes} minutes from detection (not yet measured on a real wildfire).`,
+        alt: "Case sheet with burned area, power, weather and wind at the time of the hotspot",
+      },
+    ],
+    videoAltA: "Sentinel dashboard with hotspots, layers and timeline",
+    videoAltB: "Puerto Patriada case in the Sentinel dashboard",
+  },
+};
+
 // Zoom sobre la captura de 3200×2000: origen del recorte en % y escala.
-const STEPS: {
-  title: string;
-  text: string;
-  shot: Shot;
-  alt: string;
-  zoom: { scale: number; origin: string };
-}[] = [
-  {
-    title: "Detectar",
-    text: "Leemos los focos de calor que ven los satélites (VIIRS y MODIS vía NASA FIRMS; GOES-19 como alerta temprana).",
-    shot: "general",
-    alt: "Panel de Sentinel con las capas de detección: anomalías térmicas, alerta temprana y mapa de calor",
-    zoom: { scale: 1, origin: "50% 50%" },
-  },
-  {
-    title: "Verificar",
-    text: "Cruzamos las fuentes y descartamos calor industrial.",
-    shot: "general",
-    alt: "Barra de estado del panel con focos de las últimas 24 horas y calor industrial oculto",
-    zoom: { scale: 2.1, origin: "30% 0%" },
-  },
-  {
-    title: "Contextualizar",
-    text: "Sumamos relieve, viento y localidad.",
-    shot: "caso",
-    alt: "Reconstrucción del incendio de Puerto Patriada sobre el relieve, con las localidades cercanas",
-    zoom: { scale: 1, origin: "50% 50%" },
-  },
-  {
-    title: "Alertar",
-    text: `Avisamos por WhatsApp con ubicación y acceso. Objetivo: ${CLAIMS.detectionMinutes} minutos desde la detección (todavía no medido en un incendio real).`,
-    shot: "caso",
-    alt: "Ficha del caso con superficie, potencia, clima y viento en el momento del foco",
-    zoom: { scale: 2.1, origin: "100% 45%" },
-  },
+const STEPS: { shot: Shot; zoom: { scale: number; origin: string } }[] = [
+  { shot: "general", zoom: { scale: 1, origin: "50% 50%" } },
+  { shot: "general", zoom: { scale: 2.1, origin: "30% 0%" } },
+  { shot: "caso", zoom: { scale: 1, origin: "50% 50%" } },
+  { shot: "caso", zoom: { scale: 2.1, origin: "100% 45%" } },
 ];
 
 function Capture({
@@ -91,23 +124,24 @@ function Capture({
 }
 
 function Stacked() {
+  const c = useCopy(COPY);
   return (
     <div>
       <ol className="space-y-20">
         {STEPS.map((s, i) => (
-          <li key={s.title}>
+          <li key={i}>
             <p className="text-sm tabular-nums text-[#4b5750]" aria-hidden>
               0{i + 1}
             </p>
-            <h3 className="a-title mt-2 text-[#131a16]">{s.title}</h3>
-            <p className="a-sub mt-3 max-w-xl">{s.text}</p>
+            <h3 className="a-title mt-2 text-[#131a16]">{c.steps[i].title}</h3>
+            <p className="a-sub mt-3 max-w-xl">{c.steps[i].text}</p>
             <div className="a-brackets mt-6">
               <span className="a-bk a-bk-tr" aria-hidden />
               <span className="a-bk a-bk-bl" aria-hidden />
               <div className="a-frame relative aspect-[16/10]">
                 <Capture
                   shot={s.shot}
-                  alt={s.alt}
+                  alt={c.steps[i].alt}
                   className="absolute inset-0 h-full w-full object-cover"
                   style={{
                     transform: `scale(${s.zoom.scale})`,
@@ -120,7 +154,7 @@ function Stacked() {
         ))}
       </ol>
       <p className="mt-10 max-w-xl text-xs leading-relaxed text-[#4b5750]">
-        {CAPTION}
+        {c.caption}
       </p>
     </div>
   );
@@ -162,6 +196,7 @@ function VideoLayer({
 }
 
 function Pinned() {
+  const c = useCopy(COPY);
   const stage = useRef<HTMLDivElement>(null);
   const videoA = useRef<HTMLVideoElement>(null);
   const videoB = useRef<HTMLVideoElement>(null);
@@ -288,7 +323,7 @@ function Pinned() {
           <ol className="space-y-9">
             {STEPS.map((s, i) => (
               <li
-                key={s.title}
+                key={i}
                 ref={(n) => {
                   steps.current[i] = n;
                 }}
@@ -302,9 +337,9 @@ function Pinned() {
                   >
                     0{i + 1}
                   </span>
-                  {s.title}
+                  {c.steps[i].title}
                 </h3>
-                <p className="a-sub mt-2 !text-[clamp(1.0625rem,1.3vw,1.1875rem)] !text-[#dcebdf]">{s.text}</p>
+                <p className="a-sub mt-2 !text-[clamp(1.0625rem,1.3vw,1.1875rem)] !text-[#dcebdf]">{c.steps[i].text}</p>
               </li>
             ))}
           </ol>
@@ -319,7 +354,7 @@ function Pinned() {
                 shot="general"
                 name="admin-caso"
                 poster="/video/admin-caso-poster.webp"
-                alt="Panel de Sentinel con focos, capas y línea de tiempo"
+                alt={c.videoAltA}
               />
               <div
                 ref={layerB}
@@ -331,12 +366,12 @@ function Pinned() {
                   shot="caso"
                   name="admin-caso3d"
                   poster="/video/admin-caso3d-poster.webp"
-                  alt="Caso Puerto Patriada en el panel de Sentinel"
+                  alt={c.videoAltB}
                 />
               </div>
             </div>
           </div>
-          <p className="mt-4 text-xs leading-relaxed text-a-faint">{CAPTION}</p>
+          <p className="mt-4 text-xs leading-relaxed text-a-faint">{c.caption}</p>
         </div>
       </div>
     </div>

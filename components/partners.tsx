@@ -1,6 +1,18 @@
 import Image from "next/image";
 import { ASection } from "@/components/a-section";
 import { MarqueeRow } from "@/components/ui/marquee-row";
+import { t, type Copy } from "@/lib/i18n";
+
+const COPY: Copy<{ title: string; note: string }> = {
+  es: {
+    title: "Programas y entidades en las que participamos",
+    note: "Universidades de origen, organizadores de competencias y programas de los que Sentinel formó parte. No implica convenio ni respaldo comercial.",
+  },
+  en: {
+    title: "Programs and organizations we have taken part in",
+    note: "Home universities, competition organizers and programs Sentinel has been part of. It does not imply an agreement or commercial endorsement.",
+  },
+};
 
 const logos = [
   { id: "uba", description: "UBA", image: "/uba-logo.png" },
@@ -24,10 +36,11 @@ const logos = [
 ];
 
 export function PartnersBlock() {
+  const c = t(COPY);
   return (
     <div>
       <p className="a-rise text-[0.9375rem] font-medium uppercase tracking-[0.16em] text-[#4b5750]">
-        Programas y entidades en las que participamos
+        {c.title}
       </p>
       <div className="a-rise mt-10">
         <MarqueeRow seconds={45}>
@@ -50,8 +63,7 @@ export function PartnersBlock() {
         </MarqueeRow>
       </div>
       <p className="mt-8 max-w-xl text-[0.9375rem] leading-relaxed text-[#4b5750]">
-        Universidades de origen, organizadores de competencias y programas de los
-        que Sentinel formó parte. No implica convenio ni respaldo comercial.
+        {c.note}
       </p>
     </div>
   );

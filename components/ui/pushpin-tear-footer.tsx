@@ -312,6 +312,8 @@ export type PushpinTearFooterProps = {
   seed?: number;
   height?: number | string;
   fontSans?: string;
+  /** UI strings (aria-labels, titles, toasts); Spanish by default. */
+  labels?: Partial<typeof DEFAULT_LABELS>;
   onSubscribe?: (email: string) => void;
   onRepin?: (seed: number) => void;
   className?: string;
@@ -820,6 +822,17 @@ const DEFAULT_COLUMNS: FooterColumn[] = [
   },
 ];
 
+const DEFAULT_LABELS = {
+  top: "Volver arriba",
+  copyEmail: "Copiar",
+  copyEmailTitle: "Copiar email",
+  copied: "email copiado",
+  checkEmail: "revisá el email",
+  localTime: "Hora local",
+  repin: "Sacar la chinche y rasgar un borde nuevo",
+  repinTitle: "Sacar la chinche",
+};
+
 const DEFAULT_SIDES: IconLink[] = [
   { icon: "shield", label: "privacidad", href: "/privacidad" },
   { icon: "doc", label: "créditos", href: "/creditos" },
@@ -890,12 +903,14 @@ export default function PushpinTearFooter({
   seed = 7,
   height = "100svh",
   fontSans = '"Helvetica Neue", Helvetica, Arial, system-ui, sans-serif',
+  labels: labelsProp,
   onSubscribe,
   onRepin,
   fire = false,
   fireFrom = 0,
   className = "",
 }: PushpinTearFooterProps) {
+  const L = { ...DEFAULT_LABELS, ...labelsProp };
   const uid = React.useId().replace(/[^a-zA-Z0-9]/g, "");
   const rootRef = React.useRef<HTMLElement>(null);
   const svgRef = React.useRef<SVGSVGElement>(null);
@@ -1297,7 +1312,7 @@ export default function PushpinTearFooter({
   const copyEmail = () => {
     if (navigator.clipboard?.writeText)
       navigator.clipboard.writeText(email).then(
-        () => flash("email copiado"),
+        () => flash(L.copied),
         () => flash(email),
       );
     else flash(email);
@@ -1307,7 +1322,7 @@ export default function PushpinTearFooter({
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const v = address.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return flash("revisá el email");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return flash(L.checkEmail);
     setSent(true);
     onSubscribe?.(v);
   };
@@ -1515,8 +1530,8 @@ export default function PushpinTearFooter({
             type="button"
             className="tpf-ib tpf-up"
             onClick={toTop}
-            aria-label="Volver arriba"
-            title="Volver arriba"
+            aria-label={L.top}
+            title={L.top}
           >
             <Icon name="chevL" />
           </button>
@@ -1540,8 +1555,8 @@ export default function PushpinTearFooter({
             type="button"
             className="tpf-mail"
             onClick={copyEmail}
-            aria-label={"Copiar " + email}
-            title="Copiar email"
+            aria-label={L.copyEmail + " " + email}
+            title={L.copyEmailTitle}
           >
             <span>{email}</span>
             <Icon name="copy" />
@@ -1600,7 +1615,7 @@ export default function PushpinTearFooter({
         <span
           className="tpf-z tpf-flank tpf-h"
           style={{ ...H(4), left: "76%" }}
-          title={"Hora local · " + timeZone}
+          title={L.localTime + " · " + timeZone}
         >
           <Clock zone={timeZone} label={timeLabel} />
         </span>
@@ -1669,8 +1684,8 @@ export default function PushpinTearFooter({
         className="tpf-pin"
         data-pin={pin}
         onClick={repin}
-        aria-label="Sacar la chinche y rasgar un borde nuevo"
-        title="Sacar la chinche"
+        aria-label={L.repin}
+        title={L.repinTitle}
       >
         <span className="tpf-shadow" aria-hidden="true" />
         <span className="tpf-tilt">

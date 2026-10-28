@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { MAX_BODY_BYTES, validateContact } from "@/lib/contact";
+import { MAX_BODY_BYTES, parseLang, validateContact } from "@/lib/contact";
 
 export const runtime = "nodejs";
 
@@ -23,33 +23,53 @@ function limited(ip: string): boolean {
 const esc = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
+const ERR = {
+  es: {
+    unavailable: "El envío en línea no está disponible por ahora.",
+    rate: "Demasiados intentos. Probá más tarde.",
+    long: "Mensaje demasiado largo.",
+    invalid: "Solicitud inválida.",
+    failed: "No pudimos enviar tu mensaje.",
+  },
+  en: {
+    unavailable: "Online sending is not available right now.",
+    rate: "Too many attempts. Please try again later.",
+    long: "Message too long.",
+    invalid: "Invalid request.",
+    failed: "We couldn't send your message.",
+  },
+} as const;
+
 export async function POST(request: Request) {
-  const key = process.env.RESEND_API_KEY;
-  const to = process.env.CONTACT_TO;
-  if (!key || !to) {
-    return NextResponse.json(
-      { ok: false, error: "El envío en línea no está disponible por ahora." },
-      { status: 503 },
-    );
-  }
-
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  if (limited(ip)) {
-    return NextResponse.json({ ok: false, error: "Demasiados intentos. Probá más tarde." }, { status: 429 });
-  }
-
   const text = await request.text();
-  if (text.length > MAX_BODY_BYTES) {
-    return NextResponse.json({ ok: false, error: "Mensaje demasiado largo." }, { status: 413 });
-  }
   let raw: unknown;
   try {
     raw = JSON.parse(text);
   } catch {
-    return NextResponse.json({ ok: false, error: "Solicitud inválida." }, { status: 400 });
+    raw = undefined;
+  }
+  const lang = parseLang((raw as { lang?: unknown } | null | undefined)?.lang);
+  const err = ERR[lang];
+
+  const key = process.env.RESEND_API_KEY;
+  const to = process.env.CONTACT_TO;
+  if (!key || !to) {
+    return NextResponse.json({ ok: false, error: err.unavailable }, { status: 503 });
   }
 
-  const v = validateContact(raw);
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (limited(ip)) {
+    return NextResponse.json({ ok: false, error: err.rate }, { status: 429 });
+  }
+
+  if (text.length > MAX_BODY_BYTES) {
+    return NextResponse.json({ ok: false, error: err.long }, { status: 413 });
+  }
+  if (raw === undefined) {
+    return NextResponse.json({ ok: false, error: err.invalid }, { status: 400 });
+  }
+
+  const v = validateContact(raw, lang);
   if (!v.ok) return NextResponse.json({ ok: false, errors: v.errors }, { status: 422 });
   // honeypot: fingimos éxito para no dar pistas a bots
   if (v.data.website) return NextResponse.json({ ok: true });
@@ -65,13 +85,14 @@ export async function POST(request: Request) {
       subject: `Contacto web: ${d.name}${d.organization ? ` (${d.organization})` : ""}`,
       html: `<p><b>${esc(d.name)}</b> &lt;${esc(d.email)}&gt;</p>
 <p>Organización: ${esc(d.organization || "-")} · Interés: ${esc(d.interest ?? "-")}</p>
+<p>Idioma del visitante: ${lang === "en" ? "English (/en)" : "Español"}</p>
 <p style="white-space:pre-wrap">${esc(d.message)}</p>`,
     }),
   }).catch(() => null);
 
   if (!res || !res.ok) {
     console.error("contact: resend failed", res?.status);
-    return NextResponse.json({ ok: false, error: "No pudimos enviar tu mensaje." }, { status: 502 });
+    return NextResponse.json({ ok: false, error: err.failed }, { status: 502 });
   }
   return NextResponse.json({ ok: true });
 }

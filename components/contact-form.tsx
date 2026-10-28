@@ -5,9 +5,12 @@ import { useSearchParams } from "next/navigation";
 import {
   CONTACT_FALLBACK_EMAIL,
   INTEREST_OPTIONS,
+  INTEREST_OPTIONS_EN,
   validateContact,
   type ContactErrors,
 } from "@/lib/contact";
+import { useCopy, useLang } from "@/lib/i18n/client";
+import type { Copy } from "@/lib/i18n";
 
 type Status = "idle" | "sending" | "ok" | "error" | "unavailable";
 
@@ -16,6 +19,68 @@ const PERFIL_TO_INTEREST: Record<string, string> = {
   municipio: "municipio",
   brigada: "brigada",
   campo: "forestal",
+};
+
+const COPY: Copy<{
+  okTitle: string;
+  okBody: string;
+  honeypot: string;
+  name: string;
+  email: string;
+  org: string;
+  optional: string;
+  iam: string;
+  choose: string;
+  message: string;
+  placeholder: string;
+  sending: string;
+  submit: string;
+  reply: string;
+  privacyPre: string;
+  privacyLink: string;
+  errorPre: string;
+  unavailablePre: string;
+}> = {
+  es: {
+    okTitle: "Recibimos tu mensaje.",
+    okBody: "Te respondemos en 24 h hábiles. Si es urgente, escribinos a",
+    honeypot: "No completar",
+    name: "Nombre",
+    email: "Email",
+    org: "Organización",
+    optional: "(opcional)",
+    iam: "Soy…",
+    choose: "Elegí una opción",
+    message: "Mensaje",
+    placeholder: "¿Qué territorio cuidás y qué necesitás?",
+    sending: "Enviando…",
+    submit: "Solicitar un piloto",
+    reply: "Te respondemos en 24 h hábiles.",
+    privacyPre: "Al enviar aceptás nuestra",
+    privacyLink: "política de privacidad",
+    errorPre: "No pudimos enviar tu mensaje. Probá de nuevo o escribinos a",
+    unavailablePre: "El envío en línea no está disponible por ahora: escribinos a",
+  },
+  en: {
+    okTitle: "We got your message.",
+    okBody: "We reply within 24 business hours. If it's urgent, write to us at",
+    honeypot: "Do not fill in",
+    name: "Name",
+    email: "Email",
+    org: "Organization",
+    optional: "(optional)",
+    iam: "I am…",
+    choose: "Choose an option",
+    message: "Message",
+    placeholder: "Which territory do you look after and what do you need?",
+    sending: "Sending…",
+    submit: "Request a pilot",
+    reply: "We reply within 24 business hours.",
+    privacyPre: "By submitting you accept our",
+    privacyLink: "privacy policy",
+    errorPre: "We couldn't send your message. Try again or write to us at",
+    unavailablePre: "Online sending is not available right now: write to us at",
+  },
 };
 
 const field =
@@ -32,6 +97,9 @@ function FieldError({ id, msg }: { id: string; msg?: string }) {
 
 export function ContactForm() {
   const params = useSearchParams();
+  const lang = useLang();
+  const c = useCopy(COPY);
+  const interestOptions = lang === "en" ? INTEREST_OPTIONS_EN : INTEREST_OPTIONS;
   const defaultInterest = PERFIL_TO_INTEREST[params.get("perfil") ?? ""] ?? "";
   const [status, setStatus] = useState<Status>("idle");
   const [errors, setErrors] = useState<ContactErrors>({});
@@ -40,7 +108,7 @@ export function ContactForm() {
     e.preventDefault();
     if (status === "sending") return;
     const form = e.currentTarget;
-    const v = validateContact(Object.fromEntries(new FormData(form).entries()));
+    const v = validateContact(Object.fromEntries(new FormData(form).entries()), lang);
     if (!v.ok) {
       setErrors(v.errors);
       return;
@@ -51,7 +119,7 @@ export function ContactForm() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(v.data),
+        body: JSON.stringify({ ...v.data, lang }),
       });
       if (res.ok) {
         form.reset();
@@ -85,9 +153,9 @@ export function ContactForm() {
         role="status"
         className="a-card !border-a-accent/40 p-6 md:p-8"
       >
-        <p className="text-xl font-semibold text-a-accent">Recibimos tu mensaje.</p>
+        <p className="text-xl font-semibold text-a-accent">{c.okTitle}</p>
         <p className="mt-2 text-a-mute">
-          Te respondemos en 24 h hábiles. Si es urgente, escribinos a {mail}.
+          {c.okBody} {mail}.
         </p>
       </div>
     );
@@ -105,14 +173,14 @@ export function ContactForm() {
         className="absolute -left-[9999px] h-0 w-0 overflow-hidden"
       >
         <label>
-          No completar
+          {c.honeypot}
           <input type="text" name="website" tabIndex={-1} autoComplete="off" />
         </label>
       </div>
 
       <div>
         <label htmlFor="c-name" className={label}>
-          Nombre
+          {c.name}
         </label>
         <input
           id="c-name"
@@ -127,7 +195,7 @@ export function ContactForm() {
       </div>
       <div>
         <label htmlFor="c-email" className={label}>
-          Email
+          {c.email}
         </label>
         <input
           id="c-email"
@@ -143,8 +211,8 @@ export function ContactForm() {
       </div>
       <div>
         <label htmlFor="c-org" className={label}>
-          Organización{" "}
-          <span className="font-normal opacity-70">(opcional)</span>
+          {c.org}{" "}
+          <span className="font-normal opacity-70">{c.optional}</span>
         </label>
         <input
           id="c-org"
@@ -158,7 +226,7 @@ export function ContactForm() {
       </div>
       <div>
         <label htmlFor="c-interest" className={label}>
-          Soy…
+          {c.iam}
         </label>
         <select
           id="c-interest"
@@ -167,9 +235,9 @@ export function ContactForm() {
           className={field}
         >
           <option value="" className="text-black">
-            Elegí una opción
+            {c.choose}
           </option>
-          {INTEREST_OPTIONS.map((o) => (
+          {interestOptions.map((o) => (
             <option key={o.value} value={o.value} className="text-black">
               {o.label}
             </option>
@@ -178,7 +246,7 @@ export function ContactForm() {
       </div>
       <div className="sm:col-span-2">
         <label htmlFor="c-msg" className={label}>
-          Mensaje
+          {c.message}
         </label>
         <textarea
           id="c-msg"
@@ -187,7 +255,7 @@ export function ContactForm() {
           required
           maxLength={2000}
           className={`${field} !h-auto py-3`}
-          placeholder="¿Qué territorio cuidás y qué necesitás?"
+          placeholder={c.placeholder}
           aria-invalid={!!errors.message}
           aria-describedby={errors.message ? "c-msg-err" : undefined}
         />
@@ -200,16 +268,16 @@ export function ContactForm() {
           disabled={status === "sending"}
           className="a-pill !h-12 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent disabled:opacity-60"
         >
-          {status === "sending" ? "Enviando…" : "Solicitar un piloto"}
+          {status === "sending" ? c.sending : c.submit}
         </button>
         <p className="text-[0.9375rem] text-a-mute">
-          Te respondemos en 24 h hábiles.
+          {c.reply}
         </p>
       </div>
       <p className="text-[0.9375rem] text-a-mute sm:col-span-2">
-        Al enviar aceptás nuestra{" "}
+        {c.privacyPre}{" "}
         <a href="/privacidad" className="underline underline-offset-2">
-          política de privacidad
+          {c.privacyLink}
         </a>
         .
       </p>
@@ -217,12 +285,12 @@ export function ContactForm() {
       <div className="sm:col-span-2" aria-live="polite">
         {status === "error" && (
           <p role="alert" className="text-[0.9375rem] text-[#ffb4a6]">
-            No pudimos enviar tu mensaje. Probá de nuevo o escribinos a {mail}.
+            {c.errorPre} {mail}.
           </p>
         )}
         {status === "unavailable" && (
           <p role="alert" className="text-[0.9375rem] text-[#ffd9a0]">
-            El envío en línea no está disponible por ahora: escribinos a {mail}.
+            {c.unavailablePre} {mail}.
           </p>
         )}
       </div>
