@@ -14,6 +14,15 @@ export interface PressMention {
 // (not re-hosted) — standard practice for "as seen in" press sections.
 export const pressMentions: PressMention[] = [
   {
+    outlet: "Infobae",
+    title: "El mapa de la sostenibilidad en América Latina: saberes ancestrales y nuevas tecnologías enfrentan a la crisis climática",
+    url: "https://www.infobae.com/america/medio-ambiente/2026/10/21/el-mapa-de-la-sostenibilidad-en-america-latina-los-saberes-ancestrales-y-las-nuevas-tecnologias-que-enfrentan-a-la-crisis-climatica/",
+    date: "2026-10-21",
+    // ponytail: nombra a Sentinel como finalista argentino de Premios Verdes 2026 (drones, sensores, satélite e IA).
+    // Su og:image lleva token de acceso y no es de Sentinel -> sin imagen.
+    image: "",
+  },
+  {
     outlet: "UTN",
     title: "Finalizó la competencia ILAN a la innovación Universitaria UTN",
     url: "https://www.utn.edu.ar/es/articulos-slider-principal/finalizo-la-competencia-ilan-a-la-innovacion-universitaria-utn",
