@@ -6,7 +6,7 @@ export const OG_IMAGE = {
   alt: "Sentinel: el fuego no espera, nosotros tampoco. Detección temprana de incendios forestales.",
 } as const;
 
-export const OG_TITLE = "Sentinel | Detección temprana de incendios forestales";
+export const OG_TITLE = "Sentinel Cloud | Detección temprana de incendios forestales";
 export const OG_DESCRIPTION =
-  "Tecnología con drones autónomos, inteligencia artificial y monitoreo satelital para anticipar incendios y proteger nuestros bosques.";
-export const TWITTER_DESCRIPTION = "Tecnología para detectar incendios forestales de forma temprana.";
+  "Detectamos focos de incendio con datos satelitales e IA y avisamos en minutos a municipios, brigadas y productores de la Patagonia. Sensores y drones se suman de forma progresiva.";
+export const TWITTER_DESCRIPTION = "Datos satelitales e IA para detectar incendios forestales de forma temprana en la Patagonia.";
