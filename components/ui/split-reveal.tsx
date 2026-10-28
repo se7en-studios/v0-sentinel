@@ -13,8 +13,9 @@ export function SplitReveal({ as: Tag = "h2", className, children }: Props) {
     if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let cancelled = false;
     let revert = () => {};
+    let io: IntersectionObserver | undefined;
 
-    void import("@/lib/gsap").then(({ gsap, ScrollTrigger, SplitText }) => {
+    void import("@/lib/gsap").then(({ gsap, SplitText, refreshSoon }) => {
       if (cancelled) return;
       const run = () => {
         const ctx = gsap.context(() => {
@@ -28,13 +29,23 @@ export function SplitReveal({ as: Tag = "h2", className, children }: Props) {
           return () => split.revert();
         }, el);
         revert = () => ctx.revert();
-        ScrollTrigger.refresh();
+        refreshSoon();
       };
-      void document.fonts.ready.then(() => !cancelled && run());
+      // ponytail: el corte en líneas mide el layout; se hace recién cuando el título está a ~1 pantalla, no los 14 al cargar.
+      io = new IntersectionObserver(
+        ([e]) => {
+          if (!e.isIntersecting) return;
+          io?.disconnect();
+          void document.fonts.ready.then(() => !cancelled && run());
+        },
+        { rootMargin: "100% 0px 100% 0px" },
+      );
+      io.observe(el);
     });
 
     return () => {
       cancelled = true;
+      io?.disconnect();
       revert();
     };
   }, []);
