@@ -1,5 +1,27 @@
 import type { ReactNode } from "react";
 
+// Etiqueta de capítulo: línea corta + texto. Mismo componente en todas las secciones.
+export function Eyebrow({
+  children,
+  align = "center",
+  className = "",
+}: {
+  children: ReactNode;
+  align?: "center" | "left";
+  className?: string;
+}) {
+  return (
+    <p
+      className={`a-eyebrow flex items-center gap-3 ${
+        align === "center" ? "justify-center" : "!text-left"
+      } ${className}`}
+    >
+      <span aria-hidden className="h-px w-8 bg-current opacity-50" />
+      {children}
+    </p>
+  );
+}
+
 const TONES = { dark: "", surface: "!bg-a-surface", forest: "a-forest", bone: "a-bone" };
 
 // Sección del sistema oscuro: fondo continuo, ancho acotado, título centrado con etiqueta.
@@ -15,7 +37,7 @@ export function ASection({
   children: ReactNode;
 }) {
   return (
-    <section id={id} className={`a-root relative scroll-mt-20 py-24 md:py-36 ${TONES[tone]} ${className}`}>
+    <section id={id} className={`a-root relative scroll-mt-20 py-24 md:py-32 ${TONES[tone]} ${className}`}>
       <div className="mx-auto w-full max-w-[1100px] px-5 md:px-8">{children}</div>
     </section>
   );

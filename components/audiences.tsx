@@ -3,6 +3,7 @@ import {
   type AudiencePanel,
 } from "@/components/audience-panels";
 import { SplitReveal } from "@/components/ui/split-reveal";
+import { Eyebrow } from "@/components/a-section";
 import { PHOTOS } from "@/lib/photos";
 
 const AUDIENCES: AudiencePanel[] = [
@@ -36,10 +37,11 @@ export function Audiences() {
       aria-label="Para quién"
       className="a-forest font-[family-name:var(--font-geist)]"
     >
-      <div className="mx-auto max-w-[1100px] px-5 py-24 md:px-8 md:py-32">
+      <div className="mx-auto max-w-[1100px] px-5 py-24 text-center md:px-8 md:py-32">
+        <Eyebrow>Para quién</Eyebrow>
         <SplitReveal
           as="h2"
-          className="a-display-m max-w-3xl text-white"
+          className="a-display-m mx-auto mt-5 max-w-3xl text-white"
         >
           Pensado para quienes <span className="a-em">llegan primero</span> al fuego
         </SplitReveal>

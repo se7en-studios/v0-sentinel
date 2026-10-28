@@ -1,5 +1,6 @@
 import { PlatformDemo } from "@/components/platform-demo";
 import { SplitReveal } from "@/components/ui/split-reveal";
+import { Eyebrow } from "@/components/a-section";
 
 export function Platform() {
   return (
@@ -8,8 +9,9 @@ export function Platform() {
       className="a-bone font-[family-name:var(--font-geist)]"
     >
       <div className="mx-auto max-w-[1280px] px-5 md:px-8">
-        <div className="py-24 md:py-32">
-          <SplitReveal as="h2" className="a-display-m max-w-3xl text-[#131a16]">
+        <div className="py-24 text-center md:py-32">
+          <Eyebrow>Cómo funciona</Eyebrow>
+          <SplitReveal as="h2" className="a-display-m mx-auto mt-5 max-w-3xl text-[#131a16]">
             Del satélite a tu celular, <span className="a-em">sin mirar un mapa.</span>
           </SplitReveal>
         </div>

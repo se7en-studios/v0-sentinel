@@ -947,3 +947,5 @@ html { scrollbar-width: thin; scrollbar-color: rgb(169 239 201 / 0.35) #0c1310; 
 /* Selección de foco más clara en tarjetas clickeables. */
 .a-card:focus-within { border-color: rgb(169 239 201 / 0.4); }
 
+
+

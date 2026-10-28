@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { SplitReveal } from "@/components/ui/split-reveal";
-import { ASection, aFocus } from "@/components/a-section";
+import { ASection, Eyebrow, aFocus } from "@/components/a-section";
 import { TeamBlock } from "@/components/team";
 import { AwardsBlock } from "@/components/awards";
 import { MomentsSection } from "@/components/moments";
@@ -15,10 +15,12 @@ export function Proof() {
     <>
       <ASection id="equipo" tone="bone" className="!pb-0">
         <span id="reconocimientos" className="absolute" aria-hidden />
-        <SplitReveal as="h2" className="a-display-m max-w-3xl">
+        <div className="text-center">
+        <Eyebrow>Quiénes somos</Eyebrow>
+        <SplitReveal as="h2" className="a-display-m mx-auto mt-5 max-w-3xl">
           Somos cuatro ingenieros de la Patagonia que queremos <span className="a-em">que el fuego se vea antes.</span>
         </SplitReveal>
-        <p className="a-sub a-rise mt-8 max-w-xl">
+        <p className="a-sub a-rise mx-auto mt-8 max-w-xl">
           Empezamos Sentinel en la universidad y lo seguimos construyendo nosotros.
           Todavía no tenemos pilotos con resultados medidos: por eso te mostramos
           quiénes somos, qué reconocimientos tuvo el proyecto y{" "}
@@ -27,6 +29,7 @@ export function Proof() {
           </Link>
           .
         </p>
+        </div>
 
         <div className="mt-16 md:mt-20">
           <TeamBlock />

@@ -2,6 +2,7 @@ import Image from "next/image";
 import { CLAIMS } from "@/lib/claims";
 import { PHOTOS, creditLine } from "@/lib/photos";
 import { SplitReveal } from "@/components/ui/split-reveal";
+import { Eyebrow } from "@/components/a-section";
 import { ProblemReveal } from "@/components/problem-reveal";
 
 const LINES = [
@@ -33,9 +34,10 @@ export function Problem() {
           className="absolute inset-0 bg-gradient-to-t from-a-bg via-a-bg/45 to-a-bg/5"
         />
         <div className="relative mx-auto w-full max-w-[1100px] px-5 pb-16 pt-40 md:px-8 md:pb-24">
+          <Eyebrow align="left">El problema</Eyebrow>
           <SplitReveal
             as="h2"
-            className="a-display-m max-w-4xl !text-[clamp(2.5rem,6vw,5rem)] text-white"
+            className="a-display-m mt-5 max-w-4xl text-white"
           >
             Un foco se corta con una cuadrilla o <span className="a-em">se convierte en un frente.</span>
           </SplitReveal>

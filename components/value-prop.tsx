@@ -1,4 +1,5 @@
 import { SplitReveal } from "@/components/ui/split-reveal";
+import { Eyebrow } from "@/components/a-section";
 import { CLAIMS } from "@/lib/claims";
 
 // Propuesta de valor en una pantalla: qué hacemos, para quién y en qué plazo. Solo repite lo que ya dice el resto de la landing.
@@ -25,13 +26,10 @@ export function ValueProp() {
       className="a-root a-glow relative px-5 py-24 md:px-8 md:py-32"
     >
       <div className="mx-auto max-w-[1100px]">
-        <p className="a-eyebrow flex items-center gap-3 !text-left">
-          <span aria-hidden className="h-px w-8 bg-a-accent/60" />
-          Qué hace Sentinel
-        </p>
+        <Eyebrow>Qué hace Sentinel</Eyebrow>
         <SplitReveal
           as="h2"
-          className="a-display-m mt-5 max-w-4xl !text-[clamp(2.25rem,5vw,4.25rem)] text-white"
+          className="a-display-m mx-auto mt-5 max-w-4xl text-center text-white"
         >
           Un aviso temprano de incendios forestales,{" "}
           <span className="a-em">para municipios, brigadas y productores.</span>
