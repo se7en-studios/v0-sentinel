@@ -981,3 +981,13 @@ body { overflow-x: clip; }
 [data-hero-word] { transition: none; }
 
 
+
+/* Celular: links de texto chicos ganan área táctil (~44px) sin mover el diseño (padding + margen negativo). */
+@media (pointer: coarse) {
+  #inicio a.inline-flex:not(.a-pill),
+  #en-vivo a.underline,
+  footer a:not(.tpf-big):not(.tpf-bub):not(.tpf-z) {
+    padding-block: 0.7rem;
+    margin-block: -0.7rem;
+  }
+}

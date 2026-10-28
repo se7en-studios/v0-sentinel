@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-const DIM = "#3b5547";
+const DIM = "#6a8576";
 const LIT = "#e3f6dc";
 const PIN_MQ =
   "(min-width: 1024px) and (prefers-reduced-motion: no-preference)";

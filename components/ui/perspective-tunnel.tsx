@@ -83,7 +83,12 @@ function TunnelCard({
     [0, 1],
     [stage.isMobile ? -1200 : -1700, stage.isMobile ? 350 : 500],
   );
-  const opacity = useTransform(local, [0, 0.18, 0.82, 0.98], [0, 1, 1, 0]);
+  // En celular la tarjeta se apaga antes de cruzar el plano del título (z=0, local≈0.77) para no taparlo.
+  const opacity = useTransform(
+    local,
+    stage.isMobile ? [0, 0.18, 0.6, 0.74] : [0, 0.18, 0.82, 0.98],
+    [0, 1, 1, 0],
+  );
 
   const width = stage.isMobile
     ? Math.max(130, Math.min(180, stage.width * 0.38))
@@ -241,7 +246,7 @@ export function PerspectiveTunnel({
 
         <motion.div
           style={{ scale: titleScale, opacity: titleOpacity }}
-          className="pointer-events-none z-0 flex max-w-3xl flex-col items-center px-6 text-center"
+          className="pointer-events-none relative z-30 flex max-w-3xl flex-col items-center px-6 text-center [text-shadow:0_2px_18px_rgba(0,0,0,0.85)]"
         >
           <p className="a-eyebrow">{eyebrow}</p>
           <h2 className="a-display mt-4 !text-[clamp(3rem,8.5vw,7.5rem)] !leading-[0.92]">
