@@ -972,3 +972,11 @@ body { overflow-x: clip; }
 .a-title { font-size: clamp(1.9rem, 3.8vw, 3rem); }
 .a-em { font-family: var(--font-serif-accent), "Instrument Serif", Georgia, serif; font-style: italic; font-weight: 400; font-variation-settings: normal; letter-spacing: -0.01em; font-size: 1.1em; }
 .a-eyebrow { font-family: var(--font-chivo), ui-monospace, monospace; font-weight: 500; letter-spacing: 0.14em; }
+/* ---- Efectos de scroll y mouse (ver ScrollFx) ---- */
+.a-marquee { transform: skewY(calc(var(--vel, 0) * -1.6deg)); }
+@media (prefers-reduced-motion: reduce) { .a-marquee { transform: none; } }
+@media (hover: hover) {
+  .a-card:hover { background-image: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgb(169 239 201 / 0.11), transparent 70%); }
+}
+[data-hero-word] { transition: none; }
+
