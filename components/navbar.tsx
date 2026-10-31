@@ -101,8 +101,9 @@ export function Navbar() {
     let last = window.scrollY;
     const onScroll = () => {
       const y = window.scrollY;
-      if (Math.abs(y - last) < 6) return;
-      setIsHidden(y > last && y > 240);
+      if (y < 80) { setIsHidden(false); last = y; return; }
+      if (Math.abs(y - last) < 8) return;
+      setIsHidden(y > last && y > 200);
       last = y;
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -154,6 +155,16 @@ export function Navbar() {
   }, [isOpen]);
 
   const barBg = isOpen ? "bg-a-bg" : "";
+  const onMobileNavClick = (id: string) => {
+    setIsOpen(false);
+    setIsHidden(false);
+    if (isHome) {
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      }, 50);
+    }
+  };
 
   const current = (id: string) =>
     isHome && activeSection === id
@@ -181,7 +192,7 @@ export function Navbar() {
         <div className="mx-auto grid h-14 max-w-6xl grid-cols-[1fr_auto] items-center gap-4 px-5 md:h-16 md:grid-cols-[1fr_auto_1fr] md:px-8">
           <a
             href={`${prefix}#inicio`}
-            onClick={() => setIsOpen(false)}
+            onClick={() => onMobileNavClick("inicio")}
             className={`flex w-fit items-center gap-2 rounded-sm ${RING}`}
           >
             <SentinelBrandLogo className="h-7 w-auto md:h-8" hole="#0a1018" />
@@ -240,7 +251,7 @@ export function Navbar() {
         <div
           id="mobile-menu"
           inert={!isOpen}
-          className={`fixed inset-x-0 bottom-0 top-14 overflow-y-auto bg-a-bg px-5 pb-8 pt-4 md:hidden ${
+          className={`fixed inset-x-0 bottom-0 top-14 overflow-y-auto overscroll-contain touch-pan-y bg-a-bg px-5 pb-8 pt-4 md:hidden ${
             isOpen ? "block" : "hidden"
           }`}
         >
@@ -250,7 +261,7 @@ export function Navbar() {
                 <a
                   href={`${prefix}#${l.id}`}
                   {...current(l.id)}
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => onMobileNavClick(l.id)}
                   className={`block py-4 text-lg font-medium aria-[current]:text-a-accent ${RING}`}
                 >
                   {l.label}
@@ -274,7 +285,7 @@ export function Navbar() {
           </ul>
           <a
             href={`${prefix}#contacto`}
-            onClick={() => setIsOpen(false)}
+            onClick={() => onMobileNavClick("contacto")}
             className={`a-pill mt-8 !h-12 w-full ${RING}`}
           >
             {c.pilot}

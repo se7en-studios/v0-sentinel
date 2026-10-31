@@ -277,7 +277,10 @@ export async function LiveChapter() {
                       scope="row"
                       className="py-3 pr-3 text-left font-medium text-[#e3f6dc]"
                     >
-                      {r.location.name}
+                      <span>{r.location.name}</span>
+                      <span className="block text-xs font-normal text-a-mute tabular-nums sm:hidden">
+                        {Math.round(r.temperature)} °C · {Math.round(r.humidity)}% · {Math.round(r.windSpeed)} km/h
+                      </span>
                     </th>
                     <td className="hidden py-3 pr-3 tabular-nums text-a-mute sm:table-cell">
                       {Math.round(r.temperature)} °C · {Math.round(r.humidity)}%

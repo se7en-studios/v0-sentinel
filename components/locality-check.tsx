@@ -337,7 +337,7 @@ function Result({
         <>
           <p className="mt-2 text-3xl font-semibold tabular-nums tracking-tight text-[#e3f6dc]">
             {fmt(km)} km
-            <span className="ml-2 text-[0.9375rem] font-normal text-a-mute">
+            <span className="block mt-1 sm:mt-0 sm:inline sm:ml-2 text-[0.9375rem] font-normal text-a-mute">
               {c.kmSuffix}
             </span>
           </p>

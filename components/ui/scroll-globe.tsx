@@ -98,7 +98,7 @@ export function ScrollGlobe({
       {/* Escenario fijo del globo: queda detrás del texto (el texto lo recubre con -mt). */}
       <div
         aria-hidden
-        className="pointer-events-none sticky top-0 z-10 h-screen overflow-hidden"
+        className="pointer-events-none sticky top-0 z-10 h-[100svh] overflow-hidden"
       >
         <div
           data-cg
@@ -124,7 +124,7 @@ export function ScrollGlobe({
       {/* Riel de capítulos: dónde estás dentro del recorrido. */}
       <nav
         aria-label={chapters}
-        className="pointer-events-none sticky top-0 z-30 -mt-[100vh] hidden h-screen items-center justify-end pr-6 md:flex lg:pr-10"
+        className="pointer-events-none sticky top-0 z-30 -mt-[100svh] hidden h-[100svh] items-center justify-end pr-6 md:flex lg:pr-10"
       >
         <ol className="pointer-events-auto grid gap-4">
           {sections.map((s, i) => (
@@ -151,7 +151,7 @@ export function ScrollGlobe({
         </ol>
       </nav>
 
-      <div className="relative z-20 -mt-[100vh]">
+      <div className="relative z-20 -mt-[100svh]">
         {sections.map((s, i) => (
           <section
             key={s.id}
@@ -161,7 +161,7 @@ export function ScrollGlobe({
               refs.current[i] = el;
             }}
             className={cn(
-              "flex min-h-screen flex-col justify-center px-5 py-20 md:px-12 lg:px-16",
+              "flex min-h-[100svh] flex-col justify-center px-5 py-20 md:px-12 lg:px-16",
               s.align === "center" && "items-center text-center",
               s.align === "right" && "items-end text-right",
               (!s.align || s.align === "left") && "items-start text-left",

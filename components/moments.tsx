@@ -50,12 +50,34 @@ export function MomentsSection() {
       </div>
 
       <MomentsPinner />
+
+      {/* En celular: carrusel horizontal fluido con snap táctil (sin transformaciones 3D pesadas ni zoom no estándar) */}
+      <div className="relative mt-8 -mx-5 px-5 md:hidden">
+        <ul className="flex gap-3.5 overflow-x-auto pb-4 pt-2 snap-x snap-mandatory scrollbar-none touch-pan-x">
+          {MOMENTS.map((m) => (
+            <li
+              key={m.src}
+              className="relative aspect-[3/4] w-[70vw] max-w-[260px] shrink-0 snap-center overflow-hidden rounded-2xl border border-white/25 shadow-xl"
+            >
+              <Image
+                src={m.src}
+                alt={m.alt}
+                fill
+                sizes="260px"
+                quality={90}
+                loading="lazy"
+                className="object-cover"
+              />
+            </li>
+          ))}
+        </ul>
+      </div>
       <CircularGallery
         items={MOMENTS}
-        className="-mt-2 h-[58vh] min-h-[440px] max-md:h-[84vh] max-md:min-h-[460px] max-md:[zoom:0.58] motion-reduce:hidden"
+        className="-mt-2 hidden h-[58vh] min-h-[440px] md:flex motion-reduce:!hidden"
       />
 
-      <ul className="mx-auto mt-12 hidden max-w-[1100px] grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5 motion-reduce:grid">
+      <ul className="mx-auto mt-12 hidden max-w-[1100px] grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5 motion-reduce:grid max-md:!hidden">
         {MOMENTS.map((m) => (
           <li key={m.src} className="relative aspect-[3/4] overflow-hidden rounded-xl border border-white/25">
             <Image src={m.src} alt={m.alt} fill sizes="(min-width: 1024px) 20vw, 45vw" quality={90} loading="lazy" className="object-cover" />

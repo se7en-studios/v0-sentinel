@@ -63,19 +63,13 @@ async function open(page: Page, settings: Record<string, unknown> = {}) {
 
 test("el reporte semanal se descarga como un PDF real", async ({ page }) => {
   await open(page, { org: "Estancia La Ñata" });
-  const button = page.getByRole("button", {
-    name: "Descargar reporte semanal (PDF)",
-  });
-  await expect(button).toBeEnabled({ timeout: 30_000 });
-  const [download] = await Promise.all([
-    page.waitForEvent("download"),
-    button.click(),
-  ]);
-  expect(download.suggestedFilename()).toMatch(
-    /^sentinel-reporte-semanal-\d{4}-\d{2}-\d{2}\.pdf$/,
-  );
-  const path = await download.path();
-  const bytes = await readFile(path);
+  // the data has to be there first: the report is made from what the panel shows
+  await expect(page.getByRole("list", { name: "Estado general" })).toContainText("Focos 24 h", { timeout: 30_000 });
+  await page.keyboard.press("Control+k");
+  await page.getByRole("dialog").getByRole("combobox").fill("reporte semanal");
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("option", { name: "Descargar reporte semanal (PDF)" }).click()]);
+  expect(download.suggestedFilename()).toMatch(/^sentinel-reporte-semanal-\d{4}-\d{2}-\d{2}\.pdf$/);
+  const bytes = await readFile(await download.path());
   expect(bytes.subarray(0, 5).toString("latin1")).toBe("%PDF-");
   expect(bytes.length).toBeGreaterThan(2000);
   await expect(page.getByText("Reporte descargado")).toBeVisible();
@@ -101,11 +95,11 @@ test("la paleta ofrece lo nuevo: reporte, modo simple, volver a elegir y los avi
   await input.fill("modo simple");
   await page.getByRole("option", { name: "Activar el modo simple" }).click();
   await expect(tab(page, "Recursos")).toBeHidden();
+  await expect(page.getByRole("dialog")).toHaveCount(0); // the first palette finished closing
   await page.keyboard.press("Control+k");
   await page.getByRole("dialog").getByRole("combobox").fill("modo simple");
-  await expect(
-    page.getByRole("option", { name: "Desactivar el modo simple" }),
-  ).toBeVisible();
+  // the palette repeats what was just used at the top, so the same option can appear twice
+  await expect(page.getByRole("option", { name: "Desactivar el modo simple" }).first()).toBeVisible();
 });
 
 test("la paleta lleva a los avisos y vuelve a abrir la pregunta inicial", async ({
@@ -138,7 +132,6 @@ test("g y una letra lleva a cada pantalla, también a Incendios", async ({
   page,
 }) => {
   await open(page);
-  await page.locator("body").click({ position: { x: 5, y: 5 } });
   await page.keyboard.press("g");
   await page.keyboard.press("f");
   await expect(tab(page, "Incendios")).toHaveAttribute("aria-current", "page");

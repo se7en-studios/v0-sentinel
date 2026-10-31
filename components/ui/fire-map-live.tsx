@@ -388,10 +388,10 @@ export function FireMapLive({
         </ul>
       </div>
 
-      <div className="a-brackets relative w-full overflow-hidden bg-a-surface aspect-[600/760] lg:aspect-auto lg:h-[min(84vh,840px)]">
+      <div className="a-brackets relative w-full overflow-hidden bg-a-surface aspect-[600/760] lg:aspect-auto lg:h-[min(84vh,840px)] touch-pan-y">
         <svg
           viewBox={`0 0 ${W} ${H}`}
-          className="absolute inset-0 h-full w-full"
+          className="absolute inset-0 h-full w-full touch-pan-y"
           onClick={() => setSel(null)}
           role="group"
           aria-label={c.mapAria(fires.length, places.length)}

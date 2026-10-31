@@ -806,8 +806,9 @@ html { scroll-padding-top: 88px; }
 
 /* v8: animaciones de las referencias (animos, Saapro, MyHealthPrac, Rainmaker). Todo transform/opacity/clip-path,
    dirigido por el scroll con CSS (sin JS) y apagado con prefers-reduced-motion. Sin soporte: el contenido queda visible. */
-html { scroll-behavior: smooth; }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+@media (prefers-reduced-motion: no-preference) and (pointer: fine) {
+  html { scroll-behavior: smooth; }
+}
 
 /* Carga: sube y aparece, escalonado con --d (ms). */
 @keyframes a-load-up { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
@@ -959,7 +960,7 @@ html { scrollbar-width: thin; scrollbar-color: rgb(169 239 201 / 0.35) #0c1310; 
 /* Fase 5: animaciones infinitas en pausa cuando la sección no está en pantalla (ver PauseOffscreen). */
 [data-off] .a-marquee-track, .a-marquee[data-off] .a-marquee-track { animation-play-state: paused !important; }
 [data-off] [data-cg], [data-off] .cg-dots, [data-off] .cg-dot { animation-play-state: paused !important; }
-body { overflow-x: clip; }
+html, body { overflow-x: clip; max-width: 100vw; }
 
 /* Momentos clavado: la rueda hace girar la galería (la variable --ry la anima GSAP). */
 #momentos[data-pin] .a-ring { animation: none; transform: rotateX(-7deg) rotateY(var(--ry, 0deg)); }
@@ -974,7 +975,7 @@ body { overflow-x: clip; }
 .a-eyebrow { font-family: var(--font-chivo), ui-monospace, monospace; font-weight: 500; letter-spacing: 0.14em; }
 /* ---- Efectos de scroll y mouse (ver ScrollFx) ---- */
 .a-marquee { transform: skewY(calc(var(--vel, 0) * -1.6deg)); will-change: transform; }
-@media (prefers-reduced-motion: reduce) { .a-marquee { transform: none; } }
+@media (prefers-reduced-motion: reduce), (pointer: coarse), (hover: none) { .a-marquee { transform: none !important; will-change: auto; } }
 @media (hover: hover) {
   .a-card:hover { background-image: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgb(169 239 201 / 0.11), transparent 70%); }
 }

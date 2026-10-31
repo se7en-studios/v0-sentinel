@@ -184,6 +184,45 @@ export function PerspectiveTunnel({
 
   const cards = buildCards(items);
 
+  // En celular: galería horizontal táctil y fluida; evita atrapar el scroll por 320svh y saturar la GPU.
+  if (stage.isMobile) {
+    return (
+      <section className="a-root px-5 py-20" aria-label={eyebrow}>
+        <div className="mx-auto max-w-xl text-center">
+          <p className="a-eyebrow">{eyebrow}</p>
+          <h2 className="a-display mt-4 !text-[clamp(2.5rem,8.5vw,4.5rem)] !leading-[0.96]">
+            {title}
+          </h2>
+        </div>
+        <div className="relative mt-8 -mx-5 px-5">
+          <div className="flex gap-3.5 overflow-x-auto pb-4 pt-2 snap-x snap-mandatory scrollbar-none touch-pan-x">
+            {items.map((it) => (
+              <figure
+                key={it.src}
+                className="relative aspect-[4/5] w-[70vw] max-w-[270px] shrink-0 snap-center overflow-hidden rounded-2xl bg-[#14231c] shadow-xl ring-1 ring-white/15 m-0"
+              >
+                <Image
+                  src={it.src}
+                  alt={it.alt}
+                  fill
+                  sizes="270px"
+                  loading="lazy"
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/85 via-black/20 to-transparent p-4">
+                  <figcaption className="text-[0.8125rem] font-medium uppercase tracking-[0.18em] text-white/95 drop-shadow">
+                    {it.title}
+                  </figcaption>
+                </div>
+              </figure>
+            ))}
+          </div>
+        </div>
+        {children}
+      </section>
+    );
+  }
+
   // Con movimiento reducido: una grilla simple, sin túnel ni sección alta.
   if (reduce) {
     return (

@@ -64,7 +64,7 @@ export function WhatsAppButton() {
   return (
     <aside
       aria-label={c.aside}
-      className="fixed bottom-4 right-4 z-50 md:bottom-6 md:right-6"
+      className="fixed bottom-[max(1rem,env(safe-area-inset-bottom,1rem))] right-4 z-50 md:bottom-6 md:right-6"
     >
       <a
         href={url ?? "#contacto"}

@@ -55,7 +55,7 @@ export function ProblemReveal({ lines }: { lines: string[] }) {
             trigger: root,
             start: "top 78%",
             end: "bottom 50%",
-            scrub: 0.4,
+            scrub: true,
           },
         });
       });
