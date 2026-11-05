@@ -122,7 +122,7 @@ export default async function BlogPostPage({
             className="object-cover"
             
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0c1310] via-[#0c1310]/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0e0f0e] via-[#0e0f0e]/70 to-transparent" />
         </div>
 
         <div className="max-w-3xl mx-auto px-6 lg:px-10 -mt-16 relative z-10">
@@ -131,7 +131,7 @@ export default async function BlogPostPage({
             className="flex items-center gap-2 mb-6 text-xs"
             style={{
               fontFamily: "var(--font-sans)",
-              color: "#9fb5a7",
+              color: "#a3a199",
             }}
           >
             <Link href="/" className="hover:text-a-accent transition-colors">
@@ -147,7 +147,7 @@ export default async function BlogPostPage({
             <span className="text-xs opacity-40">/</span>
             <span
               className="truncate max-w-[180px] sm:max-w-xs font-light"
-              style={{ color: "#e3f6dc" }}
+              style={{ color: "#ece9e2" }}
             >
               {post.title}
             </span>
@@ -157,7 +157,7 @@ export default async function BlogPostPage({
             className="text-xs mb-4"
             style={{
               fontFamily: "var(--font-sans)",
-              color: "#9fb5a7",
+              color: "#a3a199",
             }}
           >
             {formatDate(post.publishedAt, "long")}
@@ -179,7 +179,7 @@ export default async function BlogPostPage({
                     className="text-xl sm:text-2xl mb-4 font-semibold"
                     style={{
                       fontFamily: "var(--font-heading)",
-                      color: "#e3f6dc",
+                      color: "#ece9e2",
                     }}
                   >
                     {block.heading}
@@ -202,15 +202,15 @@ export default async function BlogPostPage({
                   <blockquote
                     className="my-6 pl-6 py-2 rounded-r-lg"
                     style={{
-                      borderLeft: "2px solid #a9efc9",
-                      background: "#16211b",
+                      borderLeft: "2px solid #e6e3dc",
+                      background: "#181a18",
                     }}
                   >
                     <p
                       className="text-xl sm:text-2xl leading-snug font-medium italic"
                       style={{
                         fontFamily: "var(--font-heading)",
-                        color: "#e3f6dc",
+                        color: "#ece9e2",
                       }}
                     >
                       {post.pullQuote}
@@ -226,7 +226,7 @@ export default async function BlogPostPage({
             className="inline-flex items-center gap-2 mb-16 text-sm font-normal transition-colors hover:text-white"
             style={{
               fontFamily: "var(--font-sans)",
-              color: "#a9efc9",
+              color: "#e6e3dc",
             }}
           >
             {post.relatedLink.label}
@@ -240,7 +240,7 @@ export default async function BlogPostPage({
               className="text-lg mb-5 font-semibold"
               style={{
                 fontFamily: "var(--font-heading)",
-                color: "#e3f6dc",
+                color: "#ece9e2",
               }}
             >
               ¿Querés monitoreo continuo en tu territorio?
@@ -277,7 +277,7 @@ export default async function BlogPostPage({
                       style={{
                         fontFamily: "var(--font-heading)",
                         fontWeight: 700,
-                        color: "#e3f6dc",
+                        color: "#ece9e2",
                       }}
                     >
                       {r.title}
@@ -287,7 +287,7 @@ export default async function BlogPostPage({
                       style={{
                         fontFamily: "var(--font-sans)",
                         fontWeight: 400,
-                        color: "#9fb5a7",
+                        color: "#a3a199",
                       }}
                     >
                       {r.excerpt}

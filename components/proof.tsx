@@ -52,7 +52,7 @@ export function Proof() {
   const c = t(COPY);
   return (
     <>
-      <ASection id="equipo" tone="bone" className="a-fade-top !pb-0">
+      <ASection id="equipo" tone="bone" className="a-fade-top !pb-20 md:!pb-28">
         <span id="reconocimientos" className="absolute" aria-hidden />
         <div className="text-center">
         <Eyebrow>{c.eyebrow}</Eyebrow>

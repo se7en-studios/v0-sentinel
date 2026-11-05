@@ -111,7 +111,7 @@ function Scene({
     >
       <defs>
         <linearGradient id={`sky-${id}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#0c1310" />
+          <stop offset="0" stopColor="#0e0f0e" />
           <stop offset="1" stopColor={withSentinel ? "#16251d" : "#2a2218"} />
         </linearGradient>
         <radialGradient id={`fire-${id}`}>
@@ -178,7 +178,7 @@ function Scene({
           <circle
             r="104"
             fill="none"
-            stroke="#a9efc9"
+            stroke="#e6e3dc"
             strokeWidth="1.5"
             strokeDasharray="7 6"
             className={TWEEN}
@@ -387,7 +387,7 @@ export function FireSimulator() {
                   type="button"
                   aria-pressed={wind === w}
                   onClick={() => pickWind(w)}
-                  className={`rounded-full px-3.5 py-1.5 text-sm font-medium capitalize transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${wind === w ? "bg-a-accent text-[#06150d]" : "text-a-mute hover:text-white"}`}
+                  className={`rounded-full px-3.5 py-1.5 text-sm font-medium capitalize transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${wind === w ? "bg-a-accent text-[#0e0f0e]" : "text-a-mute hover:text-white"}`}
                 >
                   Viento {w}
                 </button>
@@ -398,7 +398,7 @@ export function FireSimulator() {
               type="button"
               onClick={playing ? stop : play}
               aria-pressed={playing}
-              className={`inline-flex min-w-[9.5rem] justify-center motion-reduce:hidden items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-[0.97] ${playing ? "border border-a-accent bg-transparent text-a-accent" : "bg-a-accent text-[#06150d]"}`}
+              className={`inline-flex min-w-[9.5rem] justify-center motion-reduce:hidden items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-[0.97] ${playing ? "border border-a-accent bg-transparent text-a-accent" : "bg-a-accent text-[#0e0f0e]"}`}
             >
               {playing ? (
                 <Pause className="size-4" aria-hidden />
@@ -426,7 +426,7 @@ export function FireSimulator() {
               if (playing) stop();
               setTime(Number(e.target.value));
             }}
-            className="block h-8 w-full cursor-pointer accent-[#a9efc9] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+            className="block h-8 w-full cursor-pointer accent-[#e6e3dc] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
           />
           <div aria-hidden className="relative mt-1 h-5">
             {[0, 10, 20, 30, 40, 50, 60].map((t) => (

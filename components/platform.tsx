@@ -23,12 +23,12 @@ export function Platform() {
   return (
     <section
       id="plataforma"
-      className="a-bone a-fade-top a-fade-bottom font-[family-name:var(--font-geist)]"
+      className="a-root a-fade-top a-fade-bottom font-[family-name:var(--font-geist)]"
     >
       <div className="mx-auto max-w-[1280px] px-5 md:px-8">
         <div className="py-24 text-center md:py-32">
           <Eyebrow>{c.eyebrow}</Eyebrow>
-          <SplitReveal as="h2" className="a-display-m mx-auto mt-5 max-w-3xl text-[#131a16]">
+          <SplitReveal as="h2" className="a-display-m mx-auto mt-5 max-w-3xl text-white">
             {c.title}<span className="a-em">{c.em}</span>
           </SplitReveal>
         </div>
@@ -36,7 +36,7 @@ export function Platform() {
         <div className="flex justify-center pb-24 pt-16 md:pb-32">
           <a
             href="#en-vivo"
-            className="inline-flex min-h-12 items-center gap-2 rounded-full border border-[#131a16]/30 px-6 font-medium text-[#131a16] transition-colors hover:bg-[#131a16] hover:text-[#e6e3dc]"
+            className="inline-flex min-h-12 items-center gap-2 rounded-full border border-white/30 px-6 font-medium text-[#ece9e2] transition-colors hover:bg-[#ece9e2] hover:text-[#0e0f0e]"
           >
             {c.cta}
             <span aria-hidden>↓</span>

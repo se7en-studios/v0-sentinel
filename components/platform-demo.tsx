@@ -130,10 +130,10 @@ function Stacked() {
       <ol className="space-y-20">
         {STEPS.map((s, i) => (
           <li key={i}>
-            <p className="text-sm tabular-nums text-[#4b5750]" aria-hidden>
+            <p className="text-sm tabular-nums text-a-mute" aria-hidden>
               0{i + 1}
             </p>
-            <h3 className="a-title mt-2 text-[#131a16]">{c.steps[i].title}</h3>
+            <h3 className="a-title mt-2 text-[#ece9e2]">{c.steps[i].title}</h3>
             <p className="a-sub mt-3 max-w-xl">{c.steps[i].text}</p>
             <div className="a-brackets mt-6">
               <span className="a-bk a-bk-tr" aria-hidden />
@@ -153,7 +153,7 @@ function Stacked() {
           </li>
         ))}
       </ol>
-      <p className="mt-10 max-w-xl text-xs leading-relaxed text-[#4b5750]">
+      <p className="mt-10 max-w-xl text-xs leading-relaxed text-a-mute">
         {c.caption}
       </p>
     </div>

@@ -90,7 +90,7 @@ function Intro({ entries }: { entries: AwardEntry[] }) {
           >
             <span className="tabular-nums text-a-faint">{pad(i + 1)}</span>
             <span className="tabular-nums text-a-mute">{e.year || "—"}</span>
-            <span className="font-medium leading-snug text-[#e3f6dc]">
+            <span className="font-medium leading-snug text-[#ece9e2]">
               {e.name}
             </span>
             <span className="text-a-mute">{e.result}</span>
@@ -179,7 +179,7 @@ function Panel({ e, i, total }: { e: AwardEntry; i: number; total: number }) {
       <span
         aria-hidden
         data-numeral
-        className="pointer-events-none absolute -top-[2vw] right-[3vw] select-none font-[family-name:var(--font-display)] text-[clamp(7rem,24vw,22rem)] leading-none text-transparent [-webkit-text-stroke:1.5px_rgb(169_239_201/0.28)]"
+        className="pointer-events-none absolute -top-[2vw] right-[3vw] select-none font-[family-name:var(--font-display)] text-[clamp(7rem,24vw,22rem)] leading-none text-transparent [-webkit-text-stroke:1.5px_rgb(236_233_226/0.28)]"
       >
         {e.year || "CICE"}
       </span>
@@ -196,7 +196,7 @@ function Panel({ e, i, total }: { e: AwardEntry; i: number; total: number }) {
           <p
             className={`mt-5 inline-block rounded-full px-4 py-1.5 text-[0.9375rem] font-medium ${
               won
-                ? "bg-a-accent text-[#06150d]"
+                ? "bg-a-accent text-[#0e0f0e]"
                 : "border border-a-accent/60 text-a-accent"
             }`}
           >
@@ -206,7 +206,7 @@ function Panel({ e, i, total }: { e: AwardEntry; i: number; total: number }) {
             {e.name}
           </h3>
           {e.caption ? (
-            <p className="a-sub mt-5 max-w-lg !text-[#e3f6dc]/85">
+            <p className="a-sub mt-5 max-w-lg !text-[#ece9e2]/85">
               {e.caption}
             </p>
           ) : null}
@@ -215,7 +215,7 @@ function Panel({ e, i, total }: { e: AwardEntry; i: number; total: number }) {
               href={e.href}
               target="_blank"
               rel="noopener noreferrer"
-              className={`mt-7 inline-flex min-h-11 items-center gap-2 rounded-full border border-white/40 px-5 text-[0.9375rem] font-medium text-white transition-colors hover:bg-white hover:text-[#06150d] ${aFocus}`}
+              className={`mt-7 inline-flex min-h-11 items-center gap-2 rounded-full border border-white/40 px-5 text-[0.9375rem] font-medium text-white transition-colors hover:bg-white hover:text-[#0e0f0e] ${aFocus}`}
             >
               {c.read}
               <span className="sr-only">{c.newTab}</span>

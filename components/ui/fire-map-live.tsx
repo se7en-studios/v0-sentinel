@@ -61,8 +61,8 @@ const graticule = geoGraticule().step([4, 4])();
 
 // Dot color encodes intensity (radiative power); it is a visual cue, not a measurement.
 const STRONG_FRP = 50;
-const MINT = "#a9efc9";
-const INK = "#e3f6dc";
+const MINT = "#e6e3dc";
+const INK = "#ece9e2";
 const HOT = "#ffc46b";
 const EMBER = "#ff7a45";
 const dotColor = (frp: number) => (frp >= STRONG_FRP ? HOT : EMBER);
@@ -202,7 +202,7 @@ function acquired(f: LiveFire, c: C) {
 type Sel = { kind: "fire" | "place"; i: number } | null;
 
 const focusRing =
-  "outline-none cursor-pointer [&:focus-visible>circle:first-of-type]:stroke-[#a9efc9] [&:focus-visible>circle:first-of-type]:stroke-2";
+  "outline-none cursor-pointer [&:focus-visible>circle:first-of-type]:stroke-[#e6e3dc] [&:focus-visible>circle:first-of-type]:stroke-2";
 
 export function FireMapLive({
   fires,
@@ -353,8 +353,8 @@ export function FireMapLive({
                 aria-pressed={on}
                 className={`min-h-11 rounded-full border px-4 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent ${
                   on
-                    ? "border-a-accent bg-a-accent text-[#06150d]"
-                    : "border-a-line bg-[rgb(214_245_201/0.05)] text-[#e3f6dc] hover:bg-[rgb(214_245_201/0.11)]"
+                    ? "border-a-accent bg-a-accent text-[#0e0f0e]"
+                    : "border-a-line bg-[rgb(214_245_201/0.05)] text-[#ece9e2] hover:bg-[rgb(214_245_201/0.11)]"
                 }`}
               >
                 {c.viewLabels[key]}
@@ -422,8 +422,8 @@ export function FireMapLive({
                 key={i}
                 className="lv-land"
                 d={d}
-                fill="rgba(169,239,201,0.1)"
-                stroke="rgba(169,239,201,0.45)"
+                fill="rgba(230,227,220,0.1)"
+                stroke="rgba(230,227,220,0.45)"
                 strokeWidth={0.8}
                 vectorEffect="non-scaling-stroke"
               />
@@ -523,7 +523,7 @@ export function FireMapLive({
                     width={10 / k}
                     height={10 / k}
                     transform={`rotate(45 ${x} ${y})`}
-                    fill="#0c1310"
+                    fill="#0e0f0e"
                     stroke={RISK_ON_DARK[p.label]}
                     strokeWidth={(isSel ? 3 : 2) / k}
                   />
@@ -572,7 +572,7 @@ export function FireMapLive({
               <span
                 key={p.name}
                 aria-hidden="true"
-                className="pointer-events-none absolute text-xs font-medium text-[#e3f6dc] [text-shadow:0_1px_3px_#0c1310]"
+                className="pointer-events-none absolute text-xs font-medium text-[#ece9e2] [text-shadow:0_1px_3px_#0e0f0e]"
                 style={{
                   left: `${(g.places[i][0] / W) * 100}%`,
                   top: `${(g.places[i][1] / H) * 100}%`,
@@ -586,7 +586,7 @@ export function FireMapLive({
 
         <div
           aria-live="polite"
-          className="absolute inset-x-3 bottom-11 sm:left-11 rounded-xl border border-a-line bg-a-bg p-4 text-sm leading-relaxed text-[#e3f6dc] sm:right-auto sm:max-w-sm"
+          className="absolute inset-x-3 bottom-11 sm:left-11 rounded-xl border border-a-line bg-a-bg p-4 text-sm leading-relaxed text-[#ece9e2] sm:right-auto sm:max-w-sm"
         >
           <Detail
             sel={sel}

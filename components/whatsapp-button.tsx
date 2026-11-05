@@ -69,7 +69,7 @@ export function WhatsAppButton() {
       <a
         href={url ?? "#contacto"}
         {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-        className="flex size-12 items-center justify-center rounded-full border border-a-line bg-a-bg text-a-accent transition-colors hover:border-a-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a9efc9]"
+        className="flex size-12 items-center justify-center rounded-full border border-a-line bg-a-bg text-a-accent transition-colors hover:border-a-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e6e3dc]"
         aria-label={external ? c.ariaExternal : c.ariaForm}
       >
         <MessageCircle aria-hidden className="size-5" />

@@ -76,19 +76,19 @@ export function ValueProp() {
           {c.title}{" "}
           <span className="a-em">{c.titleEm}</span>
         </SplitReveal>
-        <ol className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-a-line bg-a-line md:grid-cols-3">
+        <ol className="mt-14 grid gap-x-16 gap-y-10 md:grid-cols-3">
           {c.points.map((p, i) => (
-            <li key={p.verb} className="bg-a-bg p-6 md:p-8">
+            <li key={p.verb} className="border-t border-white/25 pt-6">
               <span
                 aria-hidden
                 className="font-[family-name:var(--font-display)] text-5xl leading-none text-a-accent/80"
               >
                 {String(i + 1).padStart(2, "0")}
               </span>
-              <h3 className="a-display-m mt-5 !text-[clamp(1.75rem,2.6vw,2.25rem)] text-[#e3f6dc]">
+              <h3 className="a-display-m mt-5 !text-[clamp(1.75rem,2.6vw,2.25rem)] text-[#ece9e2]">
                 {p.verb}
               </h3>
-              <p className="mt-3 text-[1.0625rem] leading-relaxed text-[#b4c9bb]">
+              <p className="mt-3 text-[1.0625rem] leading-relaxed text-[#b9b6ae]">
                 {p.text}
               </p>
             </li>

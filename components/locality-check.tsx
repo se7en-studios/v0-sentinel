@@ -192,7 +192,7 @@ export function LiveExplorer({
       >
         <h3
           id={`${uid}-title`}
-          className="font-[family-name:var(--font-display)] text-[clamp(1.5rem,2.6vw,2rem)] leading-tight text-[#e3f6dc]"
+          className="font-[family-name:var(--font-display)] text-[clamp(1.5rem,2.6vw,2rem)] leading-tight text-[#ece9e2]"
         >
           {c.title}
         </h3>
@@ -226,7 +226,7 @@ export function LiveExplorer({
             onFocus={() => setOpen(true)}
             onBlur={() => setOpen(false)}
             onKeyDown={onKeyDown}
-            className="min-h-12 w-full rounded-full border border-a-line bg-a-bg pl-11 pr-12 text-base text-[#e3f6dc] placeholder:text-a-mute focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent"
+            className="min-h-12 w-full rounded-full border border-a-line bg-a-bg pl-11 pr-12 text-base text-[#ece9e2] placeholder:text-a-mute focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent"
           />
           {query && (
             <button
@@ -236,7 +236,7 @@ export function LiveExplorer({
                 clear();
                 inputRef.current?.focus();
               }}
-              className="absolute right-1 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full text-a-mute hover:text-[#e3f6dc] focus-visible:outline-2 focus-visible:outline-a-accent"
+              className="absolute right-1 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full text-a-mute hover:text-[#ece9e2] focus-visible:outline-2 focus-visible:outline-a-accent"
             >
               <X aria-hidden="true" className="size-5" />
             </button>
@@ -257,7 +257,7 @@ export function LiveExplorer({
                 onMouseDown={(e) => e.preventDefault()}
                 onMouseMove={() => setActive(oi)}
                 onClick={() => choose(pi)}
-                className={`flex min-h-11 cursor-pointer items-baseline justify-between gap-3 rounded-lg px-3 py-2.5 text-base ${oi === active ? "bg-a-accent/15 text-[#e3f6dc]" : "text-[#e3f6dc]/90"}`}
+                className={`flex min-h-11 cursor-pointer items-baseline justify-between gap-3 rounded-lg px-3 py-2.5 text-base ${oi === active ? "bg-a-accent/15 text-[#ece9e2]" : "text-[#ece9e2]/90"}`}
               >
                 <span className="min-w-0 truncate font-medium">
                   {PLACES[pi][0]}
@@ -317,7 +317,7 @@ function Result({
   const fmt = (n: number) => n.toLocaleString(LOCALE[lang]);
   return (
     <div className="rounded-xl border border-a-line bg-a-bg p-4">
-      <p className="text-[0.9375rem] font-medium text-[#e3f6dc]">
+      <p className="text-[0.9375rem] font-medium text-[#ece9e2]">
         {PLACES[i][0]}, {PLACES[i][1]}
       </p>
       {km === null ? (
@@ -335,13 +335,13 @@ function Result({
         </>
       ) : (
         <>
-          <p className="mt-2 text-3xl font-semibold tabular-nums tracking-tight text-[#e3f6dc]">
+          <p className="mt-2 text-3xl font-semibold tabular-nums tracking-tight text-[#ece9e2]">
             {fmt(km)} km
             <span className="block mt-1 sm:mt-0 sm:inline sm:ml-2 text-[0.9375rem] font-normal text-a-mute">
               {c.kmSuffix}
             </span>
           </p>
-          <p className="mt-1.5 text-[0.9375rem] tabular-nums text-[#e3f6dc]">
+          <p className="mt-1.5 text-[0.9375rem] tabular-nums text-[#ece9e2]">
             {fmt(n50)} {n50 === 1 ? c.hotspot : c.hotspots} {c.in50} ·{" "}
             {fmt(n100)} {n100 === 1 ? c.hotspot : c.hotspots} {c.in100}
           </p>

@@ -1,7 +1,7 @@
 import { ArrowDown, ArrowRight } from "lucide-react";
 import { HeroReveal } from "@/components/hero-reveal";
 import { Magnetic } from "@/components/ui/magnetic";
-import { HeroWorldVideo } from "@/components/hero-world-video";
+import { HeroGlobe } from "@/components/hero-globe";
 import { t, type Copy } from "@/lib/i18n";
 
 const COPY: Copy<{
@@ -14,17 +14,17 @@ const COPY: Copy<{
 }> = {
   es: {
     proofs: ["Lee NASA FIRMS y GOES-19", "Panel funcionando hoy", "Objetivo de aviso: 8 min"],
-    headline: "El aviso llega antes que el humo.",
+    headline: "Te avisamos del incendio antes de que se vea el humo.",
     emWord: "humo",
-    sub: "Detectamos focos de incendio desde el espacio y avisamos en minutos a quien tiene que actuar. Para municipios, brigadas y productores de la Patagonia.",
+    sub: "Sentinel lee los satélites y manda un WhatsApp con ubicación y acceso a quien tiene que actuar. Para municipios, brigadas y productores de la Patagonia. Todo desde la nube, sin instalar nada.",
     cta: "Pedir un piloto",
     how: "Ver cómo funciona",
   },
   en: {
     proofs: ["Reads NASA FIRMS and GOES-19", "Dashboard working today", "Alert target: 8 min"],
-    headline: "The alert arrives before the smoke.",
+    headline: "We tell you about the fire before the smoke shows.",
     emWord: "smoke",
-    sub: "We detect wildfire hotspots from space and alert whoever needs to act within minutes. For municipalities, fire brigades and producers across Patagonia.",
+    sub: "Sentinel reads the satellites and sends a WhatsApp alert with location and access to whoever has to act. For municipalities, fire brigades and producers across Patagonia. All from the cloud, nothing to install.",
     cta: "Request a pilot",
     how: "See how it works",
   },
@@ -42,12 +42,12 @@ export function Hero() {
         id="inicio"
         className="a-root relative isolate flex min-h-[100svh] flex-col justify-end overflow-hidden"
       >
-        {/* Fondo azul noche que continúa el del video; el wrapper conserva data-hero-photo para el efecto de scroll. */}
+        {/* Fondo azul noche que continúa el del globo; el wrapper conserva data-hero-photo para el efecto de scroll. */}
         <div
           data-hero-photo
           className="a-photo-in absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_72%_46%,#10203a_0%,#0b1426_52%,#0a1018_100%)] will-change-transform"
         >
-          <HeroWorldVideo />
+          <HeroGlobe />
         </div>
         <div data-hero-dim aria-hidden className="absolute inset-0 -z-10 bg-a-bg opacity-0" />
         <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-r from-[#0a1018]/75 via-[#0a1018]/10 to-transparent to-60%" />
@@ -67,7 +67,7 @@ export function Hero() {
             ))}
           </h1>
 
-          <p className="a-sub a-load mt-6 max-w-xl text-[#e3f6dc]" style={delay(240)}>
+          <p className="a-sub a-load mt-6 max-w-xl text-[#ece9e2]" style={delay(240)}>
             {c.sub}
           </p>
 
@@ -75,14 +75,14 @@ export function Hero() {
             <Magnetic>
               <a href="#contacto" className="a-pill !pr-1.5">
                 {c.cta}
-                <span className="grid size-8 place-items-center rounded-full bg-[#06150d] text-a-accent">
+                <span className="grid size-8 place-items-center rounded-full bg-[#0e0f0e] text-a-accent">
                   <ArrowRight className="size-4" aria-hidden />
                 </span>
               </a>
             </Magnetic>
             <a
               href="#plataforma"
-              className="inline-flex items-center gap-2 rounded-sm text-[0.9375rem] text-[#e3f6dc] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#a9efc9]"
+              className="inline-flex items-center gap-2 rounded-sm text-[0.9375rem] text-[#ece9e2] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#e6e3dc]"
             >
               {c.how}
               <ArrowDown className="size-4" aria-hidden />
@@ -90,7 +90,7 @@ export function Hero() {
           </div>
 
           <ul
-            className="a-load mt-10 flex flex-col divide-y divide-a-line border-y border-a-line text-[0.9375rem] text-[#e3f6dc] sm:flex-row sm:divide-x sm:divide-y-0"
+            className="a-load mt-10 flex flex-col divide-y divide-a-line border-y border-a-line text-[0.9375rem] text-[#ece9e2] sm:flex-row sm:divide-x sm:divide-y-0"
             style={delay(560)}
           >
             {c.proofs.map((p) => (

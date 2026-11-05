@@ -58,7 +58,7 @@ const SOURCES = [
   },
 ];
 
-const H2 = "a-rise mt-14 mb-3 text-2xl font-semibold tracking-tight text-[#e3f6dc]";
+const H2 = "a-rise mt-14 mb-3 text-2xl font-semibold tracking-tight text-[#ece9e2]";
 
 export default function MetodologiaPage() {
   return (
@@ -67,7 +67,7 @@ export default function MetodologiaPage() {
         <Navbar />
       </header>
       <main id="main-content" className="a-root text-[17px] leading-relaxed">
-      <div className="mx-auto max-w-3xl px-6 pb-28 pt-36 text-[#cfe6d7] [&_a]:text-a-accent [&_strong]:text-[#e3f6dc]">
+      <div className="mx-auto max-w-3xl px-6 pb-28 pt-36 text-[#cfe6d7] [&_a]:text-a-accent [&_strong]:text-[#ece9e2]">
         <h1 className="a-display-m a-load mb-8" style={{ "--d": "120ms" } as React.CSSProperties}>
           Cómo detectamos, qué verificamos y qué todavía no podemos afirmar.
         </h1>

@@ -72,7 +72,7 @@ export function AlertPhone({ tone = "dark" }: { tone?: "dark" | "light" }) {
         role="tablist"
         aria-label="Quién recibe la alerta"
         onKeyDown={onKey}
-        className={`mb-5 flex rounded-full border p-1 ${light ? "border-[#14231c]/30" : "border-a-line"}`}
+        className={`mb-5 flex rounded-full border p-1 ${light ? "border-[#161816]/30" : "border-a-line"}`}
       >
         {ALERTS.map((a, i) => (
           <button
@@ -87,11 +87,11 @@ export function AlertPhone({ tone = "dark" }: { tone?: "dark" | "light" }) {
             aria-controls="ap-panel"
             tabIndex={i === active ? 0 : -1}
             onClick={() => setActive(i)}
-            className={`min-h-11 flex-1 rounded-full px-3 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${light ? "focus-visible:outline-[#14231c]" : "focus-visible:outline-[#a9efc9]"} ${
+            className={`min-h-11 flex-1 rounded-full px-3 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${light ? "focus-visible:outline-[#161816]" : "focus-visible:outline-[#e6e3dc]"} ${
               i === active
                 ? light
-                  ? "bg-[#14231c] text-white"
-                  : "bg-a-accent text-[#06150d]"
+                  ? "bg-[#161816] text-white"
+                  : "bg-a-accent text-[#0e0f0e]"
                 : light
                   ? "text-[#4b5750] hover:text-[#131a16]"
                   : "text-a-mute hover:text-white"

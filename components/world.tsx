@@ -128,7 +128,7 @@ export function World() {
         <>
           <a href="#contacto" className="a-pill !pr-1.5">
             {c.cta}
-            <span className="grid size-8 place-items-center rounded-full bg-[#06150d] text-a-accent">
+            <span className="grid size-8 place-items-center rounded-full bg-[#0e0f0e] text-a-accent">
               <ArrowRight className="size-4" aria-hidden />
             </span>
           </a>

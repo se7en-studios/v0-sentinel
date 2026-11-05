@@ -21,7 +21,7 @@ export type AudiencePanel = {
 };
 
 const LINK =
-  "mt-8 inline-flex min-h-11 items-center gap-2 self-start rounded-full bg-a-accent px-6 text-[0.9375rem] font-medium text-[#06150d] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white";
+  "mt-8 inline-flex min-h-11 items-center gap-2 self-start rounded-full bg-a-accent px-6 text-[0.9375rem] font-medium text-[#0e0f0e] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white";
 
 // Apilados por defecto (mobile, reduced-motion, sin JS). En lg+ con movimiento, GSAP
 // marca data-pin y cada panel se descubre con clip-path mientras la sección queda fija.

@@ -64,7 +64,7 @@ export function CTA() {
           </p>
           <SplitReveal as="h2" className="a-display mt-5 !tracking-[-0.03em]">
             {c.heading}{" "}
-            <span className="bg-gradient-to-r from-[#a9efc9] via-[#d8f5cf] to-[#ffb27a] bg-clip-text pr-[0.15em] text-transparent">
+            <span className="bg-gradient-to-r from-[#ffb35c] via-[#ff8a3d] to-[#e8501f] bg-clip-text pr-[0.15em] text-transparent">
               {c.accent}
             </span>
           </SplitReveal>

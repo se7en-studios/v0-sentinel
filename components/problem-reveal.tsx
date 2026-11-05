@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 
 const DIM = "#6a8576";
-const LIT = "#e3f6dc";
+const LIT = "#ece9e2";
 const PIN_MQ =
   "(min-width: 1024px) and (prefers-reduced-motion: no-preference)";
 const FLOW_MQ =

@@ -132,7 +132,7 @@ export function ScrollGlobe({
               <a
                 href={`#${s.id}`}
                 aria-current={i === active ? "step" : undefined}
-                className="group flex items-center justify-end gap-3 text-[0.8125rem] uppercase tracking-[0.18em] text-a-faint transition-colors aria-[current]:text-a-accent hover:text-[#e3f6dc]"
+                className="group flex items-center justify-end gap-3 text-[0.8125rem] uppercase tracking-[0.18em] text-a-faint transition-colors aria-[current]:text-a-accent hover:text-[#ece9e2]"
               >
                 <span className="opacity-0 transition-opacity group-hover:opacity-100 group-aria-[current]:opacity-100">
                   {s.badge}
@@ -186,7 +186,7 @@ export function ScrollGlobe({
               >
                 {s.title}
                 {s.subtitle ? (
-                  <span className="block bg-gradient-to-r from-[#a9efc9] via-[#d8f5cf] to-[#ffb27a] bg-clip-text text-transparent">
+                  <span className="block bg-gradient-to-r from-[#ffb35c] via-[#ff8a3d] to-[#e8501f] bg-clip-text text-transparent">
                     {s.subtitle}
                   </span>
                 ) : null}
@@ -207,7 +207,7 @@ export function ScrollGlobe({
                       key={f.title}
                       className="rounded-xl border border-a-line bg-a-bg/85 p-4 text-left"
                     >
-                      <p className="font-semibold text-[#e3f6dc]">{f.title}</p>
+                      <p className="font-semibold text-[#ece9e2]">{f.title}</p>
                       <p className="mt-1 text-sm text-a-mute">
                         {f.description}
                       </p>

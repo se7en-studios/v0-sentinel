@@ -34,7 +34,7 @@ export function MomentsSection() {
     <section
       id="momentos"
       aria-labelledby="momentos-title"
-      className="a-root a-glow relative overflow-hidden px-5 py-24 md:px-8 md:py-32 data-[pin]:flex data-[pin]:h-screen data-[pin]:flex-col data-[pin]:justify-center data-[pin]:pb-0 data-[pin]:pt-16"
+      className="a-root a-glow relative overflow-hidden px-5 py-24 md:px-8 md:py-32 data-[pin]:flex data-[pin]:h-screen data-[pin]:flex-col data-[pin]:justify-center data-[pin]:pb-6 data-[pin]:pt-16"
     >
       <div className="mx-auto max-w-[1100px] text-center">
         <p className="a-eyebrow flex items-center justify-center gap-3 !text-a-accent">
@@ -74,7 +74,7 @@ export function MomentsSection() {
       </div>
       <CircularGallery
         items={MOMENTS}
-        className="-mt-2 hidden h-[58vh] min-h-[440px] md:flex motion-reduce:!hidden"
+        className="-mt-2 hidden h-[min(58vh,calc(100svh-24rem))] min-h-[280px] md:flex motion-reduce:!hidden"
       />
 
       <ul className="mx-auto mt-12 hidden max-w-[1100px] grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5 motion-reduce:grid max-md:!hidden">

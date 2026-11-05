@@ -64,7 +64,7 @@ export default function BlogIndex() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm text-a-mute">{formatDate(post.publishedAt, "long")}</p>
-                    <h2 className="mt-2 text-2xl font-semibold leading-snug text-[#e3f6dc] transition-colors group-hover:text-a-accent">
+                    <h2 className="mt-2 text-2xl font-semibold leading-snug text-[#ece9e2] transition-colors group-hover:text-a-accent">
                       {post.title}
                     </h2>
                     <p className="mt-3 line-clamp-2 max-w-2xl text-base leading-relaxed text-a-mute">

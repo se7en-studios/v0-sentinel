@@ -109,7 +109,7 @@ function TunnelCard({
       style={{ width, transform, opacity, zIndex: card.index + 1 }}
       className="absolute left-1/2 top-1/2 m-0 aspect-[4/5] select-none will-change-transform"
     >
-      <div className="group relative h-full w-full overflow-hidden rounded-2xl bg-[#14231c] shadow-2xl shadow-black/80 ring-1 ring-white/15">
+      <div className="group relative h-full w-full overflow-hidden rounded-2xl bg-[#161816] shadow-2xl shadow-black/80 ring-1 ring-white/15">
         <Image
           src={card.item.src}
           alt={card.item.alt}
@@ -199,7 +199,7 @@ export function PerspectiveTunnel({
             {items.map((it) => (
               <figure
                 key={it.src}
-                className="relative aspect-[4/5] w-[70vw] max-w-[270px] shrink-0 snap-center overflow-hidden rounded-2xl bg-[#14231c] shadow-xl ring-1 ring-white/15 m-0"
+                className="relative aspect-[4/5] w-[70vw] max-w-[270px] shrink-0 snap-center overflow-hidden rounded-2xl bg-[#161816] shadow-xl ring-1 ring-white/15 m-0"
               >
                 <Image
                   src={it.src}
@@ -276,7 +276,7 @@ export function PerspectiveTunnel({
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute h-[48vmin] w-[48vmin] rounded-full border border-[#a9efc9]/15"
+          className="pointer-events-none absolute h-[48vmin] w-[48vmin] rounded-full border border-[#e6e3dc]/15"
         />
         <div
           aria-hidden

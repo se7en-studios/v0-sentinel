@@ -34,19 +34,19 @@ export default function CreditosPage() {
             {ITEMS.map(([slot, p]) => (
               <li key={slot} className="grid gap-1 py-5 sm:grid-cols-[1fr_auto] sm:gap-6">
                 <div className="min-w-0">
-                  <p className="font-medium text-[#e3f6dc]">{p.caption}</p>
+                  <p className="font-medium text-[#ece9e2]">{p.caption}</p>
                   <p className="mt-1 text-sm text-a-mute">{p.credit.author}</p>
                 </div>
                 <p className="text-sm text-a-mute sm:text-right">
                   {p.credit.licenseUrl ? (
-                    <a className="underline underline-offset-4 hover:text-[#e3f6dc]" href={p.credit.licenseUrl} rel="noopener noreferrer">
+                    <a className="underline underline-offset-4 hover:text-[#ece9e2]" href={p.credit.licenseUrl} rel="noopener noreferrer">
                       {p.credit.license}
                     </a>
                   ) : (
                     p.credit.license
                   )}
                   {" · "}
-                  <a className="underline underline-offset-4 hover:text-[#e3f6dc]" href={p.credit.source} rel="noopener noreferrer">
+                  <a className="underline underline-offset-4 hover:text-[#ece9e2]" href={p.credit.source} rel="noopener noreferrer">
                     fuente
                   </a>
                 </p>

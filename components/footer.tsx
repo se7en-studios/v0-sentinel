@@ -171,7 +171,7 @@ export function Footer() {
       paperImageCover
       sheetInk="#fff6ec"
       paper="#0b1f16"
-      paperInk="#e3f6dc"
+      paperInk="#ece9e2"
       fontSans="var(--font-geist), system-ui, sans-serif"
       height="100svh"
     />

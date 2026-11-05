@@ -84,8 +84,8 @@ const COPY: Copy<{
 };
 
 const field =
-  "h-12 w-full rounded-xl border border-a-line bg-a-bg px-4 text-base text-[#e3f6dc] placeholder:text-a-faint focus-visible:border-a-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent aria-[invalid=true]:border-[#ff9b8a]";
-const label = "mb-1.5 block text-[0.9375rem] font-medium text-[#e3f6dc]";
+  "h-12 w-full rounded-xl border border-a-line bg-a-bg px-4 text-base text-[#ece9e2] placeholder:text-a-faint focus-visible:border-a-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent aria-[invalid=true]:border-[#ff9b8a]";
+const label = "mb-1.5 block text-[0.9375rem] font-medium text-[#ece9e2]";
 
 function FieldError({ id, msg }: { id: string; msg?: string }) {
   return msg ? (

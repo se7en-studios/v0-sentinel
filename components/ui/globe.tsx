@@ -34,7 +34,7 @@ export function Globe({
   className?: string;
   config?: COBEOptions;
 }) {
-  const phiRef = useRef(0);
+  const phiRef = useRef(config.phi);
   const widthRef = useRef(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pointerInteracting = useRef<number | null>(null);
@@ -72,9 +72,10 @@ export function Globe({
       height: widthRef.current * 2,
     });
 
-    let animationFrame: number;
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let animationFrame = 0;
     const animate = () => {
-      if (pointerInteracting.current === null) phiRef.current += 0.005;
+      if (!still && pointerInteracting.current === null) phiRef.current += 0.003;
       globe.update({
         phi: phiRef.current + rRef.current,
         width: widthRef.current * 2,
@@ -82,12 +83,19 @@ export function Globe({
       });
       animationFrame = requestAnimationFrame(animate);
     };
-    animate();
+    // ponytail: no se anima fuera de pantalla ni con la pestaña oculta (antes giraba siempre y robaba GPU al scrollear).
+    const io = new IntersectionObserver(([e]) => {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = 0;
+      if (e.isIntersecting && !document.hidden) animate();
+    });
+    io.observe(canvasRef.current!);
 
     setTimeout(() => {
       if (canvasRef.current) canvasRef.current.style.opacity = "1";
     });
     return () => {
+      io.disconnect();
       cancelAnimationFrame(animationFrame);
       globe.destroy();
       window.removeEventListener("resize", onResize);

@@ -46,7 +46,7 @@ const LANG_OPTIONS: { lang: Lang; label: string }[] = [
 
 const FOCUSABLE = "a[href], button:not([disabled])";
 const RING =
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a9efc9]";
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e6e3dc]";
 
 // Selector de idioma (solo en la home, que es la única página con versión en inglés).
 function LangSwitch({
@@ -70,8 +70,8 @@ function LangSwitch({
           hrefLang={o.lang}
           aria-current={o.lang === lang ? "true" : undefined}
           onClick={onNavigate}
-          className={`rounded-sm text-[0.8125rem] font-medium tracking-wide transition-colors hover:text-[#e3f6dc] ${
-            o.lang === lang ? "text-[#e3f6dc]" : "text-a-mute"
+          className={`rounded-sm text-[0.8125rem] font-medium tracking-wide transition-colors hover:text-[#ece9e2] ${
+            o.lang === lang ? "text-[#ece9e2]" : "text-a-mute"
           } ${mobile ? "grid min-h-11 min-w-11 place-items-center px-2 text-base" : "px-1 py-1"} ${RING}`}
         >
           {o.label}
@@ -181,7 +181,7 @@ export function Navbar() {
       <nav
         ref={navRef}
         aria-label={c.nav}
-        className={`fixed inset-x-0 top-0 z-50 font-[family-name:var(--font-geist)] text-[#e3f6dc] transition-[background-color,transform] duration-300 ${isHidden && !isOpen ? "-translate-y-full" : ""} ${barBg}`}
+        className={`fixed inset-x-0 top-0 z-50 font-[family-name:var(--font-geist)] text-[#ece9e2] transition-[background-color,transform] duration-300 ${isHidden && !isOpen ? "-translate-y-full" : ""} ${barBg}`}
       >
         {!isOpen && (
           <>
@@ -207,7 +207,7 @@ export function Navbar() {
                 <a
                   href={`${prefix}#${l.id}`}
                   {...current(l.id)}
-                  className={`a-linkline rounded-sm py-1 text-[0.9375rem] text-a-mute transition-colors hover:text-[#e3f6dc] aria-[current]:text-[#e3f6dc] aria-[current]:[background-size:100%_1px] ${RING}`}
+                  className={`a-linkline rounded-sm py-1 text-[0.9375rem] text-a-mute transition-colors hover:text-[#ece9e2] aria-[current]:text-[#ece9e2] aria-[current]:[background-size:100%_1px] ${RING}`}
                 >
                   {l.label}
                 </a>
@@ -219,7 +219,7 @@ export function Navbar() {
             {isHome && <LangSwitch lang={lang} label={c.langs} />}
             <a
               href="/demo"
-              className={`whitespace-nowrap rounded-sm text-[0.9375rem] text-a-mute transition-colors hover:text-[#e3f6dc] ${RING}`}
+              className={`whitespace-nowrap rounded-sm text-[0.9375rem] text-a-mute transition-colors hover:text-[#ece9e2] ${RING}`}
             >
               {c.panel}
             </a>

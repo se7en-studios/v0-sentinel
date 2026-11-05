@@ -136,7 +136,7 @@ const RISK_ON_DARK: Record<RiskLabel, string> = {
 };
 
 const link =
-  "underline underline-offset-2 hover:text-[#e3f6dc] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent";
+  "underline underline-offset-2 hover:text-[#ece9e2] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-a-accent";
 
 // Las noticias salen de la home (quedaban flojas); components/wildfire-news.tsx sigue disponible.
 export async function LiveChapter() {
@@ -179,7 +179,7 @@ export async function LiveChapter() {
       <div className="mx-auto max-w-[1280px]">
         <h2
           id="live-title"
-          className="a-rise mx-auto max-w-3xl text-center font-[family-name:var(--font-display)] text-[clamp(1.5rem,3vw,2.25rem)] font-normal leading-[1.15] text-[#e3f6dc]"
+          className="a-rise mx-auto max-w-3xl text-center font-[family-name:var(--font-display)] text-[clamp(1.5rem,3vw,2.25rem)] font-normal leading-[1.15] text-[#ece9e2]"
         >
           {count > 0 ? (
             <>
@@ -191,7 +191,7 @@ export async function LiveChapter() {
                 {c.eyebrow}
               </span>
               <span
-                className="a-display-m mb-5 block bg-gradient-to-b from-white via-[#e9f7dc] to-[#ffb27a] bg-clip-text tabular-nums text-transparent [text-shadow:none]"
+                className="a-display-m mb-5 block bg-gradient-to-r from-[#ffb35c] via-[#ff8a3d] to-[#e8501f] bg-clip-text tabular-nums text-transparent [text-shadow:none]"
                 style={{
                   fontSize: "clamp(6rem, 20vw, 13rem)",
                   lineHeight: 0.86,
@@ -248,7 +248,7 @@ export async function LiveChapter() {
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
             <h3
               id="live-riesgo"
-              className="font-[family-name:var(--font-display)] text-[clamp(1.5rem,2.6vw,2rem)] text-[#e3f6dc]"
+              className="font-[family-name:var(--font-display)] text-[clamp(1.5rem,2.6vw,2rem)] text-[#ece9e2]"
             >
               {c.riskTitle}
             </h3>
@@ -275,7 +275,7 @@ export async function LiveChapter() {
                   <tr key={r.location.name} className="border-t border-a-line">
                     <th
                       scope="row"
-                      className="py-3 pr-3 text-left font-medium text-[#e3f6dc]"
+                      className="py-3 pr-3 text-left font-medium text-[#ece9e2]"
                     >
                       <span>{r.location.name}</span>
                       <span className="block text-xs font-normal text-a-mute tabular-nums sm:hidden">
@@ -302,7 +302,7 @@ export async function LiveChapter() {
             </p>
           )}
 
-          <p className="mt-10 text-center tabular-nums text-[#e3f6dc]">
+          <p className="mt-10 text-center tabular-nums text-[#ece9e2]">
             <span className="font-[family-name:var(--font-display)] text-4xl">
               {fires ? nf(count) : "—"}
             </span>{" "}

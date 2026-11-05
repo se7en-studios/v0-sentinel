@@ -59,11 +59,11 @@ export function SectionRail() {
                   i === active
                     ? "scale-125 border-[#ffb27a] bg-[#ff7a45] shadow-[0_0_14px_3px_rgba(255,122,69,0.75)]"
                     : i < active
-                      ? "border-[#a9efc9]/60 bg-[#a9efc9]/50"
-                      : "border-white/30 bg-[#0c1310]"
+                      ? "border-[#e6e3dc]/60 bg-[#e6e3dc]/50"
+                      : "border-white/30 bg-[#0e0f0e]"
                 }`}
               />
-              <span className="whitespace-nowrap rounded-full bg-black/60 px-2.5 py-1 font-mono text-[0.6875rem] uppercase tracking-[0.12em] text-[#e3f6dc] opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+              <span className="whitespace-nowrap rounded-full bg-black/60 px-2.5 py-1 font-mono text-[0.6875rem] uppercase tracking-[0.12em] text-[#ece9e2] opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
                 {s.label}
               </span>
             </a>
