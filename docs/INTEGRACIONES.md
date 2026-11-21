@@ -84,6 +84,21 @@ Las tarjetas de terreno (incidente, zona) y la lista de focos de la pestaña Gen
 
 La pestaña Pronóstico pide, además del pronóstico de siempre, los 51 escenarios del ECMWF (Open-Meteo, gratis y sin clave) y calcula el FWI en cada uno partiendo de la sequedad observada (`lib/admin/ensemble.ts`). Muestra la chance de peligro muy alto o extremo (FWI 20 o más) y el rango probable (percentiles 10 a 90). Si el ensamble no responde, el pronóstico se ve igual que antes.
 
+## Umbrales del FWI por zona (probado y descartado)
+
+Se probó reemplazar las clases canadienses fijas (5, 10, 20, 30) por percentiles del clima de cada zona, como los umbrales de lluvia del observatorio de inundaciones: bajo por debajo del percentil 50, moderado hasta el 75, alto hasta el 90, muy alto hasta el 97 y extremo desde ahí. Hubo dos variantes: percentiles de todo el año y de la misma época (±1 mes). Las dos tenían un piso absoluto, para que en el campo de hielo una tarde seca no saliera "extremo". El clima viene de ERA5 2019-2024 en celdas de 2° (`scripts/build-fwi-climate.mjs` → `data/fwi-climate-ar.json`) y la prueba se hizo con 2025, fuera de ese período.
+
+**Resultado: no mejora, así que el panel sigue con las clases canadienses.** Se midió con inicios de fuego (no con focos: un incendio largo sumaría decenas de "días con fuego"):
+
+| Región | Canadienses | Percentiles del año | Percentiles de la época |
+|---|---|---|---|
+| Patagonia, ene-feb 2025 | AUC 0,60 (9,4 veces más inicios en muy alto o extremo que en bajo) | 0,46 | 0,49 |
+| Centro (Córdoba, San Luis), ago-oct 2025 | 0,48 | 0,48 | 0,49 |
+
+En Patagonia en verano lo que separa los días con inicios es la sequedad absoluta (pasar de FWI ~10), no qué tan raro es el día para esa zona. En el centro ningún criterio distingue: hubo inicios en un cuarto de las celdas-día con cualquier tiempo, probablemente quemas agrícolas y de pastizal. Detalle en `docs/verificacion-fwi-patagonia.md` y `docs/verificacion-fwi-centro.md`.
+
+Qué probar después, si hace falta: separar las quemas agrícolas (cobertura de cultivo o pastizal, focos chicos) antes de medir, y combinar el FWI con el combustible (WorldCover), que es lo que la estepa no tiene.
+
 ## Verificación del FWI
 
 `node --env-file=.env.local scripts/verify-fwi.mjs W,S,E,N INICIO DÍAS etiqueta` compara el FWI (con el tiempo observado de ERA5) con los focos VIIRS de cada celda de 1° y día, y deja la tabla en `docs/verificacion-fwi-<etiqueta>.md`.
