@@ -1,4 +1,5 @@
 import type { OpsState } from "./resources";
+import type { PeopleNear } from "./population";
 import type { EarlyDetection } from "./early";
 import type { Locale } from "./i18n";
 import type { AckMap } from "./alert-ack";
@@ -149,6 +150,8 @@ export interface FireCluster {
   frp: number;
   near: string;
   km: number;
+  /** people living within 5 and 10 km (WorldPop grid); absent when the grid could not be read */
+  people?: PeopleNear;
 }
 
 export interface FiresPayload {

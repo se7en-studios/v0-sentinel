@@ -19,6 +19,7 @@ import { isAcked, zoneKey } from "@/lib/admin/alert-ack";
 import { NOTE_TEXT_MAX } from "@/lib/admin/store";
 import { alertLinks, mapsLink } from "@/lib/admin/report";
 import { centerOf } from "@/lib/admin/geo";
+import { roundPeople } from "@/lib/admin/population";
 import { riskLabel, type MsgKey } from "@/lib/admin/i18n";
 import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
 import type { Confidence } from "@/lib/admin/types";
@@ -222,6 +223,8 @@ function AnalysisTab({ ctx }: { ctx: Ctx }) {
                   </span>
                   <span className="num text-[10.5px] text-foreground/50">
                     {t("gen.clusterStats", { n: c.count, mw: c.frp.toLocaleString(loc) })}
+                    {c.people && c.people.km5 >= 50 &&
+                      ` · ${t("gen.clusterPeople", { p: roundPeople(c.people.km5).toLocaleString(loc) })}`}
                   </span>
                 </span>
                 <MapPin className="size-3.5 text-foreground/30" aria-hidden />

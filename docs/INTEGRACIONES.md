@@ -64,7 +64,44 @@ Configuración > Avisos > "Avisos por correo y WhatsApp". Cuando una **regla de 
 - **Cuándo y cuánto** (`lib/admin/alert-delivery.ts`): empieza **apagado**. Máximo un mensaje por regla cada 15 min, 1 h, 6 h o 24 h (por defecto 1 h) y un tope diario entre todas las reglas (por defecto 10, máximo 50). Solo cuenta lo que el proveedor aceptó. Si un límite frena un mensaje, el panel lo dice (un solo aviso en pantalla, sin apilar).
 - **Quién lo recibe**: el correo y el WhatsApp cargados en "Notificaciones". Se envían solo si el servidor los acepta: **deben figurar en `NOTIFY_EMAIL_TO` / `NOTIFY_WHATSAPP_TO`** (lista permitida; evita que una sesión robada o un dato mal escrito mande mensajes a desconocidos). "Revisar si está listo" hace una simulación (`dryRun`) y dice, por canal, si está listo, si falta configurar el servidor o si el dato no está en la lista.
 - **Qué cargar** (la tarjeta lo lista cuando falta): correo `RESEND_API_KEY`, `NOTIFY_EMAIL_FROM`, `NOTIFY_EMAIL_TO`; WhatsApp `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_TEMPLATE_NAME` (con la plantilla aprobada por Meta, un solo parámetro `{{1}}`) y `NOTIFY_WHATSAPP_TO`.
-- **Límite conocido:** el mensaje sale **mientras el panel está abierto en algún navegador** (la regla se evalúa ahí). Los límites se guardan por navegador: dos navegadores abiertos a la vez llevan cuentas separadas. Para que salgan con el panel cerrado hace falta un evaluador en el servidor, que necesita leer los espacios de trabajo de cada organización (credencial de Firebase Admin y el modelo multi-organización de la Fase 3).
+- **Límite conocido:** el mensaje sale **mientras el panel está abierto en algún navegador** (la regla se evalúa ahí). Los límites se guardan por navegador: dos navegadores abiertos a la vez llevan cuentas separadas. Para que salgan con el panel cerrado hace falta un evaluador en el servidor, que necesita leer los espacios de trabajo de cada organización (credencial de Firebase Admin y el modelo multi-organización de la Fase 3). Mientras tanto, el **vigía del servidor** (abajo) avisa de focos nuevos cerca de población con el panel cerrado, aunque no evalúa las reglas de cada organización.
+
+## Vigía del servidor: `GET /api/cron/watch`
+
+Avisa de **focos nuevos cerca de población** sin ningún panel abierto. Lo llama cada 3 h `.github/workflows/vigia.yml` (mismo enfoque que el observatorio de inundaciones: tareas programadas en GitHub Actions, sin depender del plan de Vercel).
+
+- **Qué revisa** (`lib/server/watch.ts`): focos VIIRS del último día en Argentina, de confianza nominal o alta y adquiridos en la ventana (`WATCH_WINDOW_MIN`, por defecto 180 min, igual a la frecuencia del workflow). Descarta el calor industrial o fijo (el mismo clasificador del panel, con 5 días de historia) y lo que cae sobre suelo urbano; los humedales sí cuentan (islas del Delta). Los agrupa (3 km, un solo foco alcanza) y se queda con los que tienen al menos `WATCH_MIN_PEOPLE` personas (por defecto 1000) a menos de 10 km.
+- **Qué manda:** un solo aviso con hasta 5 lugares (distancia y localidad, detecciones, personas a 5 y 10 km, coordenadas) por los mismos canales y la misma lista permitida de `POST /api/admin/notify`. Crítico si algún foco tiene 10.000 personas o más a 5 km.
+- **Acceso:** `Authorization: Bearer <CRON_SECRET>`. Sin `CRON_SECRET` responde 503. `?dryRun=1` arma el mensaje y revisa los canales sin enviar.
+- **Configurar:** en Vercel, `CRON_SECRET` (valor largo al azar) y opcional `WATCH_LINK` (`https://` al panel), `WATCH_WINDOW_MIN`, `WATCH_MIN_PEOPLE`. En GitHub (Settings > Secrets and variables > Actions): el secreto `CRON_SECRET` con el mismo valor y la variable `WATCH_URL` (`https://<dominio>/api/cron/watch`). Sin ellos el workflow termina sin hacer nada. Para probar: Actions > "Vigía de focos" > Run workflow (por defecto solo simula).
+- **Límite conocido:** no guarda lo que ya avisó. Un foco que llega a FIRMS más de 3 h después de la pasada del satélite no se avisa, y correr el workflow más seguido que la ventana repetiría avisos. Para ampliar la ventana sin repetir hace falta guardar lo enviado (Firestore o KV).
+
+## Población expuesta
+
+Las tarjetas de terreno (incidente, zona) y la lista de focos de la pestaña General muestran cuánta gente vive a menos de 5 y 10 km. Sale de `data/static/population-ar/` (WorldPop 2020, 1 km, ajustado a ONU, CC BY 4.0, sumado a celdas de ~2,8 km; 45,2 millones en total), armado con `node scripts/fetch-population.mjs`. Lo calculan `/api/admin/terrain`, `/api/admin/fires` y el vigía; en el navegador no se descarga nada nuevo. Es una estimación de grilla, no el censo: se muestra redondeada. Mejora posible: Censo 2022 del INDEC por radio censal.
+
+## Pronóstico por ensamble
+
+La pestaña Pronóstico pide, además del pronóstico de siempre, los 51 escenarios del ECMWF (Open-Meteo, gratis y sin clave) y calcula el FWI en cada uno partiendo de la sequedad observada (`lib/admin/ensemble.ts`). Muestra la chance de peligro muy alto o extremo (FWI 20 o más) y el rango probable (percentiles 10 a 90). Si el ensamble no responde, el pronóstico se ve igual que antes.
+
+## Umbrales del FWI por zona (probado y descartado)
+
+Se probó reemplazar las clases canadienses fijas (5, 10, 20, 30) por percentiles del clima de cada zona, como los umbrales de lluvia del observatorio de inundaciones: bajo por debajo del percentil 50, moderado hasta el 75, alto hasta el 90, muy alto hasta el 97 y extremo desde ahí. Hubo dos variantes: percentiles de todo el año y de la misma época (±1 mes). Las dos tenían un piso absoluto, para que en el campo de hielo una tarde seca no saliera "extremo". El clima viene de ERA5 2019-2024 en celdas de 2° (`scripts/build-fwi-climate.mjs` → `data/fwi-climate-ar.json`) y la prueba se hizo con 2025, fuera de ese período.
+
+**Resultado: no mejora, así que el panel sigue con las clases canadienses.** Se midió con inicios de fuego (no con focos: un incendio largo sumaría decenas de "días con fuego"):
+
+| Región | Canadienses | Percentiles del año | Percentiles de la época |
+|---|---|---|---|
+| Patagonia, ene-feb 2025 | AUC 0,60 (9,4 veces más inicios en muy alto o extremo que en bajo) | 0,46 | 0,49 |
+| Centro (Córdoba, San Luis), ago-oct 2025 | 0,48 | 0,48 | 0,49 |
+
+En Patagonia en verano lo que separa los días con inicios es la sequedad absoluta (pasar de FWI ~10), no qué tan raro es el día para esa zona. En el centro ningún criterio distingue: hubo inicios en un cuarto de las celdas-día con cualquier tiempo, probablemente quemas agrícolas y de pastizal. Detalle en `docs/verificacion-fwi-patagonia.md` y `docs/verificacion-fwi-centro.md`.
+
+Qué probar después, si hace falta: separar las quemas agrícolas (cobertura de cultivo o pastizal, focos chicos) antes de medir, y combinar el FWI con el combustible (WorldCover), que es lo que la estepa no tiene.
+
+## Verificación del FWI
+
+`node --env-file=.env.local scripts/verify-fwi.mjs W,S,E,N INICIO DÍAS etiqueta` compara el FWI (con el tiempo observado de ERA5) con los focos VIIRS de cada celda de 1° y día, y deja la tabla en `docs/verificacion-fwi-<etiqueta>.md`.
 
 ## Reporte semanal en PDF
 

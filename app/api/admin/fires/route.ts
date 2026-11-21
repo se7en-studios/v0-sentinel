@@ -19,6 +19,7 @@ import { guardAdmin } from "@/lib/server/admin-guard";
 import { createLimiter } from "@/lib/server/rate-limit";
 import { AR_BBOX, inArgentina } from "@/lib/server/argentina";
 import { fetchInpePolar } from "@/lib/server/inpe-fires";
+import { peopleAround } from "@/lib/server/static-data";
 
 // Vercel function ceiling: slow upstreams must not be cut at the 10 s default
 // FIRMS (12 s) plus the INPE backup (15 s) must fit inside this, or the backup never answers
@@ -70,7 +71,10 @@ function buildPayload(
     clusters: clusterDetections(
       points.filter((p) => p[3] > 0),
       { limit: MAX_CLUSTERS },
-    ),
+    ).map((c) => {
+      const people = peopleAround(c.lat, c.lng);
+      return people ? { ...c, people } : c;
+    }),
     // latency instrumentation: when the server pulled the feed and how fresh the newest detection was
     fetchedAt,
     ...(newestAt > 0 && { newestDetectionAt: newestAt }),

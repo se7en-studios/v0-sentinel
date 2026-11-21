@@ -3,6 +3,7 @@ import { guardAdmin } from "@/lib/server/admin-guard";
 import { createLimiter } from "@/lib/server/rate-limit";
 import { readTerrain } from "@/lib/server/terrain";
 import { inArgentina } from "@/lib/server/terrain-batch";
+import { peopleAround } from "@/lib/server/static-data";
 
 // Vercel function ceiling: slow upstreams must not be cut at the 10 s default
 export const maxDuration = 30;
@@ -37,7 +38,8 @@ export async function GET(req: Request) {
     ]);
     // an empty answer is usually a tile outage: do not let the browser pin it for a day
     const empty = info.landCover === null && info.elevation === null;
-    return NextResponse.json(info, {
+    const people = peopleAround(lat, lng);
+    return NextResponse.json(people ? { ...info, people } : info, {
       headers: {
         "Cache-Control": empty
           ? "private, max-age=60"
