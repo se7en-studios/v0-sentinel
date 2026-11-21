@@ -17,6 +17,9 @@ const ok = () =>
   Promise.resolve({ ok: true, json: () => Promise.resolve({ daily }) });
 
 let lat = 0;
+/** calls to the deterministic forecast (the ensemble request runs alongside it) */
+const mainCalls = (f: ReturnType<typeof vi.fn>) =>
+  f.mock.calls.filter((c) => !String(c[0]).includes("ensemble")).length;
 // each test uses a distinct rounded key so the module-level cache does not leak between them
 const nextLat = () => (lat += 3);
 
@@ -52,10 +55,10 @@ describe("fetchForecast", () => {
     await fetchForecast(la, 10);
     vi.advanceTimersByTime(29 * 60_000);
     await fetchForecast(la, 10);
-    expect(f).toHaveBeenCalledTimes(1);
+    expect(mainCalls(f)).toBe(1);
     vi.advanceTimersByTime(2 * 60_000);
     await fetchForecast(la, 10);
-    expect(f).toHaveBeenCalledTimes(2);
+    expect(mainCalls(f)).toBe(2);
   });
 
   test("HTTP error returns null and is remembered for one minute", async () => {
@@ -67,10 +70,10 @@ describe("fetchForecast", () => {
     expect(await fetchForecast(la, 10)).toBeNull();
     vi.advanceTimersByTime(30_000);
     expect(await fetchForecast(la, 10)).toBeNull();
-    expect(f).toHaveBeenCalledTimes(1);
+    expect(mainCalls(f)).toBe(1);
     vi.advanceTimersByTime(40_000);
     expect(await fetchForecast(la, 10)).toBeNull();
-    expect(f).toHaveBeenCalledTimes(2);
+    expect(mainCalls(f)).toBe(2);
   });
 
   test("network error returns null and recovers after the failure window", async () => {
@@ -83,7 +86,7 @@ describe("fetchForecast", () => {
     expect(await fetchForecast(la, 10)).toBeNull();
     vi.advanceTimersByTime(61_000);
     expect(await fetchForecast(la, 10)).toHaveLength(7);
-    expect(f).toHaveBeenCalledTimes(2);
+    expect(mainCalls(f)).toBe(2);
   });
 
   test("adds an FWI and its category to every day, and hot dry windy weather rates high", async () => {

@@ -1,0 +1,30 @@
+name: Vigía de focos cerca de población
+# Cada 3 h (coincide con WATCH_WINDOW_MIN=180) pide a /api/cron/watch que revise FIRMS y avise.
+# Requiere: secreto CRON_SECRET (el mismo valor que en Vercel) y variable WATCH_URL
+# (p. ej. https://<dominio>/api/cron/watch). Sin ellos el job termina sin hacer nada.
+on:
+  schedule:
+    - cron: "7 */3 * * *"
+  workflow_dispatch:
+    inputs:
+      dryRun:
+        description: "Solo simular (no envía nada)"
+        type: boolean
+        default: true
+
+jobs:
+  vigia:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Revisar focos
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          WATCH_URL: ${{ vars.WATCH_URL }}
+          DRY: ${{ inputs.dryRun && '?dryRun=1' || '' }}
+        run: |
+          if [ -z "$CRON_SECRET" ] || [ -z "$WATCH_URL" ]; then
+            echo "Falta CRON_SECRET o WATCH_URL: no se revisa."; exit 0
+          fi
+          curl -sS --fail-with-body --max-time 60 \
+            -H "Authorization: Bearer $CRON_SECRET" "$WATCH_URL$DRY"

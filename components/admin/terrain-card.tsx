@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { terrainLine, type TerrainInfo } from "@/lib/admin/terrain";
+import { roundPeople } from "@/lib/admin/population";
+import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
 import type { Ctx } from "./ctx";
 import { Badge, Card } from "./ui";
 
@@ -60,6 +62,16 @@ export function TerrainCard({
           {state.t.slopeDeg !== null && state.t.slopeDeg >= 15 && (
             <p className="mt-1 text-[11.5px] text-foreground/65">
               {t("terr.steep")}
+            </p>
+          )}
+          {state.t.people && (
+            <p className="mt-2 border-t border-[var(--hairline)] pt-2 text-[12px]" title={t("pop.note")}>
+              {state.t.people.km10 < 50
+                ? t("pop.empty")
+                : t("pop.near", {
+                    a: roundPeople(state.t.people.km5).toLocaleString(NUM_LOCALE[ctx.ws.settings.locale]),
+                    b: roundPeople(state.t.people.km10).toLocaleString(NUM_LOCALE[ctx.ws.settings.locale]),
+                  })}
             </p>
           )}
         </>

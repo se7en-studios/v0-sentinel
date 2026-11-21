@@ -323,6 +323,22 @@ export function ForecastView({ ctx }: { ctx: Ctx }) {
                   </span>
                 </div>
               )}
+              {day.odds && (
+                <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-t border-[var(--hairline)] pt-2 text-[12.5px]">
+                  <span className="text-foreground/65">{t("fc.odds")}</span>
+                  <span className="num font-semibold">
+                    {Math.round(day.odds.pDanger * 100)} %
+                  </span>
+                  <span className="text-[11px] text-foreground/50">
+                    {t("fc.oddsBody", {
+                      p: Math.round(day.odds.pDanger * 100),
+                      n: day.odds.members,
+                      lo: Math.round(day.odds.p10),
+                      hi: Math.round(day.odds.p90),
+                    })}
+                  </span>
+                </div>
+              )}
             </Card>
           )}
         </>

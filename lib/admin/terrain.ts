@@ -1,3 +1,4 @@
+import type { PeopleNear } from "./population";
 import { translate, type Locale, type MsgKey } from "./i18n";
 
 /** What the ground under a point looks like: fuel (land cover), elevation and slope. */
@@ -12,6 +13,8 @@ export interface TerrainInfo {
   /** compass direction the ground faces (steepest descent), 0 = north */
   aspectDeg: number | null;
   aspectLabel: string | null;
+  /** people living within 5 and 10 km, added by the API route (WorldPop grid) */
+  people?: PeopleNear;
 }
 
 /** ESA WorldCover v200 legend, in Spanish (the language the API answers in). */

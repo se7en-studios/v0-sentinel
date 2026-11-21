@@ -1,5 +1,6 @@
 import { riskScore } from "./sim";
-import { fwiDanger, fwiSeries, type FwiDanger, type FwiWeather } from "./fwi";
+import { FWI_START, fwiDanger, fwiSeries, type FwiDanger, type FwiWeather } from "./fwi";
+import { ensembleOdds, ensembleUrl, type EnsemblePayload, type FwiOdds } from "./ensemble";
 
 export interface DayForecast {
   date: string;
@@ -14,6 +15,8 @@ export interface DayForecast {
   /** Canadian Fire Weather Index for the day (approximate, see fwiWeatherAt); absent when it could not be computed */
   fwi?: number;
   fwiLabel?: FwiDanger;
+  /** spread of the FWI over the 51 ECMWF ensemble members; absent when the ensemble did not answer */
+  odds?: FwiOdds;
 }
 
 const FORECAST_DAYS = 7;
@@ -75,13 +78,20 @@ export async function fetchForecast(
   if (hit && Date.now() - hit.t < TTL_MS) return hit.v;
   let v: DayForecast[] | null = null;
   try {
-    const res = await fetch(
+    const main = fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(3)}&longitude=${lng.toFixed(3)}` +
         "&daily=temperature_2m_max,relative_humidity_2m_min,wind_speed_10m_max,wind_direction_10m_dominant,precipitation_sum" +
         "&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m" +
         `&past_days=${PAST_DAYS}&forecast_days=${FORECAST_DAYS}&timezone=auto`,
       { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) },
     );
+    // in parallel, and a bonus: an ensemble failure must never cost the deterministic outlook
+    const ens = fetch(ensembleUrl(lat, lng, FORECAST_DAYS), {
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    })
+      .then((r) => (r.ok ? (r.json() as Promise<EnsemblePayload>) : null))
+      .catch(() => null);
+    const res = await main;
     if (res.ok) {
       const j = (await res.json()) as OpenMeteoPayload;
       const d = j.daily;
@@ -92,6 +102,10 @@ export async function fetchForecast(
         d.time.map((date, i) => ({ date, weather: fwiWeatherAt(j, i) })),
         lat,
       );
+      // every member starts from the moisture the observed history left on the eve of day one
+      const eve = first > 0 ? fwis[first - 1].state : FWI_START;
+      const ensPayload = await ens;
+      const odds = ensPayload ? ensembleOdds(ensPayload, eve, lat) : new Map<string, FwiOdds>();
       v = [];
       for (let i = first; i < d.time.length; i++) {
         let rain7d = 0;
@@ -111,6 +125,7 @@ export async function fetchForecast(
           ...riskScore({ temp: tmax, rh: rhmin, wind, rain7d }),
           fwi,
           fwiLabel: fwiDanger(fwi),
+          ...(odds.has(d.time[i]) ? { odds: odds.get(d.time[i]) } : {}),
         });
       }
     }

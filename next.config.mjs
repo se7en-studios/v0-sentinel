@@ -56,7 +56,12 @@ const nextConfig = {
   // ANALYZE_MAPS=1 npx next build: sourcemaps para que scripts/analyze-bundle.mjs atribuya bytes por paquete.
   productionBrowserSourceMaps: process.env.ANALYZE_MAPS === "1",
   // /api/admin/live reads data/static/** from disk (country outline, land cover): ship it with the function.
-  outputFileTracingIncludes: { "/api/admin/live": ["./data/static/**/*"] },
+  outputFileTracingIncludes: {
+    "/api/admin/live": ["./data/static/**/*"],
+    "/api/admin/fires": ["./data/static/population-ar/*"],
+    "/api/admin/terrain": ["./data/static/population-ar/*"],
+    "/api/cron/watch": ["./data/static/population-ar/*", "./data/static/worldcover-ar/*"],
+  },
   // ponytail: default is webp-only; avif is smaller for photos (hero bg,
   // press/blog art) and next/image already falls back to webp/original
   // per browser support, so this is a free size win with no risk.
