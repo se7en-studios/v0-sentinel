@@ -11,6 +11,7 @@ const MAP_HOSTS = [
 ];
 const API_HOSTS = [
   "https://api.open-meteo.com", // forecast
+  "https://ensemble-api.open-meteo.com", // FWI odds (lib/admin/ensemble.ts)
   "https://nominatim.openstreetmap.org", // place search
   "https://*.googleapis.com", // Firebase Auth / Firestore / installations
   "https://va.vercel-scripts.com", // Vercel Analytics beacon (dev loads its script from here)
