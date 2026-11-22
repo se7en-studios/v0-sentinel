@@ -13,7 +13,8 @@ import type { MsgKey } from "@/lib/admin/i18n";
 import type { Ctx } from "./ctx";
 import { Badge, Btn, Card, ChartFrame } from "./ui";
 
-const W = 600;
+/** drawing width until the card is measured; then the real width, so nothing is stretched */
+const W0 = 600;
 const H = 180;
 const PAD = { l: 38, r: 8, t: 10, b: 22 };
 const TONE = {
@@ -39,6 +40,20 @@ function Chart({
   current: number[] | null;
   days: string[];
 }) {
+  // the svg used to stretch a 600-wide drawing to the card (preserveAspectRatio="none"): on a wide
+  // screen the axis text came out ~1.8x wider and the dots turned into ovals
+  const ref = useRef<SVGSVGElement>(null);
+  const [W, setW] = useState(W0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(([e]) => {
+      const w = Math.round(e?.contentRect.width ?? 0);
+      if (w > 0) setW(w);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const n = days.length;
   const top = Math.max(1, ...cmp.band.map((b) => b.max), ...(current ?? []));
   const x = (i: number) => PAD.l + (i * (W - PAD.l - PAD.r)) / (n - 1);
@@ -52,11 +67,7 @@ function Chart({
       ].join(" ")
     : "";
   return (
-    <svg
-      viewBox={`0 0 ${W} ${H}`}
-      className="h-full w-full"
-      preserveAspectRatio="none"
-    >
+    <svg ref={ref} viewBox={`0 0 ${W} ${H}`} className="h-full w-full" preserveAspectRatio="none">
       {[0, 0.5, 1].map((f) => (
         <g key={f}>
           <line
@@ -107,7 +118,8 @@ function Chart({
           key={i}
           x={x(i)}
           y={H - 6}
-          textAnchor="middle"
+          // the end labels lean inwards so the last date is not cut by the card edge
+          textAnchor={i === 0 ? "start" : i === n - 1 ? "end" : "middle"}
           fontSize="10"
           fill="var(--chart-axis)"
         >

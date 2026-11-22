@@ -57,8 +57,8 @@ export function useMapBootstrap({
       minZoom: 3,
       maxPitch: 80,
       renderWorldCopies: false,
-      // 0: the ambient pulse restyles every ~100 ms, which keeps a 200 ms label fade alive forever and
-      // the map repainted every frame (measured ~105 renders/s idle in software GL vs ~30 now)
+      // 0: the route dash (ambient.ts) restyles every ~110 ms while a route is drawn, which would keep a
+      // 200 ms label fade alive forever and the map repainted every frame
       fadeDuration: 0,
       attributionControl: false,
       style: buildStyle(p.baseLayer),
@@ -69,6 +69,11 @@ export function useMapBootstrap({
     map.addControl(
       new maplibregl.AttributionControl({ compact: true }),
       "bottom-right",
+    );
+    // compact mode still opens the credits until the first drag: on a phone that is two lines of
+    // text over the map. Start folded behind the "i" (one tap shows them, as the licences require).
+    map.once("load", () =>
+      map.getContainer().querySelector(".maplibregl-ctrl-attrib")?.classList.remove("maplibregl-compact-show"),
     );
     map.addControl(
       new maplibregl.ScaleControl({ unit: "metric", maxWidth: 110 }),

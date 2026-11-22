@@ -159,8 +159,9 @@ export function HomeBrief({ ctx }: { ctx: Ctx }) {
     >
       {items.length === 0 ? (
         <p className={cn(row, "text-foreground/70")}>
-          <span className="font-semibold text-foreground">{title}</span>{" "}
-          · {t("brief.none")}
+          <span className="min-w-0 truncate">
+            <span className="font-semibold text-foreground">{title}</span> · {t("brief.none")}
+          </span>
         </p>
       ) : (
         <button
@@ -169,8 +170,8 @@ export function HomeBrief({ ctx }: { ctx: Ctx }) {
           onClick={() => setOpen(!open)}
           className={cn(row, "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring")}
         >
-          <span className="font-semibold">{title}</span>
-          <span className="text-foreground/70">· {count}</span>
+          <span className="min-w-0 truncate font-semibold" title={title}>{title}</span>
+          <span className="shrink-0 whitespace-nowrap text-foreground/70">· {count}</span>
           <ChevronDown className={cn("ml-auto size-3.5 opacity-60 transition-transform", open && "rotate-180")} aria-hidden />
         </button>
       )}
