@@ -8,7 +8,8 @@ import { translate, type Translate } from "@/lib/admin/i18n";
 import { setUiLocale } from "@/lib/admin/ui-locale";
 import { useWorkspace } from "@/lib/admin/store";
 import { REGIONS } from "@/lib/admin/types";
-import type { Camera, Ctx, PanelSeg, Tab } from "./ctx";
+import type { Ctx, PanelSeg, Tab } from "./ctx";
+import { setCamera } from "./map/cursor-store";
 import type { MapHandle } from "./map-view";
 import { useClock } from "./hooks/use-clock";
 import { useFeatures } from "./hooks/use-features";
@@ -86,11 +87,6 @@ export function useAdmin(
     () => TABS.find((x) => x.id === initialTab)?.id ?? "general",
   );
   const [view, setView] = useState<"2d" | "3d">("2d");
-  const [camera, setCamera] = useState<Camera>({
-    bearing: 0,
-    pitch: 0,
-    zoom: 8,
-  });
   const [show, setShow] = useState({
     fires: true,
     early: true,
@@ -387,7 +383,6 @@ export function useAdmin(
     setOrbit,
     panelOpen,
     setPanelOpen,
-    camera,
     // handled (acknowledged or snoozed) zone alerts stop counting until something new happens
     alertCount:
       [...alertIds].filter(
@@ -582,7 +577,6 @@ export function useAdmin(
     setLive: ft.setLive,
     setCenter,
     setCamera,
-    camera,
     unitMarkers: sim.unitMarkers,
     setSettings,
     payload,

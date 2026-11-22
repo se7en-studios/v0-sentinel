@@ -15,13 +15,15 @@ const body = JSON.stringify({ updated: new Date().toISOString(), days, points, c
 const browser = await chromium.launch({ channel: "chrome", args: ["--disable-gpu"] });
 const ctx = await browser.newContext({ viewport: { width: 1440, height: 800 } });
 const page = await ctx.newPage();
+// skip the first-run dialog: it makes the rest of the page inert for the accessibility tree
+await page.addInitScript(() => localStorage.setItem("sentinel-admin-workspace-v1", JSON.stringify({ settings: { onboarded: true } })));
 await page.route("**/api/admin/fires*", (r) => r.fulfill({ contentType: "application/json", body }));
 await page.route("**/api/admin/early*", (r) => r.fulfill({ contentType: "application/json", body: JSON.stringify({ early: [], updated: "", sources: [] }) }));
 await page.route(/(open-meteo|openstreetmap|arcgisonline|cartocdn|eox\.at|earthdata|openfreemap|amazonaws)/, (r) => r.abort());
 await page.request.post(`${base}/api/admin/login`, { data: { password: "perf" } });
 const cdp = await ctx.newCDPSession(page);
 await page.goto(`${base}/admin`);
-await page.getByRole("navigation", { name: "Modos" }).waitFor();
+await page.getByRole("button", { name: /^(Vista general|General)$/ }).first().waitFor();
 const demo = page.getByRole("button", { name: "O probá con datos de ejemplo" });
 if (await demo.count()) await demo.click();
 await page.waitForTimeout(4000);

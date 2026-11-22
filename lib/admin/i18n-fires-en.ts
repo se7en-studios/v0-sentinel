@@ -203,7 +203,7 @@ export const enFires: Record<FiresKey, string> = {
 
   "trk.dock.fire": "Fire progress",
   "trk.dock.national": "Activity in Argentina",
-  "trk.dock.loading": "Loading the tracked fires…",
+  "trk.dock.loading": "Building the tracking of the country's fires. The first time it can take a few seconds.",
   "trk.dock.empty": "No fire data for now.",
   "trk.dock.all": "all fires",
   "trk.dock.forestOnly": "forest fires",

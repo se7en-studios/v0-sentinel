@@ -215,7 +215,7 @@ export const esFires = {
   // dock
   "trk.dock.fire": "Avance del incendio",
   "trk.dock.national": "Actividad en Argentina",
-  "trk.dock.loading": "Cargando los incendios seguidos…",
+  "trk.dock.loading": "Armando el seguimiento de los incendios del país. La primera vez puede tardar unos segundos.",
   "trk.dock.empty": "Sin datos de incendios por ahora.",
   "trk.dock.all": "todos los incendios",
   "trk.dock.forestOnly": "incendios forestales",

@@ -27,9 +27,8 @@ import { ConnectionBanner } from "./connection-banner";
 import { ViewBoundary } from "./view-boundary";
 import { useTracking } from "./incendios/use-tracking";
 import { IncendiosPanel } from "./incendios/incendios-panel";
-import { IncendiosDock } from "./incendios/incendios-dock";
-import { TrackingLayers } from "./incendios/tracking-layers";
 import { NUM_LOCALE } from "@/lib/admin/i18n-shell";
+import { setCursor } from "./map/cursor-store";
 
 export type { CloudSession };
 
@@ -42,6 +41,13 @@ const ForecastView = dynamic(() => import("./forecast-view").then((m) => m.Forec
 });
 const IncidentsView = dynamic(() => import("./incidents-view").then((m) => m.IncidentsView), {
   loading: () => <ViewSkeleton />,
+});
+
+// the Incendios tab pulls recharts (dock) and maplibre (tracking layers): a static import put
+// ~400 kB gzip on every first load of /admin, map or not
+const IncendiosDock = dynamic(() => import("./incendios/incendios-dock").then((m) => m.IncendiosDock));
+const TrackingLayers = dynamic(() => import("./incendios/tracking-layers").then((m) => m.TrackingLayers), {
+  ssr: false,
 });
 
 const MapView = dynamic(() => import("./map-view").then((m) => m.MapView), {
@@ -70,7 +76,6 @@ export function AdminApp({
   const fireTab = ctx.tab === "incendios";
   // loads the national feed only while the tab is open
   const tracking = useTracking(fireTab, NUM_LOCALE[ctx.ws.settings.locale]);
-  const [cursor, setCursorPos] = useState<[number, number] | null>(null);
 
   const { setShortcutsOpen } = a;
   useShortcuts({
@@ -179,7 +184,7 @@ export function AdminApp({
                   onEdited={a.onEdited}
                   onLive={a.setLive}
                   onCenter={a.setCenter}
-                  onCursor={setCursorPos}
+                  onCursor={setCursor}
                   onCamera={a.setCamera}
                   incidentAt={a.incidentAt}
                   onOpenIncident={a.openIncidentAt}
@@ -190,7 +195,7 @@ export function AdminApp({
                 />
                 </ViewBoundary>
               )}
-              <MapOverlays a={a} cursor={cursor} />
+              <MapOverlays a={a} />
               <TrackingLayers mapHandle={a.mapRef} t={tracking} active={fireTab && a.ready} tr={ctx.t} locale={ctx.ws.settings.locale} />
               {ctx.tab === "drones" && <DronePip ctx={ctx} />}
             </div>
