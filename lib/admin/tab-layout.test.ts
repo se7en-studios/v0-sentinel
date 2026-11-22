@@ -13,22 +13,22 @@ const base = {
 };
 
 describe("layoutTabs", () => {
-  it("shows everything, with no Más, when it all fits", () => {
+  it("shows the five bar tabs and keeps the rest under Más, even when everything would fit", () => {
     const r = layoutTabs(base);
-    expect(r.visible).toEqual(TABS.map((x) => x.id));
-    expect(r.hidden).toEqual([]);
+    expect(r.visible).toEqual(["general", "incendios", "zonas", "pronostico", "incidentes"]);
+    expect(r.hidden).toEqual(["drones", "recursos", "metricas", "config"]);
   });
 
   it("sends what does not fit to Más, in the original order", () => {
     const r = layoutTabs({ ...base, avail: 474 }); // 74 + 4 tabs
-    expect(r.visible).toEqual(["general", "incendios", "zonas", "drones"]);
-    expect(r.hidden).toEqual([
-      "recursos",
-      "pronostico",
-      "incidentes",
-      "metricas",
-      "config",
-    ]);
+    expect(r.visible).toEqual(["general", "incendios", "zonas", "pronostico"]);
+    expect(r.hidden).toEqual(["drones", "recursos", "incidentes", "metricas", "config"]);
+  });
+
+  it("puts an open Más tab next to the bar tabs when there is room", () => {
+    const r = layoutTabs({ ...base, active: "metricas" });
+    expect(r.visible).toEqual(["general", "incendios", "zonas", "pronostico", "incidentes", "metricas"]);
+    expect(r.hidden).toEqual(["drones", "recursos", "config"]);
   });
 
   it("keeps the active tab in the bar by trading with the last one", () => {

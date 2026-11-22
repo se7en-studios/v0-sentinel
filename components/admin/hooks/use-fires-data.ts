@@ -12,7 +12,8 @@ import { incidentContaining } from "@/lib/admin/map-popup";
 import { buildIncidents, recentGrowth } from "@/lib/admin/incident";
 import { nearestPlace } from "@/lib/admin/places";
 import { detectionHectares } from "@/lib/admin/history";
-import type { Feat, FireCluster, FiresPayload, Settings } from "@/lib/admin/types";
+import type { Feat, FireCluster, FirePoint, FiresPayload, Settings } from "@/lib/admin/types";
+import { keepUnchanged } from "@/lib/admin/fires-parse";
 import type { FireStats, HourPoint } from "../ctx";
 import type { CloudSession } from "../use-admin";
 import { ART_MS, artPerDay, pointTs } from "./fire-time";
@@ -36,6 +37,8 @@ const EMPTY_STATS: FireStats = {
   night: 0,
   day: 0,
 };
+
+const EMPTY_POINTS: FirePoint[] = [];
 
 /** Satellite payload: polling load, confidence/noise filters, stats and the hourly series. */
 export function useFiresData(
@@ -61,7 +64,7 @@ export function useFiresData(
       });
       if (!isFiresPayload(j)) throw new Error("Respuesta de focos inválida");
       if (seq !== loadSeq.current) return;
-      setPayload(j);
+      setPayload((prev) => keepUnchanged(prev, j));
       setFiresError(null);
     } catch (e) {
       if (seq !== loadSeq.current) return;
@@ -83,12 +86,12 @@ export function useFiresData(
   // a failed cycle used to wait for the next one (30 min): retry gently, and as soon as the network is back
   useRecover(load, firesError !== null);
 
+  // same arrays across refreshes that bring the same detections (keepUnchanged): memos below skip
+  const points = payload?.points ?? EMPTY_POINTS;
+  const days = payload?.days;
   const minConf = CONF_MIN[s.minConfidence];
   // industrial heat (fixed pixels, known sites) is scored apart so the user can see what was left out
-  const baseClassified = useMemo(
-    () => classifyPoints(payload?.points ?? []),
-    [payload],
-  );
+  const baseClassified = useMemo(() => classifyPoints(points), [points]);
   const keeps = useCallback(
     (p: FiresPayload["points"][number], i: number, c: typeof baseClassified) =>
       p[3] >= minConf &&
@@ -99,7 +102,7 @@ export function useFiresData(
   );
   // land cover is only looked up where it matters: incident centres and new detections in zones or incidents
   const coverTargets = useMemo(() => {
-    const pts = payload?.points ?? [];
+    const pts = points;
     const base = pts.filter((p, i) => keeps(p, i, baseClassified));
     const incidents = buildIncidents(base, COVER_INCIDENTS);
     const fresh = pts.filter((p, i) => baseClassified.fresh[i] && keeps(p, i, baseClassified));
@@ -108,43 +111,41 @@ export function useFiresData(
       (p) => inZones.has(p) || incidentContaining(incidents, p[0], p[1]),
     );
     return coverCandidates(incidents, relevant);
-  }, [payload, baseClassified, keeps, zones]);
+  }, [points, baseClassified, keeps, zones]);
   const nonBurnable = useCover(cloud, coverTargets);
   const classified = useMemo(
-    () => applyCover(payload?.points ?? [], baseClassified, nonBurnable),
-    [payload, baseClassified, nonBurnable],
+    () => applyCover(points, baseClassified, nonBurnable),
+    [points, baseClassified, nonBurnable],
   );
   const fireInfo = useMemo(
-    () => fireInfoMap(payload?.points ?? [], classified),
-    [payload, classified],
+    () => fireInfoMap(points, classified),
+    [points, classified],
   );
   const noiseCount = useMemo(
     () =>
-      (payload?.points ?? []).filter(
-        (p, i) => p[3] >= minConf && classified.reason[i],
-      ).length,
-    [payload, classified, minConf],
+      points.filter((p, i) => p[3] >= minConf && classified.reason[i]).length,
+    [points, classified, minConf],
   );
   const allFires = useMemo(
     () =>
-      (payload?.points ?? []).filter((p, i) => keeps(p, i, classified)),
-    [payload, classified, keeps],
+      points.filter((p, i) => keeps(p, i, classified)),
+    [points, classified, keeps],
   );
   // what a GOES detection is checked against: nominal-or-better polar pixels, flagged when they look fixed
   const polarRefs = useMemo<PolarRef[]>(() => {
-    if (!payload) return [];
+    if (!days) return [];
     const out: PolarRef[] = [];
-    payload.points.forEach((p, i) => {
+    points.forEach((p, i) => {
       if (p[3] > 0 && (s.useModis || !isModis(p[7])))
         out.push({
           lat: p[0],
           lng: p[1],
-          at: pointTs(payload.days, p),
+          at: pointTs(days, p),
           noise: classified.reason[i] !== null,
         });
     });
     return out;
-  }, [payload, classified, s.useModis]);
+  }, [points, days, classified, s.useModis]);
 
   const stats = useMemo<FireStats>(() => {
     if (!payload) return EMPTY_STATS;

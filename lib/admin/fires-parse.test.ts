@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
-import { dropModisDuplicates, packPoints, parseFireRows } from "./fires-parse";
+import { describe, expect, it, test } from "vitest";
+import { dropModisDuplicates, keepUnchanged, packPoints, parseFireRows } from "./fires-parse";
+import type { FirePoint } from "./types";
 
 const VIIRS =
   "latitude,longitude,bright_ti4,scan,track,acq_date,acq_time,satellite,instrument,confidence,version,bright_ti5,frp,daynight\n" +
@@ -53,5 +54,42 @@ describe("packPoints", () => {
     expect(days).toEqual(["2026-10-21", "2026-10-22"]);
     expect(points[0]).toEqual([-29.4, -66.75, 2.01, 1, 1, 627, 0, 0]);
     expect(newestAt).toBe(Date.parse("2026-10-22T06:27:00Z"));
+  });
+});
+
+describe("keepUnchanged", () => {
+  const base = {
+    updated: "2026-11-21T10:00:00Z",
+    days: ["2026-11-20", "2026-11-21"],
+    points: [
+      [-41.1, -71.3, 12, 2, 1, 1400, 0, 1],
+      [-42.0, -71.9, 5, 1, 0, 300, 1, 1],
+    ] as FirePoint[],
+    clusters: [],
+  };
+  const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
+
+  test("a refresh with the same detections keeps the old arrays and takes the new metadata", () => {
+    const next = { ...clone(base), updated: "2026-11-21T10:30:00Z", fetchedAt: 99 };
+    const out = keepUnchanged(base, next);
+    expect(out.points).toBe(base.points);
+    expect(out.days).toBe(base.days);
+    expect(out.updated).toBe("2026-11-21T10:30:00Z");
+    expect(out.fetchedAt).toBe(99);
+  });
+
+  test("any change in a detection or in the day list brings the new arrays", () => {
+    const moved = clone(base);
+    moved.points[1][2] = 6;
+    expect(keepUnchanged(base, moved).points).toBe(moved.points);
+    const added = clone(base);
+    added.points.push([-40, -70, 1, 1, 1, 100, 0, 1]);
+    expect(keepUnchanged(base, added).points).toBe(added.points);
+    const newDay = { ...clone(base), days: ["2026-11-21", "2026-11-22"] };
+    expect(keepUnchanged(base, newDay).days).toBe(newDay.days);
+  });
+
+  test("the first load is taken as is", () => {
+    expect(keepUnchanged(null, base)).toBe(base);
   });
 });

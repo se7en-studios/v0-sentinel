@@ -1,5 +1,5 @@
 import { satCode } from "./fire-sources";
-import type { FirePoint } from "./types";
+import type { FirePoint, FiresPayload } from "./types";
 
 /** One detection from a FIRMS CSV, before it is packed into a FirePoint. */
 export interface FireRow {
@@ -127,4 +127,24 @@ export function packPoints(rows: FireRow[]): {
     return p;
   });
   return { days, points, newestAt };
+}
+
+/**
+ * The new payload, but keeping the previous `points` and `days` arrays when their content did not
+ * change. A refresh usually brings the same detections (FIRMS updates a few times a day, the panel
+ * polls more often): keeping the arrays lets every memo downstream (noise classifier, incidents,
+ * map sources) skip its work instead of re-running it on identical data.
+ */
+export function keepUnchanged(prev: FiresPayload | null, next: FiresPayload): FiresPayload {
+  if (!prev) return next;
+  const sameDays =
+    prev.days.length === next.days.length && prev.days.every((d, i) => d === next.days[i]);
+  if (!sameDays || prev.points.length !== next.points.length) return next;
+  for (let i = 0; i < next.points.length; i++) {
+    const a = prev.points[i];
+    const b = next.points[i];
+    if (a.length !== b.length) return next;
+    for (let k = 0; k < a.length; k++) if (a[k] !== b[k]) return next;
+  }
+  return { ...next, points: prev.points, days: prev.days };
 }

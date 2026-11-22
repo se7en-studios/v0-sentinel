@@ -173,14 +173,20 @@ function Scrubber({ ctx }: { ctx: Ctx }) {
             style={{ left: `${at(m.t)}%` }}
           />
         ))}
-        {days.map((t) => (
+        {days.map((t, i) => (
           <div
             key={t}
             className="absolute top-1/2 -translate-x-1/2"
             style={{ left: `${at(t)}%` }}
           >
             <div className="h-2 w-px -translate-y-1/2 bg-foreground/25" />
-            <span className="num absolute left-1/2 top-3 -translate-x-1/2 whitespace-nowrap text-[9.5px] text-foreground/40">
+            {/* on a phone ten dates run into each other: label every other day, counted back from today */}
+            <span
+              className={cn(
+                "num absolute left-1/2 top-3 -translate-x-1/2 whitespace-nowrap text-[9.5px] text-foreground/40",
+                (days.length - 1 - i) % 2 === 1 && "max-sm:hidden",
+              )}
+            >
               {fmtDay(t, loc)}
             </span>
           </div>

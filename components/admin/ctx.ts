@@ -125,12 +125,6 @@ export interface FeedItem {
   sim?: boolean;
 }
 
-export interface Camera {
-  bearing: number;
-  pitch: number;
-  zoom: number;
-}
-
 export interface Ctx {
   ws: Workspace;
   setSettings: (p: Partial<Settings>) => void;
@@ -258,7 +252,6 @@ export interface Ctx {
   setOrbit: (v: boolean) => void;
   panelOpen: boolean;
   setPanelOpen: (v: boolean) => void;
-  camera: Camera;
   alertCount: number;
   ruleFirings: Map<string, string>;
   forecast: DayForecast[] | null;

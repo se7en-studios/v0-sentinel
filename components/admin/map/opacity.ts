@@ -13,6 +13,7 @@ export function applyOpacity(
   set("hill", "hillshade-exaggeration", Math.min(1, o.relief * (d3 ? 1.6 : 1)));
   set("tint", "color-relief-opacity", o.tint * (d3 ? 1 : 0.4));
   set("fires-heat", "heatmap-opacity", 0.78 * o.fires);
+  set("fires-glow", "circle-opacity", 0.42 * o.fires);
   set("fires-pt", "circle-opacity", 0.95 * o.fires);
   set("fires-cluster", "circle-opacity", 0.92 * o.fires);
   set("fires-cluster", "circle-stroke-opacity", o.fires);

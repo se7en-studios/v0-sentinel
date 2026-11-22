@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCamera, useCursor } from "./map/cursor-store";
 import {
   Box,
   Layers,
@@ -29,7 +30,7 @@ const glass =
 
 /** Compass: needle follows the bearing; click resets north. */
 function Compass({ a }: { a: A }) {
-  const { bearing, pitch } = a.ctx.camera;
+  const { bearing, pitch } = useCamera();
   const t = a.ctx.t;
   return (
     <button
@@ -198,7 +199,7 @@ function ViewCluster({ a }: { a: A }) {
     document.addEventListener("fullscreenchange", on);
     return () => document.removeEventListener("fullscreenchange", on);
   }, []);
-  const factor = Math.pow(2, ctx.camera.zoom - a.region.zoom);
+  const factor = Math.pow(2, useCamera().zoom - a.region.zoom);
   return (
     <div className={cn(glass, "flex items-center gap-0.5 p-1")}>
       {(["2d", "3d"] as const).map((v) => (
@@ -289,7 +290,8 @@ function fmtDeg(v: number, pos: string, neg: string) {
 
 /** Latitude / longitude ruler on the map edges (2D, north-up only). */
 function Ruler({ a }: { a: A }) {
-  const { camera, view } = a.ctx;
+  const { view } = a.ctx;
+  const camera = useCamera();
   const tr = a.ctx.t;
   const ticks = useMemo(() => {
     if (view !== "2d" || camera.pitch > 1 || Math.abs(camera.bearing) > 0.5)
@@ -344,13 +346,21 @@ function Ruler({ a }: { a: A }) {
   );
 }
 
-export function MapOverlays({
-  a,
-  cursor,
-}: {
-  a: A;
-  cursor: [number, number] | null;
-}) {
+/** Pointer coordinates; hidden until the pointer is over the map (a lone "—" read as a broken button). */
+function CursorReadout() {
+  const cursor = useCursor();
+  if (!cursor) return null;
+  return (
+    <div
+      className="mono rounded-md bg-card/80 px-2 py-1 text-[10px] text-foreground/60 backdrop-blur max-md:hidden"
+      aria-live="off"
+    >
+      {`${cursor[1].toFixed(4)}°, ${cursor[0].toFixed(4)}°`}
+    </div>
+  );
+}
+
+export function MapOverlays({ a }: { a: A }) {
   const { ctx } = a;
   const [measuring, setMeasuring] = useState(false);
   const getMap = useCallback(
@@ -416,12 +426,7 @@ export function MapOverlays({
 
       <div className="pointer-events-none absolute bottom-9 left-3 z-10 flex flex-col items-start gap-2 [&>*]:pointer-events-auto">
         {ctx.tab === "general" && <MapLegend ctx={ctx} />}
-        <div
-          className="mono rounded-md bg-card/80 px-2 py-1 text-[10px] text-foreground/60 backdrop-blur max-md:hidden"
-          aria-live="off"
-        >
-          {cursor ? `${cursor[1].toFixed(4)}°, ${cursor[0].toFixed(4)}°` : "—"}
-        </div>
+        <CursorReadout />
       </div>
       <div className="pointer-events-none absolute bottom-3 right-3 z-10 max-md:bottom-14 [&>*]:pointer-events-auto">
         <ViewCluster a={a} />

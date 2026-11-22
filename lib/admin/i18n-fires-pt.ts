@@ -203,7 +203,7 @@ export const ptFires: Record<FiresKey, string> = {
 
   "trk.dock.fire": "Avanço do incêndio",
   "trk.dock.national": "Atividade na Argentina",
-  "trk.dock.loading": "Carregando os incêndios acompanhados…",
+  "trk.dock.loading": "Montando o acompanhamento dos incêndios do país. Na primeira vez pode levar alguns segundos.",
   "trk.dock.empty": "Sem dados de incêndios por enquanto.",
   "trk.dock.all": "todos os incêndios",
   "trk.dock.forestOnly": "incêndios florestais",

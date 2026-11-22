@@ -1,10 +1,15 @@
 import type { Map as MLMap } from "maplibre-gl";
 import type { MutableRefObject } from "react";
 import { DASH_FRAMES } from "@/lib/admin/map-config";
+import { MODE_ROLE } from "@/lib/admin/types";
 import type { MapProps } from "./types";
 
 /**
- * Ambient motion: fire glow pulse + route flow dash, then the intro flyTo.
+ * Ambient motion: the route flow dash, then the intro flyTo.
+ * Every paint change forces a full map repaint, so the dash only runs while a drone route is drawn
+ * and shown: an idle map with no routes repaints nothing. The fire glow used to pulse here too; on a
+ * panel with thousands of detections that was ~10 full repaints a second of pure decoration, so the
+ * glow is now static (map-layers.ts, opacity.ts).
  * The caller skips it entirely under prefers-reduced-motion. Returns a cleanup.
  */
 export function startAmbient(
@@ -12,21 +17,13 @@ export function startAmbient(
   latest: MutableRefObject<MapProps>,
   region: MapProps["region"],
 ): () => void {
-  let last = 0;
-  let lastGlow = -1;
   let lastDash = -1;
   // touch devices are the ones that overheat: half the repaint rate there
-  const everyMs = window.matchMedia("(pointer: coarse)").matches ? 180 : 90;
+  const everyMs = window.matchMedia("(pointer: coarse)").matches ? 220 : 110;
   // a paint change starts MapLibre's default 300 ms transition: apply the small steps instantly
-  const instant = { duration: 0, delay: 0 };
-  for (const [layer, prop] of [
-    ["fires-glow", "circle-opacity-transition"],
-    ["route-flow", "line-dasharray-transition"],
-  ])
-    if (map.getLayer(layer))
-      // transition props are valid style-spec paint keys the typings leave out
-      map.setPaintProperty(layer, prop as never, instant as never);
-  let raf = 0;
+  if (map.getLayer("route-flow"))
+    // transition props are valid style-spec paint keys the typings leave out
+    map.setPaintProperty("route-flow", "line-dasharray-transition" as never, { duration: 0, delay: 0 } as never);
   // a map scrolled out of view keeps no animation alive
   let inView = true;
   const watcher =
@@ -36,35 +33,21 @@ export function startAmbient(
           inView = e?.isIntersecting ?? true;
         });
   watcher?.observe(map.getContainer());
-  const tick = (t: number) => {
-    raf = requestAnimationFrame(tick);
-    // each paint change forces a full map repaint: skip while hidden, off screen or while the map is already moving
-    if (document.hidden || !inView || t - last < everyMs || map.isMoving())
-      return;
-    last = t;
-    const s = (Math.sin(t / 650) + 1) / 2;
-    const glow = Math.round(s * 12) / 12;
-    const firesOn =
-      latest.current.show.fires && (latest.current.opacity?.fires ?? 1) > 0;
-    if (firesOn && glow !== lastGlow && map.getLayer("fires-glow")) {
-      lastGlow = glow;
-      map.setPaintProperty(
-        "fires-glow",
-        "circle-opacity",
-        (0.3 + 0.32 * glow) * (latest.current.opacity?.fires ?? 1),
-      );
-    }
-    const dash = Math.floor(t / 110) % DASH_FRAMES.length;
-    if (
-      dash !== lastDash &&
-      map.getLayer("route-flow") &&
-      latest.current.show.routes
-    ) {
-      lastDash = dash;
-      map.setPaintProperty("route-flow", "line-dasharray", DASH_FRAMES[dash]);
-    }
+  const hasRoutes = () =>
+    latest.current.show.routes &&
+    latest.current.features.some((f) => MODE_ROLE[String(f.properties.mode)] === "route");
+  // a timer, not a frame loop: an idle panel should not wake the CPU on every display frame (60-170/s)
+  // just to find there is nothing to animate; MapLibre schedules its own frame for each paint change
+  const tick = () => {
+    if (document.hidden || !inView || map.isMoving()) return;
+    if (!map.getLayer("route-flow") || !hasRoutes()) return;
+    const t = performance.now();
+    const dash = Math.floor(t / everyMs) % DASH_FRAMES.length;
+    if (dash === lastDash) return;
+    lastDash = dash;
+    map.setPaintProperty("route-flow", "line-dasharray", DASH_FRAMES[dash]);
   };
-  raf = requestAnimationFrame(tick);
+  const timer = setInterval(tick, everyMs);
   map.flyTo({
     center: region.center,
     zoom: region.zoom,
@@ -73,7 +56,7 @@ export function startAmbient(
     essential: false,
   });
   return () => {
-    cancelAnimationFrame(raf);
+    clearInterval(timer);
     watcher?.disconnect();
   };
 }
