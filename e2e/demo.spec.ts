@@ -84,7 +84,7 @@ test("recorre los 6 pasos con botones, teclado y clics sin llamar a la API", asy
   await title(page, 5);
   await expect(
     page.getByRole("link", { name: "Solicitar reunión" }),
-  ).toHaveAttribute("href", "https://linktr.ee/sentinelarg");
+  ).toHaveAttribute("href", "/#contacto");
   await expect(page.getByRole("button", { name: "Siguiente" })).toBeDisabled();
   await expect(page.getByText(SAMPLE)).toBeVisible();
 

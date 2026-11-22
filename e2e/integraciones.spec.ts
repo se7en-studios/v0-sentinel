@@ -110,7 +110,7 @@ test("probar avisos simula por defecto y no muestra datos personales", async ({
     page.getByRole("checkbox", { name: "Solo simular, no enviar" }),
   ).toBeChecked();
   await page.getByLabel("Título").fill("Prueba");
-  await page.getByLabel("Mensaje").fill("Mensaje de prueba");
+  await page.getByLabel("Mensaje", { exact: true }).fill("Mensaje de prueba");
   await page
     .getByRole("button", { name: "Probar avisos", exact: true })
     .click();
@@ -145,9 +145,9 @@ test("un envío real pide confirmación en la página y se manda una sola vez", 
   });
   await openCard(page);
   await page.getByLabel("Título").fill("Real");
-  await page.getByLabel("Mensaje").fill("Aviso real");
-  await page.getByRole("checkbox", { name: "Correo" }).uncheck();
-  await page.getByRole("checkbox", { name: "WhatsApp" }).uncheck();
+  await page.getByLabel("Mensaje", { exact: true }).fill("Aviso real");
+  await page.getByRole("checkbox", { name: "Correo", exact: true }).uncheck();
+  await page.getByRole("checkbox", { name: "WhatsApp", exact: true }).uncheck();
   await page
     .getByRole("checkbox", { name: "Solo simular, no enviar" })
     .uncheck();
@@ -175,9 +175,9 @@ test("sin título o sin canales no se llama al servidor", async ({ page }) => {
     page.getByText("Completá el título y el mensaje."),
   ).toBeVisible();
   await page.getByLabel("Título").fill("x");
-  await page.getByLabel("Mensaje").fill("y");
+  await page.getByLabel("Mensaje", { exact: true }).fill("y");
   for (const c of ["Webhook", "Correo", "WhatsApp"])
-    await page.getByRole("checkbox", { name: c }).uncheck();
+    await page.getByRole("checkbox", { name: c, exact: true }).uncheck();
   await page
     .getByRole("button", { name: "Probar avisos", exact: true })
     .click();

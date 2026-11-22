@@ -88,6 +88,14 @@ export function TabStrip({
   });
   const visible = visibleIds.map((id) => TABS.find((x) => x.id === id)!);
   const hidden = hiddenIds.map((id) => TABS.find((x) => x.id === id)!);
+  // a count on a tab inside "Más" must not vanish with it: the button carries the sum
+  const hiddenBadges = hidden.map((x) => badge(x.id)).filter((b): b is TabBadge => !!b && b.n > 0);
+  const moreBadge: TabBadge | null = hiddenBadges.length
+    ? {
+        n: hiddenBadges.reduce((s, b) => s + b.n, 0),
+        tone: hiddenBadges.some((b) => b.tone === "fire") ? "fire" : "ok",
+      }
+    : null;
 
   // a render helper, not a component: a component declared here is a new type on every render, so React
   // would remount every button each time (lost focus and hover, and a button that moves under a click)
@@ -138,6 +146,16 @@ export function TabStrip({
             className={`flex ${BTN} shrink-0 items-center gap-1 rounded-lg px-2.5 text-[12px] font-medium text-foreground/60 transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-foreground/[0.06] data-[state=open]:text-foreground`}
           >
             {t("tab.more")}{" "}
+            {moreBadge && (
+              <span
+                className={cn(
+                  "num grid min-w-4 place-items-center rounded-full px-1 text-[9.5px] font-bold leading-4 text-white",
+                  moreBadge.tone === "fire" ? "bg-[#d8402f]" : "bg-primary",
+                )}
+              >
+                {moreBadge.n}
+              </span>
+            )}
             <ChevronDown className="size-3 opacity-50" aria-hidden />
           </DropdownMenuTrigger>
           <DropdownMenuContent

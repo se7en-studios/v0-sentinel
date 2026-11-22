@@ -1,8 +1,8 @@
 import type { Tab } from "@/components/admin/ctx";
 
 export interface TabLayoutInput {
-  tabs: readonly { id: Tab; essential: boolean }[];
-  /** simple mode: only the essential tabs are candidates for the bar, the rest always sit under "Más" */
+  tabs: readonly { id: Tab; bar: boolean; essential: boolean }[];
+  /** simple mode: only the essential tabs are candidates for the bar (otherwise the `bar` ones); the rest always sit under "Más" */
   simple: boolean;
   /** how wide each tab wants to be, in px (gap included) */
   widths: Readonly<Record<string, number>>;
@@ -19,15 +19,12 @@ export function layoutTabs(i: TabLayoutInput): {
   hidden: Tab[];
 } {
   const ids = i.tabs.map((x) => x.id);
-  const primary = i.simple
-    ? i.tabs.filter((x) => x.essential).map((x) => x.id)
-    : ids;
-  const secondary = i.simple
-    ? i.tabs.filter((x) => !x.essential).map((x) => x.id)
-    : [];
+  const inBar = (x: TabLayoutInput["tabs"][number]) => (i.simple ? x.essential : x.bar);
+  const primary = i.tabs.filter(inBar).map((x) => x.id);
+  const secondary = i.tabs.filter((x) => !inBar(x)).map((x) => x.id);
   const w = (id: Tab) => i.widths[id] ?? 0;
 
-  if (!i.simple && primary.reduce((s, id) => s + w(id), 0) <= i.avail)
+  if (secondary.length === 0 && primary.reduce((s, id) => s + w(id), 0) <= i.avail)
     return { visible: primary, hidden: [] };
 
   let used = i.moreW;
@@ -43,7 +40,6 @@ export function layoutTabs(i: TabLayoutInput): {
 
   if (hidden.includes(i.active)) {
     if (
-      i.simple &&
       secondary.includes(i.active) &&
       used + w(i.active) <= i.avail
     ) {
@@ -56,7 +52,7 @@ export function layoutTabs(i: TabLayoutInput): {
       hidden = hidden.filter((id) => id !== i.active).concat(last);
     }
     hidden = hidden.filter((id) => !visible.includes(id));
-    hidden.sort((a, b) => ids.indexOf(a) - ids.indexOf(b));
   }
-  return { visible, hidden };
+  // the "Más" menu lists tabs in their usual order, whether they overflowed or were never in the bar
+  return { visible, hidden: [...hidden].sort((a, b) => ids.indexOf(a) - ids.indexOf(b)) };
 }

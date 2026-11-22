@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { riskLabel, type Translate } from "@/lib/admin/i18n";
 import type { Ctx } from "./ctx";
@@ -73,7 +74,11 @@ function Item({
   );
 }
 
-/** Always-visible summary under the top bar: risk today, how fresh the satellite data is, and what needs attention. */
+/**
+ * Always-visible summary under the top bar. On a normal day it shows three things (risk today, fires in
+ * 24 h, alerts); the rest (data age, satellite delay, early warning, industrial heat) only shows up when
+ * it is off, so a line that changes is a line worth reading. "Ver todo" opens all of it.
+ */
 export function StatusStrip({ ctx }: { ctx: Ctx }) {
   const {
     forecast,
@@ -113,6 +118,19 @@ export function StatusStrip({ ctx }: { ctx: Ctx }) {
     ...sources.filter((x) => x.id.startsWith("goes")).map((x) => x.newestAt ?? 0),
   );
   const goesMin = goesNewest > 0 ? Math.max(0, Math.round((now - goesNewest) / 60_000)) : null;
+  const [all, setAll] = useState(false);
+  const late = latencyMin !== null && latencyMin > LATENCY_WARN_MIN;
+  const earlyOpen = earlyPending.length > 0;
+  // something worth a line of its own even when folded
+  const showLast = all || stale || !payload;
+  const showDelay = latencyMin !== null && (all || late);
+  const showEarly = earlyFetchedAt > 0 && (all || earlyOpen);
+  const showIndustrial = noiseCount > 0 && all;
+  const folded =
+    !showLast ||
+    (latencyMin !== null && !showDelay) ||
+    (earlyFetchedAt > 0 && !showEarly) ||
+    (noiseCount > 0 && !showIndustrial);
 
   return (
     <ul
@@ -134,14 +152,16 @@ export function StatusStrip({ ctx }: { ctx: Ctx }) {
         goLabel={t("tab.pronostico")}
         value={today ? `${riskLabel(t, today.label)} · ${today.score}` : "—"}
       />
-      <Item
-        tone={!payload ? "idle" : stale ? "warn" : "ok"}
-        label={t("status.lastDetection")}
-        value={lastDetection > 0 ? ago(lastDetection, t) : t("status.noData")}
-      />
-      {latencyMin !== null && (
+      {showLast && (
         <Item
-          tone={latencyMin > LATENCY_WARN_MIN ? "warn" : "ok"}
+          tone={!payload ? "idle" : stale ? "warn" : "ok"}
+          label={t("status.lastDetection")}
+          value={lastDetection > 0 ? ago(lastDetection, t) : t("status.noData")}
+        />
+      )}
+      {showDelay && latencyMin !== null && (
+        <Item
+          tone={late ? "warn" : "ok"}
           label={t("status.delay")}
           go={() => {
             goTab("metricas");
@@ -151,9 +171,9 @@ export function StatusStrip({ ctx }: { ctx: Ctx }) {
           value={fmtMinutes(latencyMin)}
         />
       )}
-      {earlyFetchedAt > 0 && (
+      {showEarly && (
         <Item
-          tone={earlyPending.length > 0 ? "warn" : "ok"}
+          tone={earlyOpen ? "warn" : "ok"}
           label={t("status.early")}
           go={goAlerts}
           goLabel={t("status.goEarly")}
@@ -171,7 +191,7 @@ export function StatusStrip({ ctx }: { ctx: Ctx }) {
         label={t("status.fires24")}
         value={stats.last24.toLocaleString("es-AR")}
       />
-      {noiseCount > 0 && (
+      {showIndustrial && (
         <Item
           tone="idle"
           label={t("status.industrial")}
@@ -188,6 +208,18 @@ export function StatusStrip({ ctx }: { ctx: Ctx }) {
         goLabel={t("status.goAlerts")}
         value={attention > 0 ? String(attention) : t("status.none")}
       />
+      {(folded || all) && (
+        <li className="ml-auto shrink-0 pl-2">
+          <button
+            type="button"
+            onClick={() => setAll(!all)}
+            aria-expanded={all}
+            className="-mx-1 whitespace-nowrap rounded px-1 py-0.5 text-foreground/55 transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {t(all ? "status.less" : "status.more")} {all ? "‹" : "›"}
+          </button>
+        </li>
+      )}
     </ul>
   );
 }
